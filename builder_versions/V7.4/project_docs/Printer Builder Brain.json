@@ -1,0 +1,56 @@
+{
+  "project": "Printer Builder",
+  "version": "V7.3",
+  "state_model": {
+    "devices": [],
+    "connections": [],
+    "selected_board": "Octopus V1.1",
+    "active_mode": "Engineer"
+  },
+  "systems": {
+    "hardware_database": "json-based expandable device registry",
+    "graph_engine": "builds dependency + wiring relationships",
+    "svg_renderer": "visual board + connector system",
+    "diagnostics_engine": "validates machine integrity",
+    "jarvis_layer": "translates diagnostics into personality output"
+  },
+  "device_types": [
+    "controller_board",
+    "controller_computer",
+    "motor",
+    "sensor",
+    "heater",
+    "fan",
+    "pump",
+    "cooling_system",
+    "passive_component"
+  ],
+  "connector_model": {
+    "pins_supported": [
+      "power",
+      "ground",
+      "pwm",
+      "analog",
+      "digital",
+      "stepper_phase",
+      "spi",
+      "i2c",
+      "uart"
+    ]
+  },
+  "diagnostics_rules": {
+    "hotend_requires": [
+      "heater",
+      "thermistor",
+      "cooling_fan"
+    ]
+  },
+  "ui_modules": {
+    "device_selector": true,
+    "machine_list": true,
+    "svg_board_view": true,
+    "diagnostics_console": true,
+    "jarvis_console": true
+  },
+  "next_goal": "V7.3 interactive core with working SVG + real state system"
+}

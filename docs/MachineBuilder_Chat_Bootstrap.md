@@ -1,73 +1,27 @@
-Project: Machine Builder
+# Machine Builder – Chat Bootstrap
 
-Purpose:
-Visual hardware configuration tool for building machines such as 3D printers, CNC routers, laser engravers, and robotics platforms.
+This document is used to restore project context when starting a new ChatGPT session.
 
-Current Version:
-7.5
+The Machine Builder project is a visual machine configuration tool used to design machines such as:
 
-Next Version:
-7.6
+• 3D printers
+• CNC machines
+• robotics systems
 
-Major features already implemented:
+The system allows users to:
 
-• device database
-• device selection
-• device list
-• console logging
-• diagnostics
-• basic/advanced modes
-• initial board rendering
+• add hardware devices
+• connect them visually
+• generate firmware configurations
+• validate machine designs
 
-Next development goals:
+Core architecture is described in:
 
-Version 7.6
+MachineBuilder_Master_Brain.md
 
-Add visual machine builder.
+Additional system specifications exist in:
 
-Features:
+docs/architecture
+docs/ui
 
-• device icons
-• drag devices onto canvas
-• visible ports
-• drag connections between ports
-• wiring visualization
-• machine graph panel
-
-Connection Modes:
-
-Fast Mode
-simple cable between ports
-
-Basic Mode
-adds wiring details
-
-Advanced Mode
-adds pin and electrical data
-
-Future plans include:
-
-hardware database
-firmware generators
-machine diagnostics engine
-automatic configuration generation for
-
-Klipper
-Marlin
-RepRapFirmware
-GRBL
-
-Hardware database sources:
-
-Marlin pins folder
-Klipper config folder
-GRBL cpu_map
-
-These will be downloaded and stored in:
-
-firmware_sources/
-
-for parsing later.
-
-Goal:
-Build a reusable machine planning tool usable for all future builds.
+When starting a new conversation, load these documents to restore project knowledge and continue development without losing design decisions.

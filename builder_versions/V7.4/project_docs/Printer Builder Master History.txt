@@ -1,0 +1,180 @@
+PRINTER BUILDER PROJECT — MASTER HISTORY LOG
+===========================================
+
+PROJECT NAME:
+Printer Builder (Modular Machine Design System)
+
+CURRENT VERSION:
+V7.3 (Interactive Core - In Development)
+
+CORE PURPOSE:
+A visual engineering tool to design machines (starting with 3D printers) using:
+- hardware database
+- connector-aware boards
+- wiring graph system
+- SVG visualization
+- diagnostics engine
+- AI-style feedback system ("Jarvis")
+
+------------------------------------------------------------
+HIGH LEVEL ARCHITECTURE
+------------------------------------------------------------
+
+System is built on 5 core layers:
+
+1. UI Layer
+   - Device selection
+   - Add/remove hardware
+   - View system state
+
+2. Machine State Layer
+   - Stores active devices
+   - Stores connections
+   - Represents current machine build
+
+3. Hardware Database Layer
+   - JSON-based hardware definitions
+   - Boards, sensors, motors, cooling systems
+   - Expandable without code changes
+
+4. Graph Engine Layer
+   - Converts devices into relationships
+   - Tracks required dependencies
+   - Builds machine structure
+
+5. Visualization Layer (SVG)
+   - Board diagrams
+   - Connector display
+   - Wiring visualization
+   - Future: zoom + click interaction
+
+------------------------------------------------------------
+HARDWARE MODEL
+------------------------------------------------------------
+
+Devices contain:
+- name
+- type
+- required components
+- connectors
+- pin definitions
+- voltage requirements
+
+Example:
+Hotend requires:
+- heater
+- thermistor
+- cooling fan
+
+------------------------------------------------------------
+CONNECTOR SYSTEM
+------------------------------------------------------------
+
+Each board exposes connectors:
+
+Example (Octopus V1.1):
+- MOTOR0 (A+, A-, B+, B-)
+- HE0 (heater output)
+- TH0 (thermistor input)
+- FAN0 (PWM fan output)
+
+Each connector has:
+- pin count
+- signal type
+- voltage expectations
+
+------------------------------------------------------------
+DIAGNOSTICS ENGINE
+------------------------------------------------------------
+
+System checks:
+- missing required components
+- incompatible wiring
+- missing sensors
+- unsafe heating conditions
+
+Outputs:
+- INFO
+- WARNING
+- ERROR
+- SUGGESTION
+
+Future enhancement:
+- Jarvis personality layer
+
+------------------------------------------------------------
+JARVIS FEEDBACK SYSTEM (PLANNED)
+------------------------------------------------------------
+
+Modes:
+- Engineer (technical)
+- Jarvis (friendly AI tone)
+- Funny
+- Sarcastic
+- Minimal
+
+Purpose:
+Translate raw diagnostics into human-understandable feedback.
+
+------------------------------------------------------------
+SVG SYSTEM (CURRENT STATUS)
+------------------------------------------------------------
+
+Planned capabilities:
+- board rendering (Octopus V1.1 first)
+- connector highlighting
+- wiring visualization
+- zoom + pan interaction
+- layer toggles:
+  - connectors
+  - labels
+  - voltage
+  - wiring
+  - diagnostics overlay
+
+------------------------------------------------------------
+VERSIONING SYSTEM
+------------------------------------------------------------
+
+Each version is a full folder snapshot:
+
+Printer Builder V7.3/
+Printer Builder V7.4/
+Printer Builder V7.5/
+
+No destructive updates.
+
+Each version is a full working state.
+
+------------------------------------------------------------
+KNOWN LIMITATIONS (V7.3)
+------------------------------------------------------------
+
+- SVG wiring not yet implemented
+- connector system incomplete
+- device database partially implemented
+- Jarvis not yet separated from console
+- no persistent save system yet
+- no full interaction graph visualization
+
+------------------------------------------------------------
+NEXT MAJOR GOAL
+------------------------------------------------------------
+
+V7.3 Interactive Core:
+
+Must include:
+- working device database UI
+- real machine state system
+- SVG board rendering (Octopus V1.1 included)
+- clickable device system
+- real diagnostics engine
+- Jarvis feedback layer (basic)
+
+------------------------------------------------------------
+END OF FILE
+------------------------------------------------------------
+
+04/09/23 06:09pm - 
+Project began development in ChatGPT conversation sessions.
+Architecture stabilized in V7.4.

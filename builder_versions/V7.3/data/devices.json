@@ -1,0 +1,43 @@
+{
+"controller_boards":[
+{
+"name":"BTT Octopus",
+"type":"controller",
+"connectors":["motor","fan","heater","sensor"]
+}
+],
+
+"controller_computers":[
+{
+"name":"BTT Pi V1.2",
+"type":"computer",
+"connectors":["usb","gpio","spi","i2c"]
+}
+],
+
+"hotends":[
+{
+"name":"Generic Hotend",
+"requires":["heater","thermistor","fan"]
+}
+],
+
+"cooling":[
+{
+"name":"Cooling Fan",
+"type":"fan"
+},
+
+{
+"name":"Coolant Pump",
+"type":"pump"
+}
+],
+
+"sensors":[
+{
+"name":"Thermistor",
+"type":"temperature"
+}
+]
+}

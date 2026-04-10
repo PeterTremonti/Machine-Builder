@@ -1,242 +1,251 @@
-# Machine Builder – Master Brain File
+# Machine Builder – Master Brain
 
-Project Name:
+## Project Name
+
 Machine Builder
 
-Purpose:
-A visual hardware configuration tool for building machines such as:
+## Vision
 
-- 3D Printers
-- CNC Routers
-- Laser Engravers
-- Motion Systems
-- Robotics Platforms
+Machine Builder is a visual hardware architecture environment for designing machines such as:
 
-The system allows users to:
+* 3D Printers
+* CNC Routers
+* Laser Engravers
+* Motion Platforms
+* Robotics Systems
+* Automated Manufacturing Equipment
 
-• Add hardware devices
-• Connect them to controller boards
-• Generate wiring diagrams
-• Validate hardware compatibility
-• Generate firmware configurations
+The goal is to create a **machine architecture design tool**, similar to how CAD tools design mechanical parts or electronic CAD tools design circuits.
 
-Future goal:
-Become a CAD-like system for machine architecture.
+Machine Builder focuses on:
 
----
+* Machine hardware layout
+* Electrical wiring
+* Device compatibility
+* Firmware configuration generation
+* Machine documentation
 
-CORE FEATURES
+Long-term goal:
 
-Device Builder
-Users add hardware components such as:
-
-- Controller boards
-- Stepper drivers
-- Steppers
-- Hotends
-- Fans
-- Thermistors
-- Endstops
-- Probes
-- Displays
-- Power supplies
-
-Each device has ports.
-
-Ports connect to other device ports.
-
-Connections form the machine graph.
+Machine Builder becomes a **Machine Architecture IDE**.
 
 ---
 
-Machine Graph
+# Core Concept
 
-The machine is internally represented as:
+Machines are represented internally as a **graph structure**.
 
-Nodes = devices
-Edges = connections
+```
+Nodes = Devices
+Edges = Connections
+```
 
 Example:
 
-Octopus Board
- ├ STEP0 → X Motor
- ├ STEP1 → Y Motor
- ├ HE0 → Hotend
- ├ TH0 → Thermistor
- └ FAN0 → Cooling Fan
+Controller Board
+├ STEP0 → X Motor
+├ STEP1 → Y Motor
+├ HE0 → Heater
+├ TH0 → Thermistor
+└ FAN0 → Cooling Fan
 
 ---
 
-Connection Modes
+# Core System Architecture
 
-Fast Mode
+Machine Builder is composed of several major subsystems.
 
-Drag device → connect cable between ports.
+## Visual Machine Canvas
 
-No wiring detail.
+A drag-and-drop workspace where machines are visually assembled.
 
-Used for quick planning.
+Users can:
 
----
+• place devices
+• view device ports
+• connect devices with cables
+• visualize wiring
 
-Basic Mode
-
-Connections include:
-
-• cable type
-• wire count
-• direction
+Zoom levels control detail visibility.
 
 ---
 
-Advanced Mode
+## Universal Machine Model
 
-Connections include:
+The entire machine is stored in a structured model.
 
-• pin mapping
-• wire colors
-• voltage
-• current limits
-• UART/SPI/I2C details
+```
+Machine
+ ├ Devices
+ ├ Ports
+ ├ Connections
+ ├ Connectors
+ └ Harnesses
+```
 
----
+This model is independent of firmware.
 
-Firmware Targets
-
-Machine Builder will generate configuration for:
-
-Klipper  
-Marlin  
-RepRapFirmware  
-GRBL
+Firmware is generated from this structure.
 
 ---
 
-Hardware Database
+## Hardware Database
 
-The system will include a hardware database.
+Machine Builder contains a structured hardware database.
 
-Database sources include:
-
-Marlin pins files
-Klipper configs
-GRBL cpu maps
-Manufacturer documentation
-
-Database structure:
-
+```
 hardware_database/
 
  boards/
  devices/
+ connectors/
  motion/
+```
 
-Example board file:
+Examples:
 
-btt_octopus_v1_1.json
+```
+boards/
+  btt_octopus_v1_1.json
 
-Example device file:
+devices/
+  nema17_stepper.json
+  hotend_generic.json
 
-hotend_generic.json
-
----
-
-Firmware Source Archive
-
-Raw firmware data stored separately.
-
-firmware_sources/
-
- marlin/
- klipper/
- grbl/
-
-These are parsed later.
+connectors/
+  jst_xh.json
+  dupont.json
+```
 
 ---
 
-Project Architecture
+## Wiring System
 
-MachineBuilder/
+Connections exist at multiple levels of detail:
 
- index.html
+Simple device connections
+Cable connections
+Connector-aware wiring
+Full harness engineering
 
- js/
-   app.js
-   deviceDB.js
-   wiring.js
-   diagnostics.js
-
- css/
-   style.css
-
- hardware_database/
-
- firmware_sources/
-
- docs/
+This allows both quick planning and detailed engineering.
 
 ---
 
-Future Major Systems
+## Diagnostics Engine
 
-Visual Machine Canvas
+Machine Builder validates designs automatically.
 
-Drag devices onto workspace.
+Example diagnostics:
 
-Ports appear visually.
+• missing thermistor
+• missing cooling fan
+• duplicate pin assignment
+• invalid connector usage
+• power overload
+• incompatible voltage
 
-Connections drawn between ports.
+Diagnostics help prevent design mistakes.
 
 ---
 
-Connection Graph Engine
+## Firmware Generator
 
-Internal representation:
+Machine Builder exports configuration files for:
 
-devices[]
-connections[]
+* Klipper
+* Marlin
+* RepRapFirmware
+* GRBL
 
-Used for:
+The firmware generator converts the universal machine model into firmware-specific configurations.
 
-• diagnostics
+---
+
+## Firmware Import System
+
+Machine Builder can import existing machine configurations.
+
+Example sources:
+
+* Klipper config
+* Marlin configuration files
+* RepRapFirmware config.g
+* GRBL settings
+
+The system reconstructs the machine graph.
+
+---
+
+## Assembly System
+
+Reusable machine modules can be created.
+
+Examples:
+
+Toolheads
+Motion systems
+Electronics packages
+Power systems
+
+Assemblies allow rapid machine design.
+
+Example:
+
+```
+EVA Toolhead Assembly
+ ├ Extruder
+ ├ Hotend
+ ├ Fans
+ └ Probe
+```
+
+---
+
+## Connection Routing Engine
+
+The routing engine automatically organizes cables.
+
+Capabilities:
+
+• orthogonal cable routing
+• collision avoidance
+• cable bundling
+• harness grouping
+• layout optimization
+
+Users can override routing manually.
+
+---
+
+## Bill of Materials Generator
+
+Machine Builder can generate a machine BOM including:
+
+• devices
+• cables
+• connectors
+• estimated cable lengths
+
+Useful for purchasing and documentation.
+
+---
+
+# Long Term Vision
+
+Machine Builder evolves into a complete **Machine Design Environment**.
+
+Capabilities will include:
+
+• machine architecture design
+• wiring planning
+• hardware validation
 • firmware generation
-• wiring diagrams
+• machine documentation
+• assembly libraries
 
----
+Machine Builder fills the gap between:
 
-Diagnostics Engine
-
-Detects problems like:
-
-missing thermistor
-missing cooling fan
-invalid pin usage
-power overload
-duplicate pin assignment
-
----
-
-Firmware Generator
-
-Exports machine configuration files for:
-
-Klipper
-Marlin
-RepRapFirmware
-GRBL
-
----
-
-Long Term Vision
-
-Machine Builder becomes:
-
-Machine Design Environment
-
-similar to:
-
-• electronic CAD
-• mechanical CAD
-
-but focused on machine architecture.
+Mechanical CAD
+Electrical CAD
+Firmware configuration.

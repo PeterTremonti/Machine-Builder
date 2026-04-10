@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Printer Builder V7.4</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<h1>Printer Builder V7.4</h1>
+
+<div class="layout">
+
+<div class="panel">
+
+<h2>Add Hardware</h2>
+
+<select id="deviceSelect"></select>
+<button onclick="addDevice()">Add Device</button>
+
+<h3>Machine Devices</h3>
+<ul id="deviceList"></ul>
+
+<button onclick="runDiagnostics()">Run Diagnostics</button>
+
+</div>
+
+<div class="panel">
+
+<h2>Machine Layout</h2>
+
+<div id="svgCanvas"></div>
+
+</div>
+
+<div class="panel">
+
+<h2>Console</h2>
+
+<div id="console"></div>
+
+</div>
+
+</div>
+
+<script src="data/devices.js"></script>
+<script src="js/builder_core.js"></script>
+
+</body>
+</html>

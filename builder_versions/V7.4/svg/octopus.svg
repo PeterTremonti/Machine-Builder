@@ -1,0 +1,12 @@
+<svg width="600" height="350">
+
+<rect x="50" y="50" width="500" height="250" fill="#333"/>
+
+<circle cx="80" cy="80" r="8" fill="red"/>
+<circle cx="520" cy="80" r="8" fill="red"/>
+<circle cx="80" cy="270" r="8" fill="red"/>
+<circle cx="520" cy="270" r="8" fill="red"/>
+
+<text x="260" y="40" fill="white">Octopus Board</text>
+
+</svg>

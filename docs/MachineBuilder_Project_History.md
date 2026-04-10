@@ -1,105 +1,124 @@
 # Machine Builder – Project History
 
-Version 7.0
+## Version 7.0
+
 Initial concept.
 
 Goals:
 
-visual machine configuration
-device database
-simple UI
+• visual machine configuration
+• simple device list
+• controller board connections
 
 ---
 
-Version 7.2
+## Version 7.2
 
 Added:
 
-device selection
-device list
-console log
+• device selection system
+• device list panel
+• console logging
 
 ---
 
-Version 7.3
+## Version 7.3
 
 Added:
 
-device database
-basic diagnostics
-mode switching
-
-basic vs advanced mode
+• device database
+• diagnostic engine (basic)
+• basic vs advanced wiring modes
 
 ---
 
-Version 7.4
+## Version 7.4
 
 Added:
 
-console improvements
-diagnostic messages
-device handling improvements
+• improved console
+• expanded diagnostics
+• device handling improvements
 
 ---
 
-Version 7.5
+## Version 7.5
 
 Added:
 
-initial board rendering system
+• controller board visual rendering
 
 Example:
-BTT Octopus visual layout
+
+BTT Octopus layout visualization.
 
 ---
 
-Version 7.6 (Planned)
+## Version 7.6 (Planned)
 
-Major upgrade:
-
-visual machine builder
+Visual machine builder.
 
 Features:
 
-drag device to canvas
-visual ports
-connection wires
-machine graph panel
+• drag device to canvas
+• port visualization
+• wire connections
 
-New system:
-
-Fast Mode wiring
-
-drag port → port
-
-creates simple cable connection
+Fast mode wiring introduced.
 
 ---
 
-Planned Version 8
+## Version 7.7
 
-Hardware database integration
+Internal architecture refactor.
 
-Import board definitions from:
+Added:
 
-Marlin
-Klipper
-GRBL
-
-Automatic board database creation.
+• universal machine model
+• graph-based connection system
+• expanded device structure
 
 ---
 
-Long Term Roadmap
+## Version 7.8 (Current Development)
 
-Machine Builder evolves into:
+Major upgrade.
 
-Machine CAD tool
+Added systems:
 
-Capabilities:
+• visual machine canvas
+• auto cable routing
+• connection highlighting
+• cable bundling
+• zoom-level rendering
 
-visual machine planning
-hardware compatibility validation
-automatic firmware generation
-machine documentation
+Architecture improvements:
+
+• connector model
+• harness grouping
+• cable length estimation
+
+---
+
+## Version 8.0 (Planned)
+
+Major capabilities:
+
+• hardware database import
+• firmware parsing
+• assembly system
+• reusable machine modules
+
+---
+
+## Long Term Roadmap
+
+Machine Builder evolves into a **Machine CAD environment**.
+
+Capabilities will include:
+
+• machine architecture design
+• automatic firmware generation
+• compatibility validation
+• electrical documentation
+• machine BOM generation

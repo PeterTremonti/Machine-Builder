@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Machine Builder v7.7</title>
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<header>
+
+<h1>Machine Builder v7.7</h1>
+
+<div id="toolbar">
+
+<select id="deviceSelect"></select>
+
+<button onclick="addDevice()">Add Device</button>
+
+<button onclick="toggleMode()">Mode: <span id="modeLabel">Basic</span></button>
+
+<button onclick="runDiagnostics()">Diagnostics</button>
+
+</div>
+
+</header>
+
+<div id="main">
+
+<div id="devicePanel">
+
+<h3>Devices</h3>
+
+<ul id="deviceList"></ul>
+
+</div>
+
+<div id="canvas"></div>
+
+<div id="graphPanel">
+
+<h3>Machine Graph</h3>
+
+<div id="graph"></div>
+
+</div>
+
+</div>
+
+<div id="console"></div>
+
+<script src="app.js"></script>
+
+</body>
+</html>

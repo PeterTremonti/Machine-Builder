@@ -1,0 +1,37 @@
+PRINTER BUILDER — CHANGELOG
+Version: V7.4
+Date: (enter today's date)
+
+Major Changes
+-------------
+• Rebuilt system architecture from broken V7.3 prototype.
+• Implemented working Interactive Core.
+• Added proper device database loading.
+• Added functional device selection dropdown.
+• Implemented machine state system (machineDevices array).
+• Added visual device list display.
+• Added diagnostics engine based on actual machine state.
+• Added console logging system.
+• Added SVG board rendering system.
+• Added first supported board: BTT Octopus V1.1.
+• Removed dependency on fetch() so files run without local server.
+
+New Systems
+-----------
+• Device database module
+• Builder core controller
+• Machine state tracker
+• SVG board renderer
+• Diagnostics engine
+• Console logging
+
+New Project Documentation
+-------------------------
+• Master History file
+• Project Brain file
+• Versioned CHANGELOG system
+
+Notes
+-----
+Project began development in ChatGPT conversation sessions.
+Architecture stabilized in V7.4.

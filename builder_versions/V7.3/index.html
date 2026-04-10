@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Printer Builder V7.3</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+<h1>Printer Builder V7.3</h1>
+
+<div class="layout">
+
+<div class="panel">
+
+<h2>Available Parts</h2>
+<select id="deviceSelect"></select>
+<button onclick="addDevice()">Add Device</button>
+
+<h3>Machine Devices</h3>
+<ul id="deviceList"></ul>
+
+<button onclick="runDiagnostics()">Run Diagnostics</button>
+
+</div>
+
+<div class="panel">
+
+<h2>Machine Layout</h2>
+
+<div id="svgCanvas"></div>
+
+</div>
+
+<div class="panel">
+
+<h2>Jarvis Console</h2>
+
+<div id="console"></div>
+
+</div>
+
+</div>
+
+<script src="js/machineGraph.js"></script>
+
+<script src="js/diagnostics.js"></script>
+
+<script src="js/feedback.js"></script>
+
+<script src="js/svgRenderer.js"></script>
+
+<script src="js/app.js"></script>
+
+</body>
+</html>
