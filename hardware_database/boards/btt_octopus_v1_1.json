@@ -1,0 +1,127 @@
+{
+"id": "btt_octopus_v1_1",
+
+"name": "BTT Octopus V1.1",
+
+"manufacturer": "BigTreeTech",
+
+"category": "board",
+
+"description": "32-bit 3D printer controller board supporting up to 8 stepper drivers",
+
+"ports": [
+
+{
+"id": "stepper_x",
+"type": "stepper",
+"direction": "output",
+"signals": ["step","dir","enable"]
+},
+
+{
+"id": "stepper_y",
+"type": "stepper",
+"direction": "output",
+"signals": ["step","dir","enable"]
+},
+
+{
+"id": "stepper_z",
+"type": "stepper",
+"direction": "output",
+"signals": ["step","dir","enable"]
+},
+
+{
+"id": "heater_0",
+"type": "heater",
+"direction": "output",
+"signals": ["pwm","power"]
+},
+
+{
+"id": "thermistor_0",
+"type": "thermistor",
+"direction": "input",
+"signals": ["analog"]
+},
+
+{
+"id": "fan_0",
+"type": "fan",
+"direction": "output",
+"signals": ["pwm","power"]
+}
+
+],
+
+"visual": {
+
+"shape": "rectangle",
+
+"size": {
+"width": 220,
+"height": 140
+},
+
+"ports": [
+
+{
+"id": "stepper_x",
+"x": 10,
+"y": 40,
+"side": "left",
+"label": "X",
+"icon": "stepper"
+},
+
+{
+"id": "stepper_y",
+"x": 10,
+"y": 70,
+"side": "left",
+"label": "Y",
+"icon": "stepper"
+},
+
+{
+"id": "stepper_z",
+"x": 10,
+"y": 100,
+"side": "left",
+"label": "Z",
+"icon": "stepper"
+},
+
+{
+"id": "heater_0",
+"x": 210,
+"y": 50,
+"side": "right",
+"label": "HE0",
+"icon": "heater"
+},
+
+{
+"id": "thermistor_0",
+"x": 210,
+"y": 80,
+"side": "right",
+"label": "TH0",
+"icon": "thermistor"
+},
+
+{
+"id": "fan_0",
+"x": 210,
+"y": 110,
+"side": "right",
+"label": "FAN0",
+"icon": "fan"
+}
+
+]
+
+}
+
+}
