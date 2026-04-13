@@ -1,0 +1,35 @@
+{
+"id": "nema17",
+
+"name": "NEMA17 Stepper",
+
+"manufacturer": "Generic",
+
+"category": "motor",
+
+"description": "Standard stepper motor",
+
+"ports": [
+{
+"id": "stepper_in",
+"type": "stepper",
+"direction": "input",
+"signals": ["step","dir","enable"]
+}
+],
+
+"visual": {
+"shape": "rectangle",
+"size": { "width": 100, "height": 60 },
+"ports": [
+{
+"id": "stepper_in",
+"x": 0,
+"y": 30,
+"side": "left",
+"label": "IN",
+"icon": "stepper"
+}
+]
+}
+}

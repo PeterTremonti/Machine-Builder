@@ -1,0 +1,35 @@
+{
+"id": "thermistor",
+
+"name": "Thermistor",
+
+"manufacturer": "Generic",
+
+"category": "sensor",
+
+"description": "Temperature sensor",
+
+"ports": [
+{
+"id": "therm_out",
+"type": "thermistor",
+"direction": "output",
+"signals": ["analog"]
+}
+],
+
+"visual": {
+"shape": "rectangle",
+"size": { "width": 100, "height": 50 },
+"ports": [
+{
+"id": "therm_out",
+"x": 100,
+"y": 25,
+"side": "right",
+"label": "OUT",
+"icon": "thermistor"
+}
+]
+}
+}

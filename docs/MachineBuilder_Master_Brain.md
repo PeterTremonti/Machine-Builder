@@ -249,3 +249,70 @@ Machine Builder fills the gap between:
 Mechanical CAD
 Electrical CAD
 Firmware configuration.
+
+04/12/26 11:11pm - 
+# Machine Builder – Master Brain
+
+## Vision
+A universal machine design platform that:
+- Understands hardware
+- Maps wiring visually
+- Generates firmware configs
+- Simulates machine behavior
+
+## Core Systems
+
+### 1. Hardware Database
+- JSON-driven
+- Modular categories:
+  - boards
+  - motors
+  - sensors
+  - heaters
+  - etc.
+
+### 2. Renderer System
+- DeviceRenderer → draws components
+- WiringRenderer → draws connections
+- Future:
+  - LayoutRenderer
+  - SimulationRenderer
+
+### 3. Interaction System
+- DeviceController → movement
+- PortInteraction → connections
+- Future:
+  - Wire editing
+  - Multi-select
+  - snapping
+
+### 4. Connection Engine
+- Stores connections
+- Validates compatibility (future)
+- Tracks graph relationships
+
+### 5. Routing Engine (NEXT FOCUS)
+Current: broken incremental logic  
+Target:
+- Grid-based or node-based routing
+- Obstacle avoidance
+- Deterministic paths
+
+## Long-Term Systems
+
+### Machine Modes
+- Wiring Diagram Mode (logical)
+- Physical Layout Mode (real-world)
+- Simulation Mode
+
+### Smart Features
+- Auto wiring suggestions
+- Error detection
+- BOM generation
+- Firmware export (Klipper/Marlin/etc.)
+
+## Philosophy
+- Separate DATA from VISUALS
+- Separate LOGIC from DRAWING
+- Avoid “patch stacking”
+- Build systems that scale

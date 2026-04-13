@@ -1,0 +1,35 @@
+{
+"id": "hotend",
+
+"name": "Hotend Heater",
+
+"manufacturer": "Generic",
+
+"category": "heater",
+
+"description": "Extruder heater",
+
+"ports": [
+{
+"id": "heater_in",
+"type": "heater",
+"direction": "input",
+"signals": ["pwm","power"]
+}
+],
+
+"visual": {
+"shape": "rectangle",
+"size": { "width": 120, "height": 60 },
+"ports": [
+{
+"id": "heater_in",
+"x": 0,
+"y": 30,
+"side": "left",
+"label": "HEAT",
+"icon": "heater"
+}
+]
+}
+}

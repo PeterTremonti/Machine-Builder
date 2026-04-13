@@ -122,3 +122,49 @@ Capabilities will include:
 • compatibility validation
 • electrical documentation
 • machine BOM generation
+
+04/12/26 11:12pm - 
+# Machine Builder – Project History
+
+## V7.3
+- Basic device rendering
+- Initial UI
+
+## V7.5
+- Improved interaction
+- Basic structure stabilization
+
+## V7.8
+- Major rebuild
+- Modular architecture introduced
+- Hardware database concept added
+
+## V7.9
+- Wiring system introduced
+- Port detection working
+- Click-to-connect implemented
+- Device dragging stable
+
+## V7.9.1
+- Debugging renderer issues
+- Fixed missing methods and references
+
+## V7.9.2
+- Introduced orthogonal routing
+- Began safe zone logic
+
+## V7.9.3
+- Attempted exit validation fixes
+- Identified core routing flaw:
+  → geometry + logic tightly coupled
+
+## CURRENT STATE
+System works but wiring renderer is unstable.
+Decision made to rebuild routing system cleanly.
+
+## NEXT
+V7.10:
+- Clean routing engine
+- No floating legs
+- No box intersections
+- Deterministic behavior
