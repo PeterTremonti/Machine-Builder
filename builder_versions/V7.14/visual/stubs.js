@@ -1,29 +1,31 @@
-import { state } from "../core/state.js";
-import { render } from "../core/renderer.js";
+export function getStubDirection(port) {
+  switch (port.edge) {
+    case "left":
+      return { x: -20, y: 0 };
 
-export function onPortClick(port) {
-  console.log("Clicked port:", port);
+    case "right":
+      return { x: 20, y: 0 };
 
-  if (!state.pendingConnection) {
-    state.pendingConnection = port;
-    return;
+    case "top":
+      return { x: 0, y: -20 };
+
+    case "bottom":
+      return { x: 0, y: 20 };
+
+    default:
+      return { x: 0, y: 20 };
+  }
+}
+
+export function applyStub(point, port) {
+  if (!port || !port.edge) {
+    return { x: point.x, y: point.y };
   }
 
-  const a = state.pendingConnection;
-  const b = port;
+  const d = getStubDirection(port);
 
-  state.pendingConnection = null;
-
-  // Direction resolution (basic)
-  let from = a;
-  let to = b;
-
-  if (a.type === "input" && b.type === "output") {
-    from = b;
-    to = a;
-  }
-
-  state.wires.push({ from, to });
-
-  render();
+  return {
+    x: point.x + d.x,
+    y: point.y + d.y
+  };
 }

@@ -34,8 +34,10 @@ function createDevice(x, y, label) {
     const port = document.createElement("div");
     port.className = "port";
 
-    port.style.left = (portData.x - x) + "px";
-    port.style.top = (portData.y - y) + "px";
+const PORT_SIZE = 10; // match your CSS
+
+port.style.left = (portData.x - x - PORT_SIZE / 2) + "px";
+port.style.top = (portData.y - y - PORT_SIZE / 2) + "px";
 
     const portObj = {
       el: port,

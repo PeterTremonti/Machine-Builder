@@ -2,6 +2,7 @@ import { state } from "./state.js";
 import { getStubPoint } from "../geometry/ports.js";
 import { buildWirePath } from "../geometry/routing.js";
 import { drawDebug } from "../debug/debug.js";
+import { applyStub } from "../visual/stubs.js";
 
 const svg = document.getElementById("wires");
 
@@ -45,12 +46,25 @@ export function render() {
 
     if (!A || !B) return;
 
-    const A1 = getStubPoint(A);
-    const B1 = getStubPoint(B);
-
+    const A1 = applyStub(A, wire.from.data);
+    const B1 = applyStub(B, wire.to.data);
+    
     if (!A1 || !B1) return;
 
-    const path = buildWirePath(A, A1, B1, B, state.devices);
+    const corePath = buildWirePath(A1, A1, B1, B1, state.devices);
+
+// force router to respect stub endpoints
+const trimmed = corePath.length > 2
+  ? corePath.slice(1, -1)
+  : corePath;
+
+const path = [
+  A,     // port
+  A1,    // stub end (LOCKED)
+  ...trimmed,
+  B1,    // stub end (LOCKED)
+  B      // port
+];
 
     const d = path.map((p, i) =>
       (i === 0 ? "M" : "L") + `${p.x},${p.y}`
