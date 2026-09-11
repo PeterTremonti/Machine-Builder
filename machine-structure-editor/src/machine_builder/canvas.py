@@ -63,7 +63,6 @@ from .compatibility import (
 from .mutations import (
     CreateConnection,
     CreateNode,
-    DeleteConnection,
     DeleteNodes,
     MoveNodes,
 )
@@ -425,27 +424,23 @@ class PortGraphicsItem(QGraphicsEllipseItem):
 # Connection graphics
 # ---------------------------------------------------------------------------
 
+
 class ConnectionGraphicsItem(QGraphicsLineItem):
     """Rendered representation of one committed VisualConnection."""
-
-    NORMAL_COLOR = QColor("#aab4c4")
-    SELECTED_COLOR = QColor("#58a6ff")
 
     def __init__(
         self,
         connection: VisualConnection,
-        selection_callback: Any,
     ) -> None:
         super().__init__()
 
         self.connection_id = connection.id
         self.source_port_id = connection.source_port_id
         self.target_port_id = connection.target_port_id
-        self._selection_callback = selection_callback
 
         self.setPen(
             QPen(
-                self.NORMAL_COLOR,
+                QColor("#aab4c4"),
                 2.0,
             )
         )
@@ -453,48 +448,11 @@ class ConnectionGraphicsItem(QGraphicsLineItem):
         # Keep connections visually behind components and ports.
         self.setZValue(-10.0)
 
-        # Connections now participate in mouse selection.
+        # Connections should never intercept interaction with nodes/ports.
         self.setAcceptedMouseButtons(
-            Qt.MouseButton.LeftButton
+            Qt.MouseButton.NoButton
         )
 
-        self.setFlag(
-            QGraphicsItem.GraphicsItemFlag.ItemIsSelectable,
-            True,
-        )
-
-    def itemChange(
-        self,
-        change: QGraphicsItem.GraphicsItemChange,
-        value: Any,
-    ) -> Any:
-        """Update the rendered selection state."""
-        if (
-            change
-            == QGraphicsItem.GraphicsItemChange.ItemSelectedChange
-        ):
-            selected = bool(value)
-
-            self.setPen(
-                QPen(
-                    self.SELECTED_COLOR
-                    if selected
-                    else self.NORMAL_COLOR,
-                    3.0
-                    if selected
-                    else 2.0,
-                )
-            )
-
-            self._selection_callback(
-                self.connection_id,
-                selected,
-            )
-
-        return super().itemChange(
-            change,
-            value,
-        )
 
 # ---------------------------------------------------------------------------
 # Node graphics
@@ -1640,66 +1598,36 @@ class MachineCanvas(QMainWindow):
     # Node editing
     # ------------------------------------------------------------------
 
-def _delete_selected(
-    self,
-) -> None:
-    """Delete the currently selected connection or nodes."""
-    selected_connections = tuple(
-        item.connection_id
-        for item in self.scene.selectedItems()
-        if isinstance(
-            item,
-            ConnectionGraphicsItem,
-        )
-    )
-
-    if selected_connections:
-        for connection_id in selected_connections:
-            self.store.commit(
-                DeleteConnection(
-                    connection_id=connection_id
-                )
+    def _delete_selected(
+        self,
+    ) -> None:
+        """Delete all selected nodes as one user action."""
+        selected_ids = tuple(
+            item.node_id
+            for item in self.scene.selectedItems()
+            if isinstance(
+                item,
+                NodeGraphicsItem,
             )
+        )
 
-        count = len(selected_connections)
+        if not selected_ids:
+            return
+
+        self.store.commit(
+            DeleteNodes(
+                node_ids=selected_ids
+            )
+        )
 
         self.statusBar().showMessage(
-            f"Deleted {count} connection"
+            f"Deleted {len(selected_ids)} node"
             + (
                 ""
-                if count == 1
+                if len(selected_ids) == 1
                 else "s"
             )
         )
-
-        return
-
-    selected_ids = tuple(
-        item.node_id
-        for item in self.scene.selectedItems()
-        if isinstance(
-            item,
-            NodeGraphicsItem,
-        )
-    )
-
-    if not selected_ids:
-        return
-
-    self.store.commit(
-        DeleteNodes(
-            node_ids=selected_ids
-        )
-    )
-
-    self.statusBar().showMessage(
-        f"Deleted {len(selected_ids)} node"
-        + (
-            ""
-            if len(selected_ids) == 1
-            else "s"
-        )
-    )
 
     def _focus_node(
         self,
@@ -1884,35 +1812,6 @@ def _delete_selected(
                     QColor("#8c96a8"),
                     1.5,
                 )
-            )
-
-def _connection_selected(
-    self,
-    connection_id: str,
-    selected: bool,
-) -> None:
-    """Update the current connection selection state."""
-    if selected:
-        connection = self.store.model.connections.get(
-            connection_id
-        )
-
-        if connection is not None:
-            source = self.store.model.find_port(
-                connection.source_port_id
-            )
-            target = self.store.model.find_port(
-                connection.target_port_id
-            )
-
-            if source is not None and target is not None:
-                self.statusBar().showMessage(
-                    f"Selected connection: "
-                    f"{source.label} ↔ {target.label}"
-                )
-        else:
-            self.statusBar().showMessage(
-                "Selected connection"
             )
 
     def _node_position_changed(
@@ -2489,8 +2388,7 @@ def _connection_selected(
 
                 if graphics is None:
                     graphics = ConnectionGraphicsItem(
-                        connection=connection,
-                        selection_callback=self._connection_selected,
+                        connection
                     )
 
                     self._connection_items[
