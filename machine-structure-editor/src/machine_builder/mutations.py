@@ -3,8 +3,9 @@
 User-visible editing operations are represented as mutations instead of
 allowing UI code to directly manipulate the visual model.
 
-This is intentionally a small mechanism for V0.1. It is not yet intended to
-be a full command/undo/redo framework.
+The important V0.1 rule is that one meaningful user action should correspond
+to one mutation.  For example, moving five selected nodes together is one
+MoveNodes mutation, not five separate MoveNode mutations.
 """
 
 from __future__ import annotations
@@ -34,30 +35,34 @@ class CreateNode:
 
 
 @dataclass(frozen=True)
-class MoveNode:
-    """Move an existing visual node to presentation coordinates."""
+class MoveNodes:
+    """Move one or more visual nodes as one atomic user action.
 
-    node_id: str
-    x: float
-    y: float
+    The dictionary maps each visual node ID to its final presentation
+    coordinates.
+    """
+
+    positions: dict[str, tuple[float, float]]
 
     def apply(self, model: VisualModel) -> None:
-        node = model.nodes.get(self.node_id)
-        if node is None:
-            raise KeyError(f"Unknown visual node: {self.node_id}")
+        for node_id, (x, y) in self.positions.items():
+            node = model.nodes.get(node_id)
+            if node is None:
+                raise KeyError(f"Unknown visual node: {node_id}")
 
-        node.x = self.x
-        node.y = self.y
+            node.x = x
+            node.y = y
 
 
 @dataclass(frozen=True)
-class DeleteNode:
-    """Delete an existing visual node."""
+class DeleteNodes:
+    """Delete one or more visual nodes as one atomic user action."""
 
-    node_id: str
+    node_ids: tuple[str, ...]
 
     def apply(self, model: VisualModel) -> None:
-        model.remove_node(self.node_id)
+        for node_id in self.node_ids:
+            model.remove_node(node_id)
 
 
 @dataclass(frozen=True)

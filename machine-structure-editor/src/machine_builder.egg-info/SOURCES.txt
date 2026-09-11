@@ -1,0 +1,15 @@
+pyproject.toml
+src/machine_builder/__init__.py
+src/machine_builder/__main__.py
+src/machine_builder/app.py
+src/machine_builder/canvas.py
+src/machine_builder/mutations.py
+src/machine_builder/store.py
+src/machine_builder/visual_model.py
+src/machine_builder.egg-info/PKG-INFO
+src/machine_builder.egg-info/SOURCES.txt
+src/machine_builder.egg-info/dependency_links.txt
+src/machine_builder.egg-info/entry_points.txt
+src/machine_builder.egg-info/requires.txt
+src/machine_builder.egg-info/top_level.txt
+tests/test_visual_model.py
