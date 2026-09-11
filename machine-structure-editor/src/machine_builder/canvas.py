@@ -101,10 +101,11 @@ class ConnectionDragState:
 # Port graphics
 # ---------------------------------------------------------------------------
 
+
 class PortGraphicsItem(QGraphicsEllipseItem):
     """Presentation object for one VisualPort."""
 
-    DIAMETER = 16.0
+    DIAMETER = 12.0
 
     NORMAL_FILL = QColor("#d7dde8")
     NORMAL_BORDER = QColor("#667085")
@@ -141,7 +142,6 @@ class PortGraphicsItem(QGraphicsEllipseItem):
         )
 
         self.port_id = port.id
-        self._side = port.side.lower().strip()
 
         self._connection_drag_started = (
             connection_drag_started
@@ -159,6 +159,7 @@ class PortGraphicsItem(QGraphicsEllipseItem):
         self.setBrush(
             QBrush(self.NORMAL_FILL)
         )
+
         self.setPen(
             QPen(
                 self.NORMAL_BORDER,
@@ -188,38 +189,6 @@ class PortGraphicsItem(QGraphicsEllipseItem):
             self._build_tooltip(port)
         )
 
-        # Persistent port identity label.
-        self._label_item = QGraphicsSimpleTextItem(
-            port.label or "Interface",
-            self,
-        )
-        self._label_item.setBrush(
-            QBrush(
-                QColor("#f0f0f0")
-            )
-        )
-        self._label_item.setAcceptedMouseButtons(
-            Qt.MouseButton.NoButton
-        )
-
-        # Non-color connection-status indicator.
-        self._state_symbol = QGraphicsSimpleTextItem(
-            "",
-            self,
-        )
-        self._state_symbol.setBrush(
-            QBrush(
-                QColor("#20242b")
-            )
-        )
-        self._state_symbol.setAcceptedMouseButtons(
-            Qt.MouseButton.NoButton
-        )
-        self._state_symbol.setZValue(2.0)
-
-        self._position_label()
-        self._position_state_symbol()
-
     @staticmethod
     def _build_tooltip(
         port: VisualPort,
@@ -233,51 +202,6 @@ class PortGraphicsItem(QGraphicsEllipseItem):
 
         return "\n".join(lines)
 
-    def _position_label(self) -> None:
-        """Place the persistent label just outside the port."""
-        label_rect = self._label_item.boundingRect()
-        gap = 8.0
-
-        if self._side == "left":
-            self._label_item.setPos(
-                -label_rect.width() - gap,
-                -label_rect.height() / 2.0,
-            )
-
-        elif self._side == "right":
-            self._label_item.setPos(
-                gap,
-                -label_rect.height() / 2.0,
-            )
-
-        elif self._side == "top":
-            self._label_item.setPos(
-                -label_rect.width() / 2.0,
-                -label_rect.height() - gap,
-            )
-
-        elif self._side == "bottom":
-            self._label_item.setPos(
-                -label_rect.width() / 2.0,
-                gap,
-            )
-
-        else:
-            # Unknown presentation side: default to the right.
-            self._label_item.setPos(
-                gap,
-                -label_rect.height() / 2.0,
-            )
-
-    def _position_state_symbol(self) -> None:
-        """Center the non-color status symbol over the port."""
-        symbol_rect = self._state_symbol.boundingRect()
-
-        self._state_symbol.setPos(
-            -symbol_rect.width() / 2.0,
-            -symbol_rect.height() / 2.0 - 1.0,
-        )
-
     def set_connection_state(
         self,
         state: str,
@@ -287,36 +211,30 @@ class PortGraphicsItem(QGraphicsEllipseItem):
         self._apply_visual_state()
 
     def _apply_visual_state(self) -> None:
-        """Apply color and non-color connection feedback."""
+        """Apply the current hover/connection appearance."""
         if self._connection_state == "source":
             fill = self.SOURCE_FILL
             border = self.SOURCE_BORDER
-            symbol = ""
 
         elif self._connection_state == "valid":
             fill = self.VALID_FILL
             border = self.VALID_BORDER
-            symbol = "✓"
 
         elif self._connection_state == "unknown":
             fill = self.UNKNOWN_FILL
             border = self.UNKNOWN_BORDER
-            symbol = "?"
 
         elif self._connection_state == "invalid":
             fill = self.INVALID_FILL
             border = self.INVALID_BORDER
-            symbol = "×"
 
         elif self._hovered:
             fill = self.HOVER_FILL
             border = self.HOVER_BORDER
-            symbol = ""
 
         else:
             fill = self.NORMAL_FILL
             border = self.NORMAL_BORDER
-            symbol = ""
 
         self.setBrush(
             QBrush(fill)
@@ -325,14 +243,9 @@ class PortGraphicsItem(QGraphicsEllipseItem):
         self.setPen(
             QPen(
                 border,
-                1.5
-                if self._connection_state != "normal"
-                else 1.2,
+                1.5 if self._connection_state != "normal" else 1.2,
             )
         )
-
-        self._state_symbol.setText(symbol)
-        self._position_state_symbol()
 
     def hoverEnterEvent(
         self,
@@ -419,7 +332,8 @@ class PortGraphicsItem(QGraphicsEllipseItem):
             self.port_id,
             event.scenePos(),
         )
-        
+
+
 # ---------------------------------------------------------------------------
 # Connection graphics
 # ---------------------------------------------------------------------------
