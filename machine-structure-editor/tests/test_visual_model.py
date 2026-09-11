@@ -5,6 +5,7 @@ from machine_builder.mutations import (
 )
 from machine_builder.store import ModelStore
 from machine_builder.visual_model import (
+    VisualConnection,
     VisualModel,
     VisualNode,
     VisualPort,
@@ -59,13 +60,103 @@ def test_duplicate_node_ids_are_rejected() -> None:
         raise AssertionError("Duplicate node ID was not rejected")
 
 
+def test_add_port_to_node() -> None:
+    node = VisualNode(
+        id="node-1",
+        node_type="controller",
+        label="Controller",
+    )
+
+    port = VisualPort(
+        id="port-1",
+        node_id="node-1",
+        label="Power",
+        port_type="power",
+        direction="input",
+        side="left",
+        order=0,
+    )
+
+    node.add_port(port)
+
+    assert "port-1" in node.ports
+    assert node.ports["port-1"].label == "Power"
+    assert node.ports["port-1"].port_type == "power"
+    assert node.ports["port-1"].direction == "input"
+    assert node.ports["port-1"].side == "left"
+
+
+def test_port_must_belong_to_its_node() -> None:
+    node = VisualNode(
+        id="node-1",
+        node_type="component",
+        label="Component",
+    )
+
+    port = VisualPort(
+        id="port-1",
+        node_id="different-node",
+        label="Interface",
+    )
+
+    try:
+        node.add_port(port)
+    except ValueError as exc:
+        assert "belongs to node" in str(exc)
+    else:
+        raise AssertionError(
+            "A port belonging to another node was accepted"
+        )
+
+
+def test_duplicate_port_ids_are_rejected() -> None:
+    node = VisualNode(
+        id="node-1",
+        node_type="component",
+        label="Component",
+    )
+
+    node.add_port(
+        VisualPort(
+            id="port-1",
+            node_id="node-1",
+        )
+    )
+
+    try:
+        node.add_port(
+            VisualPort(
+                id="port-1",
+                node_id="node-1",
+            )
+        )
+    except ValueError as exc:
+        assert "already exists" in str(exc)
+    else:
+        raise AssertionError(
+            "Duplicate port ID was not rejected"
+        )
+
+
+def test_find_port_and_owning_node() -> None:
+    model = VisualModel()
+
+    node = make_node("node-1")
+    model.add_node(node)
+
+    port = model.find_port("node-1-port")
+    owner = model.find_node_for_port("node-1-port")
+
+    assert port is not None
+    assert port.node_id == "node-1"
+    assert owner is node
+
+
 def test_delete_node_removes_its_ports_and_connections() -> None:
     model = VisualModel()
 
     model.add_node(make_node("node-a"))
     model.add_node(make_node("node-b"))
-
-    from machine_builder.visual_model import VisualConnection
 
     model.add_connection(
         VisualConnection(
@@ -86,7 +177,11 @@ def test_delete_node_removes_its_ports_and_connections() -> None:
 def test_store_undo_redo_for_node_creation() -> None:
     store = ModelStore()
 
-    store.commit(CreateNode(make_node("node-1")))
+    store.commit(
+        CreateNode(
+            make_node("node-1")
+        )
+    )
 
     assert "node-1" in store.model.nodes
 
@@ -102,8 +197,17 @@ def test_store_undo_redo_for_node_creation() -> None:
 def test_move_nodes_is_atomic() -> None:
     store = ModelStore()
 
-    store.commit(CreateNode(make_node("node-a")))
-    store.commit(CreateNode(make_node("node-b")))
+    store.commit(
+        CreateNode(
+            make_node("node-a")
+        )
+    )
+
+    store.commit(
+        CreateNode(
+            make_node("node-b")
+        )
+    )
 
     store.commit(
         MoveNodes(
@@ -126,16 +230,29 @@ def test_move_nodes_is_atomic() -> None:
     assert store.model.nodes["node-b"].x == 0.0
     assert store.model.nodes["node-b"].y == 0.0
 
-    # There was one MoveNodes mutation, so one undo restored both nodes.
     assert store.can_undo is True
 
 
 def test_delete_nodes_is_atomic() -> None:
     store = ModelStore()
 
-    store.commit(CreateNode(make_node("node-a")))
-    store.commit(CreateNode(make_node("node-b")))
-    store.commit(CreateNode(make_node("node-c")))
+    store.commit(
+        CreateNode(
+            make_node("node-a")
+        )
+    )
+
+    store.commit(
+        CreateNode(
+            make_node("node-b")
+        )
+    )
+
+    store.commit(
+        CreateNode(
+            make_node("node-c")
+        )
+    )
 
     store.commit(
         DeleteNodes(
@@ -161,7 +278,11 @@ def test_delete_nodes_is_atomic() -> None:
 def test_new_edit_clears_redo_history() -> None:
     store = ModelStore()
 
-    store.commit(CreateNode(make_node("node-1")))
+    store.commit(
+        CreateNode(
+            make_node("node-1")
+        )
+    )
 
     store.commit(
         MoveNodes(
@@ -188,8 +309,17 @@ def test_new_edit_clears_redo_history() -> None:
 def test_delete_nodes_can_restore_everything_as_one_action() -> None:
     store = ModelStore()
 
-    store.commit(CreateNode(make_node("node-a")))
-    store.commit(CreateNode(make_node("node-b")))
+    store.commit(
+        CreateNode(
+            make_node("node-a")
+        )
+    )
+
+    store.commit(
+        CreateNode(
+            make_node("node-b")
+        )
+    )
 
     store.commit(
         MoveNodes(
@@ -233,7 +363,16 @@ def test_store_notifies_listeners_after_mutations() -> None:
 
     store.subscribe(listener)
 
-    store.commit(CreateNode(make_node("node-1")))
-    store.commit(CreateNode(make_node("node-2")))
+    store.commit(
+        CreateNode(
+            make_node("node-1")
+        )
+    )
+
+    store.commit(
+        CreateNode(
+            make_node("node-2")
+        )
+    )
 
     assert notifications == [1, 2]
