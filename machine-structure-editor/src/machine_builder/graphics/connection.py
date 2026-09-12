@@ -10,7 +10,10 @@ from typing import Any
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QPen
-from PySide6.QtWidgets import QGraphicsLineItem
+from PySide6.QtWidgets import (
+    QGraphicsItem,
+    QGraphicsLineItem,
+)
 
 
 class ConnectionGraphicsItem(QGraphicsLineItem):
@@ -39,7 +42,7 @@ class ConnectionGraphicsItem(QGraphicsLineItem):
             )
         )
 
-        # Keep connections behind nodes and ports.
+        # Keep connections visually behind components and ports.
         self.setZValue(-10.0)
 
         # Allow the connection itself to be selected.
