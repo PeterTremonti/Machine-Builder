@@ -67,6 +67,7 @@ from .compatibility import (
 from .mutations import (
     CreateConnection,
     CreateNode,
+    DeleteConnection,
     DeleteNodes,
     MoveNodes,
 )
@@ -634,7 +635,35 @@ class MachineCanvas(QMainWindow):
     def _delete_selected(
         self,
     ) -> None:
-        """Delete all selected nodes as one user action."""
+        """Delete selected connections or nodes as one user action."""
+        selected_connections = tuple(
+            item.connection_id
+            for item in self.scene.selectedItems()
+            if isinstance(
+                item,
+                ConnectionGraphicsItem,
+            )
+        )
+
+        if selected_connections:
+            for connection_id in selected_connections:
+                self.store.commit(
+                    DeleteConnection(
+                        connection_id=connection_id
+                    )
+                )
+
+            self.statusBar().showMessage(
+                f"Deleted {len(selected_connections)} connection"
+                + (
+                    ""
+                    if len(selected_connections) == 1
+                    else "s"
+                )
+            )
+
+            return
+
         selected_ids = tuple(
             item.node_id
             for item in self.scene.selectedItems()
@@ -660,6 +689,43 @@ class MachineCanvas(QMainWindow):
                 if len(selected_ids) == 1
                 else "s"
             )
+        )
+
+    def _connection_selected(
+        self,
+        connection_id: str,
+        selected: bool,
+    ) -> None:
+        """Show status information when a connection is selected."""
+        if not selected:
+            return
+
+        connection = (
+            self.store.model.connections.get(
+                connection_id
+            )
+        )
+
+        if connection is None:
+            return
+
+        source = self.store.model.find_port(
+            connection.source_port_id
+        )
+
+        target = self.store.model.find_port(
+            connection.target_port_id
+        )
+
+        if source is None or target is None:
+            self.statusBar().showMessage(
+                "Selected connection"
+            )
+            return
+
+        self.statusBar().showMessage(
+            f"Selected connection: "
+            f"{source.label} ↔ {target.label}"
         )
 
     def _focus_node(
@@ -1421,7 +1487,8 @@ class MachineCanvas(QMainWindow):
 
                 if graphics is None:
                     graphics = ConnectionGraphicsItem(
-                        connection
+                        connection=connection,
+                        selection_callback=self._connection_selected,
                     )
 
                     self._connection_items[

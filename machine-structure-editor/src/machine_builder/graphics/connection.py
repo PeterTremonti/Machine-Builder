@@ -12,15 +12,17 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QPen
 from PySide6.QtWidgets import QGraphicsLineItem
 
-from ..visual_model import VisualConnection
-
 
 class ConnectionGraphicsItem(QGraphicsLineItem):
-    """Rendered representation of one committed VisualConnection."""
+    """Rendered representation of one committed visual connection."""
+
+    NORMAL_COLOR = QColor("#aab4c4")
+    SELECTED_COLOR = QColor("#58a6ff")
 
     def __init__(
         self,
-        connection: VisualConnection,
+        connection: Any,
+        selection_callback: Any,
     ) -> None:
         super().__init__()
 
@@ -28,18 +30,57 @@ class ConnectionGraphicsItem(QGraphicsLineItem):
         self.source_port_id = connection.source_port_id
         self.target_port_id = connection.target_port_id
 
+        self._selection_callback = selection_callback
+
         self.setPen(
             QPen(
-                QColor("#aab4c4"),
+                self.NORMAL_COLOR,
                 2.0,
             )
         )
 
-        # Keep connections visually behind components and ports.
+        # Keep connections behind nodes and ports.
         self.setZValue(-10.0)
 
-        # Connections do not intercept mouse interaction yet.
-        # Connection selection/deletion will be added after the refactor.
+        # Allow the connection itself to be selected.
+        self.setFlag(
+            QGraphicsItem.GraphicsItemFlag.ItemIsSelectable,
+            True,
+        )
+
         self.setAcceptedMouseButtons(
-            Qt.MouseButton.NoButton
+            Qt.MouseButton.LeftButton
+        )
+
+    def itemChange(
+        self,
+        change: QGraphicsItem.GraphicsItemChange,
+        value: Any,
+    ) -> Any:
+        """Update visual state when the connection is selected."""
+        if (
+            change
+            == QGraphicsItem.GraphicsItemChange.ItemSelectedChange
+        ):
+            selected = bool(value)
+
+            self.setPen(
+                QPen(
+                    self.SELECTED_COLOR
+                    if selected
+                    else self.NORMAL_COLOR,
+                    3.0
+                    if selected
+                    else 2.0,
+                )
+            )
+
+            self._selection_callback(
+                self.connection_id,
+                selected,
+            )
+
+        return super().itemChange(
+            change,
+            value,
         )
