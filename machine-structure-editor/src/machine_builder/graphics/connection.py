@@ -8,8 +8,11 @@ from __future__ import annotations
 
 from typing import Any
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor, QPen
 from PySide6.QtWidgets import QGraphicsLineItem
+
+from ..visual_model import VisualConnection
 
 
 class ConnectionGraphicsItem(QGraphicsLineItem):
@@ -35,7 +38,8 @@ class ConnectionGraphicsItem(QGraphicsLineItem):
         # Keep connections visually behind components and ports.
         self.setZValue(-10.0)
 
-        # Connections should never intercept interaction with nodes/ports.
+        # Connections do not intercept mouse interaction yet.
+        # Connection selection/deletion will be added after the refactor.
         self.setAcceptedMouseButtons(
             Qt.MouseButton.NoButton
         )
