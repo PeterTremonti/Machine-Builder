@@ -15,390 +15,155 @@ The roadmap is expected to change as the software is tested and architectural de
 Each implementation version has two related records:
 
 1. **Implementation Roadmap**
-
-   * The current overall direction.
-   * High-level milestones and planned architecture.
+   - The current overall direction.
+   - High-level milestones and planned architecture.
 
 2. **Version Implementation Plan**
-
-   * Initial plan for the version.
-   * Decisions and changes made during implementation.
-   * Final implemented state.
-   * Items deliberately carried into the next version.
+   - Initial plan for the version.
+   - Decisions and changes made during implementation.
+   - Final implemented state.
+   - Items deliberately carried into the next version.
 
 The plan for a version may change during implementation.
 
-The final state of a completed version is considered the authoritative record of what was actually implemented.
+The final state of a completed version is the authoritative record of what was actually implemented.
 
 ---
 
 # V0.1 — Visual Structure Editor Foundation
 
-## Goal
+## Status
 
-Create a usable visual machine-structure editor that establishes the basic interaction, visual-model, mutation, compatibility, and undo/redo foundations without attempting to implement the complete machine ontology.
+**Complete**
 
-## V0.1 Functional Scope
+V0.1 established the first usable visual machine-structure editor.
 
-### Canvas
+The version successfully demonstrated:
 
-* Pan the workspace.
-* Zoom the workspace.
-* Frame all objects.
-* Place visual components on the canvas.
-* Move individual components.
-* Select multiple components.
-* Move multiple selected components as one user action.
-* Delete selected components.
-* Undo and redo editing actions.
+- canvas interaction
+- component palette
+- visual nodes
+- explicit ports
+- persistent port labels
+- compatibility feedback
+- physical connection creation
+- connection selection and deletion
+- undo/redo
+- multi-selection
+- modular graphics architecture
 
-### Component Palette
-
-* Display prototype component types.
-* Add components to the canvas.
-* Support palette drag-and-drop.
-* Place newly created components near the current editing context.
-* Keep palette implementation separate from the main editor.
-
-### Visual Nodes
-
-* Display component boxes.
-* Display component names.
-* Display ports attached to their owning component.
-* Keep port presentation independent from canonical machine semantics.
-* Allow future component-specific visual sizing and presentation.
-
-### Ports
-
-* Represent ports as explicit visual objects.
-* Display persistent port labels.
-* Display port type and direction as part of the visual model.
-* Provide hover feedback.
-* Provide connection-state feedback.
-* Use both color and non-color symbols for compatibility feedback.
-
-Prototype feedback states:
-
-* Neutral
-* Hover
-* Connection source
-* Compatible
-* Unknown / conditional
-* Incompatible
-
-Non-color indicators:
-
-* `✓` compatible
-* `?` unknown or conditional
-* `×` incompatible
-
-### Connections
-
-* Connect specific ports rather than merely connecting nodes.
-* Display connection preview while dragging.
-* Evaluate provisional compatibility.
-* Commit compatible connections.
-* Reject incompatible and unresolved connections.
-* Keep committed connections attached to ports when nodes move.
-* Select an existing connection by clicking its line.
-* Delete a selected connection.
-* Undo connection creation and deletion.
-* Redo connection creation and deletion.
-
-### Compatibility
-
-V0.1 uses a deliberately small provisional compatibility system.
-
-It must distinguish at least:
-
-* compatible
-* incompatible
-* unknown
-* conditional
-
-Unknown information must not silently become a confirmed connection.
-
-The compatibility engine remains separate from the renderer.
-
-### Visual Model
-
-The visual model remains separate from:
-
-* Qt graphics objects
-* canonical machine semantics
-* compatibility logic
-* mutation history
-
-The visual model contains the presentation relationships required by the editor, including:
-
-* nodes
-* ports
-* connections
-* groups/views as future-capable structures
-
-### Mutations and Editing
-
-User-visible changes should be represented by explicit mutations where practical.
-
-Initial mutation vocabulary includes:
-
-* CreateNode
-* MoveNodes
-* DeleteNodes
-* CreateConnection
-* DeleteConnection
-
-One meaningful user action should correspond to one mutation.
-
-### Undo / Redo
-
-Undo and redo must operate at the level of meaningful user actions.
-
-V0.1 uses reliable model snapshots rather than an unnecessarily complicated command-reversal system.
-
-### Testing
-
-V0.1 should maintain automated tests for:
-
-* visual-model behavior
-* port ownership
-* connection ownership
-* node deletion behavior
-* compatibility results
-* mutation behavior
-
-Interactive testing remains important for:
-
-* mouse interaction
-* selection
-* dragging
-* visual feedback
-* connection creation
-* connection deletion
-* zoom/pan behavior
-
----
-
-# V0.1 Architecture Refactor
-
-Before adding substantial new behavior, the oversized canvas implementation should be divided into smaller modules.
-
-The purpose is maintainability, not abstraction for its own sake.
-
-Initial intended separation:
+The final automated test suite contains:
 
 ```text
-machine_builder/
-│
-├── app.py
-├── canvas.py
-│
-├── graphics/
-│   ├── __init__.py
-│   ├── node.py
-│   ├── port.py
-│   ├── connection.py
-│   └── palette.py
-│
-├── visual_model.py
-├── mutations.py
-├── store.py
-└── compatibility.py
-```
+20 passed
+V0.1 Architectural Result
 
-The exact final module boundaries may change during refactoring.
+The visual graphics layer is divided into dedicated modules:
 
-## Module Responsibilities
+graphics/
+├── connection.py
+├── node.py
+├── palette.py
+├── port.py
+└── view.py
 
-### app.py
+The main canvas.py remains the editor/orchestration layer.
 
-Application startup.
+The visual model remains separate from Qt graphics.
 
-Responsible for:
+The visual connection model represents physical relationships as:
 
-* creating QApplication
-* launching the main editor
-* application-level metadata
+endpoint A ↔ endpoint B
 
-### canvas.py
+rather than treating the physical connection as directional.
 
-Main editor orchestration.
+Semantic signal relationships remain separate:
 
-Responsible for coordinating:
+source → consumer
+V0.1 Completion Record
 
-* the scene
-* the view
-* the model store
-* editor actions
-* node creation/deletion
-* connection creation/deletion
-* selection
-* undo/redo
-* synchronization between model and graphics
+The detailed implementation history is recorded in:
 
-It should not contain the implementation details of every graphics object.
+docs/implementation/V0.1_IMPLEMENTATION_PLAN.md
 
-### graphics/node.py
+The final V0.1 implementation milestone should be tagged:
 
-Visual node presentation.
+v0.1.0
+V0.2 — Semantic and Machine-Structure Expansion
+Status
 
-Responsible for:
+Planning not started
 
-* drawing component nodes
-* node selection
-* node movement presentation
-* node-local port placement
-* node-specific visual behavior
+V0.2 should be defined after reviewing V0.1 results.
 
-### graphics/port.py
+The primary purpose of V0.2 will likely be moving the prototype from generic visual relationships toward richer machine-structure semantics.
 
-Visual port presentation.
+Potential areas include:
 
-Responsible for:
+Port semantics
 
-* drawing ports
-* port labels
-* hover state
-* connection status state
-* connection drag initiation
-* port-local interaction
+Move beyond generic categories such as:
 
-### graphics/connection.py
+signal
+electrical
+unknown
 
-Visual connection presentation.
+toward richer semantic roles and domains.
 
-Responsible for:
+Potential examples:
 
-* drawing connections
-* connection selection
-* visual selected state
-* connection-local interaction
+temperature measurement
+step command
+direction command
+heater control
+power
+ground
+communication
+material
+fluid
+mechanical
+Compatibility
 
-### graphics/palette.py
+Expand the compatibility system to consider:
 
-Component palette presentation.
+semantic role
+signal identity
+electrical characteristics
+voltage
+current
+connector/pin compatibility
+domain
+machine-specific requirements
+Component definitions
 
-Responsible for:
+Begin integrating richer component definitions that can eventually connect to the broader hardware/catalog architecture.
 
-* palette display
-* palette drag interaction
-* prototype component selection
+Persistence
 
-### visual_model.py
+Define the first durable project/visual-model persistence mechanism.
 
-Presentation model.
+Connection presentation
 
-Responsible for:
+Investigate:
 
-* VisualNode
-* VisualPort
-* VisualConnection
-* VisualGroup
-* VisualView
-* model relationships
+automatic routing
+orthogonal routing
+manual waypoints
+improved wire organization
+Information layers
 
-It must remain independent of Qt.
+Begin defining how users can switch between different information/detail layers without forcing every concept onto the same visual representation.
 
-### mutations.py
+Accessibility
 
-Explicit editing operations.
+Expand beyond the current color-plus-symbol approach toward a broader accessibility strategy.
 
-Responsible for representing user-visible model changes.
-
-### store.py
-
-Model state and editing history.
-
-Responsible for:
-
-* current visual model
-* mutation application
-* undo
-* redo
-* change notification
-
-### compatibility.py
-
-Compatibility evaluation.
-
-Responsible for answering whether a proposed port connection is:
-
-* compatible
-* incompatible
-* unknown
-* conditional
-
-It must not draw UI.
-
----
-
-# V0.1 Deliberately Not Included
-
-The following are intentionally outside the V0.1 completion target:
-
-* canonical machine ontology implementation
-* firmware generation
-* firmware parsing
-* persistent machine-file format
-* complete hardware catalog integration
-* automatic catalog-to-machine population
-* semantic machine validation
-* advanced port semantics
-* detailed electrical constraints
-* voltage/current compatibility modeling
-* signal-level semantics
-* automatic routing
-* manual routing waypoints
-* orthogonal routing
-* harness modeling
-* sub-harnesses
-* wire-length calculation
-* service slack
-* manufacturing slack
-* 3D geometry generation
-* Blender integration
-* hierarchical subsystem editing
-* persistent groups
-* component locking
-* node resizing
-* advanced semantic zoom
-* multiple simultaneous information layers
-* diagnostic visualization
-* complete accessibility system
-* production-grade theme system
-
-These may be introduced in later versions after the V0.1 interaction foundation is proven.
-
----
-
-# V0.2 Direction
-
-V0.2 should be defined from what is learned during V0.1 testing rather than predetermined in detail.
-
-Likely areas include:
-
-* richer port semantics
-* improved compatibility rules
-* direction-independent physical connection creation
-* more precise distinction between physical connection and signal direction
-* component-specific port definitions
-* improved connection routing
-* improved node presentation
-* persistence
-* more realistic machine component examples
-* stronger testing around the visual editor
-
-V0.2 planning should be created from the completed V0.1 findings rather than simply extending the original V0.1 plan.
-
----
-
-# Long-Term Implementation Direction
+Long-Term Implementation Direction
 
 The Machine Structure Editor is one layer of the broader Machine Builder system.
 
 The intended relationship is:
 
-```text
 Canonical / Semantic Machine Model
             ↓
      Semantic Adapter
@@ -408,22 +173,98 @@ Canonical / Semantic Machine Model
     Editor / Interaction
             ↓
       Qt Presentation
-```
 
-The visual editor should remain useful without forcing the canonical machine ontology to become Qt-specific.
+The editor should remain independent from:
 
-Likewise, catalog data, firmware representations, engineering documentation, and knowledge/retrieval systems should integrate through defined boundaries rather than being embedded directly into the visual editor.
+firmware-specific configuration formats
+supplier-specific catalog identity
+source-document storage
+general project knowledge
+knowledge-graph retrieval systems
 
----
+Those systems should integrate through defined boundaries.
 
-# Roadmap Maintenance Rules
+Implementation Principles
+1. Prefer meaningful modules
 
-When a significant implementation decision changes the planned structure:
+Separate code when it represents a genuinely distinct responsibility.
 
-1. Record the decision in the current version's implementation plan.
-2. Update the roadmap only when the change affects the longer-term direction.
-3. Do not preserve an obsolete plan merely for consistency.
-4. Keep the final implementation state of each completed version documented.
+Do not split files merely to make them smaller.
 
-The roadmap is a living engineering document.
-The version plans provide the historical record of how each implementation milestone evolved.
+2. Prefer whole-file replacement for major restructuring
+
+During early development, whole-file replacements are preferred when they reduce editing errors.
+
+3. Test after every architectural change
+
+A successful refactor is one that preserves behavior.
+
+4. Keep model and presentation separate
+
+Qt objects should not become the canonical machine model.
+
+5. Do not encode accidental UI behavior as machine semantics
+
+For example:
+
+Mouse drag direction
+
+must not silently become:
+
+Physical machine connection direction
+6. Document major architectural decisions
+
+When implementation reveals that an earlier assumption was incorrect:
+
+document the discovery
+record the decision
+update the version plan
+update the roadmap when the change affects future versions
+7. Versions are milestones, not folders
+
+Do not create V0.2, V0.3, etc. directories for parallel implementations.
+
+Use:
+
+Git commits
+Git tags
+version implementation plans
+the living roadmap
+
+to preserve history.
+
+Version Workflow
+
+For each version:
+
+Initial Plan
+      ↓
+Implementation
+      ↓
+Testing
+      ↓
+Discoveries / Decisions
+      ↓
+Final Plan
+      ↓
+Carry-Forward
+      ↓
+Version Tag
+      ↓
+Next Version Planning
+
+This workflow is intentionally iterative.
+
+The final version is allowed to differ from the original plan when testing demonstrates that a different design is better.
+
+Current State
+
+Latest completed version:
+
+v0.1.0
+
+Next version:
+
+V0.2
+
+V0.2 implementation should not begin until its own plan has been created and reviewed.
