@@ -709,15 +709,18 @@ class MachineCanvas(QMainWindow):
         if connection is None:
             return
 
-        source = self.store.model.find_port(
-            connection.source_port_id
+        endpoint_a = self.store.model.find_port(
+            connection.endpoint_a_id
         )
 
-        target = self.store.model.find_port(
-            connection.target_port_id
+        endpoint_b = self.store.model.find_port(
+            connection.endpoint_b_id
         )
 
-        if source is None or target is None:
+        if (
+            endpoint_a is None
+            or endpoint_b is None
+        ):
             self.statusBar().showMessage(
                 "Selected connection"
             )
@@ -725,9 +728,9 @@ class MachineCanvas(QMainWindow):
 
         self.statusBar().showMessage(
             f"Selected connection: "
-            f"{source.label} ↔ {target.label}"
+            f"{endpoint_a.label} ↔ "
+            f"{endpoint_b.label}"
         )
-
     def _focus_node(
         self,
         node_id: str,
@@ -1081,6 +1084,23 @@ class MachineCanvas(QMainWindow):
             target_port,
         )
 
+        semantic_source = source_port
+        semantic_target = target_port
+
+        if result != CompatibilityResult.COMPATIBLE:
+            reverse_result = check_port_compatibility(
+                target_port,
+                source_port,
+            )
+
+            if (
+                reverse_result
+                == CompatibilityResult.COMPATIBLE
+            ):
+                result = reverse_result
+                semantic_source = target_port
+                semantic_target = source_port
+
         if result == CompatibilityResult.COMPATIBLE:
             target_item.set_connection_state(
                 "valid"
@@ -1088,8 +1108,8 @@ class MachineCanvas(QMainWindow):
 
             message = (
                 f"Compatible: "
-                f"{source_port.label} → "
-                f"{target_port.label}"
+                f"{semantic_source.label} → "
+                f"{semantic_target.label}"
             )
 
         elif result == CompatibilityResult.UNKNOWN:
@@ -1099,8 +1119,8 @@ class MachineCanvas(QMainWindow):
 
             message = (
                 f"Unknown compatibility: "
-                f"{source_port.label} → "
-                f"{target_port.label}"
+                f"{semantic_source.label} ↔ "
+                f"{semantic_target.label}"
             )
 
         elif result == CompatibilityResult.CONDITIONAL:
@@ -1110,8 +1130,8 @@ class MachineCanvas(QMainWindow):
 
             message = (
                 f"Conditional compatibility: "
-                f"{source_port.label} → "
-                f"{target_port.label}"
+                f"{semantic_source.label} ↔ "
+                f"{semantic_target.label}"
             )
 
         else:
@@ -1121,20 +1141,19 @@ class MachineCanvas(QMainWindow):
 
             message = (
                 f"Incompatible: "
-                f"{source_port.label} → "
+                f"{source_port.label} ↔ "
                 f"{target_port.label}"
             )
 
         self.statusBar().showMessage(
             message
         )
-
     def _finish_connection_drag(
         self,
         source_port_id: str,
         scene_position: QPointF,
     ) -> None:
-        """Commit a valid connection or cancel the preview."""
+        """Commit a valid physical connection or cancel the preview."""
         drag = self._active_connection_drag
 
         if drag is None:
@@ -1171,12 +1190,38 @@ class MachineCanvas(QMainWindow):
                 target_port,
             )
 
+            semantic_source = source_port
+            semantic_target = target_port
+
+            if result != CompatibilityResult.COMPATIBLE:
+                reverse_result = check_port_compatibility(
+                    target_port,
+                    source_port,
+                )
+
+                if (
+                    reverse_result
+                    == CompatibilityResult.COMPATIBLE
+                ):
+                    result = reverse_result
+                    semantic_source = target_port
+                    semantic_target = source_port
+
             if result == CompatibilityResult.COMPATIBLE:
+                endpoint_a_id = source_port.id
+                endpoint_b_id = target_port.id
+
+                endpoint_pair = {
+                    endpoint_a_id,
+                    endpoint_b_id,
+                }
+
                 existing = any(
-                    connection.source_port_id
-                    == source_port.id
-                    and connection.target_port_id
-                    == target_port.id
+                    {
+                        connection.endpoint_a_id,
+                        connection.endpoint_b_id,
+                    }
+                    == endpoint_pair
                     for connection
                     in self.store.model.connections.values()
                 )
@@ -1190,16 +1235,16 @@ class MachineCanvas(QMainWindow):
                     self.store.commit(
                         CreateConnection(
                             connection_id=connection_id,
-                            source_port_id=source_port.id,
-                            target_port_id=target_port.id,
-                            connection_type=source_port.port_type,
+                            endpoint_a_id=endpoint_a_id,
+                            endpoint_b_id=endpoint_b_id,
+                            connection_type=semantic_source.port_type,
                         )
                     )
 
                     self.statusBar().showMessage(
                         f"Connected: "
-                        f"{source_port.label} → "
-                        f"{target_port.label}"
+                        f"{semantic_source.label} → "
+                        f"{semantic_target.label}"
                     )
 
                 else:
@@ -1209,17 +1254,20 @@ class MachineCanvas(QMainWindow):
 
             elif result == CompatibilityResult.UNKNOWN:
                 self.statusBar().showMessage(
-                    "Connection not committed: compatibility is unknown."
+                    "Connection not committed: "
+                    "compatibility is unknown."
                 )
 
             elif result == CompatibilityResult.CONDITIONAL:
                 self.statusBar().showMessage(
-                    "Connection not committed: compatibility is conditional."
+                    "Connection not committed: "
+                    "compatibility is conditional."
                 )
 
             else:
                 self.statusBar().showMessage(
-                    "Connection rejected: incompatible ports."
+                    "Connection rejected: "
+                    "incompatible ports."
                 )
 
         else:
@@ -1230,7 +1278,6 @@ class MachineCanvas(QMainWindow):
         self._cancel_connection_drag(
             preserve_status=True
         )
-
     def _cancel_connection_drag(
         self,
         preserve_status: bool = False,
@@ -1336,9 +1383,10 @@ class MachineCanvas(QMainWindow):
         self,
     ) -> None:
         """Recalculate all committed connection lines."""
-        for connection_id, graphics in (
-            self._connection_items.items()
-        ):
+        for (
+            connection_id,
+            graphics,
+        ) in self._connection_items.items():
             connection = (
                 self.store.model.connections.get(
                     connection_id
@@ -1348,26 +1396,26 @@ class MachineCanvas(QMainWindow):
             if connection is None:
                 continue
 
-            source_item = (
+            endpoint_a_item = (
                 self._find_port_graphics_item(
-                    connection.source_port_id
+                    connection.endpoint_a_id
                 )
             )
 
-            target_item = (
+            endpoint_b_item = (
                 self._find_port_graphics_item(
-                    connection.target_port_id
+                    connection.endpoint_b_id
                 )
             )
 
             if (
-                source_item is None
-                or target_item is None
+                endpoint_a_item is None
+                or endpoint_b_item is None
             ):
                 continue
 
-            start = source_item.scenePos()
-            end = target_item.scenePos()
+            start = endpoint_a_item.scenePos()
+            end = endpoint_b_item.scenePos()
 
             graphics.setLine(
                 start.x(),
@@ -1375,11 +1423,6 @@ class MachineCanvas(QMainWindow):
                 end.x(),
                 end.y(),
             )
-
-    # ------------------------------------------------------------------
-    # Model → renderer synchronization
-    # ------------------------------------------------------------------
-
     def _model_changed(
         self,
         model: VisualModel,
