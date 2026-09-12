@@ -1,24 +1,18 @@
-"""Port graphics for the Machine Structure Editor.
-
-This module contains the Qt presentation and interaction class for a visual
-machine port. The underlying port data remains in visual_model.py.
-"""
-
 from __future__ import annotations
 
 from typing import Any
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QBrush, QPen
-from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsSimpleTextItem
+from PySide6.QtGui import QBrush, QColor, QPen
+from PySide6.QtWidgets import QGraphicsEllipseItem, QGraphicsItem
 
 from ..visual_model import VisualPort
 
 
 class PortGraphicsItem(QGraphicsEllipseItem):
-    """Rendered representation of one VisualPort."""
+    """Presentation object for one VisualPort."""
 
-    DIAMETER = 16.0
+    DIAMETER = 12.0
 
     NORMAL_FILL = QColor("#d7dde8")
     NORMAL_BORDER = QColor("#667085")
@@ -55,11 +49,16 @@ class PortGraphicsItem(QGraphicsEllipseItem):
         )
 
         self.port_id = port.id
-        self._side = port.side.lower().strip()
 
-        self._connection_drag_started = connection_drag_started
-        self._connection_drag_moved = connection_drag_moved
-        self._connection_drag_finished = connection_drag_finished
+        self._connection_drag_started = (
+            connection_drag_started
+        )
+        self._connection_drag_moved = (
+            connection_drag_moved
+        )
+        self._connection_drag_finished = (
+            connection_drag_finished
+        )
 
         self._hovered = False
         self._connection_state: str = "normal"
@@ -67,6 +66,7 @@ class PortGraphicsItem(QGraphicsEllipseItem):
         self.setBrush(
             QBrush(self.NORMAL_FILL)
         )
+
         self.setPen(
             QPen(
                 self.NORMAL_BORDER,
@@ -113,12 +113,12 @@ class PortGraphicsItem(QGraphicsEllipseItem):
         self,
         state: str,
     ) -> None:
-        """Set the temporary connection feedback state."""
+        """Set temporary connection feedback state."""
         self._connection_state = state
         self._apply_visual_state()
 
     def _apply_visual_state(self) -> None:
-        """Apply the current visual state."""
+        """Apply the current hover/connection appearance."""
         if self._connection_state == "source":
             fill = self.SOURCE_FILL
             border = self.SOURCE_BORDER
@@ -150,9 +150,7 @@ class PortGraphicsItem(QGraphicsEllipseItem):
         self.setPen(
             QPen(
                 border,
-                1.5
-                if self._connection_state != "normal"
-                else 1.2,
+                1.5 if self._connection_state != "normal" else 1.2,
             )
         )
 
