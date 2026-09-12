@@ -16,22 +16,14 @@ from typing import Any
 
 @dataclass
 class VisualPort:
-    """A visual interface belonging to a visual node.
-
-    A port may optionally reference a future semantic/interface object, but
-    the visual editor does not require that semantic identity to exist yet.
-    """
+    """A visual interface belonging to a visual node."""
 
     id: str
     node_id: str
     label: str = ""
     port_type: str = "unknown"
     direction: str = "unknown"
-
-    # Optional reference to a future canonical/semantic interface.
     semantic_reference: str | None = None
-
-    # Presentation hints.  These do not define machine semantics.
     side: str = "right"
     order: int = 0
 
@@ -52,18 +44,22 @@ class VisualNode:
 
     semantic_reference: str | None = None
 
-    ports: dict[str, VisualPort] = field(default_factory=dict)
+    ports: dict[str, VisualPort] = field(
+        default_factory=dict
+    )
 
-    # Presentation properties that are persistent model data rather than
-    # temporary interaction state.
-    properties: dict[str, Any] = field(default_factory=dict)
+    properties: dict[str, Any] = field(
+        default_factory=dict
+    )
 
-    def add_port(self, port: VisualPort) -> None:
-        """Add a port to this node."""
+    def add_port(
+        self,
+        port: VisualPort,
+    ) -> None:
+        """Add a visual port to this node."""
         if port.node_id != self.id:
             raise ValueError(
-                f"Port {port.id} belongs to node {port.node_id}, "
-                f"not {self.id}"
+                f"Port {port.id} does not belong to node {self.id}."
             )
 
         if port.id in self.ports:
@@ -76,21 +72,33 @@ class VisualNode:
 
 @dataclass
 class VisualConnection:
-    """A relationship between two visual ports.
+    """A physical visual connection between two visual ports.
 
-    The endpoints are port IDs rather than references to Qt objects or
-    VisualPort instances. This keeps connections stable when the renderer
-    is rebuilt.
+    Endpoint ordering has no physical meaning. Signal direction, when known,
+    is represented by the ports and their semantic relationships rather than
+    by the physical wire.
     """
 
     id: str
-    source_port_id: str
-    target_port_id: str
+
+    endpoint_a_id: str
+    endpoint_b_id: str
+
     connection_type: str = "unknown"
 
-    # Renderer-specific geometry can eventually live here when routing needs
-    # to be persisted. The first connection pass leaves it empty.
-    geometry: dict[str, Any] = field(default_factory=dict)
+    geometry: dict[str, Any] = field(
+        default_factory=dict
+    )
+
+    def contains_port(
+        self,
+        port_id: str,
+    ) -> bool:
+        """Return whether this connection uses the specified port."""
+        return port_id in {
+            self.endpoint_a_id,
+            self.endpoint_b_id,
+        }
 
 
 @dataclass
@@ -100,15 +108,21 @@ class VisualGroup:
     id: str
     label: str
 
-    node_ids: list[str] = field(default_factory=list)
-    group_ids: list[str] = field(default_factory=list)
+    node_ids: list[str] = field(
+        default_factory=list
+    )
+    group_ids: list[str] = field(
+        default_factory=list
+    )
 
     x: float = 0.0
     y: float = 0.0
     width: float = 300.0
     height: float = 200.0
 
-    properties: dict[str, Any] = field(default_factory=dict)
+    properties: dict[str, Any] = field(
+        default_factory=dict
+    )
 
 
 @dataclass
@@ -118,11 +132,16 @@ class VisualView:
     id: str
     name: str
 
-    visible_node_ids: list[str] = field(default_factory=list)
-    visible_group_ids: list[str] = field(default_factory=list)
-    visible_connection_ids: list[str] = field(default_factory=list)
+    visible_node_ids: list[str] = field(
+        default_factory=list
+    )
+    visible_group_ids: list[str] = field(
+        default_factory=list
+    )
+    visible_connection_ids: list[str] = field(
+        default_factory=list
+    )
 
-    # These are presentation coordinates, never machine coordinates.
     pan_x: float = 0.0
     pan_y: float = 0.0
     zoom: float = 1.0
@@ -132,17 +151,24 @@ class VisualView:
 class VisualModel:
     """The persistent visual representation of a Machine Builder project."""
 
-    nodes: dict[str, VisualNode] = field(default_factory=dict)
-    connections: dict[str, VisualConnection] = field(default_factory=dict)
-    groups: dict[str, VisualGroup] = field(default_factory=dict)
-    views: dict[str, VisualView] = field(default_factory=dict)
+    nodes: dict[str, VisualNode] = field(
+        default_factory=dict
+    )
+    connections: dict[str, VisualConnection] = field(
+        default_factory=dict
+    )
+    groups: dict[str, VisualGroup] = field(
+        default_factory=dict
+    )
+    views: dict[str, VisualView] = field(
+        default_factory=dict
+    )
 
-    def add_node(self, node: VisualNode) -> None:
-        """Add a node to the model.
-
-        Duplicate visual IDs are rejected because IDs are the stable identity
-        used by connections, selection, persistence, and rendering.
-        """
+    def add_node(
+        self,
+        node: VisualNode,
+    ) -> None:
+        """Add a node to the model."""
         if node.id in self.nodes:
             raise ValueError(
                 f"Visual node already exists: {node.id}"
@@ -150,41 +176,51 @@ class VisualModel:
 
         self.nodes[node.id] = node
 
-    def remove_node(self, node_id: str) -> VisualNode:
-        """Remove a node and return it.
-
-        Connections attached to ports belonging to this node are removed too.
-        This keeps the visual model internally consistent when a node is
-        deleted.
-        """
-        node = self.nodes.pop(node_id, None)
+    def remove_node(
+        self,
+        node_id: str,
+    ) -> VisualNode:
+        """Remove a node and its attached connections."""
+        node = self.nodes.pop(
+            node_id,
+            None,
+        )
 
         if node is None:
             raise KeyError(
                 f"Unknown visual node: {node_id}"
             )
 
-        port_ids = set(node.ports)
+        port_ids = set(
+            node.ports
+        )
 
         connections_to_remove = [
             connection_id
-            for connection_id, connection in self.connections.items()
+            for connection_id, connection
+            in self.connections.items()
             if (
-                connection.source_port_id in port_ids
-                or connection.target_port_id in port_ids
+                connection.endpoint_a_id in port_ids
+                or connection.endpoint_b_id in port_ids
             )
         ]
 
         for connection_id in connections_to_remove:
-            del self.connections[connection_id]
+            del self.connections[
+                connection_id
+            ]
 
         for group in self.groups.values():
             if node_id in group.node_ids:
-                group.node_ids.remove(node_id)
+                group.node_ids.remove(
+                    node_id
+                )
 
         for view in self.views.values():
             if node_id in view.visible_node_ids:
-                view.visible_node_ids.remove(node_id)
+                view.visible_node_ids.remove(
+                    node_id
+                )
 
         return node
 
@@ -195,20 +231,37 @@ class VisualModel:
         """Add a visual connection after endpoint validation."""
         if connection.id in self.connections:
             raise ValueError(
-                f"Visual connection already exists: {connection.id}"
+                f"Visual connection already exists: "
+                f"{connection.id}"
             )
 
-        if not self.find_port(connection.source_port_id):
+        if self.find_port(
+            connection.endpoint_a_id
+        ) is None:
             raise ValueError(
-                f"Unknown source port: {connection.source_port_id}"
+                f"Unknown endpoint: "
+                f"{connection.endpoint_a_id}"
             )
 
-        if not self.find_port(connection.target_port_id):
+        if self.find_port(
+            connection.endpoint_b_id
+        ) is None:
             raise ValueError(
-                f"Unknown target port: {connection.target_port_id}"
+                f"Unknown endpoint: "
+                f"{connection.endpoint_b_id}"
             )
 
-        self.connections[connection.id] = connection
+        if (
+            connection.endpoint_a_id
+            == connection.endpoint_b_id
+        ):
+            raise ValueError(
+                "A connection cannot connect a port to itself."
+            )
+
+        self.connections[
+            connection.id
+        ] = connection
 
     def remove_connection(
         self,
@@ -222,7 +275,8 @@ class VisualModel:
 
         if connection is None:
             raise KeyError(
-                f"Unknown visual connection: {connection_id}"
+                f"Unknown visual connection: "
+                f"{connection_id}"
             )
 
         for view in self.views.values():
@@ -239,7 +293,9 @@ class VisualModel:
     ) -> VisualPort | None:
         """Find a port anywhere in the visual model."""
         for node in self.nodes.values():
-            port = node.ports.get(port_id)
+            port = node.ports.get(
+                port_id
+            )
 
             if port is not None:
                 return port

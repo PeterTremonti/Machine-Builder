@@ -30,8 +30,8 @@ class ConnectionGraphicsItem(QGraphicsLineItem):
         super().__init__()
 
         self.connection_id = connection.id
-        self.source_port_id = connection.source_port_id
-        self.target_port_id = connection.target_port_id
+        self.endpoint_a_id = connection.endpoint_a_id
+        self.endpoint_b_id = connection.endpoint_b_id
 
         self._selection_callback = selection_callback
 
@@ -42,10 +42,8 @@ class ConnectionGraphicsItem(QGraphicsLineItem):
             )
         )
 
-        # Keep connections visually behind components and ports.
         self.setZValue(-10.0)
 
-        # Allow the connection itself to be selected.
         self.setFlag(
             QGraphicsItem.GraphicsItemFlag.ItemIsSelectable,
             True,
