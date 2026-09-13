@@ -23,10 +23,37 @@ Semantic Interpretation
 Canonical Machine Model
 ```
 
-The visual editor consumes the same canonical model.
+The visual editor is a bidirectional authoring and inspection environment over the same canonical model. It is not a second machine model and is not merely a read-only consumer.
+
+```text
+            Canonical Machine Model
+                    ↕
+          Semantic / Model Boundary
+                    ↕
+             Visual Machine Editor
+```
+
+The editor may project canonical information into visual representations and may author or modify canonical semantic information through user actions.
+
+```text
+Canonical Machine Model
+        ↓
+Visual projection
+        ↓
+Editor
+```
+
+```text
+User action
+     ↓
+Semantic edit / mutation
+     ↓
+Canonical Machine Model
+     ↓
+Updated visual representation
+```
 
 ---
-
 # 2. Physical machine first
 
 The physical machine is the machine. Firmware does not create machine identity.
@@ -41,9 +68,7 @@ A machine may have:
 Changing firmware does not create a new machine.
 
 ---
-
 # 3. Minimum machine layers
-
 ## Physical / mechanical
 
 - Machine
@@ -107,7 +132,6 @@ Operation, task, process, procedure, and action remain research concepts but are
 These represent implementation context, not machine identity.
 
 ---
-
 # 4. Relationship principles
 
 Relationships are typed semantic information.
@@ -132,8 +156,9 @@ Relationship multiplicity belongs to the relationship definition and may be refi
 
 Many-to-many relationships are allowed where the machine requires them.
 
----
+Semantic relationships may be created, modified, inspected, or removed through the visual editor. They are canonical machine information; the editor is an authoring interface to them, not their semantic owner.
 
+---
 # 5. Motion principle
 
 Axis is a machine-level motion/coordinate concept.
@@ -156,7 +181,6 @@ Examples that must remain representable:
 - belt printers
 
 ---
-
 # 6. Electrical connectivity principle
 
 Port is a semantic interface endpoint.
@@ -171,10 +195,9 @@ A physical electrical connection is normally nondirectional.
 
 Direction belongs to relevant semantic signals/flows/interface meanings, not inherently to the physical wire itself.
 
-A visual line is not the canonical connection.
+A visual line represents or edits the canonical connection; it is not the canonical connection itself.
 
 ---
-
 # 7. Controller resource principle
 
 A Controller Resource is a finite resource or capability supplied by a Controller that can be allocated or used by machine components/functions.
@@ -194,7 +217,6 @@ Examples include:
 Resources remain associated with their controller. Shared-resource use is modeled through allocation/usage relationships and constraints rather than special-case machine types.
 
 ---
-
 # 8. Function principle
 
 Function describes meaningful machine behavior/service.
@@ -216,8 +238,9 @@ For O0.1, examples include:
 
 A machine without a heated bed simply has no applicable Heat Bed function.
 
----
+The visual editor may author and edit Function-related canonical information when supported. Such semantic edits update the canonical machine model and are then projected back into the visual representation.
 
+---
 # 9. Property and calibration principle
 
 Properties may be:
@@ -244,7 +267,6 @@ The difference should be visible rather than silently overwritten. A new machine
 Unknown must remain distinct from absent and from not-applicable.
 
 ---
-
 # 10. Firmware principle
 
 The canonical model stores machine semantics.
@@ -263,12 +285,35 @@ The target context may include:
 Mappings may vary between firmware versions.
 
 ---
+# 11. Canonical model / visual model boundary
 
-# 11. Visual model principle
+The architecture distinguishes three things:
 
-The visual model is separate from canonical semantics.
+```text
+Canonical semantic objects
+        ↓
+Visual representations
+        ↓
+Visual presentation state
+```
 
-Visual state includes things such as:
+Canonical semantic objects include entities and relationships such as:
+
+- Machine Components
+- Subsystems
+- Ports
+- Connectors / pins / terminals
+- Connections
+- Functions
+- Capabilities
+- Controller resources and assignments
+- Properties
+- Calibration information
+- other canonical relationships
+
+Visual representations are editor objects that represent or expose those canonical entities.
+
+Visual presentation state includes:
 
 - canvas position
 - node size
@@ -276,7 +321,201 @@ Visual state includes things such as:
 - selection
 - zoom
 - collapsed/expanded state
+- other UI-only state
 
-A visual connection renders a canonical relationship.
+Presentation state must not silently become canonical machine semantics.
 
-The current visual editor is intentionally testing only a small slice of this architecture first.
+The distinction is therefore:
+
+```text
+Canonical Connection
+        ↓
+Visual representation
+        ↓
+Rendered line
+```
+
+and also:
+
+```text
+User edits visual representation
+        ↓
+semantic mutation
+        ↓
+Canonical Connection
+        ↓
+updated visual representation
+```
+
+The visual editor may create, modify, inspect, and remove canonical semantic entities and relationships, but visual geometry itself is never the authoritative source of machine meaning.
+
+---
+# 12. Visual editor modes
+
+The visual editor supports two conceptual operating modes.
+
+### Viewing mode
+
+Viewing mode is primarily intended for:
+
+- inspection
+- navigation
+- filtering
+- relationship exploration
+- semantic inspection
+- reviewing machine structure
+
+Viewing mode operates on the canonical machine model and does not require a separate read-only machine representation.
+
+### Editing mode
+
+Editing mode permits authoring and changing canonical machine semantics.
+
+Examples include:
+
+- creating Machine Components
+- assigning machine roles
+- creating Ports
+- creating Connections
+- assigning Controller Resources
+- adding Functions or Capabilities
+- editing Properties
+- changing relationships
+- identifying or replacing hardware definitions
+
+Semantic mutations made by Editing mode update the canonical machine model and are then reflected in the visual projection.
+
+The visual editor may eventually support an explicit change-review/confirmation mechanism in which a collection of semantic edits is represented as a change set before commit. That mechanism is an architectural direction and is not required for the first V0.2 implementation.
+
+---
+# 13. Partially specified machines
+
+The canonical machine model permits intentional partial specification.
+
+A machine may contain a valid Machine Component even when its exact hardware definition is unknown.
+
+For example:
+
+```text
+Machine Component:
+  role: temperature measurement
+  physical placement: known
+  connections: known
+  hardware definition: unspecified
+  specifications: unknown
+```
+
+Unknown / unspecified information is distinct from:
+
+- absent
+- not applicable
+- known but uncertain
+- inferred
+- derived
+
+The editor must not force fake values merely because a UI form or implementation class would prefer every field to be populated.
+
+This permits machine structure and intended relationships to be authored before exact hardware purchasing or identification has occurred.
+
+---
+# 14. Machine Component and hardware definition
+
+A Machine Component represents the machine-specific semantic occurrence.
+
+A Catalog Product represents an external reusable product definition.
+
+A hardware definition may reference or derive from a Catalog Product or Product Version and may carry hardware specifications, identifiers, manufacturer information, and related provenance.
+
+Therefore:
+
+```text
+Machine Component
+      ↕
+hardware definition /
+product identification
+      ↕
+Catalog Product / Product Version
+```
+
+The Machine Component may exist while the hardware-definition layer is unspecified.
+
+Do not use Component Instance as a competing canonical synonym for Machine Component unless later research establishes a specific semantic distinction that Machine Component cannot express.
+
+### Replace Component
+
+Replacing hardware must not normally be modeled as deletion followed by creation of a different Machine Component.
+
+Instead:
+
+```text
+existing Machine Component
+        ↓
+retain identity and machine relationships
+        ↓
+replace / enrich hardware definition
+        ↓
+resulting Machine Component
+```
+
+The operation should preserve existing semantic relationships such as:
+
+- machine role
+- physical placement
+- subsystem membership
+- connections
+- relevant ports/interfaces
+- Functions
+- other machine-specific relationships
+
+while allowing hardware-definition information and associated properties/specifications to change.
+
+The exact identity semantics of hardware-definition replacement remain implementation-detail work, but the canonical distinction between Machine Component and hardware definition is architectural.
+
+---
+# 15. Provenance of user-authored semantics
+
+Canonical information authored through the visual editor is canonical machine information, but its provenance must identify that it was authored through the editor rather than presenting it as externally verified documentation.
+
+At minimum, provenance must remain capable of distinguishing user-authored information from documented, observed, measured, inferred, derived, calibrated, and firmware-derived information.
+
+For example:
+
+```text
+source: user
+evidence type: authored
+method: visual editor
+context: editor session
+```
+
+---
+# 16. Future semantic change review
+
+The architecture should eventually permit editor operations to produce a semantic change set before commit.
+
+Example:
+
+```text
+Added Temperature Sensor
+Connected Sensor → Controller
+Assigned role: temperature measurement
+Hardware definition: unspecified
+```
+
+The user may eventually review and confirm this set before it becomes committed canonical model state.
+
+This is a future architectural direction, not an immediate V0.2 implementation requirement.
+
+The important invariant is:
+
+```text
+Canonical Machine Model
+    = semantic truth /
+      authoritative structured representation
+
+Visual Editor
+    = bidirectional authoring,
+      editing, viewing, and inspection environment
+
+Visual State
+    = presentation only
+```
