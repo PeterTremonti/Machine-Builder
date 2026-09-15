@@ -22,7 +22,7 @@ from ..visual_model import VisualPort
 class PortGraphicsItem(QGraphicsEllipseItem):
     """Presentation object for one VisualPort."""
 
-    DIAMETER = 12.0
+    DIAMETER = 18.0
 
     NORMAL_FILL = QColor("#d7dde8")
     NORMAL_BORDER = QColor("#667085")
@@ -43,6 +43,7 @@ class PortGraphicsItem(QGraphicsEllipseItem):
     INVALID_BORDER = QColor("#ffd7d5")
 
     LABEL_COLOR = QColor("#f0f0f0")
+    ICON_COLOR = QColor("#20242b")
     STATUS_COLOR = QColor("#20242b")
 
     def __init__(
@@ -112,6 +113,24 @@ class PortGraphicsItem(QGraphicsEllipseItem):
             self._build_tooltip(port)
         )
 
+        # Persistent purpose icon.
+        self._icon_item = QGraphicsSimpleTextItem(
+            self._purpose_icon(port),
+            self,
+        )
+
+        self._icon_item.setBrush(
+            QBrush(
+                self.ICON_COLOR
+            )
+        )
+
+        self._icon_item.setAcceptedMouseButtons(
+            Qt.MouseButton.NoButton
+        )
+
+        self._icon_item.setZValue(1.0)
+
         # Persistent port identity.
         self._label_item = QGraphicsSimpleTextItem(
             port.label or "Interface",
@@ -146,8 +165,94 @@ class PortGraphicsItem(QGraphicsEllipseItem):
 
         self._status_item.setZValue(2.0)
 
+        self._position_icon()
         self._position_label()
         self._position_status()
+
+    @staticmethod
+    def _purpose_icon(
+        port: VisualPort,
+    ) -> str:
+        """Return a simple purpose-based visual icon for the port."""
+
+        port_type = (
+            port.port_type or ""
+        ).lower().strip()
+
+        label = (
+            port.label or ""
+        ).lower().strip()
+
+        searchable = (
+            f"{port_type} {label}"
+        )
+
+        if any(
+            word in searchable
+            for word in (
+                "fan",
+                "blower",
+            )
+        ):
+            return "🌀"
+
+        if any(
+            word in searchable
+            for word in (
+                "heater",
+                "heating",
+                "heat",
+            )
+        ):
+            return "🔥"
+
+        if any(
+            word in searchable
+            for word in (
+                "temperature",
+                "thermistor",
+                "thermocouple",
+                "temp",
+            )
+        ):
+            return "🌡"
+
+        if any(
+            word in searchable
+            for word in (
+                "motor",
+                "stepper",
+                "stepper motor",
+            )
+        ):
+            return "↻"
+
+        if any(
+            word in searchable
+            for word in (
+                "power",
+                "voltage",
+                "24v",
+                "12v",
+                "5v",
+                "ac",
+                "dc",
+            )
+        ):
+            return "⚡"
+
+        if any(
+            word in searchable
+            for word in (
+                "endstop",
+                "end stop",
+                "limit",
+                "switch",
+            )
+        ):
+            return "□"
+
+        return "•"
 
     @staticmethod
     def _build_tooltip(
@@ -161,6 +266,17 @@ class PortGraphicsItem(QGraphicsEllipseItem):
         ]
 
         return "\n".join(lines)
+
+    def _position_icon(self) -> None:
+        """Center the purpose icon over the port."""
+        icon_rect = (
+            self._icon_item.boundingRect()
+        )
+
+        self._icon_item.setPos(
+            -icon_rect.width() / 2.0,
+            -icon_rect.height() / 2.0 - 1.0,
+        )
 
     def _position_label(self) -> None:
         """Place the persistent port label outside the node."""
@@ -221,6 +337,7 @@ class PortGraphicsItem(QGraphicsEllipseItem):
 
     def _apply_visual_state(self) -> None:
         """Apply color and non-color connection feedback."""
+
         if self._connection_state == "source":
             fill = self.SOURCE_FILL
             border = self.SOURCE_BORDER
@@ -266,6 +383,15 @@ class PortGraphicsItem(QGraphicsEllipseItem):
 
         self._status_item.setText(
             symbol
+        )
+
+        # Hide the purpose icon while compatibility feedback is shown.
+        self._icon_item.setVisible(
+            symbol == ""
+        )
+
+        self._status_item.setVisible(
+            symbol != ""
         )
 
         self._position_status()

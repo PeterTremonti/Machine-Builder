@@ -10,6 +10,24 @@ This directory is the durable research, architecture, terminology, ontology, sta
 
 **Implementation:** v0.2 development; the visual editor is currently being used as a connection-engine test harness and is intended to become a bidirectional authoring and inspection environment for the canonical machine model.
 The O0.1 scope is intentionally narrow. The first working Machine Builder is primarily intended to describe a 3D printer physically and semantically well enough to derive firmware representations for supported firmware families and versions.
+
+### V0.2 implementation checkpoint
+
+The current implementation milestone is V0.2.
+
+V0.2 is built on the O0.1 canonical machine model and does not replace or reopen the O0.1 ontology checkpoint.
+
+V0.2 focuses on turning the visual editor into a bidirectional canonical-machine authoring and inspection environment for real 3D printers.
+
+The V0.2 stopping point is recorded in:
+
+`checkpoints/V0.2_RESEARCH_CHECKPOINT.md`
+
+The implementation-facing handoff is:
+
+`handoffs/V0.2_IMPLEMENTATION_HANDOFF.md`
+
+Future ideas may be recorded without automatically expanding V0.2. Promotion of future concepts should wait for implementation, machine, firmware, or research evidence.
 ## Core purpose
 
 The physical machine is the machine. Firmware is an optional, versioned implementation of that machine.
