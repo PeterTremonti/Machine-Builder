@@ -15,17 +15,18 @@ The roadmap is expected to change as the software is tested and architectural de
 Each implementation version has two related records:
 
 1. **Implementation Roadmap**
-   - The current overall direction.
-   - High-level milestones and planned architecture.
+
+   * The current overall direction.
+   * High-level milestones and planned architecture.
 
 2. **Version Implementation Plan**
-   - Initial plan for the version.
-   - Decisions and changes made during implementation.
-   - Final implemented state.
-   - Items deliberately carried into the next version.
+
+   * Initial plan for the version.
+   * Decisions and changes made during implementation.
+   * Final implemented state.
+   * Items deliberately carried into the next version.
 
 The plan for a version may change during implementation.
-
 The final state of a completed version is the authoritative record of what was actually implemented.
 
 ---
@@ -40,32 +41,34 @@ V0.1 established the first usable visual machine-structure editor.
 
 The version successfully demonstrated:
 
-- canvas interaction
-- component palette
-- visual nodes
-- explicit ports
-- persistent port labels
-- compatibility feedback
-- physical connection creation
-- connection selection and deletion
-- undo/redo
-- multi-selection
-- modular graphics architecture
+* canvas interaction
+* component palette
+* visual nodes
+* explicit ports
+* persistent port labels
+* compatibility feedback
+* physical connection creation
+* connection selection and deletion
+* undo/redo
+* multi-selection
+* modular graphics architecture
 
 The final automated test suite contains:
 
 ```text
 20 passed
 V0.1 Architectural Result
-
 The visual graphics layer is divided into dedicated modules:
+```
 
+```text
 graphics/
 ├── connection.py
 ├── node.py
 ├── palette.py
 ├── port.py
 └── view.py
+```
 
 The main canvas.py remains the editor/orchestration layer.
 
@@ -73,24 +76,35 @@ The visual model remains separate from Qt graphics.
 
 The visual connection model represents physical relationships as:
 
+```text
 endpoint A ↔ endpoint B
+```
 
 rather than treating the physical connection as directional.
 
 Semantic signal relationships remain separate:
 
+```text
 source → consumer
-V0.1 Completion Record
+```
+
+## V0.1 Completion Record
 
 The detailed implementation history is recorded in:
 
+```text
 docs/implementation/V0.1_IMPLEMENTATION_PLAN.md
+```
 
 The final V0.1 implementation milestone should be tagged:
 
+```text
 v0.1.0
-V0.2 — Semantic and Machine-Structure Expansion
-Status
+```
+
+# V0.2 — Semantic and Machine-Structure Expansion
+
+## Status
 
 Planning not started
 
@@ -100,18 +114,21 @@ The primary purpose of V0.2 will likely be moving the prototype from generic vis
 
 Potential areas include:
 
-Port semantics
+## Port semantics
 
 Move beyond generic categories such as:
 
+```text
 signal
 electrical
 unknown
+```
 
 toward richer semantic roles and domains.
 
 Potential examples:
 
+```text
 temperature measurement
 step command
 direction command
@@ -122,48 +139,55 @@ communication
 material
 fluid
 mechanical
-Compatibility
+```
+
+## Compatibility
 
 Expand the compatibility system to consider:
 
-semantic role
-signal identity
-electrical characteristics
-voltage
-current
-connector/pin compatibility
-domain
-machine-specific requirements
-Component definitions
+* semantic role
+* signal identity
+* electrical characteristics
+* voltage
+* current
+* connector/pin compatibility
+* domain
+* machine-specific requirements
+
+## Component definitions
 
 Begin integrating richer component definitions that can eventually connect to the broader hardware/catalog architecture.
 
-Persistence
+## Persistence
 
 Define the first durable project/visual-model persistence mechanism.
 
-Connection presentation
+## Connection presentation
 
 Investigate:
 
-automatic routing
-orthogonal routing
-manual waypoints
-improved wire organization
-Information layers
+* automatic routing
+* orthogonal routing
+* manual waypoints
+* improved wire organization
+
+## Information layers
 
 Begin defining how users can switch between different information/detail layers without forcing every concept onto the same visual representation.
 
-Accessibility
+## Accessibility
 
 Expand beyond the current color-plus-symbol approach toward a broader accessibility strategy.
 
-Long-Term Implementation Direction
+---
+
+# Long-Term Implementation Direction
 
 The Machine Structure Editor is one layer of the broader Machine Builder system.
 
 The intended relationship is:
 
+```text
 Canonical / Semantic Machine Model
             ↓
      Semantic Adapter
@@ -173,233 +197,164 @@ Canonical / Semantic Machine Model
     Editor / Interaction
             ↓
       Qt Presentation
+```
 
 The editor should remain independent from:
 
-firmware-specific configuration formats
-supplier-specific catalog identity
-source-document storage
-general project knowledge
-knowledge-graph retrieval systems
+* firmware-specific configuration formats
+* supplier-specific catalog identity
+* source-document storage
+* general project knowledge
+* knowledge-graph retrieval systems
 
 Those systems should integrate through defined boundaries.
 
-## Implementation Principles
+---
 
-### 1. Prefer meaningful, cohesive modules
+# Implementation Principles
 
-Separate code when it represents a genuinely distinct responsibility.
+## 1. Prefer small, cohesive modules
 
-A module should have a clear purpose and a small, understandable public boundary.
+Prefer modules with a clear, meaningful responsibility and a narrow interface.
 
-Do not split files merely to make them smaller.
+A module should have a reason to exist beyond merely keeping individual files short.
 
-Do not create one-file-per-function unless the responsibility genuinely benefits from that separation.
+Do not split files merely to reduce line count or file size. Cohesion and clear responsibility matter more than the number of files.
 
-The goal is:
+## 2. Keep coupling low
 
-```text
-high cohesion
-+
-low coupling
-+
-clear boundaries
-```
+Keep dependencies between modules deliberate and limited.
 
-### 2. Prefer small changes over broad rewrites
+Prefer narrow, understandable interfaces over reaching deeply into another module's internal state.
 
-A normal feature or bug fix should change the smallest reasonable set of modules.
+When one module needs knowledge of many unrelated implementation details elsewhere, consider whether the boundary between those responsibilities is wrong.
 
-If a seemingly small change repeatedly requires modifying large portions of the codebase, stop and consider whether an architectural boundary is missing or misplaced before continuing.
+## 3. Prefer the smallest reasonable change
 
-The preferred direction is:
+For a feature or bug fix, make the smallest change that correctly addresses the problem while preserving the existing architecture and behavior.
 
-```text
-small change
-    ↓
-focused tests
-    ↓
-small refactor if needed
-    ↓
-continue
-```
+Avoid unrelated cleanup or refactoring inside an otherwise focused change unless it is necessary to make the change correct.
 
-rather than:
+## 4. Treat repeated friction as architectural evidence
 
-```text
-small change
-    ↓
-large unrelated rewrite
-    ↓
-large regression surface
-```
+If a tiny change repeatedly requires editing large or unrelated sections of code, stop and consider whether the problem is actually a missing or incorrect architectural boundary.
 
-### 3. Keep responsibilities separated
+Repeated awkward changes are evidence worth investigating.
 
-Code that changes for different reasons should normally live behind separate boundaries.
+Do not solve the same boundary problem over and over with increasingly complicated local patches.
 
-Examples include:
+## 5. Avoid giant "god" classes and modules
 
-```text
-canonical semantic model
-visual model
-graphics / rendering
-persistence
-undo / redo
-mutations
-hardware catalog
-firmware mapping
-```
+Do not allow a class or module to accumulate unrelated responsibilities simply because it is convenient to put them in one place.
 
-A feature may legitimately cross multiple boundaries, but each module should remain responsible for its own concern.
+As responsibilities become distinct, consider whether they belong behind separate boundaries.
 
-### 4. Keep module interfaces narrow
+This does not mean every responsibility needs its own file. The goal is coherent design, not maximal fragmentation.
 
-Modules should communicate through explicit, understandable interfaces rather than reaching into one another's implementation details.
+## 6. Keep major concerns separated
 
-Prefer:
+Maintain clear boundaries between:
 
-```text
-Module A
-    ↓
-small public interface
-    ↓
-Module B
-```
+* canonical semantic model
+* visual state
+* graphics / presentation
+* persistence
+* mutations and state transitions
+* hardware catalog
+* firmware-specific concerns
 
-over:
+These concerns may interact through defined interfaces, but one should not quietly become the implementation home for another.
 
-```text
-Module A
-    ↓
-reaches into Module B internals
-    ↓
-depends on private implementation details
-```
+## 7. Refactoring is expected and normal
 
-This allows individual modules to be redesigned without forcing unrelated modules to change.
+A module boundary is a design decision, not a permanent commitment.
 
-### 5. Preserve the model/presentation boundary
+When implementation reveals that a boundary is wrong, refactor it.
 
-Canonical machine semantics must remain independent from visual and Qt implementation details.
+Prefer a deliberate architectural correction over accumulating workarounds around a poor boundary.
 
-Qt objects must not become the canonical machine model.
+## 8. Test after meaningful changes
 
-Visual behavior must not silently become machine semantics.
+Run the relevant automated tests after meaningful implementation or architectural changes.
 
-For example:
+For changes that affect shared behavior or boundaries, run the full test suite.
 
-```text
-visual routing
-    ≠
-canonical Connection
+A refactor is successful when the intended behavior is preserved or deliberately changed and the change is demonstrated by tests.
 
-mouse drag direction
-    ≠
-physical connection direction
+## 9. Keep commits focused
 
-canvas position
-    ≠
-machine placement unless explicitly authored as such
-```
+Keep commits centered on one meaningful change, fix, architectural step, or checkpoint.
 
-### 6. Prefer composition over monolithic classes
+Avoid mixing unrelated cleanup with functional work when doing so makes the history harder to understand.
 
-When a class begins accumulating several unrelated responsibilities, consider extracting cohesive collaborators rather than continuing to grow the class.
+Use commits and tags to preserve implementation history rather than maintaining obsolete parallel implementation directories.
 
-Avoid "god objects" that own unrelated:
-
-```text
-modeling
-rendering
-persistence
-business rules
-input handling
-routing
-```
-
-in one place.
-
-### 7. Test after meaningful changes
-
-A successful refactor is one that preserves intended behavior.
-
-After a meaningful architectural or behavioral change:
-
-```text
-change
-    ↓
-focused tests
-    ↓
-full test suite
-```
-
-Tests should protect module boundaries and important behavior, not merely implementation details.
-
-### 8. Refactoring is normal
-
-Modular code is expected to evolve.
-
-When implementation reveals that a responsibility belongs somewhere else:
-
-```text
-identify responsibility
-    ↓
-move/refactor it
-    ↓
-preserve public behavior
-    ↓
-run tests
-    ↓
-document important architectural changes
-```
-
-Do not preserve a bad boundary merely because changing it would require moving code.
-
-### 9. Use whole-file replacement when it reduces implementation errors
-
-During early development, whole-file replacements are preferred when they are clearer and safer than complicated incremental editing.
-
-This is an editing workflow preference, not a reason to create large files.
-
-### 10. Keep commits focused
-
-Prefer commits that represent one coherent change.
-
-For example:
-
-```text
-Add semantic routing boundary
-Add routing tests
-Add orthogonal router
-Connect router to graphics
-```
-
-is easier to understand, test, revert, and debug than one large commit containing several unrelated changes.
-
-### 11. Ask whether a broad change reveals a missing boundary
-
-When a small feature requires changing many apparently unrelated modules, consider two possibilities:
-
-```text
-A. The feature legitimately crosses several subsystems.
-
-B. The architecture has not established the correct boundary yet.
-```
-
-Do not automatically choose either explanation.
-
-Investigate before expanding the change.
-
-### 12. Document major architectural decisions
+## 10. Document major architectural discoveries
 
 When implementation reveals that an earlier assumption was incorrect:
 
+* document the discovery
+* determine whether it is an implementation issue or an architectural issue
+* involve the appropriate research / architecture work when semantics are affected
+* record the decision
+* update the version plan when appropriate
+* update the roadmap when the change affects future versions
+
+## 11. Keep versions as milestones, not duplicate implementations
+
+Do not create V0.2, V0.3, etc. directories for parallel implementations.
+
+Use:
+
+* Git commits
+* Git tags
+* version implementation plans
+* the living roadmap
+
+to preserve history.
+
+---
+
+# Version Workflow
+
+For each version:
+
 ```text
-document the discovery
-record the decision
-update the version plan
-update the roadmap when the change affects future versions
+Initial Plan
+      ↓
+Implementation
+      ↓
+Testing
+      ↓
+Discoveries / Decisions
+      ↓
+Final Plan
+      ↓
+Carry-Forward
+      ↓
+Version Tag
+      ↓
+Next Version Planning
 ```
 
-Implementation convenience must not silently redefine the canonical architecture or ontology.
+This workflow is intentionally iterative.
+
+The final version is allowed to differ from the original plan when testing demonstrates that a different design is better.
+
+---
+
+# Current State
+
+Latest completed version:
+
+```text
+v0.1.0
+```
+
+Next version:
+
+```text
+V0.2
+```
+
+V0.2 implementation should not begin until its own plan has been created and reviewed.
