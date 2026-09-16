@@ -1,4 +1,4 @@
-Last modified by Visual Machine Editor chat 09/15/26 11:23pm
+Last modified by Research chat 09/15/26 11:54pm
 
 # Machine Builder
 
@@ -12,13 +12,21 @@ The canonical machine model is therefore the semantic center of the project.
 
 ```text
 Physical Machine
+
         ↓
+
 Canonical Machine Model
+
         ↓
+
 Firmware Requirements / Mapping
+
         ↓
+
 Target Firmware + Version
+
         ↓
+
 Generated Configuration / Representation
 ```
 
@@ -26,9 +34,13 @@ Reverse interpretation is also intended:
 
 ```text
 Firmware / Configuration
+
         ↓
+
 Semantic Interpretation
+
         ↓
+
 Canonical Machine Model
 ```
 
@@ -77,23 +89,41 @@ Start with:
 machine-builder-research/START_HERE.md
 ```
 
-Then follow its recovery/read order.
+The current research/architecture checkpoint is:
+
+```text
+machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md
+```
+
+Then follow the recovery/read order defined by `START_HERE.md`.
 
 Important research documents include:
 
 ```text
 machine-builder-research/PROJECT_CONTEXT.md
+
 machine-builder-research/RESEARCH_ROADMAP.md
 
 machine-builder-research/architecture/
+
 machine-builder-research/ontology/
+
 machine-builder-research/standards/
+
 machine-builder-research/machines/
+
 machine-builder-research/firmware/
+
 machine-builder-research/decisions/
+
 machine-builder-research/questions/
+
+machine-builder-research/checkpoints/
+
 machine-builder-research/handoffs/
 ```
+
+The research/architecture documents are the authority for settled semantic and architectural decisions.
 
 ---
 
@@ -123,7 +153,9 @@ Important files:
 machine-structure-editor/IMPLEMENTATION_ROADMAP.md
 
 machine-structure-editor/docs/implementation/
+
 machine-structure-editor/src/machine_builder/
+
 machine-structure-editor/tests/
 ```
 
@@ -134,6 +166,8 @@ machine-builder-research/handoffs/V0.2_IMPLEMENTATION_HANDOFF.md
 ```
 
 The implementation chat should read the current implementation handoff before making substantial changes.
+
+The implementation handoff describes the current implementation state and implementation requirements; it does not independently redefine settled research/architecture decisions.
 
 ---
 
@@ -173,6 +207,9 @@ The visual-editor chat should read:
 README.md
 
 machine-builder-research/START_HERE.md
+
+machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md
+
 machine-builder-research/handoffs/V0.2_IMPLEMENTATION_HANDOFF.md
 
 machine-structure-editor/docs/implementation/V0.2_IMPLEMENTATION_PLAN.md
@@ -190,9 +227,13 @@ The working relationship is:
 
 ```text
 Research / Architecture
+
         ↕
+
 Implementation
+
         ↕
+
 Visual Editor
 ```
 
@@ -216,9 +257,13 @@ The visual editor is a bidirectional authoring and inspection environment over t
 
 ```text
           Canonical Machine Model
+
                     ↕
+
           Semantic / Model Boundary
+
                     ↕
+
              Visual Editor
 ```
 
@@ -266,7 +311,7 @@ Current implementation milestone:
 V0.2
 ```
 
-The research checkpoint is:
+The current research checkpoint is:
 
 ```text
 machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md
@@ -277,6 +322,10 @@ The current implementation-facing handoff is:
 ```text
 machine-builder-research/handoffs/V0.2_IMPLEMENTATION_HANDOFF.md
 ```
+
+O0.1 remains the foundational semantic baseline for V0.2.
+
+The O0.1 implementation handoff is retained as historical/reference context; current implementation coordination should use the V0.2 checkpoint and V0.2 implementation handoff.
 
 ---
 
@@ -313,6 +362,7 @@ The current canonical foundation includes:
 
 ```text
 machine-structure-editor/
+
 │
 ├── pyproject.toml
 ├── IMPLEMENTATION_ROADMAP.md
@@ -379,6 +429,7 @@ These are intentionally separate.
 
 ```text
 Machine Component
+    references
         ↓
 Hardware Definition
 ```
@@ -387,7 +438,7 @@ A Machine Component is the machine-specific occurrence.
 
 A Hardware Definition describes known hardware characteristics.
 
-The same Hardware Definition may be used by multiple Machine Components.
+The same Hardware Definition may be referenced by multiple Machine Components.
 
 Ports instantiated onto separate Machine Components must have separate canonical identities.
 
@@ -395,14 +446,19 @@ Example:
 
 ```text
 Hardware Definition
+
 generic-4010-fan-24v
 
+
 Machine Component A
+
 component-fan-a
 ├── component-fan-a-power
 └── component-fan-a-ground
 
+
 Machine Component B
+
 component-fan-b
 ├── component-fan-b-power
 └── component-fan-b-ground
@@ -455,15 +511,22 @@ When in doubt:
 
 ```text
 Research question
+
     → research / architecture documents
 
+
 Implementation question
+
     → implementation handoff + current source/tests
 
+
 Visual behavior question
+
     → implementation source + implementation handoff + relevant research
 
+
 Semantic disagreement
+
     → research / architecture
 ```
 

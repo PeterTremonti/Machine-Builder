@@ -255,7 +255,7 @@ Hardware definition: unspecified
 ```
 
 This is an architectural direction, not a requirement for the first V0.2 implementation.
-## ## Recovery order
+## Recovery order
 
 For a new Research / Architecture chat, use this order:
 
