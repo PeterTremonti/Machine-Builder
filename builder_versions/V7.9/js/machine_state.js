@@ -1,5 +1,0 @@
-machine
-{
-    devices[]
-    connections[]
-}
