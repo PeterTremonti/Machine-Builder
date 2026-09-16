@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
-
 from .controller import Controller
 from .controller_resource import ControllerResource
 from .controller_resource_assignment import (
@@ -53,7 +52,6 @@ class SemanticPort:
     id: str
     component_id: str
     purpose: str
-
     direction: str = "unknown"
 
     connector_id: str | None = None
@@ -73,7 +71,6 @@ class Function:
     id: str
     name: str
     description: str = ""
-
     properties: dict[str, Any] = field(
         default_factory=dict
     )
@@ -95,7 +92,6 @@ class MachineComponent:
     port_ids: list[str] = field(
         default_factory=list
     )
-
     properties: dict[str, Any] = field(
         default_factory=dict
     )
@@ -122,7 +118,6 @@ class Machine:
     capability_ids: list[str] = field(
         default_factory=list
     )
-
     controller_ids: list[str] = field(
         default_factory=list
     )
@@ -165,7 +160,6 @@ class CanonicalMachineModel:
     ports: dict[str, SemanticPort] = field(
         default_factory=dict
     )
-
     functions: dict[str, Function] = field(
         default_factory=dict
     )
@@ -184,7 +178,6 @@ class CanonicalMachineModel:
     ] = field(
         default_factory=dict
     )
-
     controller_resource_assignments: dict[
         str,
         ControllerResourceAssignment,
@@ -243,7 +236,6 @@ class CanonicalMachineModel:
         self.components[
             component.id
         ] = component
-
         self.machines[
             machine_id
         ].component_ids.append(
@@ -263,7 +255,6 @@ class CanonicalMachineModel:
             raise KeyError(
                 f"Unknown machine component: {component_id}"
             )
-
         component_port_ids = set(
             component.port_ids
         )
@@ -279,12 +270,10 @@ class CanonicalMachineModel:
                 in component_port_ids
             )
         ]
-
         for connection_id in connection_ids:
             del self.connections[
                 connection_id
             ]
-
         relationship_ids = [
             relationship_id
             for relationship_id, relationship
@@ -296,7 +285,6 @@ class CanonicalMachineModel:
                 or relationship.target_id in component_port_ids
             )
         ]
-
         for relationship_id in relationship_ids:
             del self.relationships[
                 relationship_id
@@ -311,7 +299,6 @@ class CanonicalMachineModel:
                 or assignment.source_id in component_port_ids
             )
         ]
-
         for assignment_id in assignment_ids:
             self.remove_controller_resource_assignment(
                 assignment_id
@@ -328,7 +315,6 @@ class CanonicalMachineModel:
                 machine.component_ids.remove(
                     component_id
                 )
-
         del self.components[
             component_id
         ]
@@ -345,7 +331,6 @@ class CanonicalMachineModel:
                 "Hardware definition already exists: "
                 f"{hardware_definition.id}"
             )
-
         self.hardware_definitions[
             hardware_definition.id
         ] = hardware_definition
@@ -363,7 +348,6 @@ class CanonicalMachineModel:
         component = self.components.get(
             port.component_id
         )
-
         if component is None:
             raise ValueError(
                 "Unknown component: "
@@ -403,7 +387,6 @@ class CanonicalMachineModel:
             raise ValueError(
                 f"Unknown machine: {machine_id}"
             )
-
         self.functions[
             function.id
         ] = function
@@ -425,7 +408,6 @@ class CanonicalMachineModel:
             raise KeyError(
                 f"Unknown function: {function_id}"
             )
-
         relationship_ids = [
             relationship_id
             for relationship_id, relationship
@@ -440,7 +422,6 @@ class CanonicalMachineModel:
             del self.relationships[
                 relationship_id
             ]
-
         assignment_ids = [
             assignment_id
             for assignment_id, assignment
@@ -452,7 +433,6 @@ class CanonicalMachineModel:
             self.remove_controller_resource_assignment(
                 assignment_id
             )
-
         for machine in self.machines.values():
             if function_id in machine.function_ids:
                 machine.function_ids.remove(
@@ -479,7 +459,6 @@ class CanonicalMachineModel:
         machine = self.machines.get(
             machine_id
         )
-
         if machine is None:
             raise ValueError(
                 f"Unknown machine: {machine_id}"
@@ -501,7 +480,6 @@ class CanonicalMachineModel:
         capability = self.capabilities.get(
             capability_id
         )
-
         if capability is None:
             raise KeyError(
                 f"Unknown capability: {capability_id}"
@@ -516,7 +494,6 @@ class CanonicalMachineModel:
                 or relationship.target_id == capability_id
             )
         ]
-
         for relationship_id in relationship_ids:
             del self.relationships[
                 relationship_id
@@ -533,7 +510,6 @@ class CanonicalMachineModel:
             self.remove_controller_resource_assignment(
                 assignment_id
             )
-
         for machine in self.machines.values():
             if capability_id in machine.capability_ids:
                 machine.capability_ids.remove(
@@ -560,7 +536,6 @@ class CanonicalMachineModel:
         machine = self.machines.get(
             machine_id
         )
-
         if machine is None:
             raise ValueError(
                 f"Unknown machine: {machine_id}"
@@ -582,7 +557,6 @@ class CanonicalMachineModel:
         controller = self.controllers.get(
             controller_id
         )
-
         if controller is None:
             raise KeyError(
                 f"Unknown controller: {controller_id}"
@@ -598,7 +572,6 @@ class CanonicalMachineModel:
         controller = self.controllers.get(
             controller_id
         )
-
         if controller is None:
             raise KeyError(
                 f"Unknown controller: {controller_id}"
@@ -615,7 +588,6 @@ class CanonicalMachineModel:
             self.remove_controller_resource_assignment(
                 assignment_id
             )
-
         resource_ids = [
             resource_id
             for resource_id, resource
@@ -627,7 +599,6 @@ class CanonicalMachineModel:
             self.remove_controller_resource(
                 resource_id
             )
-
         for machine in self.machines.values():
             if controller_id in machine.controller_ids:
                 machine.controller_ids.remove(
@@ -655,7 +626,6 @@ class CanonicalMachineModel:
         machine = self.machines.get(
             machine_id
         )
-
         if machine is None:
             raise ValueError(
                 f"Unknown machine: {machine_id}"
@@ -671,7 +641,6 @@ class CanonicalMachineModel:
         self.controller_resources[
             resource.id
         ] = resource
-
         machine.controller_resource_ids.append(
             resource.id
         )
@@ -707,7 +676,6 @@ class CanonicalMachineModel:
                 "Unknown controller resource: "
                 f"{resource_id}"
             )
-
         assignment_ids = [
             assignment_id
             for assignment_id, assignment
@@ -722,7 +690,6 @@ class CanonicalMachineModel:
             self.remove_controller_resource_assignment(
                 assignment_id
             )
-
         for machine in self.machines.values():
             if resource_id in machine.controller_resource_ids:
                 machine.controller_resource_ids.remove(
@@ -750,7 +717,6 @@ class CanonicalMachineModel:
         machine = self.machines.get(
             machine_id
         )
-
         if machine is None:
             raise ValueError(
                 f"Unknown machine: {machine_id}"
@@ -761,13 +727,35 @@ class CanonicalMachineModel:
                 "Unknown controller resource: "
                 f"{assignment.resource_id}"
             )
-
         if not self._has_canonical_object(
             assignment.source_id
         ):
             raise ValueError(
                 "Unknown canonical assignment source: "
                 f"{assignment.source_id}"
+            )
+
+        source_machine_id = self._machine_for_canonical_object(
+            assignment.source_id
+        )
+
+        if (
+            source_machine_id is not None
+            and source_machine_id != machine_id
+        ):
+            raise ValueError(
+                "Assignment source belongs to a different machine: "
+                f"{assignment.source_id}"
+            )
+
+        resource_machine_id = self._machine_for_canonical_object(
+            assignment.resource_id
+        )
+
+        if resource_machine_id != machine_id:
+            raise ValueError(
+                "Controller resource belongs to a different machine: "
+                f"{assignment.resource_id}"
             )
 
         self.controller_resource_assignments[
@@ -809,7 +797,6 @@ class CanonicalMachineModel:
                 "Unknown controller resource assignment: "
                 f"{assignment_id}"
             )
-
         for machine in self.machines.values():
             if (
                 assignment_id
@@ -824,6 +811,41 @@ class CanonicalMachineModel:
         ]
 
         return assignment
+
+    def _machine_for_canonical_object(
+        self,
+        object_id: str,
+    ) -> str | None:
+        """Return the machine that owns a machine-scoped canonical object."""
+        if object_id in self.machines:
+            return object_id
+
+        for machine_id, machine in self.machines.items():
+            if object_id in machine.component_ids:
+                return machine_id
+
+            if object_id in machine.function_ids:
+                return machine_id
+
+            if object_id in machine.capability_ids:
+                return machine_id
+
+            if object_id in machine.controller_ids:
+                return machine_id
+
+            if object_id in machine.controller_resource_ids:
+                return machine_id
+
+            if object_id in machine.controller_resource_assignment_ids:
+                return machine_id
+
+        for component in self.components.values():
+            if object_id in component.port_ids:
+                for machine_id, machine in self.machines.items():
+                    if component.id in machine.component_ids:
+                        return machine_id
+
+        return None
 
     def _has_canonical_object(
         self,
@@ -851,7 +873,6 @@ class CanonicalMachineModel:
                 "Relationship already exists: "
                 f"{relationship.id}"
             )
-
         if (
             not self._has_canonical_object(
                 relationship.source_id
@@ -861,7 +882,6 @@ class CanonicalMachineModel:
                 "Unknown relationship source: "
                 f"{relationship.source_id}"
             )
-
         if (
             not self._has_canonical_object(
                 relationship.target_id
@@ -871,7 +891,6 @@ class CanonicalMachineModel:
                 "Unknown relationship target: "
                 f"{relationship.target_id}"
             )
-
         for existing in self.relationships.values():
             if (
                 existing.source_id
@@ -884,7 +903,6 @@ class CanonicalMachineModel:
                 raise ValueError(
                     "That semantic relationship already exists."
                 )
-
         self.relationships[
             relationship.id
         ] = relationship
@@ -942,7 +960,6 @@ class CanonicalMachineModel:
             raise ValueError(
                 "A connection cannot connect a port to itself."
             )
-
         if (
             connection.endpoint_a_id
             not in self.ports
@@ -960,7 +977,6 @@ class CanonicalMachineModel:
                 "Unknown connection endpoint: "
                 f"{connection.endpoint_b_id}"
             )
-
         for existing in self.connections.values():
             if existing.connects_same_ports(
                 connection.endpoint_a_id,
@@ -1014,7 +1030,6 @@ class CanonicalMachineModel:
         self,
         port_id: str,
     ) -> SemanticPort:
-        """Return a canonical port."""
         port = self.ports.get(
             port_id
         )
@@ -1034,7 +1049,6 @@ class CanonicalMachineModel:
         function = self.functions.get(
             function_id
         )
-
         if function is None:
             raise KeyError(
                 f"Unknown function: {function_id}"
@@ -1055,5 +1069,4 @@ class CanonicalMachineModel:
             raise KeyError(
                 f"Unknown capability: {capability_id}"
             )
-
         return capability
