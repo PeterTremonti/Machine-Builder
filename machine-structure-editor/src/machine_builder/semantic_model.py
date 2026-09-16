@@ -12,6 +12,9 @@ from typing import Any
 
 from .controller import Controller
 from .controller_resource import ControllerResource
+from .controller_resource_assignment import (
+    ControllerResourceAssignment,
+)
 from .semantic_capability import Capability
 
 
@@ -55,7 +58,6 @@ class SemanticPort:
 
     connector_id: str | None = None
     pin_id: str | None = None
-
     properties: dict[str, Any] = field(
         default_factory=dict
     )
@@ -129,10 +131,13 @@ class Machine:
         default_factory=list
     )
 
+    controller_resource_assignment_ids: list[str] = field(
+        default_factory=list
+    )
+
     properties: dict[str, Any] = field(
         default_factory=dict
     )
-
     provenance: list[Provenance] = field(
         default_factory=list
     )
@@ -176,6 +181,13 @@ class CanonicalMachineModel:
     controller_resources: dict[
         str,
         ControllerResource,
+    ] = field(
+        default_factory=dict
+    )
+
+    controller_resource_assignments: dict[
+        str,
+        ControllerResourceAssignment,
     ] = field(
         default_factory=dict
     )
@@ -289,6 +301,21 @@ class CanonicalMachineModel:
             del self.relationships[
                 relationship_id
             ]
+
+        assignment_ids = [
+            assignment_id
+            for assignment_id, assignment
+            in self.controller_resource_assignments.items()
+            if (
+                assignment.source_id == component_id
+                or assignment.source_id in component_port_ids
+            )
+        ]
+
+        for assignment_id in assignment_ids:
+            self.remove_controller_resource_assignment(
+                assignment_id
+            )
 
         for port_id in component.port_ids:
             self.ports.pop(
@@ -414,6 +441,18 @@ class CanonicalMachineModel:
                 relationship_id
             ]
 
+        assignment_ids = [
+            assignment_id
+            for assignment_id, assignment
+            in self.controller_resource_assignments.items()
+            if assignment.source_id == function_id
+        ]
+
+        for assignment_id in assignment_ids:
+            self.remove_controller_resource_assignment(
+                assignment_id
+            )
+
         for machine in self.machines.values():
             if function_id in machine.function_ids:
                 machine.function_ids.remove(
@@ -483,6 +522,18 @@ class CanonicalMachineModel:
                 relationship_id
             ]
 
+        assignment_ids = [
+            assignment_id
+            for assignment_id, assignment
+            in self.controller_resource_assignments.items()
+            if assignment.source_id == capability_id
+        ]
+
+        for assignment_id in assignment_ids:
+            self.remove_controller_resource_assignment(
+                assignment_id
+            )
+
         for machine in self.machines.values():
             if capability_id in machine.capability_ids:
                 machine.capability_ids.remove(
@@ -551,6 +602,18 @@ class CanonicalMachineModel:
         if controller is None:
             raise KeyError(
                 f"Unknown controller: {controller_id}"
+            )
+
+        assignment_ids = [
+            assignment_id
+            for assignment_id, assignment
+            in self.controller_resource_assignments.items()
+            if assignment.source_id == controller_id
+        ]
+
+        for assignment_id in assignment_ids:
+            self.remove_controller_resource_assignment(
+                assignment_id
             )
 
         resource_ids = [
@@ -645,6 +708,21 @@ class CanonicalMachineModel:
                 f"{resource_id}"
             )
 
+        assignment_ids = [
+            assignment_id
+            for assignment_id, assignment
+            in self.controller_resource_assignments.items()
+            if (
+                assignment.resource_id == resource_id
+                or assignment.source_id == resource_id
+            )
+        ]
+
+        for assignment_id in assignment_ids:
+            self.remove_controller_resource_assignment(
+                assignment_id
+            )
+
         for machine in self.machines.values():
             if resource_id in machine.controller_resource_ids:
                 machine.controller_resource_ids.remove(
@@ -656,6 +734,96 @@ class CanonicalMachineModel:
         ]
 
         return resource
+
+    def add_controller_resource_assignment(
+        self,
+        machine_id: str,
+        assignment: ControllerResourceAssignment,
+    ) -> None:
+        """Add a controller-resource assignment and attach it to a machine."""
+        if assignment.id in self.controller_resource_assignments:
+            raise ValueError(
+                "Controller resource assignment already exists: "
+                f"{assignment.id}"
+            )
+
+        machine = self.machines.get(
+            machine_id
+        )
+
+        if machine is None:
+            raise ValueError(
+                f"Unknown machine: {machine_id}"
+            )
+
+        if assignment.resource_id not in self.controller_resources:
+            raise ValueError(
+                "Unknown controller resource: "
+                f"{assignment.resource_id}"
+            )
+
+        if not self._has_canonical_object(
+            assignment.source_id
+        ):
+            raise ValueError(
+                "Unknown canonical assignment source: "
+                f"{assignment.source_id}"
+            )
+
+        self.controller_resource_assignments[
+            assignment.id
+        ] = assignment
+
+        machine.controller_resource_assignment_ids.append(
+            assignment.id
+        )
+
+    def get_controller_resource_assignment(
+        self,
+        assignment_id: str,
+    ) -> ControllerResourceAssignment:
+        """Return a canonical controller-resource assignment."""
+        assignment = self.controller_resource_assignments.get(
+            assignment_id
+        )
+
+        if assignment is None:
+            raise KeyError(
+                "Unknown controller resource assignment: "
+                f"{assignment_id}"
+            )
+
+        return assignment
+
+    def remove_controller_resource_assignment(
+        self,
+        assignment_id: str,
+    ) -> ControllerResourceAssignment:
+        """Remove a controller-resource assignment."""
+        assignment = self.controller_resource_assignments.get(
+            assignment_id
+        )
+
+        if assignment is None:
+            raise KeyError(
+                "Unknown controller resource assignment: "
+                f"{assignment_id}"
+            )
+
+        for machine in self.machines.values():
+            if (
+                assignment_id
+                in machine.controller_resource_assignment_ids
+            ):
+                machine.controller_resource_assignment_ids.remove(
+                    assignment_id
+                )
+
+        del self.controller_resource_assignments[
+            assignment_id
+        ]
+
+        return assignment
 
     def _has_canonical_object(
         self,
