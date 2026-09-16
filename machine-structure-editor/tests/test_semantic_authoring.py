@@ -1,6 +1,9 @@
 """Tests for semantic authoring of real machine components."""
 
-from machine_builder.mutations import CreateNode
+from machine_builder.mutations import (
+    CreateNode,
+    DeleteNodes,
+)
 from machine_builder.store import ModelStore
 from machine_builder.visual_model import (
     VisualNode,
@@ -15,6 +18,7 @@ def build_part_cooling_fan_node() -> VisualNode:
         node_type="part_cooling_fan",
         label="Part Cooling Fan",
     )
+
     node.ports[
         "fan-node-1-power"
     ] = VisualPort(
@@ -34,6 +38,41 @@ def build_part_cooling_fan_node() -> VisualNode:
         node_id=node.id,
         label="Ground",
         port_type="electrical",
+        direction="input",
+        side="left",
+        order=1,
+    )
+
+    return node
+
+
+def build_chamber_heater_node() -> VisualNode:
+    """Build the visual representation of the real chamber heater."""
+    node = VisualNode(
+        id="heater-node-1",
+        node_type="chamber_heater",
+        label="Chamber Heater",
+    )
+
+    node.ports[
+        "heater-node-1-terminal-a"
+    ] = VisualPort(
+        id="heater-node-1-terminal-a",
+        node_id=node.id,
+        label="Power",
+        port_type="power",
+        direction="input",
+        side="left",
+        order=0,
+    )
+
+    node.ports[
+        "heater-node-1-terminal-b"
+    ] = VisualPort(
+        id="heater-node-1-terminal-b",
+        node_id=node.id,
+        label="Power",
+        port_type="power",
         direction="input",
         side="left",
         order=1,
@@ -63,6 +102,7 @@ def test_part_cooling_fan_creation_adds_hardware_definition() -> None:
             "generic-4010-fan-24v"
         ]
     )
+
     assert hardware.family == "4010 axial fan"
     assert hardware.manufacturer == "Generic / Unbranded"
     assert hardware.variant == "24 V"
@@ -83,6 +123,7 @@ def test_part_cooling_fan_creation_adds_canonical_component() -> None:
         node.semantic_reference
         == "component-fan-node-1"
     )
+
     component = (
         store.semantic_model.components[
             "component-fan-node-1"
@@ -108,6 +149,7 @@ def test_part_cooling_fan_creation_adds_canonical_ports() -> None:
             node
         )
     )
+
     component = (
         store.semantic_model.components[
             "component-fan-node-1"
@@ -156,6 +198,7 @@ def test_visual_fan_ports_reference_canonical_ports() -> None:
     power = node.ports[
         "fan-node-1-power"
     ]
+
     ground = node.ports[
         "fan-node-1-ground"
     ]
@@ -208,8 +251,6 @@ def test_deleting_fan_removes_component_and_ports() -> None:
         )
     )
 
-    from machine_builder.mutations import DeleteNodes
-
     store.commit(
         DeleteNodes(
             node_ids=(node.id,)
@@ -230,3 +271,169 @@ def test_deleting_fan_removes_component_and_ports() -> None:
         "component-fan-node-1-ground"
         not in store.semantic_model.ports
     )
+
+
+def test_chamber_heater_creation_adds_hardware_definition() -> None:
+    store = ModelStore()
+
+    node = build_chamber_heater_node()
+
+    store.commit(
+        CreateNode(
+            node
+        )
+    )
+
+    assert (
+        "generic-120vac-400w-heater"
+        in store.semantic_model.hardware_definitions
+    )
+
+    hardware = (
+        store.semantic_model.hardware_definitions[
+            "generic-120vac-400w-heater"
+        ]
+    )
+
+    assert hardware.family == "resistive heater"
+    assert hardware.manufacturer == "Generic / Unbranded"
+    assert hardware.variant == "120 VAC 400 W"
+
+
+def test_chamber_heater_creation_adds_canonical_component() -> None:
+    store = ModelStore()
+
+    node = build_chamber_heater_node()
+
+    store.commit(
+        CreateNode(
+            node
+        )
+    )
+
+    assert (
+        node.semantic_reference
+        == "component-heater-node-1"
+    )
+
+    component = (
+        store.semantic_model.components[
+            "component-heater-node-1"
+        ]
+    )
+
+    assert component.role == "Chamber Heater"
+    assert component.label == "Chamber Heater"
+
+    assert (
+        component.hardware_definition_id
+        == "generic-120vac-400w-heater"
+    )
+
+
+def test_chamber_heater_creation_adds_two_canonical_ports() -> None:
+    store = ModelStore()
+
+    node = build_chamber_heater_node()
+
+    store.commit(
+        CreateNode(
+            node
+        )
+    )
+
+    component = (
+        store.semantic_model.components[
+            "component-heater-node-1"
+        ]
+    )
+
+    assert set(
+        component.port_ids
+    ) == {
+        "component-heater-node-1-terminal-a",
+        "component-heater-node-1-terminal-b",
+    }
+
+    for port_id in component.port_ids:
+        port = store.semantic_model.ports[
+            port_id
+        ]
+
+        assert port.component_id == component.id
+        assert port.purpose == "Power"
+        assert port.direction == "input"
+        assert (
+            port.properties[
+                "expected_voltage"
+            ]
+            == "120 VAC"
+        )
+
+
+def test_visual_heater_ports_reference_canonical_ports() -> None:
+    store = ModelStore()
+
+    node = build_chamber_heater_node()
+
+    store.commit(
+        CreateNode(
+            node
+        )
+    )
+
+    assert (
+        node.ports[
+            "heater-node-1-terminal-a"
+        ].semantic_reference
+        == "component-heater-node-1-terminal-a"
+    )
+
+    assert (
+        node.ports[
+            "heater-node-1-terminal-b"
+        ].semantic_reference
+        == "component-heater-node-1-terminal-b"
+    )
+
+
+def test_chamber_heater_can_be_deleted() -> None:
+    store = ModelStore()
+
+    node = build_chamber_heater_node()
+
+    store.commit(
+        CreateNode(
+            node
+        )
+    )
+
+    store.commit(
+        DeleteNodes(
+            node_ids=(node.id,)
+        )
+    )
+
+    assert (
+        "component-heater-node-1"
+        not in store.semantic_model.components
+    )
+
+    assert (
+        "component-heater-node-1-terminal-a"
+        not in store.semantic_model.ports
+    )
+
+    assert (
+        "component-heater-node-1-terminal-b"
+        not in store.semantic_model.ports
+    )
+
+
+def test_two_heaters_can_share_hardware_definition() -> None:
+    store = ModelStore()
+
+    first = build_chamber_heater_node()
+    second = build_chamber_heater_node()
+
+    second.id = "heater-node-2"

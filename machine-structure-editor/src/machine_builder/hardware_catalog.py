@@ -2,8 +2,6 @@
 
 This module contains concrete hardware definitions that can be associated
 with machine components.
-
-The first entry is the user's real 24 V generic/unbranded 4010 fan.
 """
 
 from __future__ import annotations
@@ -27,13 +25,7 @@ def build_generic_4010_24v_fan() -> (
         tuple[SemanticPort, SemanticPort],
     ]
 ):
-    """Build the user's real generic/unbranded 24 V 4010 fan definition.
-
-    The returned ports are initially associated with a placeholder component
-    ID. The caller must replace that component ID with the actual
-    MachineComponent ID before adding the ports to the canonical model.
-    """
-
+    """Build the real generic/unbranded 24 V 4010 fan definition."""
     hardware = HardwareDefinition(
         id="generic-4010-fan-24v",
         family="4010 axial fan",
@@ -96,9 +88,7 @@ def build_generic_4010_24v_fan() -> (
 
     ports = (
         SemanticPort(
-            id=(
-                "generic-4010-fan-24v-power"
-            ),
+            id="generic-4010-fan-24v-power",
             component_id=placeholder_component_id,
             purpose="Power",
             direction="input",
@@ -120,9 +110,7 @@ def build_generic_4010_24v_fan() -> (
             ],
         ),
         SemanticPort(
-            id=(
-                "generic-4010-fan-24v-ground"
-            ),
+            id="generic-4010-fan-24v-ground",
             component_id=placeholder_component_id,
             purpose="Ground",
             direction="unknown",
@@ -137,6 +125,104 @@ def build_generic_4010_24v_fan() -> (
                     context=(
                         "Two-terminal 24 V DC fan; detailed "
                         "connector pin identity is unknown."
+                    ),
+                )
+            ],
+        ),
+    )
+
+    return (
+        hardware,
+        ports,
+    )
+
+
+def build_generic_120vac_400w_heater() -> (
+    tuple[
+        HardwareDefinition,
+        tuple[SemanticPort, SemanticPort],
+    ]
+):
+    """Build the known 120 VAC 400 W chamber-heater definition.
+
+    The exact terminal identities are intentionally left unspecified.
+    The heater is represented as a two-terminal resistive load.
+    """
+    hardware = HardwareDefinition(
+        id="generic-120vac-400w-heater",
+        family="resistive heater",
+        manufacturer="Generic / Unbranded",
+        variant="120 VAC 400 W",
+        properties={
+            "voltage": "120 VAC",
+            "power": "400 W",
+            "calculated_current": "3.33 A",
+            "terminal_count": 2,
+            "terminal_identity": None,
+            "notes": (
+                "Used as a chamber heater on the user's "
+                "Stratasys SST1200es. Exact terminal identity "
+                "and connector details are not yet documented."
+            ),
+        },
+        provenance=[
+            Provenance(
+                source="user",
+                evidence_type="authored",
+                method="physical inspection / ownership",
+                context=(
+                    "The user's Stratasys SST1200es uses "
+                    "two 120 VAC 400 W chamber heaters."
+                ),
+            )
+        ],
+    )
+
+    placeholder_component_id = (
+        "PLACEHOLDER_COMPONENT"
+    )
+
+    ports = (
+        SemanticPort(
+            id="generic-120vac-400w-heater-terminal-a",
+            component_id=placeholder_component_id,
+            purpose="Power",
+            direction="input",
+            connector_id=None,
+            pin_id=None,
+            properties={
+                "expected_voltage": "120 VAC",
+            },
+            provenance=[
+                Provenance(
+                    source="user",
+                    evidence_type="derived",
+                    method="semantic interpretation",
+                    context=(
+                        "One of two heater terminals; exact "
+                        "electrical terminal identity is unknown."
+                    ),
+                )
+            ],
+        ),
+        SemanticPort(
+            id="generic-120vac-400w-heater-terminal-b",
+            component_id=placeholder_component_id,
+            purpose="Power",
+            direction="input",
+            connector_id=None,
+            pin_id=None,
+            properties={
+                "expected_voltage": "120 VAC",
+            },
+            provenance=[
+                Provenance(
+                    source="user",
+                    evidence_type="derived",
+                    method="semantic interpretation",
+                    context=(
+                        "One of two heater terminals; exact "
+                        "electrical terminal identity is unknown."
                     ),
                 )
             ],

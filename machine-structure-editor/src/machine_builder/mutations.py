@@ -18,11 +18,10 @@ from typing import Protocol
 
 from .editor_state import EditorState
 from .hardware_catalog import (
+    build_generic_120vac_400w_heater,
     build_generic_4010_24v_fan,
 )
-from .semantic_connection import (
-    SemanticConnection,
-)
+from .semantic_connection import SemanticConnection
 from .semantic_model import (
     Machine,
     MachineComponent,
@@ -79,6 +78,90 @@ def _create_canonical_fan_data(
     )
 
 
+def _create_canonical_heater_data(
+    component_id: str,
+) -> tuple[
+    object,
+    tuple[SemanticPort, SemanticPort],
+]:
+    """Create canonical hardware and ports for the real test heater."""
+    hardware, ports = (
+        build_generic_120vac_400w_heater()
+    )
+
+    corrected_ports = tuple(
+        SemanticPort(
+            id=port.id.replace(
+                "generic-120vac-400w-heater",
+                component_id,
+            ),
+            component_id=component_id,
+            purpose=port.purpose,
+            direction=port.direction,
+            connector_id=port.connector_id,
+            pin_id=port.pin_id,
+            properties=port.properties.copy(),
+            provenance=port.provenance.copy(),
+        )
+        for port in ports
+    )
+
+    return (
+        hardware,
+        corrected_ports,
+    )
+
+
+def _add_hardware_and_ports(
+    state: EditorState,
+    machine_id: str,
+    component: MachineComponent,
+    hardware: object,
+    semantic_ports: tuple[
+        SemanticPort,
+        SemanticPort,
+    ],
+) -> None:
+    """Add reusable hardware, component, and canonical ports."""
+    hardware_id = hardware.id
+
+    if (
+        hardware_id
+        in state.semantic_model.hardware_definitions
+    ):
+        existing_hardware = (
+            state.semantic_model
+            .hardware_definitions[
+                hardware_id
+            ]
+        )
+
+        if existing_hardware != hardware:
+            raise ValueError(
+                "Hardware definition ID already exists "
+                "with different data: "
+                f"{hardware_id}"
+            )
+    else:
+        state.semantic_model.add_hardware_definition(
+            hardware
+        )
+
+    component.hardware_definition_id = (
+        hardware_id
+    )
+
+    state.semantic_model.add_component(
+        machine_id,
+        component,
+    )
+
+    for port in semantic_ports:
+        state.semantic_model.add_port(
+            port
+        )
+
+
 @dataclass(frozen=True)
 class CreateNode:
     """Create a visual node and its canonical machine component."""
@@ -131,10 +214,7 @@ class CreateNode:
             },
         )
 
-        if (
-            self.node.node_type
-            == "part_cooling_fan"
-        ):
+        if self.node.node_type == "part_cooling_fan":
             (
                 hardware,
                 semantic_ports,
@@ -142,41 +222,48 @@ class CreateNode:
                 component_id
             )
 
-            if (
-                hardware.id
-                in state.semantic_model.hardware_definitions
-            ):
-                existing_hardware = (
-                    state.semantic_model
-                    .hardware_definitions[
-                        hardware.id
-                    ]
-                )
-
-                if existing_hardware != hardware:
-                    raise ValueError(
-                        "Hardware definition ID already exists "
-                        "with different data: "
-                        f"{hardware.id}"
-                    )
-            else:
-                state.semantic_model.add_hardware_definition(
-                    hardware
-                )
-
-            component.hardware_definition_id = (
-                hardware.id
-            )
-
-            state.semantic_model.add_component(
+            _add_hardware_and_ports(
+                state,
                 self.machine_id,
                 component,
+                hardware,
+                semantic_ports,
             )
 
-            for port in semantic_ports:
-                state.semantic_model.add_port(
-                    port
-                )
+            self.node.semantic_reference = (
+                component.id
+            )
+
+            project_component_ports(
+                component,
+                state.semantic_model,
+                self.node,
+            )
+
+            state.visual_model.add_node(
+                self.node
+            )
+
+            return
+
+        if (
+            self.node.node_type
+            == "chamber_heater"
+        ):
+            (
+                hardware,
+                semantic_ports,
+            ) = _create_canonical_heater_data(
+                component_id
+            )
+
+            _add_hardware_and_ports(
+                state,
+                self.machine_id,
+                component,
+                hardware,
+                semantic_ports,
+            )
 
             self.node.semantic_reference = (
                 component.id
@@ -359,9 +446,6 @@ class CreateConnection:
             endpoint_b.semantic_reference
         )
 
-        # When both visual ports have canonical identities, create the
-        # semantic connection first. Store rollback keeps the entire editor
-        # state atomic if either side fails.
         if (
             semantic_endpoint_a is not None
             and semantic_endpoint_b is not None

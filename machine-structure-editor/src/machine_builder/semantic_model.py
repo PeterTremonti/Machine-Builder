@@ -1,17 +1,16 @@
 """Canonical semantic model foundation for the Machine Structure Editor.
 
-This module contains the beginning of the canonical Machine Builder model.
-The canonical model represents what the machine means. It is intentionally
-independent of Qt and independent of the visual editor's geometry.
-
-Visual objects such as VisualNode and VisualPort reference canonical objects
-but do not replace them.
+This module contains the canonical Machine Builder model.
+The canonical model represents what the machine means. It is independent
+of Qt and independent of the visual editor's geometry.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
+
+from .semantic_capability import Capability
 
 
 @dataclass
@@ -116,6 +115,10 @@ class Machine:
         default_factory=list
     )
 
+    capability_ids: list[str] = field(
+        default_factory=list
+    )
+
     properties: dict[str, Any] = field(
         default_factory=dict
     )
@@ -152,7 +155,15 @@ class CanonicalMachineModel:
         default_factory=dict
     )
 
+    capabilities: dict[str, Capability] = field(
+        default_factory=dict
+    )
+
     connections: dict[str, Any] = field(
+        default_factory=dict
+    )
+
+    relationships: dict[str, Any] = field(
         default_factory=dict
     )
 
@@ -241,10 +252,27 @@ class CanonicalMachineModel:
                 connection_id
             ]
 
+        relationship_ids = [
+            relationship_id
+            for relationship_id, relationship
+            in self.relationships.items()
+            if (
+                relationship.source_id == component_id
+                or relationship.target_id == component_id
+                or relationship.source_id in component_port_ids
+                or relationship.target_id in component_port_ids
+            )
+        ]
+
+        for relationship_id in relationship_ids:
+            del self.relationships[
+                relationship_id
+            ]
+
         for port_id in component.port_ids:
             self.ports.pop(
                 port_id,
-                None,
+                None
             )
 
         for machine in self.machines.values():
@@ -350,6 +378,21 @@ class CanonicalMachineModel:
                 f"Unknown function: {function_id}"
             )
 
+        relationship_ids = [
+            relationship_id
+            for relationship_id, relationship
+            in self.relationships.items()
+            if (
+                relationship.source_id == function_id
+                or relationship.target_id == function_id
+            )
+        ]
+
+        for relationship_id in relationship_ids:
+            del self.relationships[
+                relationship_id
+            ]
+
         for machine in self.machines.values():
             if function_id in machine.function_ids:
                 machine.function_ids.remove(
@@ -361,6 +404,173 @@ class CanonicalMachineModel:
         ]
 
         return function
+
+    def add_capability(
+        self,
+        machine_id: str,
+        capability: Capability,
+    ) -> None:
+        """Add a Capability and attach it to a machine."""
+        if capability.id in self.capabilities:
+            raise ValueError(
+                f"Capability already exists: {capability.id}"
+            )
+
+        machine = self.machines.get(
+            machine_id
+        )
+
+        if machine is None:
+            raise ValueError(
+                f"Unknown machine: {machine_id}"
+            )
+
+        self.capabilities[
+            capability.id
+        ] = capability
+
+        machine.capability_ids.append(
+            capability.id
+        )
+
+    def remove_capability(
+        self,
+        capability_id: str,
+    ) -> Capability:
+        """Remove a Capability from the canonical model."""
+        capability = self.capabilities.get(
+            capability_id
+        )
+
+        if capability is None:
+            raise KeyError(
+                f"Unknown capability: {capability_id}"
+            )
+
+        relationship_ids = [
+            relationship_id
+            for relationship_id, relationship
+            in self.relationships.items()
+            if (
+                relationship.source_id == capability_id
+                or relationship.target_id == capability_id
+            )
+        ]
+
+        for relationship_id in relationship_ids:
+            del self.relationships[
+                relationship_id
+            ]
+
+        for machine in self.machines.values():
+            if capability_id in machine.capability_ids:
+                machine.capability_ids.remove(
+                    capability_id
+                )
+
+        del self.capabilities[
+            capability_id
+        ]
+
+        return capability
+
+    def _has_canonical_object(
+        self,
+        object_id: str,
+    ) -> bool:
+        """Return whether an ID belongs to a canonical model object."""
+        return (
+            object_id in self.machines
+            or object_id in self.components
+            or object_id in self.hardware_definitions
+            or object_id in self.ports
+            or object_id in self.functions
+            or object_id in self.capabilities
+        )
+
+    def add_relationship(
+        self,
+        relationship: Any,
+    ) -> None:
+        """Add a semantic relationship between canonical objects."""
+        if relationship.id in self.relationships:
+            raise ValueError(
+                "Relationship already exists: "
+                f"{relationship.id}"
+            )
+
+        if (
+            not self._has_canonical_object(
+                relationship.source_id
+            )
+        ):
+            raise ValueError(
+                "Unknown relationship source: "
+                f"{relationship.source_id}"
+            )
+
+        if (
+            not self._has_canonical_object(
+                relationship.target_id
+            )
+        ):
+            raise ValueError(
+                "Unknown relationship target: "
+                f"{relationship.target_id}"
+            )
+
+        for existing in self.relationships.values():
+            if (
+                existing.source_id
+                == relationship.source_id
+                and existing.target_id
+                == relationship.target_id
+                and existing.relationship_type
+                == relationship.relationship_type
+            ):
+                raise ValueError(
+                    "That semantic relationship already exists."
+                )
+
+        self.relationships[
+            relationship.id
+        ] = relationship
+
+    def get_relationship(
+        self,
+        relationship_id: str,
+    ) -> Any:
+        """Return a canonical semantic relationship."""
+        relationship = self.relationships.get(
+            relationship_id
+        )
+
+        if relationship is None:
+            raise KeyError(
+                f"Unknown relationship: {relationship_id}"
+            )
+
+        return relationship
+
+    def remove_relationship(
+        self,
+        relationship_id: str,
+    ) -> Any:
+        """Remove a semantic relationship."""
+        relationship = self.relationships.get(
+            relationship_id
+        )
+
+        if relationship is None:
+            raise KeyError(
+                f"Unknown relationship: {relationship_id}"
+            )
+
+        del self.relationships[
+            relationship_id
+        ]
+
+        return relationship
 
     def add_connection(
         self,
@@ -478,3 +688,19 @@ class CanonicalMachineModel:
             )
 
         return function
+
+    def get_capability(
+        self,
+        capability_id: str,
+    ) -> Capability:
+        """Return a canonical Capability."""
+        capability = self.capabilities.get(
+            capability_id
+        )
+
+        if capability is None:
+            raise KeyError(
+                f"Unknown capability: {capability_id}"
+            )
+
+        return capability
