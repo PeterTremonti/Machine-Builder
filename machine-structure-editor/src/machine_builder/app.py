@@ -5,8 +5,6 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -41,7 +39,9 @@ def _update_window_title(
     if controller.is_modified:
         title += " *"
 
-    window.setWindowTitle(title)
+    window.setWindowTitle(
+        title
+    )
 
 
 def _confirm_discard_changes(
@@ -200,13 +200,14 @@ def _create_document_actions(
         "File"
     )
 
-    new_action = QAction(
-        "New",
-        window,
+    new_action = menu.addAction(
+        "New"
     )
+
     new_action.setShortcut(
         "Ctrl+N"
     )
+
     new_action.triggered.connect(
         lambda: _new_document(
             window,
@@ -214,13 +215,14 @@ def _create_document_actions(
         )
     )
 
-    open_action = QAction(
-        "Open...",
-        window,
+    open_action = menu.addAction(
+        "Open..."
     )
+
     open_action.setShortcut(
         "Ctrl+O"
     )
+
     open_action.triggered.connect(
         lambda: _open_document(
             window,
@@ -228,13 +230,16 @@ def _create_document_actions(
         )
     )
 
-    save_action = QAction(
-        "Save",
-        window,
+    menu.addSeparator()
+
+    save_action = menu.addAction(
+        "Save"
     )
+
     save_action.setShortcut(
         "Ctrl+S"
     )
+
     save_action.triggered.connect(
         lambda: _save_document(
             window,
@@ -242,32 +247,19 @@ def _create_document_actions(
         )
     )
 
-    save_as_action = QAction(
-        "Save As...",
-        window,
+    save_as_action = menu.addAction(
+        "Save As..."
     )
+
     save_as_action.setShortcut(
         "Ctrl+Shift+S"
     )
+
     save_as_action.triggered.connect(
         lambda: _save_document_as(
             window,
             controller,
         )
-    )
-
-    menu.addAction(
-        new_action
-    )
-    menu.addAction(
-        open_action
-    )
-    menu.addSeparator()
-    menu.addAction(
-        save_action
-    )
-    menu.addAction(
-        save_as_action
     )
 
 
@@ -280,6 +272,7 @@ def main() -> int:
     app.setApplicationName(
         "Machine Structure Editor"
     )
+
     app.setApplicationVersion(
         "0.1.0"
     )
