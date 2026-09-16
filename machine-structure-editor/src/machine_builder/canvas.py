@@ -200,6 +200,7 @@ class MachineCanvas(QMainWindow):
             ("controller", "Controller"),
             ("motor", "Motor"),
             ("sensor", "Sensor"),
+            ("part_cooling_fan", "Part Cooling Fan"),
             ("component", "Component"),
             ("temperature_sensor", "Temperature Sensor"),
             ("temperature_controller", "Temperature Controller"),
@@ -428,6 +429,7 @@ class MachineCanvas(QMainWindow):
             "controller": "Controller",
             "motor": "Motor",
             "sensor": "Sensor",
+            "part_cooling_fan": "Part Cooling Fan",
             "component": "Component",
             "temperature_sensor": "Temperature Sensor",
             "temperature_controller": "Temperature Controller",
@@ -593,6 +595,27 @@ class MachineCanvas(QMainWindow):
                 ),
             )
 
+        elif node.node_type == "part_cooling_fan":
+            ports = (
+            VisualPort(
+                id=f"{node.id}-power",
+                node_id=node.id,
+                label="Power",
+                port_type="power",
+                direction="input",
+                side="left",
+                order=0,
+            ),
+            VisualPort(
+                id=f"{node.id}-ground",
+                node_id=node.id,
+                label="Ground",
+                port_type="electrical",
+                direction="input",
+                side="left",
+                order=1,
+            ),
+        )
         else:
             ports = (
                 VisualPort(
