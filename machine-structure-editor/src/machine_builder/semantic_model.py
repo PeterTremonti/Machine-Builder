@@ -1,7 +1,6 @@
 """Canonical semantic model foundation for the Machine Structure Editor.
 
 This module contains the beginning of the canonical Machine Builder model.
-
 The canonical model represents what the machine means. It is intentionally
 independent of Qt and independent of the visual editor's geometry.
 
@@ -35,11 +34,9 @@ class HardwareDefinition:
     family: str
     manufacturer: str | None = None
     variant: str | None = None
-
     properties: dict[str, Any] = field(
         default_factory=dict
     )
-
     provenance: list[Provenance] = field(
         default_factory=list
     )
@@ -61,7 +58,22 @@ class SemanticPort:
     properties: dict[str, Any] = field(
         default_factory=dict
     )
+    provenance: list[Provenance] = field(
+        default_factory=list
+    )
 
+
+@dataclass
+class Function:
+    """An identifiable machine behavior or service."""
+
+    id: str
+    name: str
+    description: str = ""
+
+    properties: dict[str, Any] = field(
+        default_factory=dict
+    )
     provenance: list[Provenance] = field(
         default_factory=list
     )
@@ -84,7 +96,6 @@ class MachineComponent:
     properties: dict[str, Any] = field(
         default_factory=dict
     )
-
     provenance: list[Provenance] = field(
         default_factory=list
     )
@@ -98,6 +109,10 @@ class Machine:
     name: str
 
     component_ids: list[str] = field(
+        default_factory=list
+    )
+
+    function_ids: list[str] = field(
         default_factory=list
     )
 
@@ -130,6 +145,10 @@ class CanonicalMachineModel:
     )
 
     ports: dict[str, SemanticPort] = field(
+        default_factory=dict
+    )
+
+    functions: dict[str, Function] = field(
         default_factory=dict
     )
 
@@ -277,7 +296,7 @@ class CanonicalMachineModel:
 
         if port.id in component.port_ids:
             raise ValueError(
-                f"Port is already attached to component: "
+                "Port is already attached to component: "
                 f"{port.component_id}"
             )
 
@@ -288,6 +307,60 @@ class CanonicalMachineModel:
         component.port_ids.append(
             port.id
         )
+
+    def add_function(
+        self,
+        machine_id: str,
+        function: Function,
+    ) -> None:
+        """Add a Function and attach it to a machine."""
+        if function.id in self.functions:
+            raise ValueError(
+                f"Function already exists: {function.id}"
+            )
+
+        machine = self.machines.get(
+            machine_id
+        )
+
+        if machine is None:
+            raise ValueError(
+                f"Unknown machine: {machine_id}"
+            )
+
+        self.functions[
+            function.id
+        ] = function
+
+        machine.function_ids.append(
+            function.id
+        )
+
+    def remove_function(
+        self,
+        function_id: str,
+    ) -> Function:
+        """Remove a Function from the canonical model."""
+        function = self.functions.get(
+            function_id
+        )
+
+        if function is None:
+            raise KeyError(
+                f"Unknown function: {function_id}"
+            )
+
+        for machine in self.machines.values():
+            if function_id in machine.function_ids:
+                machine.function_ids.remove(
+                    function_id
+                )
+
+        del self.functions[
+            function_id
+        ]
+
+        return function
 
     def add_connection(
         self,
@@ -389,3 +462,19 @@ class CanonicalMachineModel:
             )
 
         return port
+
+    def get_function(
+        self,
+        function_id: str,
+    ) -> Function:
+        """Return a canonical Function."""
+        function = self.functions.get(
+            function_id
+        )
+
+        if function is None:
+            raise KeyError(
+                f"Unknown function: {function_id}"
+            )
+
+        return function
