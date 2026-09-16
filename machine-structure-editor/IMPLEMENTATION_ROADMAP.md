@@ -184,87 +184,222 @@ knowledge-graph retrieval systems
 
 Those systems should integrate through defined boundaries.
 
-Implementation Principles
-1. Prefer meaningful modules
+## Implementation Principles
+
+### 1. Prefer meaningful, cohesive modules
 
 Separate code when it represents a genuinely distinct responsibility.
 
+A module should have a clear purpose and a small, understandable public boundary.
+
 Do not split files merely to make them smaller.
 
-2. Prefer whole-file replacement for major restructuring
+Do not create one-file-per-function unless the responsibility genuinely benefits from that separation.
 
-During early development, whole-file replacements are preferred when they reduce editing errors.
+The goal is:
 
-3. Test after every architectural change
+```text
+high cohesion
++
+low coupling
++
+clear boundaries
+```
 
-A successful refactor is one that preserves behavior.
+### 2. Prefer small changes over broad rewrites
 
-4. Keep model and presentation separate
+A normal feature or bug fix should change the smallest reasonable set of modules.
 
-Qt objects should not become the canonical machine model.
+If a seemingly small change repeatedly requires modifying large portions of the codebase, stop and consider whether an architectural boundary is missing or misplaced before continuing.
 
-5. Do not encode accidental UI behavior as machine semantics
+The preferred direction is:
+
+```text
+small change
+    ↓
+focused tests
+    ↓
+small refactor if needed
+    ↓
+continue
+```
+
+rather than:
+
+```text
+small change
+    ↓
+large unrelated rewrite
+    ↓
+large regression surface
+```
+
+### 3. Keep responsibilities separated
+
+Code that changes for different reasons should normally live behind separate boundaries.
+
+Examples include:
+
+```text
+canonical semantic model
+visual model
+graphics / rendering
+persistence
+undo / redo
+mutations
+hardware catalog
+firmware mapping
+```
+
+A feature may legitimately cross multiple boundaries, but each module should remain responsible for its own concern.
+
+### 4. Keep module interfaces narrow
+
+Modules should communicate through explicit, understandable interfaces rather than reaching into one another's implementation details.
+
+Prefer:
+
+```text
+Module A
+    ↓
+small public interface
+    ↓
+Module B
+```
+
+over:
+
+```text
+Module A
+    ↓
+reaches into Module B internals
+    ↓
+depends on private implementation details
+```
+
+This allows individual modules to be redesigned without forcing unrelated modules to change.
+
+### 5. Preserve the model/presentation boundary
+
+Canonical machine semantics must remain independent from visual and Qt implementation details.
+
+Qt objects must not become the canonical machine model.
+
+Visual behavior must not silently become machine semantics.
 
 For example:
 
-Mouse drag direction
+```text
+visual routing
+    ≠
+canonical Connection
 
-must not silently become:
+mouse drag direction
+    ≠
+physical connection direction
 
-Physical machine connection direction
-6. Document major architectural decisions
+canvas position
+    ≠
+machine placement unless explicitly authored as such
+```
+
+### 6. Prefer composition over monolithic classes
+
+When a class begins accumulating several unrelated responsibilities, consider extracting cohesive collaborators rather than continuing to grow the class.
+
+Avoid "god objects" that own unrelated:
+
+```text
+modeling
+rendering
+persistence
+business rules
+input handling
+routing
+```
+
+in one place.
+
+### 7. Test after meaningful changes
+
+A successful refactor is one that preserves intended behavior.
+
+After a meaningful architectural or behavioral change:
+
+```text
+change
+    ↓
+focused tests
+    ↓
+full test suite
+```
+
+Tests should protect module boundaries and important behavior, not merely implementation details.
+
+### 8. Refactoring is normal
+
+Modular code is expected to evolve.
+
+When implementation reveals that a responsibility belongs somewhere else:
+
+```text
+identify responsibility
+    ↓
+move/refactor it
+    ↓
+preserve public behavior
+    ↓
+run tests
+    ↓
+document important architectural changes
+```
+
+Do not preserve a bad boundary merely because changing it would require moving code.
+
+### 9. Use whole-file replacement when it reduces implementation errors
+
+During early development, whole-file replacements are preferred when they are clearer and safer than complicated incremental editing.
+
+This is an editing workflow preference, not a reason to create large files.
+
+### 10. Keep commits focused
+
+Prefer commits that represent one coherent change.
+
+For example:
+
+```text
+Add semantic routing boundary
+Add routing tests
+Add orthogonal router
+Connect router to graphics
+```
+
+is easier to understand, test, revert, and debug than one large commit containing several unrelated changes.
+
+### 11. Ask whether a broad change reveals a missing boundary
+
+When a small feature requires changing many apparently unrelated modules, consider two possibilities:
+
+```text
+A. The feature legitimately crosses several subsystems.
+
+B. The architecture has not established the correct boundary yet.
+```
+
+Do not automatically choose either explanation.
+
+Investigate before expanding the change.
+
+### 12. Document major architectural decisions
 
 When implementation reveals that an earlier assumption was incorrect:
 
+```text
 document the discovery
 record the decision
 update the version plan
 update the roadmap when the change affects future versions
-7. Versions are milestones, not folders
+```
 
-Do not create V0.2, V0.3, etc. directories for parallel implementations.
-
-Use:
-
-Git commits
-Git tags
-version implementation plans
-the living roadmap
-
-to preserve history.
-
-Version Workflow
-
-For each version:
-
-Initial Plan
-      ↓
-Implementation
-      ↓
-Testing
-      ↓
-Discoveries / Decisions
-      ↓
-Final Plan
-      ↓
-Carry-Forward
-      ↓
-Version Tag
-      ↓
-Next Version Planning
-
-This workflow is intentionally iterative.
-
-The final version is allowed to differ from the original plan when testing demonstrates that a different design is better.
-
-Current State
-
-Latest completed version:
-
-v0.1.0
-
-Next version:
-
-V0.2
-
-V0.2 implementation should not begin until its own plan has been created and reviewed.
+Implementation convenience must not silently redefine the canonical architecture or ontology.
