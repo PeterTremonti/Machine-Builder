@@ -15,7 +15,6 @@ def build_part_cooling_fan_node() -> VisualNode:
         node_type="part_cooling_fan",
         label="Part Cooling Fan",
     )
-
     node.ports[
         "fan-node-1-power"
     ] = VisualPort(
@@ -64,7 +63,6 @@ def test_part_cooling_fan_creation_adds_hardware_definition() -> None:
             "generic-4010-fan-24v"
         ]
     )
-
     assert hardware.family == "4010 axial fan"
     assert hardware.manufacturer == "Generic / Unbranded"
     assert hardware.variant == "24 V"
@@ -85,7 +83,6 @@ def test_part_cooling_fan_creation_adds_canonical_component() -> None:
         node.semantic_reference
         == "component-fan-node-1"
     )
-
     component = (
         store.semantic_model.components[
             "component-fan-node-1"
@@ -111,7 +108,6 @@ def test_part_cooling_fan_creation_adds_canonical_ports() -> None:
             node
         )
     )
-
     component = (
         store.semantic_model.components[
             "component-fan-node-1"
@@ -121,19 +117,19 @@ def test_part_cooling_fan_creation_adds_canonical_ports() -> None:
     assert set(
         component.port_ids
     ) == {
-        "generic-4010-fan-24v-power",
-        "generic-4010-fan-24v-ground",
+        "component-fan-node-1-power",
+        "component-fan-node-1-ground",
     }
 
     power = (
         store.semantic_model.ports[
-            "generic-4010-fan-24v-power"
+            "component-fan-node-1-power"
         ]
     )
 
     ground = (
         store.semantic_model.ports[
-            "generic-4010-fan-24v-ground"
+            "component-fan-node-1-ground"
         ]
     )
 
@@ -160,19 +156,18 @@ def test_visual_fan_ports_reference_canonical_ports() -> None:
     power = node.ports[
         "fan-node-1-power"
     ]
-
     ground = node.ports[
         "fan-node-1-ground"
     ]
 
     assert (
         power.semantic_reference
-        == "generic-4010-fan-24v-power"
+        == "component-fan-node-1-power"
     )
 
     assert (
         ground.semantic_reference
-        == "generic-4010-fan-24v-ground"
+        == "component-fan-node-1-ground"
     )
 
 
@@ -227,11 +222,11 @@ def test_deleting_fan_removes_component_and_ports() -> None:
     )
 
     assert (
-        "generic-4010-fan-24v-power"
+        "component-fan-node-1-power"
         not in store.semantic_model.ports
     )
 
     assert (
-        "generic-4010-fan-24v-ground"
+        "component-fan-node-1-ground"
         not in store.semantic_model.ports
     )

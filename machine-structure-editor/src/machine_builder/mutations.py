@@ -20,6 +20,9 @@ from .editor_state import EditorState
 from .hardware_catalog import (
     build_generic_4010_24v_fan,
 )
+from .semantic_connection import (
+    SemanticConnection,
+)
 from .semantic_model import (
     Machine,
     MachineComponent,
@@ -58,7 +61,7 @@ def _create_canonical_fan_data(
 
     corrected_ports = tuple(
         SemanticPort(
-            id=port.id,
+            id=f"{component_id}-{port.purpose.lower()}",
             component_id=component_id,
             purpose=port.purpose,
             direction=port.direction,
@@ -179,8 +182,6 @@ class CreateNode:
                 component.id
             )
 
-            # The canonical ports are authoritative. The projection
-            # decides how those ports should appear visually.
             project_component_ports(
                 component,
                 state.semantic_model,
@@ -313,7 +314,7 @@ class DeleteNodes:
 
 @dataclass(frozen=True)
 class CreateConnection:
-    """Create a physical visual connection between two visual ports."""
+    """Create a visual connection and, when possible, its semantic connection."""
 
     connection_id: str
     endpoint_a_id: str
@@ -324,7 +325,71 @@ class CreateConnection:
         self,
         state: EditorState,
     ) -> None:
-        connection = VisualConnection(
+        endpoint_a = (
+            _find_visual_port(
+                state,
+                self.endpoint_a_id,
+            )
+        )
+
+        endpoint_b = (
+            _find_visual_port(
+                state,
+                self.endpoint_b_id,
+            )
+        )
+
+        if endpoint_a is None:
+            raise ValueError(
+                "Unknown visual connection endpoint: "
+                f"{self.endpoint_a_id}"
+            )
+
+        if endpoint_b is None:
+            raise ValueError(
+                "Unknown visual connection endpoint: "
+                f"{self.endpoint_b_id}"
+            )
+
+        semantic_endpoint_a = (
+            endpoint_a.semantic_reference
+        )
+
+        semantic_endpoint_b = (
+            endpoint_b.semantic_reference
+        )
+
+        # When both visual ports have canonical identities, create the
+        # semantic connection first. Store rollback keeps the entire editor
+        # state atomic if either side fails.
+        if (
+            semantic_endpoint_a is not None
+            and semantic_endpoint_b is not None
+        ):
+            _validate_semantic_port_reference(
+                state,
+                semantic_endpoint_a,
+            )
+
+            _validate_semantic_port_reference(
+                state,
+                semantic_endpoint_b,
+            )
+
+            semantic_connection = (
+                SemanticConnection(
+                    id=self.connection_id,
+                    endpoint_a_id=semantic_endpoint_a,
+                    endpoint_b_id=semantic_endpoint_b,
+                    connection_type=self.connection_type,
+                )
+            )
+
+            state.semantic_model.add_connection(
+                semantic_connection
+            )
+
+        visual_connection = VisualConnection(
             id=self.connection_id,
             endpoint_a_id=self.endpoint_a_id,
             endpoint_b_id=self.endpoint_b_id,
@@ -332,13 +397,13 @@ class CreateConnection:
         )
 
         state.visual_model.add_connection(
-            connection
+            visual_connection
         )
 
 
 @dataclass(frozen=True)
 class DeleteConnection:
-    """Delete an existing visual connection."""
+    """Delete a visual connection and its semantic counterpart when present."""
 
     connection_id: str
 
@@ -348,4 +413,39 @@ class DeleteConnection:
     ) -> None:
         state.visual_model.remove_connection(
             self.connection_id
+        )
+
+        if self.connection_id in (
+            state.semantic_model.connections
+        ):
+            state.semantic_model.remove_connection(
+                self.connection_id
+            )
+
+
+def _find_visual_port(
+    state: EditorState,
+    port_id: str,
+) -> object | None:
+    """Find a visual port by ID."""
+    for node in state.visual_model.nodes.values():
+        port = node.ports.get(
+            port_id
+        )
+
+        if port is not None:
+            return port
+
+    return None
+
+
+def _validate_semantic_port_reference(
+    state: EditorState,
+    port_id: str,
+) -> None:
+    """Ensure a visual semantic reference resolves to a canonical port."""
+    if port_id not in state.semantic_model.ports:
+        raise ValueError(
+            "Visual port references unknown canonical port: "
+            f"{port_id}"
         )

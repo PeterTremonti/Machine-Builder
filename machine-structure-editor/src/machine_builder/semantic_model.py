@@ -29,14 +29,7 @@ class Provenance:
 
 @dataclass
 class HardwareDefinition:
-    """Description of a physical hardware definition.
-
-    A hardware definition describes a kind of physical hardware separately
-    from the machine-specific component that uses it.
-
-    Manufacturer may be absent or generic. A missing hardware definition is
-    represented by the component having no hardware_definition_id.
-    """
+    """Description of a physical hardware definition."""
 
     id: str
     family: str
@@ -76,11 +69,7 @@ class SemanticPort:
 
 @dataclass
 class MachineComponent:
-    """A machine-specific semantic component.
-
-    The component has its own identity within a particular machine even when
-    it uses a hardware definition shared with other machines.
-    """
+    """A machine-specific semantic component."""
 
     id: str
     role: str
@@ -133,11 +122,18 @@ class CanonicalMachineModel:
         default_factory=dict
     )
 
-    hardware_definitions: dict[str, HardwareDefinition] = field(
+    hardware_definitions: dict[
+        str,
+        HardwareDefinition,
+    ] = field(
         default_factory=dict
     )
 
     ports: dict[str, SemanticPort] = field(
+        default_factory=dict
+    )
+
+    connections: dict[str, Any] = field(
         default_factory=dict
     )
 
@@ -195,7 +191,7 @@ class CanonicalMachineModel:
         self,
         component_id: str,
     ) -> MachineComponent:
-        """Remove a machine component and its canonical ports."""
+        """Remove a machine component and its related semantic data."""
         component = self.components.get(
             component_id
         )
@@ -205,9 +201,28 @@ class CanonicalMachineModel:
                 f"Unknown machine component: {component_id}"
             )
 
-        for port_id in tuple(
+        component_port_ids = set(
             component.port_ids
-        ):
+        )
+
+        connection_ids = [
+            connection_id
+            for connection_id, connection
+            in self.connections.items()
+            if (
+                connection.endpoint_a_id
+                in component_port_ids
+                or connection.endpoint_b_id
+                in component_port_ids
+            )
+        ]
+
+        for connection_id in connection_ids:
+            del self.connections[
+                connection_id
+            ]
+
+        for port_id in component.port_ids:
             self.ports.pop(
                 port_id,
                 None,
@@ -218,7 +233,6 @@ class CanonicalMachineModel:
                 machine.component_ids.remove(
                     component_id
                 )
-                break
 
         del self.components[
             component_id
@@ -274,6 +288,75 @@ class CanonicalMachineModel:
         component.port_ids.append(
             port.id
         )
+
+    def add_connection(
+        self,
+        connection: Any,
+    ) -> None:
+        """Add a canonical physical connection between two ports."""
+        if connection.id in self.connections:
+            raise ValueError(
+                f"Connection already exists: {connection.id}"
+            )
+
+        if (
+            connection.endpoint_a_id
+            == connection.endpoint_b_id
+        ):
+            raise ValueError(
+                "A connection cannot connect a port to itself."
+            )
+
+        if (
+            connection.endpoint_a_id
+            not in self.ports
+        ):
+            raise ValueError(
+                "Unknown connection endpoint: "
+                f"{connection.endpoint_a_id}"
+            )
+
+        if (
+            connection.endpoint_b_id
+            not in self.ports
+        ):
+            raise ValueError(
+                "Unknown connection endpoint: "
+                f"{connection.endpoint_b_id}"
+            )
+
+        for existing in self.connections.values():
+            if existing.connects_same_ports(
+                connection.endpoint_a_id,
+                connection.endpoint_b_id,
+            ):
+                raise ValueError(
+                    "That canonical connection already exists."
+                )
+
+        self.connections[
+            connection.id
+        ] = connection
+
+    def remove_connection(
+        self,
+        connection_id: str,
+    ) -> Any:
+        """Remove a canonical physical connection."""
+        connection = self.connections.get(
+            connection_id
+        )
+
+        if connection is None:
+            raise KeyError(
+                f"Unknown connection: {connection_id}"
+            )
+
+        del self.connections[
+            connection_id
+        ]
+
+        return connection
 
     def get_component(
         self,
