@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
+from .controller import Controller
+from .controller_resource import ControllerResource
 from .semantic_capability import Capability
 
 
@@ -119,6 +121,14 @@ class Machine:
         default_factory=list
     )
 
+    controller_ids: list[str] = field(
+        default_factory=list
+    )
+
+    controller_resource_ids: list[str] = field(
+        default_factory=list
+    )
+
     properties: dict[str, Any] = field(
         default_factory=dict
     )
@@ -156,6 +166,17 @@ class CanonicalMachineModel:
     )
 
     capabilities: dict[str, Capability] = field(
+        default_factory=dict
+    )
+
+    controllers: dict[str, Controller] = field(
+        default_factory=dict
+    )
+
+    controller_resources: dict[
+        str,
+        ControllerResource,
+    ] = field(
         default_factory=dict
     )
 
@@ -474,6 +495,168 @@ class CanonicalMachineModel:
 
         return capability
 
+    def add_controller(
+        self,
+        machine_id: str,
+        controller: Controller,
+    ) -> None:
+        """Add a controller and attach it to a machine."""
+        if controller.id in self.controllers:
+            raise ValueError(
+                f"Controller already exists: {controller.id}"
+            )
+
+        machine = self.machines.get(
+            machine_id
+        )
+
+        if machine is None:
+            raise ValueError(
+                f"Unknown machine: {machine_id}"
+            )
+
+        self.controllers[
+            controller.id
+        ] = controller
+
+        machine.controller_ids.append(
+            controller.id
+        )
+
+    def get_controller(
+        self,
+        controller_id: str,
+    ) -> Controller:
+        """Return a canonical controller."""
+        controller = self.controllers.get(
+            controller_id
+        )
+
+        if controller is None:
+            raise KeyError(
+                f"Unknown controller: {controller_id}"
+            )
+
+        return controller
+
+    def remove_controller(
+        self,
+        controller_id: str,
+    ) -> Controller:
+        """Remove a controller and its machine association."""
+        controller = self.controllers.get(
+            controller_id
+        )
+
+        if controller is None:
+            raise KeyError(
+                f"Unknown controller: {controller_id}"
+            )
+
+        resource_ids = [
+            resource_id
+            for resource_id, resource
+            in self.controller_resources.items()
+            if resource.controller_id == controller_id
+        ]
+
+        for resource_id in resource_ids:
+            self.remove_controller_resource(
+                resource_id
+            )
+
+        for machine in self.machines.values():
+            if controller_id in machine.controller_ids:
+                machine.controller_ids.remove(
+                    controller_id
+                )
+
+        del self.controllers[
+            controller_id
+        ]
+
+        return controller
+
+    def add_controller_resource(
+        self,
+        machine_id: str,
+        resource: ControllerResource,
+    ) -> None:
+        """Add a controller resource and attach it to a machine."""
+        if resource.id in self.controller_resources:
+            raise ValueError(
+                "Controller resource already exists: "
+                f"{resource.id}"
+            )
+
+        machine = self.machines.get(
+            machine_id
+        )
+
+        if machine is None:
+            raise ValueError(
+                f"Unknown machine: {machine_id}"
+            )
+
+        if resource.controller_id is not None:
+            if resource.controller_id not in self.controllers:
+                raise ValueError(
+                    "Unknown controller: "
+                    f"{resource.controller_id}"
+                )
+
+        self.controller_resources[
+            resource.id
+        ] = resource
+
+        machine.controller_resource_ids.append(
+            resource.id
+        )
+
+    def get_controller_resource(
+        self,
+        resource_id: str,
+    ) -> ControllerResource:
+        """Return a canonical controller resource."""
+        resource = self.controller_resources.get(
+            resource_id
+        )
+
+        if resource is None:
+            raise KeyError(
+                "Unknown controller resource: "
+                f"{resource_id}"
+            )
+
+        return resource
+
+    def remove_controller_resource(
+        self,
+        resource_id: str,
+    ) -> ControllerResource:
+        """Remove a controller resource from the canonical model."""
+        resource = self.controller_resources.get(
+            resource_id
+        )
+
+        if resource is None:
+            raise KeyError(
+                "Unknown controller resource: "
+                f"{resource_id}"
+            )
+
+        for machine in self.machines.values():
+            if resource_id in machine.controller_resource_ids:
+                machine.controller_resource_ids.remove(
+                    resource_id
+                )
+
+        del self.controller_resources[
+            resource_id
+        ]
+
+        return resource
+
     def _has_canonical_object(
         self,
         object_id: str,
@@ -486,6 +669,8 @@ class CanonicalMachineModel:
             or object_id in self.ports
             or object_id in self.functions
             or object_id in self.capabilities
+            or object_id in self.controllers
+            or object_id in self.controller_resources
         )
 
     def add_relationship(
