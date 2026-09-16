@@ -1,3 +1,5 @@
+Last modified by Research chat 09/15/26 11:44pm
+
 # Machine Builder Research & Architecture
 ## O0.1 Checkpoint — Minimum 3D-Printer Machine Model
 
@@ -28,6 +30,9 @@ The implementation-facing handoff is:
 `handoffs/V0.2_IMPLEMENTATION_HANDOFF.md`
 
 Future ideas may be recorded without automatically expanding V0.2. Promotion of future concepts should wait for implementation, machine, firmware, or research evidence.
+
+O0.1 remains the foundational semantic baseline for V0.2. The O0.1 implementation handoff is retained for historical/reference purposes; current implementation coordination should use the V0.2 checkpoint and V0.2 implementation handoff.
+
 ## Core purpose
 
 The physical machine is the machine. Firmware is an optional, versioned implementation of that machine.
@@ -250,7 +255,9 @@ Hardware definition: unspecified
 ```
 
 This is an architectural direction, not a requirement for the first V0.2 implementation.
-## Recovery order
+## ## Recovery order
+
+For a new Research / Architecture chat, use this order:
 
 1. `PROJECT_CONTEXT.md`
 2. `RESEARCH_ROADMAP.md`
@@ -259,6 +266,15 @@ This is an architectural direction, not a requirement for the first V0.2 impleme
 5. `ontology/ONTOLOGY_CURRENT.md`
 6. `decisions/DECISION_LOG.md`
 7. `questions/OPEN_QUESTIONS.md`
-8. `handoffs/O0.1_IMPLEMENTATION_HANDOFF.md`
+8. `checkpoints/V0.2_RESEARCH_CHECKPOINT.md`
+9. `handoffs/V0.2_IMPLEMENTATION_HANDOFF.md`
+
+The O0.1 implementation handoff remains available as historical/reference context:
+
+`handoffs/O0.1_IMPLEMENTATION_HANDOFF.md`
+
+The V0.2 research checkpoint is the current research/architecture stopping point. The V0.2 implementation handoff is the current implementation-facing bridge.
+
+Research/architecture authority remains with the research checkpoint, ontology, architecture, terminology, decisions, and related research documentation. Implementation-facing documents may describe current code state, file locations, tests, and implementation details, but should not silently redefine settled architecture or ontology.
 
 Use the standards, machines, and firmware research indexes when detailed evidence is required.
