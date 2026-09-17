@@ -197,6 +197,12 @@ class CanvasSceneController:
         self,
         model: VisualModel,
     ) -> None:
+        double_click_callback = getattr(
+            self.canvas,
+            "_edit_selected_controller",
+            None,
+        )
+
         for node_id, node in model.nodes.items():
             item = self.node_items.get(
                 node_id
@@ -231,6 +237,9 @@ class CanvasSceneController:
                     ),
                     port_edit_requested=(
                         self.canvas._edit_semantic_port
+                    ),
+                    double_click_callback=(
+                        double_click_callback
                     ),
                 )
 
@@ -300,3 +309,5 @@ class CanvasSceneController:
                 self.scene.addItem(
                     graphics
                 )
+
+        self.update_connection_graphics()

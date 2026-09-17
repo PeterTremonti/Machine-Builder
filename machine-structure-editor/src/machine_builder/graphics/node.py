@@ -52,6 +52,7 @@ class NodeGraphicsItem(QGraphicsRectItem):
         connection_drag_moved: Any,
         connection_drag_finished: Any,
         port_edit_requested: Any,
+        double_click_callback: Any | None = None,
     ) -> None:
         super().__init__(
             0,
@@ -61,6 +62,7 @@ class NodeGraphicsItem(QGraphicsRectItem):
         )
 
         self.node_id = node.id
+        self._node_type = node.node_type
 
         self._move_started_callback = (
             move_started_callback
@@ -84,6 +86,10 @@ class NodeGraphicsItem(QGraphicsRectItem):
 
         self._port_edit_requested = (
             port_edit_requested
+        )
+
+        self._double_click_callback = (
+            double_click_callback
         )
 
         self._port_items: dict[
@@ -389,6 +395,24 @@ class NodeGraphicsItem(QGraphicsRectItem):
                     height,
                 )
 
+    def _activate_double_click(self) -> None:
+        """Activate the controller editor from a controller node."""
+        if (
+            self._node_type != "controller"
+            or self._double_click_callback is None
+        ):
+            return
+
+        self._focus_callback(
+            self.node_id
+        )
+
+        self.setSelected(
+            True
+        )
+
+        self._double_click_callback()
+
     def mousePressEvent(
         self,
         event: Any,
@@ -407,6 +431,21 @@ class NodeGraphicsItem(QGraphicsRectItem):
             )
 
         super().mousePressEvent(
+            event
+        )
+
+    def mouseDoubleClickEvent(
+        self,
+        event: Any,
+    ) -> None:
+        """Open the controller editor when a controller node is double-clicked."""
+        if (
+            event.button()
+            == Qt.MouseButton.LeftButton
+        ):
+            self._activate_double_click()
+
+        super().mouseDoubleClickEvent(
             event
         )
 
