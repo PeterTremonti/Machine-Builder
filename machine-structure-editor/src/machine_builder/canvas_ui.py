@@ -20,6 +20,9 @@ from .controller_mutations import UpdateController
 from .controller_queries import (
     machine_id_for_controller,
 )
+from .controller_resource_queries import (
+    resources_for_controller,
+)
 from .graphics.palette import PaletteList
 from .graphics.view import MachineGraphicsView
 from .port_details import PortDetailsDialog
@@ -439,6 +442,10 @@ class CanvasUIMixin:
             controller=controller,
             machine_name=machine.name,
             parent=self,
+            resources=resources_for_controller(
+                self.store.semantic_model,
+                controller.id,
+            ),
         )
 
         if (

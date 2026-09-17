@@ -6,15 +6,19 @@ from dataclasses import dataclass
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
     QLabel,
     QLineEdit,
+    QListWidget,
+    QListWidgetItem,
     QVBoxLayout,
 )
 
 from .controller import Controller
+from .controller_resource import ControllerResource
 
 
 @dataclass(frozen=True)
@@ -27,13 +31,14 @@ class ControllerDetailsResult:
 
 
 class ControllerDetailsDialog(QDialog):
-    """Edit the basic identity of one controller."""
+    """Edit and inspect the basic identity of one controller."""
 
     def __init__(
         self,
         controller: Controller,
         machine_name: str,
         parent=None,
+        resources: list[ControllerResource] | None = None,
     ) -> None:
         super().__init__(parent)
 
@@ -42,6 +47,10 @@ class ControllerDetailsDialog(QDialog):
         )
 
         self.setModal(True)
+
+        self._resources = list(
+            resources or []
+        )
 
         self._build_ui(
             controller,
@@ -118,6 +127,48 @@ class ControllerDetailsDialog(QDialog):
             form
         )
 
+        resources_label = QLabel(
+            f"Controller Resources ({len(self._resources)})"
+        )
+
+        layout.addWidget(
+            resources_label
+        )
+
+        self._resource_list = QListWidget()
+
+        self._resource_list.setSelectionMode(
+            QAbstractItemView.SelectionMode.NoSelection
+        )
+
+        self._resource_list.setMinimumHeight(
+            100
+        )
+
+        if self._resources:
+            for resource in self._resources:
+                item = QListWidgetItem(
+                    f"{resource.name} — "
+                    f"{resource.resource_type}"
+                )
+
+                item.setData(
+                    Qt.ItemDataRole.UserRole,
+                    resource.id,
+                )
+
+                self._resource_list.addItem(
+                    item
+                )
+        else:
+            self._resource_list.addItem(
+                "No controller resources."
+            )
+
+        layout.addWidget(
+            self._resource_list
+        )
+
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok
             | QDialogButtonBox.StandardButton.Cancel
@@ -139,6 +190,7 @@ class ControllerDetailsDialog(QDialog):
         self,
     ) -> ControllerDetailsResult:
         """Return edited controller values."""
+
         version = (
             self._version_edit.text().strip()
         )
@@ -155,6 +207,7 @@ class ControllerDetailsDialog(QDialog):
 
     def accept(self) -> None:
         """Validate required controller fields."""
+
         if not self._name_edit.text().strip():
             self._name_edit.setFocus()
             return

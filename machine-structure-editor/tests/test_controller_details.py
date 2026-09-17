@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
 from machine_builder.controller import Controller
@@ -11,13 +12,18 @@ from machine_builder.controller_details import (
     ControllerDetailsDialog,
     ControllerDetailsResult,
 )
+from machine_builder.controller_resource import (
+    ControllerResource,
+)
 
 
 def _application() -> QApplication:
     application = QApplication.instance()
 
     if application is None:
-        application = QApplication(sys.argv)
+        application = QApplication(
+            sys.argv
+        )
 
     return application
 
@@ -29,6 +35,29 @@ def make_controller() -> Controller:
         controller_type="motion_controller",
         version="3.5.4",
     )
+
+
+def make_resources() -> list[ControllerResource]:
+    return [
+        ControllerResource(
+            id="resource-1",
+            name="Stepper X",
+            resource_type="stepper_output",
+            controller_id="controller-1",
+        ),
+        ControllerResource(
+            id="resource-2",
+            name="Heater 0",
+            resource_type="heater_output",
+            controller_id="controller-1",
+        ),
+        ControllerResource(
+            id="resource-3",
+            name="Thermistor 0",
+            resource_type="temperature_input",
+            controller_id="controller-1",
+        ),
+    ]
 
 
 def test_dialog_shows_controller_id() -> None:
@@ -197,3 +226,70 @@ def test_dialog_accepts_valid_values() -> None:
     dialog.accept()
 
     assert dialog.result()
+
+
+def test_dialog_shows_controller_resources() -> None:
+    _application()
+
+    dialog = ControllerDetailsDialog(
+        make_controller(),
+        "Promega",
+        resources=make_resources(),
+    )
+
+    assert dialog._resource_list.count() == 3
+
+    assert (
+        dialog._resource_list.item(0).text()
+        == "Stepper X — stepper_output"
+    )
+
+    assert (
+        dialog._resource_list.item(1).text()
+        == "Heater 0 — heater_output"
+    )
+
+    assert (
+        dialog._resource_list.item(2).text()
+        == "Thermistor 0 — temperature_input"
+    )
+
+
+def test_dialog_stores_resource_ids_on_items() -> None:
+    _application()
+
+    dialog = ControllerDetailsDialog(
+        make_controller(),
+        "Promega",
+        resources=make_resources(),
+    )
+
+    assert (
+        dialog._resource_list.item(0).data(
+            Qt.ItemDataRole.UserRole
+        )
+        == "resource-1"
+    )
+
+    assert (
+        dialog._resource_list.item(2).data(
+            Qt.ItemDataRole.UserRole
+        )
+        == "resource-3"
+    )
+
+
+def test_dialog_handles_controller_without_resources() -> None:
+    _application()
+
+    dialog = ControllerDetailsDialog(
+        make_controller(),
+        "Promega",
+    )
+
+    assert dialog._resource_list.count() == 1
+
+    assert (
+        dialog._resource_list.item(0).text()
+        == "No controller resources."
+    )
