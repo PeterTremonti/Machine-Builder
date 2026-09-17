@@ -9,6 +9,18 @@ from .editor_state import EditorState
 from .semantic_model import Provenance
 
 
+def _find_visual_node_for_controller(
+    state: EditorState,
+    controller_id: str,
+):
+    """Find the visual node representing a canonical controller."""
+    for node in state.visual_model.nodes.values():
+        if node.semantic_reference == controller_id:
+            return node
+
+    return None
+
+
 @dataclass(frozen=True)
 class UpdateController:
     """Update editable fields of a canonical controller."""
@@ -29,7 +41,6 @@ class UpdateController:
                 self.controller_id
             )
         )
-
         if controller is None:
             raise KeyError(
                 "Unknown controller: "
@@ -43,6 +54,16 @@ class UpdateController:
                 )
 
             controller.name = self.name
+
+            visual_node = (
+                _find_visual_node_for_controller(
+                    state,
+                    self.controller_id,
+                )
+            )
+
+            if visual_node is not None:
+                visual_node.label = self.name
 
         if self.controller_type is not None:
             if not self.controller_type.strip():

@@ -8,7 +8,6 @@ from PySide6.QtWidgets import (
     QGraphicsScene,
     QHBoxLayout,
     QLabel,
-    QMainWindow,
     QMessageBox,
     QPushButton,
     QVBoxLayout,
@@ -16,6 +15,11 @@ from PySide6.QtWidgets import (
 )
 
 from .component_details import ComponentDetailsDialog
+from .controller_details import ControllerDetailsDialog
+from .controller_mutations import UpdateController
+from .controller_queries import (
+    machine_id_for_controller,
+)
 from .graphics.palette import PaletteList
 from .graphics.view import MachineGraphicsView
 from .port_details import PortDetailsDialog
@@ -25,6 +29,9 @@ from .semantic_component_mutations import (
 from .semantic_component_queries import (
     component_for_visual_node,
     machine_id_for_component,
+)
+from .semantic_controller_queries import (
+    controller_for_visual_node,
 )
 from .semantic_port_mutations import (
     UpdateSemanticPort,
@@ -91,6 +98,14 @@ class CanvasUIMixin:
             self._edit_selected_component
         )
 
+        edit_controller_button = QPushButton(
+            "Edit Controller..."
+        )
+
+        edit_controller_button.clicked.connect(
+            self._edit_selected_controller
+        )
+
         palette_help = QLabel(
             "Double-click a port to edit it. "
             "Single-click/drag ports to connect them."
@@ -114,6 +129,10 @@ class CanvasUIMixin:
 
         palette_layout.addWidget(
             edit_button
+        )
+
+        palette_layout.addWidget(
+            edit_controller_button
         )
 
         palette_layout.addWidget(
@@ -220,6 +239,19 @@ class CanvasUIMixin:
             self._edit_selected_component
         )
 
+        edit_controller_action = QAction(
+            "Edit Controller...",
+            self,
+        )
+
+        edit_controller_action.setShortcut(
+            "Ctrl+Shift+E"
+        )
+
+        edit_controller_action.triggered.connect(
+            self._edit_selected_controller
+        )
+
         self.addAction(
             delete_action
         )
@@ -238,6 +270,10 @@ class CanvasUIMixin:
 
         self.addAction(
             edit_component_action
+        )
+
+        self.addAction(
+            edit_controller_action
         )
 
     def _edit_selected_component(
@@ -323,6 +359,109 @@ class CanvasUIMixin:
             f"Updated component: {result.label}"
         )
 
+    def _edit_selected_controller(
+        self,
+    ) -> None:
+        """Open the controller editor for the selected visual node."""
+        selected_nodes = [
+            item
+            for item in self.scene.selectedItems()
+            if hasattr(
+                item,
+                "node_id",
+            )
+        ]
+
+        if not selected_nodes:
+            self.statusBar().showMessage(
+                "Select a controller first."
+            )
+            return
+
+        if len(selected_nodes) > 1:
+            QMessageBox.information(
+                self,
+                "Edit Controller",
+                "Select one controller at a time.",
+            )
+            return
+
+        node_id = selected_nodes[0].node_id
+
+        node = self.store.model.nodes.get(
+            node_id
+        )
+
+        if node is None:
+            QMessageBox.information(
+                self,
+                "Edit Controller",
+                "The selected visual node no longer exists.",
+            )
+            return
+
+        if node.node_type != "controller":
+            QMessageBox.information(
+                self,
+                "Edit Controller",
+                "The selected visual node is not a controller.",
+            )
+            return
+
+        controller = controller_for_visual_node(
+            self.store.state,
+            node_id,
+        )
+
+        if controller is None:
+            QMessageBox.information(
+                self,
+                "Edit Controller",
+                (
+                    "The selected visual node is not "
+                    "linked to a canonical controller yet."
+                ),
+            )
+            return
+
+        machine_id = machine_id_for_controller(
+            self.store.state,
+            controller.id,
+        )
+
+        machine = (
+            self.store.semantic_model.machines[
+                machine_id
+            ]
+        )
+
+        dialog = ControllerDetailsDialog(
+            controller=controller,
+            machine_name=machine.name,
+            parent=self,
+        )
+
+        if (
+            dialog.exec()
+            != dialog.DialogCode.Accepted
+        ):
+            return
+
+        result = dialog.result_data()
+
+        self.store.commit(
+            UpdateController(
+                controller_id=controller.id,
+                name=result.name,
+                controller_type=result.controller_type,
+                version=result.version,
+            )
+        )
+
+        self.statusBar().showMessage(
+            f"Updated controller: {result.name}"
+        )
+
     def _edit_semantic_port(
         self,
         port_id: str,
@@ -372,9 +511,7 @@ class CanvasUIMixin:
         if not self.store.model.nodes:
             return
 
-        bounds = (
-            self.scene.itemsBoundingRect()
-        )
+        bounds = self.scene.itemsBoundingRect()
 
         if bounds.isNull():
             return

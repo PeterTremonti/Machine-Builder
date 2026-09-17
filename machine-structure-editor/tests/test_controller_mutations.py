@@ -10,11 +10,11 @@ from machine_builder.semantic_model import (
     CanonicalMachineModel,
     Machine,
 )
+from machine_builder.visual_model import VisualModel, VisualNode
 
 
 def make_state() -> EditorState:
     model = CanonicalMachineModel()
-
     model.add_machine(
         Machine(
             id="machine-1",
@@ -33,10 +33,7 @@ def make_state() -> EditorState:
     )
 
     return EditorState(
-        visual_model=__import__(
-            "machine_builder.visual_model",
-            fromlist=["VisualModel"],
-        ).VisualModel(),
+        visual_model=VisualModel(),
         semantic_model=model,
     )
 
@@ -53,6 +50,38 @@ def test_update_controller_name() -> None:
         state.semantic_model.controllers[
             "controller-1"
         ].name
+        == "Main Motion Controller"
+    )
+
+
+def test_update_controller_name_updates_visual_node_label() -> None:
+    state = make_state()
+
+    state.visual_model.add_node(
+        VisualNode(
+            id="controller-node-1",
+            node_type="controller",
+            label="Main Controller",
+            semantic_reference="controller-1",
+        )
+    )
+
+    UpdateController(
+        controller_id="controller-1",
+        name="Main Motion Controller",
+    ).apply(state)
+
+    assert (
+        state.semantic_model.controllers[
+            "controller-1"
+        ].name
+        == "Main Motion Controller"
+    )
+
+    assert (
+        state.visual_model.nodes[
+            "controller-node-1"
+        ].label
         == "Main Motion Controller"
     )
 

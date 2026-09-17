@@ -106,18 +106,18 @@ class NodeGraphicsItem(QGraphicsRectItem):
             node.y,
         )
 
-        label = QGraphicsSimpleTextItem(
+        self._label_item = QGraphicsSimpleTextItem(
             node.label,
             self,
         )
 
-        label.setBrush(
+        self._label_item.setBrush(
             QBrush(
                 QColor("#f0f0f0")
             )
         )
 
-        label.setPos(
+        self._label_item.setPos(
             10,
             10,
         )
@@ -146,7 +146,11 @@ class NodeGraphicsItem(QGraphicsRectItem):
         connection_drag_finished: Any,
         port_edit_requested: Any,
     ) -> None:
-        """Synchronize the node's visible ports with its model ports."""
+        """Synchronize the node's visible ports and label with its model."""
+        self._label_item.setText(
+            node.label
+        )
+
         current_ids = set(
             node.ports
         )

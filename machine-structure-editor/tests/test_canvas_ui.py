@@ -65,11 +65,17 @@ def test_canonical_canvas_has_editor_actions() -> None:
         for action in canvas.actions()
     }
 
-    assert "Delete" in {
+    action_texts = {
         action.text()
         for action in canvas.actions()
     }
 
+    assert "Delete" in action_texts
+    assert "Edit Component..." in action_texts
+    assert "Edit Controller..." in action_texts
+
     assert "Ctrl+Z" in shortcuts
     assert "Ctrl+Y" in shortcuts
     assert "F" in shortcuts
+    assert "Ctrl+E" in shortcuts
+    assert "Ctrl+Shift+E" in shortcuts
