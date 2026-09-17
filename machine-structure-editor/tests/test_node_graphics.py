@@ -25,10 +25,12 @@ def make_application() -> QApplication:
     return application
 
 
-def make_node() -> VisualNode:
+def make_node(
+    node_type: str = "controller",
+) -> VisualNode:
     return VisualNode(
         id="node-1",
-        node_type="controller",
+        node_type=node_type,
         label="Original Controller",
     )
 
@@ -54,6 +56,7 @@ def test_node_graphics_starts_with_visual_node_label() -> None:
     make_application()
 
     node = make_node()
+
     item = make_graphics_item(
         node
     )
@@ -68,6 +71,7 @@ def test_node_graphics_refreshes_label_from_visual_node() -> None:
     make_application()
 
     node = make_node()
+
     item = make_graphics_item(
         node
     )
@@ -92,6 +96,7 @@ def test_node_graphics_keeps_node_identity_when_label_changes() -> None:
     make_application()
 
     node = make_node()
+
     item = make_graphics_item(
         node
     )
@@ -107,7 +112,74 @@ def test_node_graphics_keeps_node_identity_when_label_changes() -> None:
     )
 
     assert item.node_id == "node-1"
+
     assert (
         item._label_item.text()
         == "BTT Octopus V1.1"
     )
+
+
+def test_controller_node_has_distinct_border() -> None:
+    make_application()
+
+    node = make_node(
+        node_type="controller"
+    )
+
+    item = make_graphics_item(
+        node
+    )
+
+    assert (
+        item.pen().widthF()
+        == NodeGraphicsItem._CONTROLLER_PEN_WIDTH
+    )
+
+
+def test_controller_node_uses_bold_label() -> None:
+    make_application()
+
+    node = make_node(
+        node_type="controller"
+    )
+
+    item = make_graphics_item(
+        node
+    )
+
+    assert item._label_item.font().bold()
+
+
+def test_non_controller_node_uses_standard_border() -> None:
+    make_application()
+
+    node = make_node(
+        node_type="motor"
+    )
+
+    node.label = "Motor"
+
+    item = make_graphics_item(
+        node
+    )
+
+    assert (
+        item.pen().widthF()
+        == NodeGraphicsItem._DEFAULT_PEN_WIDTH
+    )
+
+
+def test_non_controller_node_uses_standard_label_weight() -> None:
+    make_application()
+
+    node = make_node(
+        node_type="sensor"
+    )
+
+    node.label = "Sensor"
+
+    item = make_graphics_item(
+        node
+    )
+
+    assert not item._label_item.font().bold()

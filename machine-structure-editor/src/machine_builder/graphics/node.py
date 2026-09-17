@@ -9,7 +9,12 @@ from __future__ import annotations
 from typing import Any
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QBrush, QColor, QPen
+from PySide6.QtGui import (
+    QBrush,
+    QColor,
+    QFont,
+    QPen,
+)
 from PySide6.QtWidgets import (
     QGraphicsItem,
     QGraphicsRectItem,
@@ -22,6 +27,18 @@ from .port import PortGraphicsItem
 
 class NodeGraphicsItem(QGraphicsRectItem):
     """Presentation object for one VisualNode."""
+
+    _DEFAULT_BRUSH = QColor(
+        "#2f3440"
+    )
+
+    _DEFAULT_PEN = QColor(
+        "#8c96a8"
+    )
+
+    _DEFAULT_PEN_WIDTH = 1.5
+
+    _CONTROLLER_PEN_WIDTH = 2.5
 
     def __init__(
         self,
@@ -48,18 +65,23 @@ class NodeGraphicsItem(QGraphicsRectItem):
         self._move_started_callback = (
             move_started_callback
         )
+
         self._move_finished_callback = (
             move_finished_callback
         )
+
         self._selection_callback = (
             selection_callback
         )
+
         self._focus_callback = (
             focus_callback
         )
+
         self._position_changed_callback = (
             position_changed_callback
         )
+
         self._port_edit_requested = (
             port_edit_requested
         )
@@ -90,20 +112,8 @@ class NodeGraphicsItem(QGraphicsRectItem):
 
         self.setBrush(
             QBrush(
-                QColor("#2f3440")
+                self._DEFAULT_BRUSH
             )
-        )
-
-        self.setPen(
-            QPen(
-                QColor("#8c96a8"),
-                1.5,
-            )
-        )
-
-        self.setPos(
-            node.x,
-            node.y,
         )
 
         self._label_item = QGraphicsSimpleTextItem(
@@ -122,6 +132,15 @@ class NodeGraphicsItem(QGraphicsRectItem):
             10,
         )
 
+        self._apply_node_style(
+            node
+        )
+
+        self.setPos(
+            node.x,
+            node.y,
+        )
+
         self._rebuild_ports(
             node=node,
             connection_drag_started=(
@@ -138,6 +157,34 @@ class NodeGraphicsItem(QGraphicsRectItem):
             ),
         )
 
+    def _apply_node_style(
+        self,
+        node: VisualNode,
+    ) -> None:
+        """Apply presentation styling based on the visual node type."""
+        pen_width = (
+            self._CONTROLLER_PEN_WIDTH
+            if node.node_type == "controller"
+            else self._DEFAULT_PEN_WIDTH
+        )
+
+        self.setPen(
+            QPen(
+                self._DEFAULT_PEN,
+                pen_width,
+            )
+        )
+
+        font = QFont()
+
+        font.setBold(
+            node.node_type == "controller"
+        )
+
+        self._label_item.setFont(
+            font
+        )
+
     def _rebuild_ports(
         self,
         node: VisualNode,
@@ -149,6 +196,10 @@ class NodeGraphicsItem(QGraphicsRectItem):
         """Synchronize the node's visible ports and label with its model."""
         self._label_item.setText(
             node.label
+        )
+
+        self._apply_node_style(
+            node
         )
 
         current_ids = set(
@@ -297,7 +348,10 @@ class NodeGraphicsItem(QGraphicsRectItem):
                 * (
                     (
                         height
-                        if side in {"left", "right"}
+                        if side in {
+                            "left",
+                            "right",
+                        }
                         else width
                     )
                     / (count + 1)
