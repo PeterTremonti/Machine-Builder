@@ -6,6 +6,10 @@ This module owns:
 - node-template creation
 - provisional default ports for visual templates
 
+Canonical controller authoring is delegated to the controller visual
+mutation layer so that a controller palette item creates a real canonical
+Controller and a linked VisualNode.
+
 It does not own:
 - the Qt main-window layout
 - scene synchronization
@@ -13,9 +17,6 @@ It does not own:
 - undo/redo
 - interactive node movement
 - connection interaction
-
-The templates here remain deliberately visual/provisional. They are not
-the canonical semantic hardware catalog.
 """
 
 from __future__ import annotations
@@ -23,6 +24,10 @@ from __future__ import annotations
 from PySide6.QtCore import QPointF, Qt
 from PySide6.QtWidgets import QListWidgetItem
 
+from .controller import Controller
+from .controller_visual_mutations import (
+    CreateControllerNode,
+)
 from .mutations import CreateNode
 from .visual_model import VisualNode, VisualPort
 
@@ -35,7 +40,6 @@ class CanvasPaletteMixin:
         self.palette.setMinimumWidth(
             180
         )
-
         self.palette.setDragEnabled(
             True
         )
@@ -145,7 +149,7 @@ class CanvasPaletteMixin:
         node_type: str,
         scene_position: QPointF,
     ) -> None:
-        """Create a provisional visual node."""
+        """Create a canonical or provisional visual node."""
         labels = {
             "controller": "Controller",
             "motor": "Motor",
@@ -176,15 +180,29 @@ class CanvasPaletteMixin:
             y=scene_position.y(),
         )
 
-        self._add_default_ports(
-            node
-        )
+        if node_type == "controller":
+            controller = Controller(
+                id=f"controller-{self._node_counter}",
+                name=label,
+                controller_type="controller",
+            )
 
-        self.store.commit(
-            CreateNode(
+            self.store.commit(
+                CreateControllerNode(
+                    controller=controller,
+                    node=node,
+                )
+            )
+        else:
+            self._add_default_ports(
                 node
             )
-        )
+
+            self.store.commit(
+                CreateNode(
+                    node
+                )
+            )
 
         self._last_edit_position = QPointF(
             scene_position
@@ -198,39 +216,11 @@ class CanvasPaletteMixin:
         self,
         node: VisualNode,
     ) -> None:
-        """Add provisional visual ports for the template."""
+        """Add provisional visual ports for non-controller templates."""
         if node.node_type == "controller":
-            ports = (
-                VisualPort(
-                    id=f"{node.id}-power",
-                    node_id=node.id,
-                    label="Power",
-                    port_type="power",
-                    direction="input",
-                    side="left",
-                    order=0,
-                ),
-                VisualPort(
-                    id=f"{node.id}-motor",
-                    node_id=node.id,
-                    label="Motor",
-                    port_type="signal",
-                    direction="output",
-                    side="right",
-                    order=0,
-                ),
-                VisualPort(
-                    id=f"{node.id}-aux",
-                    node_id=node.id,
-                    label="Aux",
-                    port_type="signal",
-                    direction="bidirectional",
-                    side="right",
-                    order=1,
-                ),
-            )
+            return
 
-        elif node.node_type == "motor":
+        if node.node_type == "motor":
             ports = (
                 VisualPort(
                     id=f"{node.id}-power",
@@ -251,7 +241,6 @@ class CanvasPaletteMixin:
                     order=1,
                 ),
             )
-
         elif node.node_type == "sensor":
             ports = (
                 VisualPort(
@@ -273,7 +262,6 @@ class CanvasPaletteMixin:
                     order=0,
                 ),
             )
-
         elif node.node_type == "temperature_sensor":
             ports = (
                 VisualPort(
@@ -295,7 +283,6 @@ class CanvasPaletteMixin:
                     order=0,
                 ),
             )
-
         elif node.node_type == "temperature_controller":
             ports = (
                 VisualPort(
@@ -317,7 +304,6 @@ class CanvasPaletteMixin:
                     order=0,
                 ),
             )
-
         elif node.node_type == "part_cooling_fan":
             ports = (
                 VisualPort(
@@ -339,7 +325,6 @@ class CanvasPaletteMixin:
                     order=1,
                 ),
             )
-
         else:
             ports = (
                 VisualPort(
