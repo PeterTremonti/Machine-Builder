@@ -1,5 +1,3 @@
-Last modified by Research chat 09/15/26 11:54pm
-
 # Machine Builder
 
 Machine Builder is a **Machine Development Environment (MDE)** for describing, designing, inspecting, and eventually configuring real machines.
@@ -12,21 +10,13 @@ The canonical machine model is therefore the semantic center of the project.
 
 ```text
 Physical Machine
-
         ↓
-
 Canonical Machine Model
-
         ↓
-
 Firmware Requirements / Mapping
-
         ↓
-
 Target Firmware + Version
-
         ↓
-
 Generated Configuration / Representation
 ```
 
@@ -34,40 +24,33 @@ Reverse interpretation is also intended:
 
 ```text
 Firmware / Configuration
-
         ↓
-
 Semantic Interpretation
-
         ↓
-
 Canonical Machine Model
 ```
 
 ---
 
-# IMPORTANT: Where to start
+# Where to start
 
-**Every new chat working on Machine Builder should read this README first.**
+Every new Machine Builder chat should read this README first.
 
-Do not assume that a folder's local `START_HERE.md` is the first project document.
-
-This README establishes:
-
-* the current project structure
-* which documents are authoritative for which subjects
-* which chat role should be involved
-* where implementation files live
-* where research and architecture records live
-* what is current versus historical
+The repository is the durable shared memory between chats, but different parts of the repository are authoritative for different subjects.
 
 After reading this file, follow the section for the role of the current chat.
+
+The current repository tree can also be indexed using:
+
+```text
+recursive_git_tree.txt
+```
+
+This file is a generated path index, not a substitute for reading the actual source files. It is useful for locating files; the actual files remain authoritative for their contents.
 
 ---
 
 # Chat roles
-
-Machine Builder uses separate working chats for different kinds of work.
 
 ## 1. Research / Architecture
 
@@ -89,41 +72,29 @@ Start with:
 machine-builder-research/START_HERE.md
 ```
 
-The current research/architecture checkpoint is:
+The current research checkpoint is:
 
 ```text
 machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md
 ```
 
-Then follow the recovery/read order defined by `START_HERE.md`.
-
-Important research documents include:
+Important research areas include:
 
 ```text
 machine-builder-research/PROJECT_CONTEXT.md
-
 machine-builder-research/RESEARCH_ROADMAP.md
-
 machine-builder-research/architecture/
-
 machine-builder-research/ontology/
-
 machine-builder-research/standards/
-
 machine-builder-research/machines/
-
 machine-builder-research/firmware/
-
 machine-builder-research/decisions/
-
 machine-builder-research/questions/
-
 machine-builder-research/checkpoints/
-
 machine-builder-research/handoffs/
 ```
 
-The research/architecture documents are the authority for settled semantic and architectural decisions.
+Research/architecture documents are authoritative for settled semantic and architectural decisions.
 
 ---
 
@@ -147,27 +118,30 @@ Primary implementation directory:
 machine-structure-editor/
 ```
 
-Important files:
+Important implementation areas include:
 
 ```text
-machine-structure-editor/IMPLEMENTATION_ROADMAP.md
-
-machine-structure-editor/docs/implementation/
-
 machine-structure-editor/src/machine_builder/
-
 machine-structure-editor/tests/
+machine-structure-editor/docs/
+machine-structure-editor/handoffs/
 ```
 
-Current implementation handoff:
+The current implementation state is summarized by:
 
 ```text
-machine-builder-research/handoffs/V0.2_IMPLEMENTATION_HANDOFF.md
+machine-structure-editor/handoffs/V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md
 ```
 
-The implementation chat should read the current implementation handoff before making substantial changes.
+The current detailed repository/file snapshot is:
 
-The implementation handoff describes the current implementation state and implementation requirements; it does not independently redefine settled research/architecture decisions.
+```text
+machine-structure-editor/handoffs/V0.2_VISUAL_EDITOR_REPOSITORY_SNAPSHOT.md
+```
+
+Those two handoff files are intended to be committed with the current implementation checkpoint. If they are not yet present in the repository, the local copies are the authoritative working documents until they are pushed.
+
+The implementation chat must not independently redefine settled research/architecture decisions.
 
 ---
 
@@ -187,7 +161,7 @@ The visual-editor work is responsible for:
 * layout
 * layers and filters
 * visual distinction between viewing and editing
-* future visual affordances for semantic information
+* visual presentation of semantic information
 
 The visual editor lives inside:
 
@@ -195,27 +169,24 @@ The visual editor lives inside:
 machine-structure-editor/src/machine_builder/
 ```
 
-with presentation-specific code primarily under:
+with presentation-specific graphics code primarily under:
 
 ```text
 machine-structure-editor/src/machine_builder/graphics/
 ```
 
-The visual-editor chat should read:
+The current visual-editor chat should read, in this order:
 
 ```text
 README.md
-
 machine-builder-research/START_HERE.md
-
 machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md
-
 machine-builder-research/handoffs/V0.2_IMPLEMENTATION_HANDOFF.md
-
-machine-structure-editor/docs/implementation/V0.2_IMPLEMENTATION_PLAN.md
+machine-structure-editor/handoffs/V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md
+machine-structure-editor/handoffs/V0.2_VISUAL_EDITOR_REPOSITORY_SNAPSHOT.md
 ```
 
-and then inspect the current implementation before proposing changes.
+Then inspect the current source and tests before proposing changes.
 
 ---
 
@@ -227,13 +198,9 @@ The working relationship is:
 
 ```text
 Research / Architecture
-
         ↕
-
 Implementation
-
         ↕
-
 Visual Editor
 ```
 
@@ -245,7 +212,7 @@ Visual-editor work may expose usability or representation problems.
 
 Those findings should be brought back to the appropriate role and resolved before changing durable architecture.
 
-Future ideas may be recorded as candidates without automatically becoming part of the current milestone.
+Promising ideas may remain candidates until research and implementation agree that they belong in the durable baseline.
 
 ---
 
@@ -257,19 +224,15 @@ The visual editor is a bidirectional authoring and inspection environment over t
 
 ```text
           Canonical Machine Model
-
                     ↕
-
           Semantic / Model Boundary
-
                     ↕
-
-             Visual Editor
+               Visual Editor
 ```
 
-The visual model is not a second machine model.
+The visual model is **not** a second machine model.
 
-Visual state includes things such as:
+Visual state may include:
 
 * canvas position
 * size
@@ -278,6 +241,8 @@ Visual state includes things such as:
 * zoom
 * pan
 * collapsed/expanded presentation
+* grouping
+* view/filter state
 * other presentation-only state
 
 Canonical semantic information includes things such as:
@@ -286,12 +251,13 @@ Canonical semantic information includes things such as:
 * Machine Component
 * Hardware Definition
 * Ports
-* Connectors
-* Pins / terminals
+* Connectors / pins / terminals
 * Connections
 * Functions
 * Capabilities
-* controller resources
+* Controllers
+* Controller Resources
+* Controller Resource Assignments
 * properties
 * calibration
 * provenance
@@ -299,131 +265,112 @@ Canonical semantic information includes things such as:
 
 ---
 
-# Current project state
+# Current implementation checkpoint
 
-## Research / architecture
+The Machine Structure Editor has established a substantial V0.2 semantic-authoring and visual-editor foundation.
 
-The project has established the O0.1 canonical-machine foundation.
-
-Current implementation milestone:
+Latest verified automated test checkpoint:
 
 ```text
-V0.2
+582 passed
 ```
 
-The current research checkpoint is:
+Normal verification command:
 
-```text
-machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md
+```powershell
+python -m pytest
 ```
 
-The current implementation-facing handoff is:
+The exact runtime duration is not itself significant; a green full-suite result is the important checkpoint.
 
-```text
-machine-builder-research/handoffs/V0.2_IMPLEMENTATION_HANDOFF.md
-```
-
-O0.1 remains the foundational semantic baseline for V0.2.
-
-The O0.1 implementation handoff is retained as historical/reference context; current implementation coordination should use the V0.2 checkpoint and V0.2 implementation handoff.
-
----
-
-## Current implementation checkpoint
-
-The Machine Structure Editor has established the V0.2 semantic-authoring foundation.
-
-Current automated test state:
-
-```text
-94 passed
-```
-
-The current canonical foundation includes:
+Current implementation includes, among other foundations:
 
 * Machine
 * Machine Component
 * Hardware Definition
 * Semantic Port
+* Function
+* Capability
+* Controller
+* Controller Resource
+* Controller Resource Assignment
 * Provenance
-* canonical Connections
+* semantic Connections
+* semantic Relationships
 * visual/canonical model boundary
 * semantic projection
-* semantic authoring
-* component-scoped instantiated port identities
-* visual + canonical connection authoring
-* connection deletion
+* component authoring
+* port authoring
+* controller authoring
+* controller-resource authoring
+* controller-resource assignment validation
 * undo/redo
 * mutation rollback
+* document persistence
+* document lifecycle
+* modular visual-editor canvas
+* node interaction
+* port interaction
+* connection authoring
+* semantic component editing
+* semantic port editing
+
+The current implementation should be treated as a V0.2 development checkpoint, not as a statement that every planned V0.2 user-facing feature is complete.
 
 ---
 
-# Implementation file map
+# Controller and control-board direction
+
+Controllers are canonical machine objects.
+
+Reusable controller/control-board hardware is represented separately from the controller instance installed in a particular machine.
+
+The intended relationship is:
 
 ```text
-machine-structure-editor/
-
-│
-├── pyproject.toml
-├── IMPLEMENTATION_ROADMAP.md
-│
-├── docs/
-│   └── implementation/
-│       ├── V0.1_IMPLEMENTATION_PLAN.md
-│       └── V0.2_IMPLEMENTATION_PLAN.md
-│
-├── src/
-│   └── machine_builder/
-│       ├── __init__.py
-│       ├── __main__.py
-│       ├── app.py
-│       │
-│       ├── visual_model.py
-│       ├── semantic_model.py
-│       ├── semantic_connection.py
-│       ├── semantic_projection.py
-│       ├── model_boundary.py
-│       ├── editor_state.py
-│       ├── mutations.py
-│       ├── store.py
-│       ├── compatibility.py
-│       └── hardware_catalog.py
-│
-│       └── graphics/
-│           ├── __init__.py
-│           ├── connection.py
-│           ├── node.py
-│           ├── palette.py
-│           ├── port.py
-│           └── view.py
-│
-└── tests/
-    ├── test_visual_model.py
-    ├── test_compatibility.py
-    ├── test_semantic_model.py
-    ├── test_semantic_authoring.py
-    ├── test_semantic_projection.py
-    ├── test_semantic_connection.py
-    ├── test_model_boundary.py
-    ├── test_connection_authoring.py
-    ├── test_fan_fixture.py
-    ├── test_hardware_catalog.py
-    └── test_store.py
+Real documented control board
+        ↓
+Hardware Definition
+        ↓
+Machine Controller instance
+        ↓
+Controller Resources
+        ↓
+Controller Resource Assignments
 ```
 
-Note:
+For the initial hardware catalog, controller/control-board definitions should preferentially represent **real, currently available boards for which reliable specifications can be obtained**.
+
+The initial project is not centered on users designing or fabricating their own printer controller PCBs.
+
+Useful catalog entries therefore include actual documented boards with available specifications such as:
+
+* manufacturer
+* model
+* controller type
+* processor
+* firmware support information
+* I/O/resource information
+* connector information
+* electrical limits where documented
+* other relevant manufacturer specifications
+* provenance/source information
+
+This does not eliminate support for unusual or custom controllers later. It simply establishes the practical initial catalog direction.
+
+The distinction remains:
 
 ```text
-test_semantic_connection.py
-```
+Hardware Definition
+    = what the reusable hardware is
 
-is the correct current filename.
+Machine Controller
+    = how one particular machine uses/identifies its controller
+```
 
 ---
 
-# Important implementation concepts
-
-## Machine Component vs Hardware Definition
+# Machine Component vs Hardware Definition
 
 These are intentionally separate.
 
@@ -446,23 +393,364 @@ Example:
 
 ```text
 Hardware Definition
-
-generic-4010-fan-24v
-
+    generic-4010-fan-24v
 
 Machine Component A
-
-component-fan-a
-├── component-fan-a-power
-└── component-fan-a-ground
-
+    component-fan-a
+    ├── component-fan-a-power
+    └── component-fan-a-ground
 
 Machine Component B
-
-component-fan-b
-├── component-fan-b-power
-└── component-fan-b-ground
+    component-fan-b
+    ├── component-fan-b-power
+    └── component-fan-b-ground
 ```
+
+---
+
+# Controller resources and assignments
+
+A controller exposes resources that a machine may use or assign to semantic machine objects.
+
+Conceptually:
+
+```text
+Machine
+ ├─ Controller
+ │    └─ Controller Resource
+ │
+ └─ source object
+          ↓
+     Controller Resource Assignment
+          ↓
+     Controller Resource
+```
+
+A Controller Resource is not automatically a physical connection endpoint.
+
+Controller-resource assignments are semantic mappings and must remain distinct from visual/physical connection geometry.
+
+In particular:
+
+```text
+VisualConnection
+    = visual representation of machine connectivity
+
+ControllerResourceAssignment
+    = semantic mapping to a controller implementation resource
+```
+
+The current implementation enforces machine-boundary validation for controller-resource assignments.
+
+---
+
+# Current canvas architecture
+
+The original canvas implementation was deliberately refactored into focused modules.
+
+Current structure:
+
+```text
+canvas.py
+    coordinator
+
+canvas_ui.py
+    window/action construction
+    semantic edit entry points
+
+canvas_palette.py
+    palette
+    visual template creation
+
+canvas_interaction.py
+    node movement
+    selection
+    deletion
+    connection dragging
+    previews
+    compatibility feedback
+
+canvas_scene.py
+    VisualModel → QGraphicsScene synchronization
+```
+
+The canvas coordinator should remain small.
+
+`canvas_interaction.py` is allowed to be larger than the other canvas modules because interaction behavior is a cohesive responsibility.
+
+Do not recreate the former monolithic canvas unless there is compelling architectural evidence.
+
+---
+
+# Current graphics interaction rules
+
+Visual ports have an intentional interaction distinction:
+
+```text
+single click / drag
+    → connection interaction
+
+double click
+    → semantic port editing
+```
+
+This separation prevents semantic authoring from conflicting with connection authoring.
+
+Similarly, visual representation of controller resources should not automatically reuse ports unless research/implementation establish that a resource is actually a connection endpoint in that context.
+
+---
+
+# Semantic authoring pattern
+
+The project now uses focused layers where useful:
+
+```text
+semantic_*_queries.py
+semantic_*_mutations.py
+*_details.py
+*_properties.py
+tests/*
+```
+
+This pattern currently exists across component, port, controller, and controller-resource authoring.
+
+The pattern should be reused when it fits, but the project should not create layers merely for symmetry.
+
+---
+
+# Persistence and documents
+
+The editor state contains both canonical and visual state.
+
+`ModelStore` owns:
+
+* current editor state
+* atomic edit commits
+* undo
+* redo
+* save
+* load
+* new document
+* modified state
+* file path
+* listeners
+
+`DocumentController` provides application-level document lifecycle.
+
+The persistence layer uses the editor format:
+
+```text
+machine-builder-editor
+```
+
+Format version:
+
+```text
+1
+```
+
+The canonical semantic model and visual model are persisted as part of the complete editor state.
+
+---
+
+# Visual model boundary
+
+The visual model includes generic structures such as:
+
+* `VisualNode`
+* `VisualPort`
+* `VisualConnection`
+* `VisualGroup`
+* `VisualView`
+* `VisualModel`
+
+`VisualNode` and `VisualPort` can carry a `semantic_reference` so that a visual object can refer to canonical identity without becoming a second semantic object.
+
+This mechanism is intended to be reused rather than replaced with separate visual-only semantic hierarchies.
+
+For example:
+
+```text
+Canonical Controller
+        ↓
+semantic_reference = controller.id
+        ↓
+VisualNode
+        ↓
+NodeGraphicsItem
+```
+
+The current visual-editor work is expected to build on this boundary.
+
+---
+
+# Hardware catalog direction
+
+The future catalog architecture is intended to support real documented hardware:
+
+```text
+Real hardware / documentation
+        ↓
+Catalog / importer / adapter
+        ↓
+Hardware Definition
+        ↓
+Machine Component or Controller instance
+        ↓
+Canonical Machine
+```
+
+Online catalog integration is not required before the current V0.2 visual/editor foundation is stable.
+
+Do not prematurely add a network service or vendor-specific catalog integration merely because the architecture can eventually support it.
+
+---
+
+# Current file organization
+
+The repository contains a larger tree than is useful to reproduce in this README.
+
+For the current detailed file map, use:
+
+```text
+machine-structure-editor/handoffs/V0.2_VISUAL_EDITOR_REPOSITORY_SNAPSHOT.md
+```
+
+For a generated repository-wide path index, use:
+
+```text
+recursive_git_tree.txt
+```
+
+The primary implementation source is:
+
+```text
+machine-structure-editor/src/machine_builder/
+```
+
+Tests are under:
+
+```text
+machine-structure-editor/tests/
+```
+
+Research and architecture records are under:
+
+```text
+machine-builder-research/
+```
+
+---
+
+# Important implementation files
+
+Some of the most important current modules are:
+
+```text
+machine-structure-editor/src/machine_builder/semantic_model.py
+machine-structure-editor/src/machine_builder/visual_model.py
+machine-structure-editor/src/machine_builder/editor_state.py
+machine-structure-editor/src/machine_builder/store.py
+machine-structure-editor/src/machine_builder/persistence.py
+machine-structure-editor/src/machine_builder/document_controller.py
+
+machine-structure-editor/src/machine_builder/canvas.py
+machine-structure-editor/src/machine_builder/canvas_ui.py
+machine-structure-editor/src/machine_builder/canvas_palette.py
+machine-structure-editor/src/machine_builder/canvas_interaction.py
+machine-structure-editor/src/machine_builder/canvas_scene.py
+
+machine-structure-editor/src/machine_builder/controller.py
+machine-structure-editor/src/machine_builder/controller_queries.py
+machine-structure-editor/src/machine_builder/controller_mutations.py
+machine-structure-editor/src/machine_builder/controller_details.py
+
+machine-structure-editor/src/machine_builder/controller_resource.py
+machine-structure-editor/src/machine_builder/controller_resource_queries.py
+machine-structure-editor/src/machine_builder/controller_resource_mutations.py
+machine-structure-editor/src/machine_builder/controller_resource_details.py
+machine-structure-editor/src/machine_builder/controller_resource_properties.py
+
+machine-structure-editor/src/machine_builder/controller_resource_assignment.py
+machine-structure-editor/src/machine_builder/controller_resource_assignment_queries.py
+machine-structure-editor/src/machine_builder/controller_resource_assignment_mutations.py
+machine-structure-editor/src/machine_builder/controller_resource_assignment_validation.py
+machine-structure-editor/src/machine_builder/controller_resource_assignment_store.py
+machine-structure-editor/src/machine_builder/controller_assignment_authoring.py
+
+machine-structure-editor/src/machine_builder/semantic_component_queries.py
+machine-structure-editor/src/machine_builder/semantic_component_mutations.py
+machine-structure-editor/src/machine_builder/component_details.py
+machine-structure-editor/src/machine_builder/component_properties.py
+
+machine-structure-editor/src/machine_builder/semantic_port_queries.py
+machine-structure-editor/src/machine_builder/semantic_port_mutations.py
+machine-structure-editor/src/machine_builder/port_details.py
+machine-structure-editor/src/machine_builder/port_properties.py
+
+machine-structure-editor/src/machine_builder/graphics/
+```
+
+This is intentionally a highlighted map, not a replacement for the recursive tree or repository snapshot.
+
+---
+
+# Test organization
+
+Tests are organized around architectural boundaries and features.
+
+Examples include:
+
+```text
+canvas / graphics
+    test_canvas_interaction.py
+    test_canvas_scene.py
+    test_canvas_ui.py
+    test_port_graphics_editing.py
+
+semantic model
+    test_semantic_model.py
+    test_semantic_capability.py
+    test_semantic_model_controller_resource.py
+    test_semantic_model_controller_resource_assignment.py
+
+component authoring
+    test_semantic_component_queries.py
+    test_semantic_component_store_integration.py
+    test_component_details.py
+    test_component_properties.py
+
+port authoring
+    test_semantic_port_queries.py
+    test_semantic_port_store_integration.py
+    test_port_details.py
+    test_port_properties.py
+
+controller/resource authoring
+    test_controller_model.py
+    test_controller_queries.py
+    test_controller_mutations.py
+    test_controller_details.py
+    test_controller_resource_queries.py
+    test_controller_resource_mutations.py
+    test_controller_resource_properties.py
+    test_controller_resource_store.py
+
+assignment architecture
+    test_controller_resource_assignment_queries.py
+    test_controller_resource_assignment_mutations.py
+    test_controller_resource_assignment_validation.py
+    test_controller_resource_assignment_store.py
+
+document lifecycle
+    test_store.py
+    test_store_document_state.py
+    test_store_new_document.py
+    test_store_persistence.py
+    test_document_controller.py
+```
+
+The complete suite currently passes 582 tests.
 
 ---
 
@@ -472,62 +760,139 @@ Prefer:
 
 * small modular files
 * clear boundaries between concerns
-* full-file replacements during implementation work when practical
-* automated tests for each meaningful change
-* clean checkpoints
+* complete-file replacements during implementation work when practical
+* automated tests for every meaningful change
+* clean Git checkpoints
 * durable documentation for architectural decisions
+* inspecting the actual current source before modifying an existing substantial file
 
 Avoid:
 
-* silently replacing architecture during implementation
-* giant monolithic modules when a small module is clearer
+* line-by-line file surgery when a complete replacement is practical
+* silently changing the architecture during implementation
+* giant monolithic modules when focused modules are clearer
 * making visual state the semantic authority
 * inventing unknown machine information
-* treating old experimental implementations as current architecture
+* reconstructing large files from memory
+* treating historical experiments as current architecture
+* committing every tiny green test
 
 ---
 
-# Historical / obsolete material
+# Large-file safety rule
 
-The old visual-builder implementation is historical.
+Existing large files must not be reconstructed from memory.
 
-The following should **not** be treated as the current architecture:
+Before replacing a substantial existing file:
+
+1. inspect the exact current source
+2. preserve unrelated behavior
+3. make the smallest cohesive change
+4. run the full test suite
+5. commit only at a meaningful checkpoint
+
+The repository is the source of truth.
+
+---
+
+# Current visual-editor priority
+
+The next implementation problem is expected to be visual representation of canonical controllers and, eventually, controller resources and assignments.
+
+The first question is:
+
+> How should canonical controller resources and controller-resource assignments become visible and editable in the visual editor without creating a second semantic model?
+
+The likely first step is deliberately conservative:
 
 ```text
-builder_versions/
+Canonical Controller
+        ↓
+controller ↔ visual query/projection
+        ↓
+VisualNode
+        ↓
+NodeGraphicsItem
 ```
 
-That directory represents the earlier visual-only builder work and should be retired rather than used as an implementation reference.
+A controller may eventually be presented as a visual node that references its canonical controller identity.
 
-Likewise, temporary paste/workaround files in the repository root should not be treated as project documentation.
+Controller resources should not automatically become `VisualPort` objects because `VisualPort` already has a specific connection-authoring meaning.
+
+Controller-resource assignments should not automatically be represented as `VisualConnection` objects because assignments and physical/logical connectivity are different semantic concepts.
+
+Before implementing a larger controller/resource visual system, inspect the existing projection, query, details-dialog, deletion/cleanup, persistence, and visual-reference patterns.
 
 ---
 
-# Current implementation priority
+# Current V0.2 scope reminder
 
-The current implementation work should continue from the V0.2 implementation handoff rather than attempting to resurrect the old builder.
+The current implementation establishes the foundation for a much larger V0.2 feature set.
 
-When in doubt:
+Not all planned V0.2 user-facing behavior is complete.
+
+Future areas include:
+
+* richer controller/resource visualization
+* semantic zoom
+* layers and filters
+* richer connection routing
+* harness/slack/routing representation
+* liquid-cooling domain modeling and visualization
+* firmware mapping and generation
+* firmware/configuration reverse interpretation
+* real hardware catalog integration
+* beginner/medium/expert presentation modes
+* richer live machine/firmware integration
+
+These should be added incrementally from the established semantic foundation.
+
+---
+
+# Historical material
+
+Older builder experiments and historical documentation may remain in the repository.
+
+Do not treat an older implementation as the current architecture merely because it contains a feature that is not yet present in `machine-structure-editor`.
+
+The current implementation, research checkpoint, current handoffs, tests, and current source files are the authoritative working set.
+
+---
+
+# When sources disagree
+
+Use this priority:
 
 ```text
-Research question
-
+Settled semantic / architectural question
     → research / architecture documents
 
+Implementation behavior
+    → current source + current tests
 
-Implementation question
+Visual/UI behavior
+    → current implementation + visual requirements/research
 
-    → implementation handoff + current source/tests
+Current file locations
+    → repository tree / recursive_git_tree.txt
 
-
-Visual behavior question
-
-    → implementation source + implementation handoff + relevant research
-
-
-Semantic disagreement
-
-    → research / architecture
+Historical discussion
+    → historical documents only
 ```
+
+If an idea conflicts with the durable architecture, record it as a candidate and resolve the architectural question before silently changing the baseline.
+
+---
+
+# Repository checkpoint practice
+
+At a meaningful implementation checkpoint:
+
+1. run the full test suite
+2. inspect the actual changed files
+3. update the relevant handoff/snapshot documentation
+4. make one cohesive Git commit
+5. push the checkpoint
+6. use the repository as the starting point for the next chat
 
 The repository is the durable shared memory between chats.
