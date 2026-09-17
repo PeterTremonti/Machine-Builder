@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
 
 from .graphics.palette import PaletteList
 from .graphics.view import MachineGraphicsView
+from .selection_inspector import SelectionInspector
 
 
 class CanvasUIMixin:
@@ -134,6 +135,10 @@ class CanvasUIMixin:
             canvas=self,
         )
 
+        self.selection_inspector = (
+            SelectionInspector()
+        )
+
         main_layout.addWidget(
             palette_panel
         )
@@ -141,6 +146,10 @@ class CanvasUIMixin:
         main_layout.addWidget(
             self.view,
             1,
+        )
+
+        main_layout.addWidget(
+            self.selection_inspector
         )
 
         self.statusBar().showMessage(

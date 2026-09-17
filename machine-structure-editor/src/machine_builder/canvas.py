@@ -3,25 +3,7 @@
 The canvas is a coordinator between Qt UI, visual interaction,
 semantic editing, visual-model synchronization, and the editor store.
 
-Feature responsibilities are delegated to focused modules:
-
-    CanvasUIMixin
-        Main window construction and actions
-
-    CanvasEditingMixin
-        Component, controller, resource, and port editing workflows
-
-    CanvasPaletteMixin
-        Palette and visual template authoring
-
-    CanvasInteractionMixin
-        Node and connection interaction
-
-    CanvasSceneController
-        VisualModel ↔ graphics scene synchronization
-
-    ModelStore
-        Canonical/visual editor state and undo/redo
+Feature responsibilities are delegated to focused modules.
 """
 
 from __future__ import annotations
@@ -37,6 +19,7 @@ from .canvas_interaction import (
 )
 from .canvas_palette import CanvasPaletteMixin
 from .canvas_scene import CanvasSceneController
+from .canvas_selection import CanvasSelectionMixin
 from .canvas_ui import CanvasUIMixin
 from .store import ModelStore
 from .visual_model import VisualModel
@@ -46,6 +29,7 @@ class MachineCanvas(
     CanvasUIMixin,
     CanvasEditingMixin,
     CanvasPaletteMixin,
+    CanvasSelectionMixin,
     CanvasInteractionMixin,
     QMainWindow,
 ):
@@ -102,10 +86,12 @@ class MachineCanvas(
         self,
         model: VisualModel,
     ) -> None:
-        """Synchronize graphics with the current visual model."""
+        """Synchronize graphics and selection inspection."""
         self._scene_controller.synchronize(
             model
         )
+
+        self._refresh_selection_inspector()
 
     def _update_connection_graphics(
         self,

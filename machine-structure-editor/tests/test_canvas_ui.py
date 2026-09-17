@@ -78,3 +78,24 @@ def test_canonical_canvas_has_editor_actions() -> None:
     assert "F" in shortcuts
     assert "Ctrl+E" in shortcuts
     assert "Ctrl+Shift+E" in shortcuts
+
+
+def test_canonical_canvas_has_selection_inspector() -> None:
+    _application()
+
+    canvas = MachineCanvas()
+
+    assert (
+        canvas.selection_inspector is not None
+    )
+
+
+def test_selection_inspector_is_not_the_scene_view() -> None:
+    _application()
+
+    canvas = MachineCanvas()
+
+    assert (
+        canvas.selection_inspector
+        is not canvas.view
+    )
