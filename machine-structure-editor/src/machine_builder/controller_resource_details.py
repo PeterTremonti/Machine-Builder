@@ -21,6 +21,9 @@ from .controller_resource import ControllerResource
 from .controller_resource_assignment import (
     ControllerResourceAssignment,
 )
+from .controller_resource_assignment_details import (
+    ControllerResourceAssignmentDetailsDialog,
+)
 
 
 @dataclass(frozen=True)
@@ -33,7 +36,7 @@ class ControllerResourceDetailsResult:
 
 
 class ControllerResourceDetailsDialog(QDialog):
-    """Edit the basic authored details of a controller resource."""
+    """Edit resource details and inspect its assignments."""
 
     def __init__(
         self,
@@ -111,19 +114,6 @@ class ControllerResourceDetailsDialog(QDialog):
             controller_label,
         )
 
-        buttons = QDialogButtonBox(
-            QDialogButtonBox.StandardButton.Ok
-            | QDialogButtonBox.StandardButton.Cancel
-        )
-
-        buttons.accepted.connect(
-            self._accept
-        )
-
-        buttons.rejected.connect(
-            self.reject
-        )
-
         layout = QVBoxLayout(
             self
         )
@@ -143,11 +133,19 @@ class ControllerResourceDetailsDialog(QDialog):
         self._assignment_list = QListWidget()
 
         self._assignment_list.setSelectionMode(
-            QAbstractItemView.SelectionMode.NoSelection
+            QAbstractItemView.SelectionMode.SingleSelection
+        )
+
+        self._assignment_list.setEditTriggers(
+            QAbstractItemView.EditTrigger.NoEditTriggers
         )
 
         self._assignment_list.setMinimumHeight(
             90
+        )
+
+        self._assignment_list.itemDoubleClicked.connect(
+            self._assignment_item_double_clicked
         )
 
         if self._assignments:
@@ -175,6 +173,19 @@ class ControllerResourceDetailsDialog(QDialog):
             self._assignment_list
         )
 
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok
+            | QDialogButtonBox.StandardButton.Cancel
+        )
+
+        buttons.accepted.connect(
+            self._accept
+        )
+
+        buttons.rejected.connect(
+            self.reject
+        )
+
         layout.addWidget(
             buttons
         )
@@ -187,6 +198,43 @@ class ControllerResourceDetailsDialog(QDialog):
             f"{assignment.assignment_type} — "
             f"{assignment.source_id}"
         )
+
+    def _assignment_item_double_clicked(
+        self,
+        item: QListWidgetItem,
+    ) -> None:
+        assignment_id = item.data(
+            Qt.ItemDataRole.UserRole
+        )
+
+        if not isinstance(
+            assignment_id,
+            str,
+        ):
+            return
+
+        assignment = next(
+            (
+                candidate
+                for candidate
+                in self._assignments
+                if candidate.id
+                == assignment_id
+            ),
+            None,
+        )
+
+        if assignment is None:
+            return
+
+        dialog = (
+            ControllerResourceAssignmentDetailsDialog(
+                assignment=assignment,
+                parent=self,
+            )
+        )
+
+        dialog.exec()
 
     def _accept(self) -> None:
         name = (
