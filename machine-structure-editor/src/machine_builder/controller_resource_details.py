@@ -6,15 +6,21 @@ from dataclasses import dataclass
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
+    QAbstractItemView,
     QDialog,
     QDialogButtonBox,
     QFormLayout,
     QLabel,
     QLineEdit,
+    QListWidget,
+    QListWidgetItem,
     QVBoxLayout,
 )
 
 from .controller_resource import ControllerResource
+from .controller_resource_assignment import (
+    ControllerResourceAssignment,
+)
 
 
 @dataclass(frozen=True)
@@ -34,6 +40,9 @@ class ControllerResourceDetailsDialog(QDialog):
         resource: ControllerResource,
         controller_name: str | None = None,
         parent=None,
+        assignments: list[
+            ControllerResourceAssignment
+        ] | None = None,
     ) -> None:
         super().__init__(parent)
 
@@ -44,6 +53,10 @@ class ControllerResourceDetailsDialog(QDialog):
         self._result: (
             ControllerResourceDetailsResult | None
         ) = None
+
+        self._assignments = list(
+            assignments or []
+        )
 
         self._name_edit = QLineEdit(
             resource.name
@@ -119,12 +132,66 @@ class ControllerResourceDetailsDialog(QDialog):
             form
         )
 
+        assignments_label = QLabel(
+            f"Assignments ({len(self._assignments)})"
+        )
+
+        layout.addWidget(
+            assignments_label
+        )
+
+        self._assignment_list = QListWidget()
+
+        self._assignment_list.setSelectionMode(
+            QAbstractItemView.SelectionMode.NoSelection
+        )
+
+        self._assignment_list.setMinimumHeight(
+            90
+        )
+
+        if self._assignments:
+            for assignment in self._assignments:
+                item = QListWidgetItem(
+                    self._assignment_text(
+                        assignment
+                    )
+                )
+
+                item.setData(
+                    Qt.ItemDataRole.UserRole,
+                    assignment.id,
+                )
+
+                self._assignment_list.addItem(
+                    item
+                )
+        else:
+            self._assignment_list.addItem(
+                "No assignments."
+            )
+
+        layout.addWidget(
+            self._assignment_list
+        )
+
         layout.addWidget(
             buttons
         )
 
+    @staticmethod
+    def _assignment_text(
+        assignment: ControllerResourceAssignment,
+    ) -> str:
+        return (
+            f"{assignment.assignment_type} — "
+            f"{assignment.source_id}"
+        )
+
     def _accept(self) -> None:
-        name = self._name_edit.text().strip()
+        name = (
+            self._name_edit.text().strip()
+        )
 
         resource_type = (
             self._resource_type_edit.text().strip()

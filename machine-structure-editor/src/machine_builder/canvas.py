@@ -1,12 +1,15 @@
 """Main Machine Structure Editor canvas.
 
 The canvas is a coordinator between Qt UI, visual interaction,
-visual-model synchronization, and the editor store.
+semantic editing, visual-model synchronization, and the editor store.
 
 Feature responsibilities are delegated to focused modules:
 
     CanvasUIMixin
         Main window construction and actions
+
+    CanvasEditingMixin
+        Component, controller, resource, and port editing workflows
 
     CanvasPaletteMixin
         Palette and visual template authoring
@@ -26,6 +29,7 @@ from __future__ import annotations
 from PySide6.QtCore import QPointF
 from PySide6.QtWidgets import QMainWindow
 
+from .canvas_editing import CanvasEditingMixin
 from .canvas_interaction import (
     CanvasInteractionMixin,
     ConnectionDragState,
@@ -40,6 +44,7 @@ from .visual_model import VisualModel
 
 class MachineCanvas(
     CanvasUIMixin,
+    CanvasEditingMixin,
     CanvasPaletteMixin,
     CanvasInteractionMixin,
     QMainWindow,
