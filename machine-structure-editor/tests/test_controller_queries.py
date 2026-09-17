@@ -1,17 +1,24 @@
-import pytest
+"""Tests for canonical controller queries."""
 
 from machine_builder.controller import Controller
 from machine_builder.controller_queries import (
-    controller_resources_for_controller,
-    controller_resources_for_machine,
-    controller_resources_of_type,
+    controller_for_resource,
     controllers_for_machine,
+    get_controller,
+    machine_id_for_controller,
 )
-from machine_builder.controller_resource import ControllerResource
-from machine_builder.semantic_model import CanonicalMachineModel, Machine
+from machine_builder.controller_resource import (
+    ControllerResource,
+)
+from machine_builder.editor_state import EditorState
+from machine_builder.semantic_model import (
+    CanonicalMachineModel,
+    Machine,
+)
+from machine_builder.visual_model import VisualModel
 
 
-def build_model() -> CanonicalMachineModel:
+def make_state() -> EditorState:
     model = CanonicalMachineModel()
 
     model.add_machine(
@@ -25,17 +32,9 @@ def build_model() -> CanonicalMachineModel:
         "machine-1",
         Controller(
             id="controller-1",
-            name="Primary Controller",
-            controller_type="test",
-        ),
-    )
-
-    model.add_controller(
-        "machine-1",
-        Controller(
-            id="controller-2",
-            name="Secondary Controller",
-            controller_type="test",
+            name="Main Controller",
+            controller_type="motion_controller",
+            version="1.0",
         ),
     )
 
@@ -44,116 +43,153 @@ def build_model() -> CanonicalMachineModel:
         ControllerResource(
             id="resource-1",
             name="Heater Output 0",
-            resource_type="heater_output",
+            resource_type="heater",
             controller_id="controller-1",
         ),
     )
 
-    model.add_controller_resource(
-        "machine-1",
-        ControllerResource(
-            id="resource-2",
-            name="Fan Output 0",
-            resource_type="fan_output",
-            controller_id="controller-1",
-        ),
+    return EditorState(
+        visual_model=VisualModel(),
+        semantic_model=model,
     )
 
-    model.add_controller_resource(
-        "machine-1",
-        ControllerResource(
-            id="resource-3",
-            name="Stepper X",
-            resource_type="stepper_output",
-            controller_id="controller-2",
-        ),
+
+def test_get_controller_returns_controller() -> None:
+    state = make_state()
+
+    controller = get_controller(
+        state,
+        "controller-1",
     )
 
-    return model
+    assert controller.name == (
+        "Main Controller"
+    )
+
+
+def test_get_controller_rejects_unknown_id() -> None:
+    state = make_state()
+
+    try:
+        get_controller(
+            state,
+            "missing",
+        )
+
+        raise AssertionError(
+            "Expected KeyError"
+        )
+    except KeyError as exc:
+        assert "Unknown controller" in str(exc)
+
+
+def test_machine_id_for_controller() -> None:
+    state = make_state()
+
+    assert (
+        machine_id_for_controller(
+            state,
+            "controller-1",
+        )
+        == "machine-1"
+    )
+
+
+def test_machine_id_for_unattached_controller() -> None:
+    state = make_state()
+
+    state.semantic_model.machines[
+        "machine-1"
+    ].controller_ids.clear()
+
+    try:
+        machine_id_for_controller(
+            state,
+            "controller-1",
+        )
+
+        raise AssertionError(
+            "Expected ValueError"
+        )
+    except ValueError as exc:
+        assert (
+            "not attached"
+            in str(exc)
+        )
 
 
 def test_controllers_for_machine() -> None:
-    model = build_model()
+    state = make_state()
 
     controllers = controllers_for_machine(
-        model,
+        state,
         "machine-1",
     )
 
-    assert [controller.id for controller in controllers] == [
-        "controller-1",
-        "controller-2",
-    ]
+    assert len(controllers) == 1
+    assert controllers[0].id == (
+        "controller-1"
+    )
 
 
-def test_controllers_for_unknown_machine_is_rejected() -> None:
-    model = build_model()
+def test_unknown_machine_rejected() -> None:
+    state = make_state()
 
-    with pytest.raises(KeyError):
+    try:
         controllers_for_machine(
-            model,
-            "unknown-machine",
+            state,
+            "missing",
         )
 
+        raise AssertionError(
+            "Expected KeyError"
+        )
+    except KeyError as exc:
+        assert "Unknown machine" in str(exc)
 
-def test_controller_resources_for_controller() -> None:
-    model = build_model()
 
-    resources = controller_resources_for_controller(
-        model,
-        "controller-1",
+def test_controller_for_resource() -> None:
+    state = make_state()
+
+    controller = controller_for_resource(
+        state,
+        "resource-1",
     )
 
-    assert [resource.id for resource in resources] == [
-        "resource-1",
-        "resource-2",
-    ]
+    assert controller is not None
+    assert controller.id == "controller-1"
 
 
-def test_controller_resources_for_unknown_controller_is_rejected() -> None:
-    model = build_model()
+def test_resource_without_controller_returns_none() -> None:
+    state = make_state()
 
-    with pytest.raises(KeyError):
-        controller_resources_for_controller(
-            model,
-            "unknown-controller",
+    state.semantic_model.controller_resources[
+        "resource-1"
+    ].controller_id = None
+
+    assert (
+        controller_for_resource(
+            state,
+            "resource-1",
+        )
+        is None
+    )
+
+
+def test_unknown_resource_rejected() -> None:
+    state = make_state()
+
+    try:
+        controller_for_resource(
+            state,
+            "missing",
         )
 
-
-def test_controller_resources_for_machine() -> None:
-    model = build_model()
-
-    resources = controller_resources_for_machine(
-        model,
-        "machine-1",
-    )
-
-    assert [resource.id for resource in resources] == [
-        "resource-1",
-        "resource-2",
-        "resource-3",
-    ]
-
-
-def test_controller_resources_of_type() -> None:
-    model = build_model()
-
-    resources = controller_resources_of_type(
-        model,
-        "heater_output",
-    )
-
-    assert [resource.id for resource in resources] == [
-        "resource-1",
-    ]
-
-
-def test_controller_resources_of_unknown_type_are_empty() -> None:
-    model = build_model()
-
-    resources = controller_resources_of_type(
-        model,
-        "probe_input",
-    )
-
-    assert resources == []
+        raise AssertionError(
+            "Expected KeyError"
+        )
+    except KeyError as exc:
+        assert (
+            "Unknown controller resource"
+            in str(exc)
+        )

@@ -9,13 +9,30 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QVBoxLayout,
     QWidget,
 )
 
+from .component_details import ComponentDetailsDialog
 from .graphics.palette import PaletteList
 from .graphics.view import MachineGraphicsView
+from .port_details import PortDetailsDialog
+from .semantic_component_mutations import (
+    UpdateMachineComponent,
+)
+from .semantic_component_queries import (
+    component_for_visual_node,
+    machine_id_for_component,
+)
+from .semantic_port_mutations import (
+    UpdateSemanticPort,
+)
+from .semantic_port_queries import (
+    component_for_port,
+    get_port,
+)
 
 
 class CanvasUIMixin:
@@ -66,8 +83,17 @@ class CanvasUIMixin:
             self._add_selected_palette_item
         )
 
+        edit_button = QPushButton(
+            "Edit Component..."
+        )
+
+        edit_button.clicked.connect(
+            self._edit_selected_component
+        )
+
         palette_help = QLabel(
-            "Double-click or drag a component onto the canvas."
+            "Double-click a port to edit it. "
+            "Single-click/drag ports to connect them."
         )
 
         palette_help.setWordWrap(
@@ -84,6 +110,10 @@ class CanvasUIMixin:
 
         palette_layout.addWidget(
             add_button
+        )
+
+        palette_layout.addWidget(
+            edit_button
         )
 
         palette_layout.addWidget(
@@ -177,6 +207,19 @@ class CanvasUIMixin:
             self._frame_all
         )
 
+        edit_component_action = QAction(
+            "Edit Component...",
+            self,
+        )
+
+        edit_component_action.setShortcut(
+            "Ctrl+E"
+        )
+
+        edit_component_action.triggered.connect(
+            self._edit_selected_component
+        )
+
         self.addAction(
             delete_action
         )
@@ -191,6 +234,137 @@ class CanvasUIMixin:
 
         self.addAction(
             frame_action
+        )
+
+        self.addAction(
+            edit_component_action
+        )
+
+    def _edit_selected_component(
+        self,
+    ) -> None:
+        """Open the component editor for the selected visual node."""
+        selected_nodes = [
+            item
+            for item in self.scene.selectedItems()
+            if hasattr(
+                item,
+                "node_id",
+            )
+        ]
+
+        if not selected_nodes:
+            self.statusBar().showMessage(
+                "Select a component first."
+            )
+            return
+
+        if len(selected_nodes) > 1:
+            QMessageBox.information(
+                self,
+                "Edit Component",
+                "Select one component at a time.",
+            )
+            return
+
+        node_id = selected_nodes[0].node_id
+
+        component = component_for_visual_node(
+            self.store.state,
+            node_id,
+        )
+
+        if component is None:
+            QMessageBox.information(
+                self,
+                "Edit Component",
+                (
+                    "The selected visual node is not "
+                    "linked to a canonical component yet."
+                ),
+            )
+            return
+
+        machine_id = machine_id_for_component(
+            self.store.state,
+            component.id,
+        )
+
+        machine = (
+            self.store.semantic_model.machines[
+                machine_id
+            ]
+        )
+
+        dialog = ComponentDetailsDialog(
+            component=component,
+            machine_name=machine.name,
+            parent=self,
+        )
+
+        if (
+            dialog.exec()
+            != dialog.DialogCode.Accepted
+        ):
+            return
+
+        result = dialog.result_data()
+
+        self.store.commit(
+            UpdateMachineComponent(
+                component_id=component.id,
+                role=result.role,
+                label=result.label,
+                properties=result.properties,
+            )
+        )
+
+        self.statusBar().showMessage(
+            f"Updated component: {result.label}"
+        )
+
+    def _edit_semantic_port(
+        self,
+        port_id: str,
+    ) -> None:
+        """Open the semantic editor for one port."""
+        port = get_port(
+            self.store.state,
+            port_id,
+        )
+
+        component = component_for_port(
+            self.store.state,
+            port_id,
+        )
+
+        dialog = PortDetailsDialog(
+            port=port,
+            component_label=component.label,
+            parent=self,
+        )
+
+        if (
+            dialog.exec()
+            != dialog.DialogCode.Accepted
+        ):
+            return
+
+        result = dialog.result_data()
+
+        self.store.commit(
+            UpdateSemanticPort(
+                port_id=port_id,
+                purpose=result.purpose,
+                direction=result.direction,
+                connector_id=result.connector_id,
+                pin_id=result.pin_id,
+                properties=result.properties,
+            )
+        )
+
+        self.statusBar().showMessage(
+            f"Updated port: {result.purpose}"
         )
 
     def _frame_all(self) -> None:

@@ -1,74 +1,103 @@
+"""Queries for canonical controller authoring and inspection."""
+
 from __future__ import annotations
 
-from machine_builder.controller_resource import ControllerResource
-from machine_builder.semantic_model import CanonicalMachineModel
+from .editor_state import EditorState
+from .controller import Controller
+
+
+def get_controller(
+    state: EditorState,
+    controller_id: str,
+) -> Controller:
+    """Return a canonical controller."""
+    controller = (
+        state.semantic_model.controllers.get(
+            controller_id
+        )
+    )
+
+    if controller is None:
+        raise KeyError(
+            "Unknown controller: "
+            f"{controller_id}"
+        )
+
+    return controller
+
+
+def machine_id_for_controller(
+    state: EditorState,
+    controller_id: str,
+) -> str:
+    """Return the machine that owns a controller."""
+    get_controller(
+        state,
+        controller_id,
+    )
+
+    for (
+        machine_id,
+        machine,
+    ) in state.semantic_model.machines.items():
+        if controller_id in machine.controller_ids:
+            return machine_id
+
+    raise ValueError(
+        "Controller is not attached to a machine: "
+        f"{controller_id}"
+    )
 
 
 def controllers_for_machine(
-    model: CanonicalMachineModel,
+    state: EditorState,
     machine_id: str,
-):
-    """Return the controllers associated with a machine."""
-    machine = model.machines.get(machine_id)
+) -> tuple[Controller, ...]:
+    """Return controllers attached to a machine."""
+    machine = (
+        state.semantic_model.machines.get(
+            machine_id
+        )
+    )
 
     if machine is None:
         raise KeyError(
-            f"Unknown machine: {machine_id}"
+            "Unknown machine: "
+            f"{machine_id}"
         )
 
-    return [
-        model.controllers[controller_id]
-        for controller_id in machine.controller_ids
-        if controller_id in model.controllers
-    ]
-
-
-def controller_resources_for_controller(
-    model: CanonicalMachineModel,
-    controller_id: str,
-) -> list[ControllerResource]:
-    """Return all resources belonging to a controller."""
-    if controller_id not in model.controllers:
-        raise KeyError(
-            f"Unknown controller: {controller_id}"
-        )
-
-    return [
-        resource
-        for resource in model.controller_resources.values()
-        if resource.controller_id == controller_id
-    ]
-
-
-def controller_resources_for_machine(
-    model: CanonicalMachineModel,
-    machine_id: str,
-) -> list[ControllerResource]:
-    """Return all controller resources used by controllers on a machine."""
-    controllers = controllers_for_machine(
-        model,
-        machine_id,
+    return tuple(
+        state.semantic_model.controllers[
+            controller_id
+        ]
+        for controller_id
+        in machine.controller_ids
+        if controller_id
+        in state.semantic_model.controllers
     )
 
-    controller_ids = {
-        controller.id
-        for controller in controllers
-    }
 
-    return [
-        resource
-        for resource in model.controller_resources.values()
-        if resource.controller_id in controller_ids
-    ]
+def controller_for_resource(
+    state: EditorState,
+    resource_id: str,
+) -> Controller | None:
+    """Return the controller owning a resource, if known."""
+    resource = (
+        state.semantic_model.controller_resources.get(
+            resource_id
+        )
+    )
 
+    if resource is None:
+        raise KeyError(
+            "Unknown controller resource: "
+            f"{resource_id}"
+        )
 
-def controller_resources_of_type(
-    model: CanonicalMachineModel,
-    resource_type: str,
-) -> list[ControllerResource]:
-    """Return controller resources of a given resource type."""
-    return [
-        resource
-        for resource in model.controller_resources.values()
-        if resource.resource_type == resource_type
-    ]
+    if resource.controller_id is None:
+        return None
+
+    return get_controller(
+        state,
+        resource.controller_id,
+    )

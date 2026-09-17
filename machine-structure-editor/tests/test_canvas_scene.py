@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import sys
 
-from PySide6.QtWidgets import QApplication, QGraphicsScene
+from PySide6.QtWidgets import (
+    QApplication,
+    QGraphicsScene,
+)
 
 from machine_builder.canvas_scene import (
     CanvasSceneController,
@@ -45,10 +48,20 @@ class SceneCanvasStub:
             },
         )()
 
-    def _begin_node_move(self, node_id):
+        self.port_edit_requests: list[
+            str
+        ] = []
+
+    def _begin_node_move(
+        self,
+        node_id,
+    ):
         pass
 
-    def _finish_node_move(self, node_id):
+    def _finish_node_move(
+        self,
+        node_id,
+    ):
         pass
 
     def _node_selected(
@@ -58,7 +71,10 @@ class SceneCanvasStub:
     ):
         pass
 
-    def _focus_node(self, node_id):
+    def _focus_node(
+        self,
+        node_id,
+    ):
         pass
 
     def _node_position_changed(
@@ -95,6 +111,14 @@ class SceneCanvasStub:
     ):
         pass
 
+    def _edit_semantic_port(
+        self,
+        port_id,
+    ):
+        self.port_edit_requests.append(
+            port_id
+        )
+
 
 def test_scene_controller_syncs_nodes() -> None:
     _application()
@@ -121,7 +145,9 @@ def test_scene_controller_syncs_nodes() -> None:
     )
 
     assert "node-1" in canvas._node_items
-    assert len(canvas.scene.items()) >= 1
+    assert len(
+        canvas.scene.items()
+    ) >= 1
 
 
 def test_scene_controller_removes_deleted_nodes() -> None:
@@ -156,7 +182,10 @@ def test_scene_controller_removes_deleted_nodes() -> None:
         canvas.store.model
     )
 
-    assert "node-1" not in canvas._node_items
+    assert (
+        "node-1"
+        not in canvas._node_items
+    )
 
 
 def test_scene_controller_finds_rendered_port() -> None:
@@ -254,6 +283,7 @@ def test_scene_controller_syncs_connections() -> None:
     canvas.store.model.add_node(
         node_a
     )
+
     canvas.store.model.add_node(
         node_b
     )
@@ -325,6 +355,7 @@ def test_scene_controller_removes_deleted_connections() -> None:
     canvas.store.model.add_node(
         node_a
     )
+
     canvas.store.model.add_node(
         node_b
     )

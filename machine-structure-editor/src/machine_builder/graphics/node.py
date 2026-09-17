@@ -34,6 +34,7 @@ class NodeGraphicsItem(QGraphicsRectItem):
         connection_drag_started: Any,
         connection_drag_moved: Any,
         connection_drag_finished: Any,
+        port_edit_requested: Any,
     ) -> None:
         super().__init__(
             0,
@@ -59,6 +60,9 @@ class NodeGraphicsItem(QGraphicsRectItem):
         self._position_changed_callback = (
             position_changed_callback
         )
+        self._port_edit_requested = (
+            port_edit_requested
+        )
 
         self._port_items: dict[
             str,
@@ -80,7 +84,9 @@ class NodeGraphicsItem(QGraphicsRectItem):
             True,
         )
 
-        self.setAcceptHoverEvents(True)
+        self.setAcceptHoverEvents(
+            True
+        )
 
         self.setBrush(
             QBrush(
@@ -117,10 +123,19 @@ class NodeGraphicsItem(QGraphicsRectItem):
         )
 
         self._rebuild_ports(
-            node,
-            connection_drag_started,
-            connection_drag_moved,
-            connection_drag_finished,
+            node=node,
+            connection_drag_started=(
+                connection_drag_started
+            ),
+            connection_drag_moved=(
+                connection_drag_moved
+            ),
+            connection_drag_finished=(
+                connection_drag_finished
+            ),
+            port_edit_requested=(
+                port_edit_requested
+            ),
         )
 
     def _rebuild_ports(
@@ -129,6 +144,7 @@ class NodeGraphicsItem(QGraphicsRectItem):
         connection_drag_started: Any,
         connection_drag_moved: Any,
         connection_drag_finished: Any,
+        port_edit_requested: Any,
     ) -> None:
         """Synchronize the node's visible ports with its model ports."""
         current_ids = set(
@@ -161,9 +177,18 @@ class NodeGraphicsItem(QGraphicsRectItem):
             if item is None:
                 item = PortGraphicsItem(
                     port=port,
-                    connection_drag_started=connection_drag_started,
-                    connection_drag_moved=connection_drag_moved,
-                    connection_drag_finished=connection_drag_finished,
+                    connection_drag_started=(
+                        connection_drag_started
+                    ),
+                    connection_drag_moved=(
+                        connection_drag_moved
+                    ),
+                    connection_drag_finished=(
+                        connection_drag_finished
+                    ),
+                    port_edit_requested=(
+                        port_edit_requested
+                    ),
                 )
 
                 item.setParentItem(
@@ -253,12 +278,16 @@ class NodeGraphicsItem(QGraphicsRectItem):
         height: float,
     ) -> None:
         """Evenly distribute ports on one side of a node."""
-        count = len(ports)
+        count = len(
+            ports
+        )
 
         if count == 0:
             return
 
-        for index, port in enumerate(ports):
+        for index, port in enumerate(
+            ports
+        ):
             coordinate = (
                 (index + 1)
                 * (

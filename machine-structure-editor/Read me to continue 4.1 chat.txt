@@ -1,0 +1,1744 @@
+582 passed in 1.55s. Let's do a new handoff for the visual editor chat (this chat) to the next visual editor chat and put it into the github folder.  An updated list of the files would be good also. After it's up on github, we can do the prompt for the next chat.  pick the best order for that stuff to happen and i'll do what you tell me.
+Analyzed
+from pathlib import Path
+
+handoff = r"""# Machine Builder — Visual Editor Implementation Handoff
+
+## Checkpoint
+
+Date: 2026-09-16  
+Project: `PeterTremonti/Machine-Builder`  
+Implementation area: `machine-structure-editor`  
+Working branch: `main`  
+Python: 3.14.7  
+Pytest: 8.4.2  
+Last verified test result:
+
+```text
+582 passed in 1.55s
+
+This is the intended handoff boundary for the next Machine Builder Visual Editor / Implementation chat.
+
+1. Purpose of this chat
+
+This chat is the Machine Builder — Implementation / Coder chat.
+
+Its job is to turn the established research/architecture direction into the working Python/PySide6 implementation.
+
+The research/architecture chat remains the authority for:
+
+terminology
+ontology
+semantic distinctions
+standards research
+long-term architecture
+major architectural decisions
+
+This implementation chat should not silently redefine those things merely because a coding idea seems convenient.
+
+The implementation workflow is:
+
+Establish or confirm the semantic/architectural boundary.
+Make the smallest cohesive implementation change.
+Add or update tests.
+
+Run:
+
+python -m pytest
+Do not commit/push every tiny green test.
+Commit at meaningful cohesive checkpoints.
+Keep modules focused and avoid large monolithic classes/files.
+Prefer complete-file replacements in instructions rather than line-by-line patch surgery.
+2. Core architecture
+
+The central architectural principle remains:
+
+The physical machine is the machine. Firmware is a versioned implementation of that machine, not the machine's identity.
+
+Canonical direction:
+
+Physical Machine
+        ↓
+Canonical Machine Model
+        ↓
+Firmware Requirements / Mapping
+        ↓
+Target Firmware + Version
+        ↓
+Generated Configuration / Representation
+
+Reverse direction:
+
+Firmware / Configuration
+        ↓
+Semantic Interpretation
+        ↓
+Canonical Machine Model
+
+The canonical model is the authoritative semantic representation.
+
+The visual editor is an authoring, inspection, and presentation layer over that canonical model. It is not a second independent semantic model.
+
+3. Current implementation checkpoint
+
+The editor currently has a substantial canonical semantic foundation, document lifecycle, visual model, graphics canvas, and semantic authoring infrastructure.
+
+The latest work completed the controller/controller-resource authoring side enough to reach:
+
+582 passed
+
+The completed authoring progression is approximately:
+
+Machine
+  └─ Components
+       └─ Semantic Ports
+            └─ Connections / Relationships
+
+Machine
+  └─ Controllers
+       └─ Controller Resources
+            └─ Controller Resource Assignments
+
+The current implementation contains:
+
+canonical machines
+components
+hardware definitions
+semantic ports
+functions
+capabilities
+controllers
+controller resources
+controller-resource assignments
+semantic connections
+semantic relationships
+visual nodes
+visual ports
+visual connections
+visual groups
+visual views
+persistence
+document lifecycle
+undo/redo through ModelStore
+component authoring
+port authoring
+controller authoring
+controller-resource authoring
+4. Important architectural boundaries
+Canonical semantic model
+
+The canonical semantic model owns machine meaning.
+
+Important classes include:
+
+Machine
+MachineComponent
+HardwareDefinition
+SemanticPort
+Function
+Capability
+Controller
+ControllerResource
+ControllerResourceAssignment
+semantic connections
+semantic relationships
+
+The canonical model is the authoritative source for these meanings.
+
+Visual model
+
+The visual model owns editor presentation state such as:
+
+node position
+node size
+rotation
+visual ports
+visual connections
+grouping
+views
+pan
+zoom
+
+Visual state may refer back to canonical semantic objects, but should not become a duplicate semantic authority.
+
+ModelStore
+
+ModelStore owns persistent editor state and edit history.
+
+It provides:
+
+atomic commits
+undo
+redo
+save
+load
+new document
+modified-state tracking
+listeners
+
+Semantic mutations are intended to pass through this layer when used by the application.
+
+5. Canvas architecture
+
+The original canvas had become too large, so it was deliberately split into focused modules.
+
+Current structure:
+
+canvas.py
+    coordinator
+
+canvas_ui.py
+    Qt window construction
+    actions
+    semantic edit entry points
+
+canvas_palette.py
+    palette
+    visual template creation
+    default visual ports
+    provisional visual creation helpers
+
+canvas_interaction.py
+    node interaction
+    movement
+    selection
+    deletion
+    connection dragging
+    connection previews
+    compatibility feedback
+    interaction state
+
+canvas_scene.py
+    VisualModel → QGraphicsScene synchronization
+    node/connection graphics creation/removal/update
+
+This modularization was checkpointed previously as:
+
+Refactor canvas into focused modules
+
+The intent is to preserve these boundaries rather than recreating another monolithic canvas.
+
+6. Current semantic authoring pattern
+
+The project now uses a repeated pattern for semantic authoring.
+
+Typical layers:
+
+semantic_*_queries.py
+semantic_*_mutations.py
+*_details.py
+*_properties.py
+tests/*
+
+Examples already implemented:
+
+Components
+semantic_component_queries.py
+semantic_component_mutations.py
+component_details.py
+component_properties.py
+Ports
+semantic_port_queries.py
+semantic_port_mutations.py
+port_details.py
+port_properties.py
+Controllers
+controller_queries.py
+controller_mutations.py
+controller_details.py
+Controller resources
+controller_resource_queries.py
+controller_resource_mutations.py
+controller_resource_details.py
+controller_resource_properties.py
+
+The next chat should continue using this pattern where it actually fits, but should not blindly multiply layers when a simpler boundary is better.
+
+7. Current controller/resource state
+Controller
+
+Current conceptual fields:
+
+@dataclass
+class Controller:
+    id: str
+    name: str
+    controller_type: str
+    version: str | None = None
+    properties: dict[str, Any] = field(default_factory=dict)
+    provenance: list[Provenance] = field(default_factory=list)
+
+Current controller authoring includes:
+
+basic controller edits
+controller properties
+controller queries
+controller details dialog
+Controller Resource
+
+Current conceptual fields:
+
+@dataclass
+class ControllerResource:
+    id: str
+    name: str
+    resource_type: str
+    controller_id: str | None = None
+    properties: dict[str, Any] = field(default_factory=dict)
+    provenance: list[Provenance] = field(default_factory=list)
+
+Current resource authoring includes:
+
+resource edits
+controller association
+resource queries
+resource properties
+ModelStore integration
+undo/redo coverage
+resource details dialog foundation
+
+Important: the resource details dialog currently displays the associated controller rather than attempting to invent a full controller-selection UX.
+
+That UI decision has intentionally been left open.
+
+8. Controller-resource assignment state
+
+Controller-resource assignments already have a mature implementation.
+
+Existing architecture includes:
+
+assignment semantic model
+assignment query layer
+assignment mutation layer
+assignment validation
+machine-boundary validation
+authoring helpers
+fixtures
+store integration
+
+Cross-machine integrity is explicitly enforced.
+
+The intended relationship is:
+
+Machine
+  ├─ Controller
+  │    └─ ControllerResource
+  │
+  └─ Source / component / semantic object
+          ↓
+     ControllerResourceAssignment
+          ↓
+     ControllerResource
+
+Do not weaken the machine-boundary validation.
+
+9. Visual graphics behavior
+
+The graphics layer now supports semantic port editing without confusing it with connection interaction.
+
+Current behavior:
+
+single click / drag on a port remains connection interaction
+double-click on a port opens semantic port editing
+node movement remains independent
+visual port updates can mirror semantic port changes
+canvas scene synchronization rebuilds/updates graphics from the visual model
+
+This distinction is important:
+
+single click / drag
+    → connection interaction
+
+double click
+    → semantic port authoring
+
+The same principle should be preserved for future interactive elements.
+
+10. Persistence / documents
+
+Persistence currently supports a JSON editor document format.
+
+The format has:
+
+format name:
+machine-builder-editor
+
+format version:
+1
+
+The persistence layer explicitly controls what types may be serialized/deserialized.
+
+The document state includes the canonical and visual models.
+
+ModelStore currently supports:
+
+save
+save as
+load
+new document
+path tracking
+modified-state tracking
+undo/redo history handling
+listeners
+
+DocumentController sits above the store for application-level document lifecycle.
+
+The application has File menu support for:
+
+New
+Open
+Save
+Save As
+
+with modified-document state handling.
+
+11. Application / UI status
+
+The application currently uses the canonical modular canvas.
+
+Application integration has been tested.
+
+Current semantic editing entry points include:
+
+component editing
+semantic port editing
+
+Controller and controller-resource authoring currently have foundational dialog/query/mutation layers but have not yet been turned into a full canvas-visible resource-authoring experience.
+
+That is likely to be part of the next visual-editor design work.
+
+12. Important implementation principles for the next chat
+Do not reconstruct large existing files from memory
+
+A previous failure involved accidentally replacing a large semantic-model file with an incomplete reconstruction.
+
+Avoid that.
+
+When modifying an existing substantial file:
+
+inspect the exact current version
+preserve existing content
+make the smallest necessary change
+test
+keep the replacement complete when giving instructions to the user
+Prefer focused modules
+
+Repeated friction is architectural evidence.
+
+If a module becomes large because it owns one genuinely cohesive responsibility, that can be acceptable.
+
+Do not split code merely to make line counts look small.
+
+Do split when responsibilities are genuinely distinct.
+
+Do not prematurely move research decisions into implementation
+
+A promising idea is a candidate until the research/architecture side settles it.
+
+The implementation can support a candidate without silently making it canonical.
+
+13. Hardware catalog boundary
+
+Online/downloadable hardware catalogs are deliberately not being forced into V0.2 yet.
+
+The architecture already has the correct distinction:
+
+Online Catalog
+      ↓
+Adapter / Importer
+      ↓
+Normalized HardwareDefinition
+      ↓
+MachineComponent
+      ↓
+Canonical Machine
+
+HardwareDefinition is distinct from a physical MachineComponent.
+
+Do not collapse those concepts merely because a catalog UI becomes desirable.
+
+14. V0.2 status
+
+Approximate implementation progress discussed during this chat:
+
+Foundation / architecture        █████████░ 80–90%
+Canonical semantic model         █████████░ 85–90%
+Semantic authoring               ████████░░ 75–85%
+Controllers / resources          █████████░ 85–90%
+Assignments / mappings           █████████░ 85–90%
+Connections / relationships      ████████░░ 75–85%
+Persistence / documents          █████████░ 85–90%
+Visual-editor foundation         ████████░░ 70–80%
+Actual V0.2 user-facing work     █████░░░░░ 40–50%
+Liquid-cooling domain            ██░░░░░░░░ 10–20%
+Firmware integration             ░░░░░░░░░░ 0–10%
+
+These are rough planning estimates only, not formal project metrics.
+
+15. Known project/test files at this checkpoint
+
+The current test suite contains these test modules:
+
+tests/test_app_document_ui.py
+tests/test_app_rebuilt_integration.py
+tests/test_canvas_interaction.py
+tests/test_canvas_scene.py
+tests/test_canvas_ui.py
+tests/test_compatibility.py
+tests/test_component_authoring_ui.py
+tests/test_component_details.py
+tests/test_component_properties.py
+tests/test_connection_authoring.py
+tests/test_controller_assignment_authoring.py
+tests/test_controller_assignment_fixtures.py
+tests/test_controller_details.py
+tests/test_controller_fixtures.py
+tests/test_controller_model.py
+tests/test_controller_mutations.py
+tests/test_controller_queries.py
+tests/test_controller_resource.py
+tests/test_controller_resource_assignment.py
+tests/test_controller_resource_assignment_machine_validation.py
+tests/test_controller_resource_assignment_model_queries.py
+tests/test_controller_resource_assignment_mutations.py
+tests/test_controller_resource_assignment_queries.py
+tests/test_controller_resource_assignment_store.py
+tests/test_controller_resource_assignment_validation.py
+tests/test_controller_resource_details_integration.py
+tests/test_controller_resource_mutations.py
+tests/test_controller_resource_properties.py
+tests/test_controller_resource_queries.py
+tests/test_controller_resource_store.py
+tests/test_document_controller.py
+tests/test_fan_fixture.py
+tests/test_function_model.py
+tests/test_hardware_authoring.py
+tests/test_hardware_catalog.py
+tests/test_hardware_component_fixtures.py
+tests/test_heater_fixture.py
+tests/test_machine_controller_association.py
+tests/test_model_boundary.py
+tests/test_multi_component_authoring.py
+tests/test_palette_extensions.py
+tests/test_persistence.py
+tests/test_port_details.py
+tests/test_port_graphics_editing.py
+tests/test_port_properties.py
+tests/test_real_component_relationships.py
+tests/test_semantic_authoring.py
+tests/test_semantic_capability.py
+tests/test_semantic_component_queries.py
+tests/test_semantic_component_store_integration.py
+tests/test_semantic_connection.py
+tests/test_semantic_model.py
+tests/test_semantic_model_capability.py
+tests/test_semantic_model_controller_resource.py
+tests/test_semantic_model_controller_resource_assignment.py
+tests/test_semantic_port_mutations.py
+tests/test_semantic_port_queries.py
+tests/test_semantic_port_store_integration.py
+tests/test_semantic_projection.py
+tests/test_semantic_projection_duplicates.py
+tests/test_semantic_relationship.py
+tests/test_semantic_relationship_mutations.py
+tests/test_semantic_relationship_queries.py
+tests/test_semantic_value.py
+tests/test_store.py
+tests/test_store_document_state.py
+tests/test_store_new_document.py
+tests/test_store_persistence.py
+tests/test_visual_model.py
+16. Important current source modules
+
+The current implementation includes these important source modules/packages:
+
+src/machine_builder/app.py
+
+src/machine_builder/canvas.py
+src/machine_builder/canvas_ui.py
+src/machine_builder/canvas_palette.py
+src/machine_builder/canvas_interaction.py
+src/machine_builder/canvas_scene.py
+
+src/machine_builder/component_details.py
+src/machine_builder/component_properties.py
+src/machine_builder/controller_details.py
+src/machine_builder/controller_mutations.py
+src/machine_builder/controller_queries.py
+
+src/machine_builder/controller_resource.py
+src/machine_builder/controller_resource_details.py
+src/machine_builder/controller_resource_mutations.py
+src/machine_builder/controller_resource_properties.py
+src/machine_builder/controller_resource_queries.py
+
+src/machine_builder/controller_resource_assignment.py
+src/machine_builder/controller_resource_assignment_mutations.py
+src/machine_builder/controller_resource_assignment_queries.py
+src/machine_builder/controller_resource_assignment_validation.py
+src/machine_builder/controller_assignment_authoring.py
+src/machine_builder/controller_assignment_fixtures.py
+src/machine_builder/controller_resource_assignment_store.py
+
+src/machine_builder/controller.py
+
+src/machine_builder/document_controller.py
+src/machine_builder/editor_state.py
+src/machine_builder/persistence.py
+src/machine_builder/store.py
+
+src/machine_builder/semantic_model.py
+src/machine_builder/semantic_component_mutations.py
+src/machine_builder/semantic_component_queries.py
+src/machine_builder/semantic_port_mutations.py
+src/machine_builder/semantic_port_queries.py
+src/machine_builder/port_details.py
+src/machine_builder/port_properties.py
+
+src/machine_builder/visual_model.py
+
+src/machine_builder/graphics/
+
+Other existing source modules should be treated as authoritative when discovered in the repository. This list intentionally highlights the current architecture rather than pretending to replace a repository tree listing.
+
+17. Current known graphics modules
+
+The graphics package includes at least:
+
+graphics/node.py
+graphics/port.py
+
+NodeGraphicsItem is responsible for visual node behavior and passes semantic-port editing callbacks through to port graphics.
+
+PortGraphicsItem supports the double-click semantic-port editing entry point.
+
+Preserve this interaction boundary.
+
+18. Immediate next likely direction
+
+The controller/resource semantic layer is now sufficiently mature that the next useful work should probably be visual-editor integration rather than more isolated CRUD layers.
+
+The next chat should decide how canonical controller resources become visible/selectable in the editor.
+
+Questions worth resolving in that phase:
+
+Should controller resources appear as nodes?
+Should they be represented as controller sub-elements?
+How should a resource be selected without creating a second semantic representation?
+How should assignments be displayed visually?
+Should assignment be made from a source component/port to a controller resource?
+How should machine/controller/resource hierarchy appear at different zoom levels?
+What belongs in the canvas versus a details/properties panel?
+How should semantic resource ownership be distinguished from physical wiring?
+How should visual filtering expose controller resources without changing the machine?
+
+Do not automatically implement one of these choices before establishing the UI/semantic boundary.
+
+19. Test checkpoint required before continuing
+
+The repository must remain green at:
+
+582 passed
+
+Run:
+
+python -m pytest
+
+after pulling the handoff and before beginning new implementation work.
+
+20. Git checkpoint
+
+This handoff should be committed together with the preceding implementation changes as a meaningful checkpoint.
+
+Suggested commit message:
+
+Complete controller and resource authoring foundation
+
+The new chat should begin from the pushed main branch after that checkpoint.
+
+21. New-chat opening context
+
+The next implementation chat should be told:
+
+This is the continuation of the Machine Builder — Visual Editor / Implementation chat.
+
+The repository is PeterTremonti/Machine-Builder, under machine-structure-editor.
+
+The previous implementation checkpoint is 582 passing tests.
+
+Read handoffs/V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md first and treat the current repository as authoritative.
+
+Do not reconstruct large files from memory.
+
+Preserve the canonical semantic model / visual model distinction.
+
+Continue using complete-file replacements in instructions and run python -m pytest after meaningful changes.
+
+The next likely phase is deciding and implementing how controller resources and controller-resource assignments become visible/editable in the visual editor without creating a second semantic model.
+
+"""
+out = Path("/mnt/data/V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md")
+out.write_text(handoff, encoding="utf-8")
+print(out)
+
+STDOUT/STDERR
+/mnt/data/V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md
+
+
+The handoff is ready.
+
+Download the Visual Editor implementation handoff
+
+Put it here
+
+Copy it into your local repository as:
+
+Machine-Builder
+└── machine-structure-editor
+    └── handoffs
+        └── V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md
+
+Then from:
+
+C:\Users\Peter\Documents\GitHub\Machine-Builder\machine-structure-editor
+
+run:
+
+git status
+git add handoffs/V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md
+git add .
+git commit -m "Complete controller and resource authoring foundation"
+git push
+
+I recommend doing the git add . here because the 582-test checkpoint includes the controller/resource implementation changes too, and we want the handoff to describe exactly the code that gets pushed.
+
+After the push succeeds, come back here and tell me the commit/push succeeded. Then I’ll give you the complete opening prompt for the new Visual Editor implementation chat, including how that chat should locate and read the handoff and how we should approach the next phase. 
+
+V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md
+Document
+ok, don't be mad. that didn't make all the sense i was hoping for.  I downloaded the v0.2 handoff and made a folder to put it in.  I should have been more confident about what i wanted to do.  I'd like to get a summary for just what we have (previous to your last reply) and description for all those files (i guess including the v0.2 handoff) so i could send that to github.  THEN i'd like you to do your instructions for the next cha tto update it and get a copy of the file layout on github and then i can do a final commit with all that information in it. After that's done, i'll ask for a single prompt to kickstart the next conversation/chat.
+Analysis errored
+from pathlib import Path
+
+root = Path("/mnt/data")
+
+file_map = r"""# Machine Builder — V0.2 Visual Editor Repository Snapshot
+
+## Checkpoint
+
+Project:
+`PeterTremonti/Machine-Builder`
+
+Implementation:
+`machine-structure-editor`
+
+Checkpoint:
+**582 tests passed**
+
+Verified command:
+
+```powershell
+python -m pytest
+
+Verified result:
+
+582 passed in 1.55s
+
+Python:
+3.14.7
+
+Pytest:
+8.4.2
+
+This document describes the implementation state at the handoff boundary and gives a practical file map for the next implementation chat.
+
+1. What this implementation is
+
+Machine Structure Editor is the current implementation of the Machine Builder / MDE project.
+
+The central architectural principle is:
+
+The physical machine is the machine. Firmware is a versioned implementation of that machine, not the machine's identity.
+
+The canonical semantic model represents the machine.
+
+The visual editor is an authoring, inspection, and presentation layer over that canonical model.
+
+The visual model stores presentation state and references semantic objects; it is not intended to become a second semantic authority.
+
+2. Major architecture
+Physical Machine
+        ↓
+Canonical Machine Model
+        ↓
+Firmware Requirements / Mapping
+        ↓
+Target Firmware + Version
+        ↓
+Generated Configuration / Representation
+
+Reverse interpretation:
+
+Firmware / Configuration
+        ↓
+Semantic Interpretation
+        ↓
+Canonical Machine Model
+
+The current implementation is focused on building the canonical and visual/editor foundations before implementing the larger firmware-generation and hardware-catalog workflows.
+
+3. Current source layout
+machine-structure-editor/
+├── src/
+│   └── machine_builder/
+│       ├── app.py
+│       ├── canvas.py
+│       ├── canvas_ui.py
+│       ├── canvas_palette.py
+│       ├── canvas_interaction.py
+│       ├── canvas_scene.py
+│       │
+│       ├── controller.py
+│       ├── controller_details.py
+│       ├── controller_mutations.py
+│       ├── controller_queries.py
+│       │
+│       ├── controller_resource.py
+│       ├── controller_resource_details.py
+│       ├── controller_resource_mutations.py
+│       ├── controller_resource_properties.py
+│       ├── controller_resource_queries.py
+│       │
+│       ├── controller_resource_assignment.py
+│       ├── controller_resource_assignment_mutations.py
+│       ├── controller_resource_assignment_queries.py
+│       ├── controller_resource_assignment_validation.py
+│       ├── controller_resource_assignment_store.py
+│       ├── controller_assignment_authoring.py
+│       ├── controller_assignment_fixtures.py
+│       │
+│       ├── component_details.py
+│       ├── component_properties.py
+│       ├── semantic_component_mutations.py
+│       ├── semantic_component_queries.py
+│       │
+│       ├── port_details.py
+│       ├── port_properties.py
+│       ├── semantic_port_mutations.py
+│       ├── semantic_port_queries.py
+│       │
+│       ├── document_controller.py
+│       ├── editor_state.py
+│       ├── persistence.py
+│       ├── store.py
+│       ├── visual_model.py
+│       ├── semantic_model.py
+│       │
+│       ├── graphics/
+│       │   ├── node.py
+│       │   └── port.py
+│       │
+│       └── ...
+│
+├── tests/
+│   ├── test_app_document_ui.py
+│   ├── test_app_rebuilt_integration.py
+│   ├── test_canvas_interaction.py
+│   ├── test_canvas_scene.py
+│   ├── test_canvas_ui.py
+│   ├── test_compatibility.py
+│   ├── test_component_authoring_ui.py
+│   ├── test_component_details.py
+│   ├── test_component_properties.py
+│   ├── test_connection_authoring.py
+│   ├── test_controller_assignment_authoring.py
+│   ├── test_controller_assignment_fixtures.py
+│   ├── test_controller_details.py
+│   ├── test_controller_fixtures.py
+│   ├── test_controller_model.py
+│   ├── test_controller_mutations.py
+│   ├── test_controller_queries.py
+│   ├── test_controller_resource.py
+│   ├── test_controller_resource_assignment.py
+│   ├── test_controller_resource_assignment_machine_validation.py
+│   ├── test_controller_resource_assignment_model_queries.py
+│   ├── test_controller_resource_assignment_mutations.py
+│   ├── test_controller_resource_assignment_queries.py
+│   ├── test_controller_resource_assignment_store.py
+│   ├── test_controller_resource_assignment_validation.py
+│   ├── test_controller_resource_details_integration.py
+│   ├── test_controller_resource_mutations.py
+│   ├── test_controller_resource_properties.py
+│   ├── test_controller_resource_queries.py
+│   ├── test_controller_resource_store.py
+│   ├── test_document_controller.py
+│   ├── test_fan_fixture.py
+│   ├── test_function_model.py
+│   ├── test_hardware_authoring.py
+│   ├── test_hardware_catalog.py
+│   ├── test_hardware_component_fixtures.py
+│   ├── test_heater_fixture.py
+│   ├── test_machine_controller_association.py
+│   ├── test_model_boundary.py
+│   ├── test_multi_component_authoring.py
+│   ├── test_palette_extensions.py
+│   ├── test_persistence.py
+│   ├── test_port_details.py
+│   ├── test_port_graphics_editing.py
+│   ├── test_port_properties.py
+│   ├── test_real_component_relationships.py
+│   ├── test_semantic_authoring.py
+│   ├── test_semantic_capability.py
+│   ├── test_semantic_component_queries.py
+│   ├── test_semantic_component_store_integration.py
+│   ├── test_semantic_connection.py
+│   ├── test_semantic_model.py
+│   ├── test_semantic_model_capability.py
+│   ├── test_semantic_model_controller_resource.py
+│   ├── test_semantic_model_controller_resource_assignment.py
+│   ├── test_semantic_port_mutations.py
+│   ├── test_semantic_port_queries.py
+│   ├── test_semantic_port_store_integration.py
+│   ├── test_semantic_projection.py
+│   ├── test_semantic_projection_duplicates.py
+│   ├── test_semantic_relationship.py
+│   ├── test_semantic_relationship_mutations.py
+│   ├── test_semantic_relationship_queries.py
+│   ├── test_semantic_value.py
+│   ├── test_store.py
+│   ├── test_store_document_state.py
+│   ├── test_store_new_document.py
+│   ├── test_store_persistence.py
+│   └── test_visual_model.py
+│
+└── handoffs/
+    └── V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md
+
+The ... entries mean the repository may contain additional support modules not called out individually here. The next chat should treat the checked-out repository as authoritative for the exact complete tree.
+
+4. Core semantic-model files
+src/machine_builder/semantic_model.py
+
+The central canonical semantic model.
+
+It contains the authoritative structures for machine meaning, including:
+
+Provenance
+HardwareDefinition
+SemanticPort
+Function
+MachineComponent
+Machine
+CanonicalMachineModel
+controller-related structures
+controller resources
+controller-resource assignments
+connections
+relationships
+capabilities
+
+This file is semantically important and should not be reconstructed from memory.
+
+src/machine_builder/editor_state.py
+
+Defines the complete persistent editor state boundary.
+
+Current state combines:
+
+VisualModel
+CanonicalMachineModel
+
+This is the state snapshot used by persistence/store behavior.
+
+src/machine_builder/visual_model.py
+
+Defines editor presentation structures including:
+
+VisualPort
+VisualNode
+VisualConnection
+VisualGroup
+VisualView
+VisualModel
+
+Visual objects contain references to semantic objects where applicable, but visual state is kept distinct from canonical semantics.
+
+5. Store / persistence / document files
+src/machine_builder/store.py
+
+Owns:
+
+current EditorState
+atomic edit commits
+undo
+redo
+save
+load
+new document
+modified state
+file path
+listeners
+
+Semantic mutation objects are intended to be committed through the store when used by the application.
+
+src/machine_builder/persistence.py
+
+JSON persistence layer.
+
+Current document format:
+
+machine-builder-editor
+
+Format version:
+
+1
+
+The persistence layer has an explicit supported-type registry and handles supported dataclasses, enums, lists, tuples, dictionaries, and primitive values.
+
+Saving uses a temporary-file replacement strategy.
+
+src/machine_builder/document_controller.py
+
+Application-level document lifecycle over ModelStore.
+
+Handles:
+
+new
+open
+save
+save as
+current path
+modified state
+document name
+change notifications
+6. Application and canvas files
+src/machine_builder/app.py
+
+Main application integration.
+
+Connects:
+
+document lifecycle
+main window
+File menu
+canonical MachineCanvas
+model/store state
+
+Current File actions include:
+
+New
+Open
+Save
+Save As
+
+with modified-document state handling.
+
+src/machine_builder/canvas.py
+
+Small coordinator for the editor canvas.
+
+This was intentionally refactored down from a large monolithic window class.
+
+It combines the focused canvas mixins/controllers rather than owning every behavior itself.
+
+src/machine_builder/canvas_ui.py
+
+Owns Qt window and action construction plus semantic-edit entry points.
+
+Responsibilities include:
+
+building the canvas UI
+actions/menus/tool actions
+editing selected components
+editing semantic ports
+frame-all behavior
+src/machine_builder/canvas_palette.py
+
+Owns palette behavior and provisional visual-template creation.
+
+Responsibilities include:
+
+palette population
+item selection/double-click behavior
+visual template creation
+default visual ports
+suggested new-node placement
+
+These visual templates are creation helpers; they are not the canonical hardware catalog.
+
+src/machine_builder/canvas_interaction.py
+
+Owns user interaction behavior.
+
+Responsibilities include:
+
+node movement
+selection
+focus
+deletion
+connection dragging
+connection previews
+compatibility feedback
+interaction state
+
+This is intentionally one of the larger modules because the responsibilities are cohesive.
+
+src/machine_builder/canvas_scene.py
+
+Owns synchronization from VisualModel to the Qt graphics scene.
+
+Responsibilities include:
+
+finding graphics items
+node synchronization
+connection synchronization
+removing deleted items
+creating/rebuilding graphics
+passing interaction callbacks into graphics objects
+7. Graphics files
+src/machine_builder/graphics/node.py
+
+Visual node graphics item.
+
+Handles:
+
+node display
+position/movement
+selection
+ports
+node-level visual behavior
+callbacks for semantic/connection interactions
+
+It passes the semantic-port edit callback down to port graphics.
+
+src/machine_builder/graphics/port.py
+
+Visual port graphics item.
+
+Important interaction distinction:
+
+single click / drag
+    → physical/logical connection interaction
+
+double click
+    → semantic port editing
+
+This prevents semantic editing from conflicting with connection dragging.
+
+8. Component authoring files
+src/machine_builder/semantic_component_mutations.py
+
+Canonical component mutations.
+
+Current authoring operations include:
+
+component updates
+property changes
+
+Component updates may also synchronize the corresponding visual-node label when a visual node is linked.
+
+src/machine_builder/semantic_component_queries.py
+
+Component query layer.
+
+Includes queries such as:
+
+get component
+component for visual node
+visual node for component
+ports for component
+machine for component
+component for visual node ID
+src/machine_builder/component_details.py
+
+Dialog for editing basic component details.
+
+Current editable concepts:
+
+role
+label
+
+It displays semantic identity/machine information and provides a properties-editor entry point.
+
+src/machine_builder/component_properties.py
+
+Dialog for editing component properties.
+
+Existing property names are protected from renaming/removal by this simple first-generation editor.
+
+9. Port authoring files
+src/machine_builder/semantic_port_mutations.py
+
+Canonical semantic-port mutations.
+
+Current fields include:
+
+purpose
+direction
+connector ID
+pin ID
+properties
+provenance
+
+Visual port label/direction can be synchronized when a corresponding visual port exists.
+
+src/machine_builder/semantic_port_queries.py
+
+Queries such as:
+
+get port
+component for port
+visual port for semantic port
+visual node for semantic port
+machine for port
+semantic port for visual port
+ports for a component
+src/machine_builder/port_details.py
+
+Dialog for editing basic semantic-port details.
+
+Current editable fields:
+
+purpose
+direction
+connector ID
+pin ID
+src/machine_builder/port_properties.py
+
+First-generation property editor for semantic ports.
+
+10. Controller files
+src/machine_builder/controller.py
+
+Canonical controller definition.
+
+Current conceptual fields:
+
+id
+name
+controller_type
+version
+properties
+provenance
+
+Validation ensures required identity fields are present.
+
+src/machine_builder/controller_queries.py
+
+Controller query layer.
+
+Current responsibilities include queries such as:
+
+controller by ID
+machine owning a controller
+controllers for a machine
+controller associated with a resource
+src/machine_builder/controller_mutations.py
+
+Controller mutation layer.
+
+Current operations include:
+
+update controller
+set controller property
+src/machine_builder/controller_details.py
+
+Basic controller authoring dialog.
+
+Current details:
+
+name
+controller type
+version
+
+It deliberately does not yet attempt a large controller-property/selection workflow.
+
+11. Controller-resource files
+src/machine_builder/controller_resource.py
+
+Canonical controller-resource definition.
+
+Current conceptual fields:
+
+id
+name
+resource_type
+controller_id
+properties
+provenance
+
+The controller_id is optional.
+
+src/machine_builder/controller_resource_queries.py
+
+Resource-centric queries.
+
+Current responsibilities include:
+
+resource by ID
+machine owning resource
+controller associated with a resource
+resources belonging to a controller
+resources belonging to a machine
+src/machine_builder/controller_resource_mutations.py
+
+Resource mutation layer.
+
+Current operations include:
+
+update resource
+set resource property
+
+Machine/controller consistency is validated where appropriate.
+
+src/machine_builder/controller_resource_details.py
+
+Basic resource details dialog.
+
+Current fields:
+
+resource ID
+resource name
+resource type
+displayed controller association
+
+The current dialog intentionally does not invent a full controller-selection UI.
+
+src/machine_builder/controller_resource_properties.py
+
+Simple property editor for controller resources.
+
+Existing property names are editable by value.
+
+A new property can be added.
+
+Duplicate new property names are rejected.
+
+src/machine_builder/controller_resource_store.py tests
+
+The implementation is covered for ModelStore commit/undo/redo behavior through:
+
+tests/test_controller_resource_store.py
+12. Controller-resource assignment files
+src/machine_builder/controller_resource_assignment.py
+
+Canonical assignment structure linking a semantic source to a controller resource.
+
+Important concept:
+
+source object
+      ↓
+controller resource
+
+The assignment has an explicit assignment type and properties/provenance.
+
+src/machine_builder/controller_resource_assignment_mutations.py
+
+Assignment mutation operations.
+
+src/machine_builder/controller_resource_assignment_queries.py
+
+Assignment query layer.
+
+src/machine_builder/controller_resource_assignment_validation.py
+
+Assignment validation.
+
+Important established rule:
+
+Controller/resource assignments must remain inside a consistent machine boundary.
+
+Cross-machine assignments are explicitly rejected.
+
+src/machine_builder/controller_resource_assignment_store.py
+
+Store integration for assignments.
+
+src/machine_builder/controller_assignment_authoring.py
+
+Authoring helpers for controller/resource assignment workflows.
+
+src/machine_builder/controller_assignment_fixtures.py
+
+Reusable fixtures for assignment-related tests.
+
+13. Other current domain/support files
+hardware_catalog / hardware_authoring tests
+
+The repository already has hardware-definition/catalog foundations and authoring tests.
+
+Important architectural distinction:
+
+HardwareDefinition
+    ≠
+MachineComponent
+
+Eventually:
+
+Online Catalog
+      ↓
+Adapter / Importer
+      ↓
+Normalized HardwareDefinition
+      ↓
+MachineComponent
+      ↓
+Canonical Machine
+
+Online catalog integration is not being forced into the current V0.2 implementation milestone.
+
+Function and capability model
+
+The semantic model includes functions and capabilities, with dedicated tests.
+
+These are part of the semantic foundation even though the visual editor has not yet developed the complete user-facing function/capability authoring workflow.
+
+Connections and relationships
+
+The current implementation has separate semantic connection and relationship structures and corresponding mutation/query tests.
+
+These should remain distinguishable from visual connection geometry.
+
+14. Fixtures
+
+Existing fixture-oriented modules/tests include:
+
+controller_fixtures.py
+controller_assignment_fixtures.py
+fan_fixture.py
+heater_fixture.py
+hardware_component_fixtures.py
+
+These provide repeatable canonical examples for testing and future integration work.
+
+15. Test organization
+
+The test suite deliberately mirrors major architectural boundaries.
+
+Examples:
+
+test_semantic_model.py
+test_visual_model.py
+test_store.py
+test_persistence.py
+
+test_canvas_interaction.py
+test_canvas_scene.py
+test_canvas_ui.py
+
+test_semantic_component_queries.py
+test_semantic_component_store_integration.py
+test_semantic_port_queries.py
+test_semantic_port_store_integration.py
+
+test_controller_queries.py
+test_controller_mutations.py
+test_controller_details.py
+
+test_controller_resource_queries.py
+test_controller_resource_mutations.py
+test_controller_resource_properties.py
+test_controller_resource_store.py
+
+test_controller_resource_assignment_queries.py
+test_controller_resource_assignment_mutations.py
+test_controller_resource_assignment_validation.py
+test_controller_resource_assignment_store.py
+
+The current complete suite is:
+
+582 passed
+16. Current visual-editor behavior
+
+The canvas currently supports the foundation for:
+
+visual nodes
+visual ports
+visual connections
+node movement
+selection
+deletion
+connection dragging
+connection compatibility feedback
+semantic component editing
+semantic port editing
+palette-based node creation
+document persistence
+undo/redo
+
+Important current interaction:
+
+Double-click component
+    → component details
+
+Double-click semantic port
+    → port details
+
+Single-click / drag port
+    → connection interaction
+17. What is intentionally not finished
+
+The next implementation phase should not assume these are already solved:
+
+controller-resource visual representation
+controller/resource selection UX
+assignment authoring through the main canvas
+full properties-panel architecture
+semantic zoom
+layers and filters
+richer connection routing
+harness/slack/routing representation
+liquid-cooling visual semantics
+firmware mapping/generation
+online catalog integration
+advanced beginner/medium/expert display modes
+
+These are future implementation areas built on the current foundation.
+
+18. Immediate next likely implementation problem
+
+The next useful visual-editor question is:
+
+How should canonical controller resources and controller-resource assignments become visible and editable in the visual editor without creating a second semantic model?
+
+Useful subquestions:
+
+Should controller resources appear as nodes?
+Should resources be nested under controller nodes?
+How is a resource selected?
+How are assignments displayed?
+Does an assignment use the same visual connection system as machine wiring?
+How are logical resource assignments distinguished from physical wires?
+What should happen at different zoom levels?
+Should resources live in a side panel, canvas, or both?
+How should controller hierarchy be represented without making presentation canonical?
+
+Resolve the boundary before implementing a large UI.
+
+19. Repository-documentation rule for future chats
+
+The implementation chat should keep this repository snapshot current whenever a meaningful architectural or file-structure checkpoint occurs.
+
+Do not regenerate this document after every tiny test.
+
+Update it at meaningful boundaries such as:
+
+major subsystem creation
+module split/refactor
+major semantic domain added
+significant UI architecture change
+major persistence/document change
+Git checkpoint that materially changes the file map
+
+The repository itself remains authoritative for exact contents.
+
+20. Handoff document
+
+The corresponding implementation handoff is:
+
+handoffs/V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md
+
+That document explains how to continue implementation from this checkpoint.
+
+This file is the more detailed repository/file-map companion.
+
+"""
+(root / "V0.2_VISUAL_EDITOR_REPOSITORY_SNAPSHOT.md").write_text(file_map, encoding="utf-8")
+
+maintenance = r"""# Machine Builder — Next Visual Editor Chat Documentation Instructions
+
+Purpose
+
+This document is for the next Machine Builder implementation/visual-editor chat.
+
+It tells the new chat how to maintain the repository documentation without turning documentation work into a distraction from implementation.
+
+1. First action in the new chat
+
+Start from the current main branch of:
+
+PeterTremonti/Machine-Builder
+
+The implementation lives under:
+
+machine-structure-editor/
+
+Read these files first:
+
+machine-structure-editor/handoffs/V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md
+
+machine-structure-editor/handoffs/V0.2_VISUAL_EDITOR_REPOSITORY_SNAPSHOT.md
+
+Then inspect the actual repository tree.
+
+Treat the repository itself as authoritative if any summary document is stale.
+
+2. Verify the implementation checkpoint
+
+Run:
+
+python -m pytest
+
+The expected baseline at the handoff boundary is:
+
+582 passed
+
+Do not begin major new work while an unexplained test regression exists.
+
+3. Keep the repository snapshot updated
+
+The file:
+
+machine-structure-editor/handoffs/V0.2_VISUAL_EDITOR_REPOSITORY_SNAPSHOT.md
+
+is the current file map and implementation-state summary.
+
+When a meaningful implementation checkpoint changes the repository structure:
+
+inspect the current GitHub/repository tree
+identify new files
+identify removed or renamed files
+update descriptions
+update the test count/checkpoint
+update the "Immediate next likely implementation problem" section when the phase changes
+
+Do not rewrite the whole document from memory if only a few files changed.
+
+4. How to verify file layout
+
+For exact current GitHub contents, use the GitHub repository as the source of truth.
+
+Repository:
+
+https://github.com/PeterTremonti/Machine-Builder
+
+Implementation subtree:
+
+machine-structure-editor/
+
+When possible, inspect the current GitHub tree or raw source files rather than relying on stale recollection.
+
+The documentation should distinguish:
+
+verified current file
+
+from:
+
+planned/future file
+
+Never list a planned file as though it already exists.
+
+5. Recommended documentation workflow after a milestone
+
+At a meaningful checkpoint:
+
+A. Run the full suite
+python -m pytest
+
+Record the exact result.
+
+B. Inspect repository changes
+
+Use Git status/history and the repository tree to establish what actually changed.
+
+C. Update the repository snapshot
+
+Update:
+
+checkpoint test count
+current source tree
+current test tree
+descriptions for changed modules
+newly completed areas
+immediate next problem
+D. Update the detailed implementation handoff when needed
+
+The handoff should only change when the implementation state or recommended continuation meaningfully changes.
+
+E. Commit both together
+
+Keep the documentation synchronized with the code checkpoint it describes.
+
+6. Git checkpoint principle
+
+Do not create a Git commit solely because a single test passed.
+
+Prefer meaningful cohesive checkpoints such as:
+
+Refactor canvas into focused modules
+Complete semantic component authoring
+Complete semantic port authoring
+Complete controller and resource authoring foundation
+
+The documentation should describe the code state that is actually contained in the same checkpoint.
+
+7. File-instruction principle
+
+When giving the user code to install:
+
+specify exact filename
+specify create vs replace
+provide complete file content
+avoid line-by-line patch instructions
+avoid asking the user to infer where a fragment belongs
+
+The user prefers complete-file replacements and is intentionally working incrementally.
+
+8. Do not reconstruct large files from memory
+
+Large files such as:
+
+semantic_model.py
+canvas_interaction.py
+
+must be treated carefully.
+
+Before replacing a large existing file:
+
+inspect its current exact contents
+preserve functionality not related to the requested change
+use a focused replacement/refactor
+run the full suite afterward
+
+Never recreate a large module from a remembered summary.
+
+9. Architectural boundary reminder
+
+The canonical semantic model is authoritative.
+
+The visual model is presentation state.
+
+Do not create a visual-only duplicate of controller resources, assignments, components, or ports merely because it makes a UI easier to code.
+
+Where visual representation is necessary, it should reference canonical semantic identity.
+
+10. Next likely design/implementation area
+
+The next visual-editor phase should address controller-resource visibility and assignment authoring.
+
+The key question is:
+
+How do canonical controller resources and controller-resource assignments become visible/editable in the visual editor without creating a second semantic model?
+
+Resolve that UX/architecture question before building a large controller-resource UI.
+
+11. When to update this document
+
+Update this file when the process itself changes, for example:
+
+the canonical documentation location changes
+the GitHub verification workflow changes
+a new handoff convention is adopted
+file replacement/test workflow changes
+a new major checkpoint/document is introduced
+
+Do not modify it for ordinary feature work.
+
+"""
+(root / "NEXT_VISUAL_EDITOR_CHAT_DOCUMENTATION_INSTRUCTIONS.md").write_text(maintenance, encoding="utf-8")
+
+print("Created:")
+print(root / "V0.2_VISUAL_EDITOR_REPOSITORY_SNAPSHOT.md")
+print(root / "NEXT_VISUAL_EDITOR_CHAT_DOCUMENTATION_INSTRUCTIONS.md")
+
+It seems like I can’t do more advanced data analysis right now. Please try again later. 

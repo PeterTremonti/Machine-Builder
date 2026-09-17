@@ -2,20 +2,9 @@
 
 This module owns the relationship between the VisualModel and the Qt
 graphics scene.
-
-It does not own:
-- semantic-machine meaning
-- editor mutations
-- user interaction policy
-- undo/redo
-- document persistence
-
-Those responsibilities remain with the application/store layers.
 """
 
 from __future__ import annotations
-
-from collections.abc import Callable
 
 from PySide6.QtCore import QPointF
 
@@ -140,24 +129,22 @@ class CanvasSceneController:
         self,
         model: VisualModel,
     ) -> None:
-        """Synchronize the Qt scene with the visual model.
-
-        Callback functions are supplied by the canvas because interaction
-        policy belongs to the canvas, not to this scene synchronization
-        layer.
-        """
+        """Synchronize the Qt scene with the visual model."""
         self.canvas._synchronizing_scene = True
 
         try:
             self._remove_deleted_items(
                 model
             )
+
             self._synchronize_nodes(
                 model
             )
+
             self._synchronize_connections(
                 model
             )
+
             self.update_connection_graphics()
 
         finally:
@@ -176,8 +163,7 @@ class CanvasSceneController:
         )
 
         for node_id in (
-            existing_node_ids
-            - current_node_ids
+            existing_node_ids - current_node_ids
         ):
             item = self.node_items.pop(
                 node_id
@@ -211,9 +197,7 @@ class CanvasSceneController:
         self,
         model: VisualModel,
     ) -> None:
-        for node_id, node in (
-            model.nodes.items()
-        ):
+        for node_id, node in model.nodes.items():
             item = self.node_items.get(
                 node_id
             )
@@ -245,6 +229,9 @@ class CanvasSceneController:
                     connection_drag_finished=(
                         self.canvas._finish_connection_drag
                     ),
+                    port_edit_requested=(
+                        self.canvas._edit_semantic_port
+                    ),
                 )
 
                 self.node_items[
@@ -273,6 +260,9 @@ class CanvasSceneController:
                     ),
                     connection_drag_finished=(
                         self.canvas._finish_connection_drag
+                    ),
+                    port_edit_requested=(
+                        self.canvas._edit_semantic_port
                     ),
                 )
 

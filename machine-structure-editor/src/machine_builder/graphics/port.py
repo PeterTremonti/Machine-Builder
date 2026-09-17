@@ -2,6 +2,9 @@
 
 This module contains the Qt presentation and interaction class for a visual
 machine port. The underlying port data remains in visual_model.py.
+
+Single-click/drag is reserved for physical connection authoring.
+Double-click invokes semantic port editing.
 """
 
 from __future__ import annotations
@@ -52,6 +55,7 @@ class PortGraphicsItem(QGraphicsEllipseItem):
         connection_drag_started: Any,
         connection_drag_moved: Any,
         connection_drag_finished: Any,
+        port_edit_requested: Any,
     ) -> None:
         radius = self.DIAMETER / 2.0
 
@@ -74,6 +78,9 @@ class PortGraphicsItem(QGraphicsEllipseItem):
         self._connection_drag_finished = (
             connection_drag_finished
         )
+        self._port_edit_requested = (
+            port_edit_requested
+        )
 
         self._hovered = False
         self._connection_state: str = "normal"
@@ -91,7 +98,9 @@ class PortGraphicsItem(QGraphicsEllipseItem):
             )
         )
 
-        self.setZValue(20.0)
+        self.setZValue(
+            20.0
+        )
 
         self.setFlag(
             QGraphicsItem.GraphicsItemFlag.ItemIsMovable,
@@ -103,7 +112,9 @@ class PortGraphicsItem(QGraphicsEllipseItem):
             False,
         )
 
-        self.setAcceptHoverEvents(True)
+        self.setAcceptHoverEvents(
+            True
+        )
 
         self.setAcceptedMouseButtons(
             Qt.MouseButton.LeftButton
@@ -113,10 +124,11 @@ class PortGraphicsItem(QGraphicsEllipseItem):
             self._build_tooltip(port)
         )
 
-        # Persistent purpose icon.
-        self._icon_item = QGraphicsSimpleTextItem(
-            self._purpose_icon(port),
-            self,
+        self._icon_item = (
+            QGraphicsSimpleTextItem(
+                self._purpose_icon(port),
+                self,
+            )
         )
 
         self._icon_item.setBrush(
@@ -129,12 +141,15 @@ class PortGraphicsItem(QGraphicsEllipseItem):
             Qt.MouseButton.NoButton
         )
 
-        self._icon_item.setZValue(1.0)
+        self._icon_item.setZValue(
+            1.0
+        )
 
-        # Persistent port identity.
-        self._label_item = QGraphicsSimpleTextItem(
-            port.label or "Interface",
-            self,
+        self._label_item = (
+            QGraphicsSimpleTextItem(
+                port.label or "Interface",
+                self,
+            )
         )
 
         self._label_item.setBrush(
@@ -147,10 +162,11 @@ class PortGraphicsItem(QGraphicsEllipseItem):
             Qt.MouseButton.NoButton
         )
 
-        # Non-color status indicator.
-        self._status_item = QGraphicsSimpleTextItem(
-            "",
-            self,
+        self._status_item = (
+            QGraphicsSimpleTextItem(
+                "",
+                self,
+            )
         )
 
         self._status_item.setBrush(
@@ -163,7 +179,9 @@ class PortGraphicsItem(QGraphicsEllipseItem):
             Qt.MouseButton.NoButton
         )
 
-        self._status_item.setZValue(2.0)
+        self._status_item.setZValue(
+            2.0
+        )
 
         self._position_icon()
         self._position_label()
@@ -174,7 +192,6 @@ class PortGraphicsItem(QGraphicsEllipseItem):
         port: VisualPort,
     ) -> str:
         """Return a simple purpose-based visual icon for the port."""
-
         port_type = (
             port.port_type or ""
         ).lower().strip()
@@ -265,7 +282,9 @@ class PortGraphicsItem(QGraphicsEllipseItem):
             f"Direction: {port.direction}",
         ]
 
-        return "\n".join(lines)
+        return "\n".join(
+            lines
+        )
 
     def _position_icon(self) -> None:
         """Center the purpose icon over the port."""
@@ -337,7 +356,6 @@ class PortGraphicsItem(QGraphicsEllipseItem):
 
     def _apply_visual_state(self) -> None:
         """Apply color and non-color connection feedback."""
-
         if self._connection_state == "source":
             fill = self.SOURCE_FILL
             border = self.SOURCE_BORDER
@@ -385,7 +403,6 @@ class PortGraphicsItem(QGraphicsEllipseItem):
             symbol
         )
 
-        # Hide the purpose icon while compatibility feedback is shown.
         self._icon_item.setVisible(
             symbol == ""
         )
@@ -478,4 +495,22 @@ class PortGraphicsItem(QGraphicsEllipseItem):
         self._connection_drag_finished(
             self.port_id,
             event.scenePos(),
+        )
+
+    def mouseDoubleClickEvent(
+        self,
+        event: Any,
+    ) -> None:
+        """Open semantic editing for this port."""
+        if (
+            event.button()
+            != Qt.MouseButton.LeftButton
+        ):
+            event.ignore()
+            return
+
+        event.accept()
+
+        self._port_edit_requested(
+            self.port_id
         )
