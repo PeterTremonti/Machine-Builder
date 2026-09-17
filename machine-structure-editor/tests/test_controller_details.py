@@ -293,3 +293,51 @@ def test_dialog_handles_controller_without_resources() -> None:
         dialog._resource_list.item(0).text()
         == "No controller resources."
     )
+
+
+def test_dialog_emits_resource_edit_request() -> None:
+    _application()
+
+    dialog = ControllerDetailsDialog(
+        make_controller(),
+        "Promega",
+        resources=make_resources(),
+    )
+
+    requested: list[str] = []
+
+    dialog.resource_edit_requested.connect(
+        requested.append
+    )
+
+    dialog._resource_item_double_clicked(
+        dialog._resource_list.item(0)
+    )
+
+    assert requested == [
+        "resource-1"
+    ]
+
+
+def test_dialog_refreshes_resource_row() -> None:
+    _application()
+
+    dialog = ControllerDetailsDialog(
+        make_controller(),
+        "Promega",
+        resources=make_resources(),
+    )
+
+    resource = make_resources()[0]
+
+    resource.name = "X Motor"
+    resource.resource_type = "stepper_driver"
+
+    assert dialog.refresh_resource(
+        resource
+    )
+
+    assert (
+        dialog._resource_list.item(0).text()
+        == "X Motor — stepper_driver"
+    )

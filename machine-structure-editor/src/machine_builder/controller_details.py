@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QAbstractItemView,
     QDialog,
@@ -32,6 +32,8 @@ class ControllerDetailsResult:
 
 class ControllerDetailsDialog(QDialog):
     """Edit and inspect the basic identity of one controller."""
+
+    resource_edit_requested = Signal(str)
 
     def __init__(
         self,
@@ -138,27 +140,23 @@ class ControllerDetailsDialog(QDialog):
         self._resource_list = QListWidget()
 
         self._resource_list.setSelectionMode(
-            QAbstractItemView.SelectionMode.NoSelection
+            QAbstractItemView.SelectionMode.SingleSelection
         )
 
         self._resource_list.setMinimumHeight(
             100
         )
 
+        self._resource_list.itemDoubleClicked.connect(
+            self._resource_item_double_clicked
+        )
+
         if self._resources:
             for resource in self._resources:
-                item = QListWidgetItem(
-                    f"{resource.name} — "
-                    f"{resource.resource_type}"
-                )
-
-                item.setData(
-                    Qt.ItemDataRole.UserRole,
-                    resource.id,
-                )
-
                 self._resource_list.addItem(
-                    item
+                    self._resource_item(
+                        resource
+                    )
                 )
         else:
             self._resource_list.addItem(
@@ -185,6 +183,81 @@ class ControllerDetailsDialog(QDialog):
         layout.addWidget(
             buttons
         )
+
+    @staticmethod
+    def _resource_text(
+        resource: ControllerResource,
+    ) -> str:
+        return (
+            f"{resource.name} — "
+            f"{resource.resource_type}"
+        )
+
+    @classmethod
+    def _resource_item(
+        cls,
+        resource: ControllerResource,
+    ) -> QListWidgetItem:
+        item = QListWidgetItem(
+            cls._resource_text(
+                resource
+            )
+        )
+
+        item.setData(
+            Qt.ItemDataRole.UserRole,
+            resource.id,
+        )
+
+        return item
+
+    def _resource_item_double_clicked(
+        self,
+        item: QListWidgetItem,
+    ) -> None:
+        resource_id = item.data(
+            Qt.ItemDataRole.UserRole
+        )
+
+        if not isinstance(
+            resource_id,
+            str,
+        ):
+            return
+
+        self.resource_edit_requested.emit(
+            resource_id
+        )
+
+    def refresh_resource(
+        self,
+        resource: ControllerResource,
+    ) -> bool:
+        """Refresh one resource row after semantic editing."""
+
+        for index in range(
+            self._resource_list.count()
+        ):
+            item = self._resource_list.item(
+                index
+            )
+
+            item_resource_id = item.data(
+                Qt.ItemDataRole.UserRole
+            )
+
+            if item_resource_id != resource.id:
+                continue
+
+            item.setText(
+                self._resource_text(
+                    resource
+                )
+            )
+
+            return True
+
+        return False
 
     def result_data(
         self,

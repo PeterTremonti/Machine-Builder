@@ -20,7 +20,14 @@ from .controller_mutations import UpdateController
 from .controller_queries import (
     machine_id_for_controller,
 )
+from .controller_resource_details import (
+    ControllerResourceDetailsDialog,
+)
+from .controller_resource_mutations import (
+    UpdateControllerResource,
+)
 from .controller_resource_queries import (
+    get_controller_resource,
     resources_for_controller,
 )
 from .graphics.palette import PaletteList
@@ -448,6 +455,17 @@ class CanvasUIMixin:
             ),
         )
 
+        dialog.resource_edit_requested.connect(
+            lambda resource_id: (
+                self._edit_controller_resource(
+                    resource_id=resource_id,
+                    controller_id=controller.id,
+                    controller_name=controller.name,
+                    controller_dialog=dialog,
+                )
+            )
+        )
+
         if (
             dialog.exec()
             != dialog.DialogCode.Accepted
@@ -467,6 +485,75 @@ class CanvasUIMixin:
 
         self.statusBar().showMessage(
             f"Updated controller: {result.name}"
+        )
+
+    def _edit_controller_resource(
+        self,
+        resource_id: str,
+        controller_id: str,
+        controller_name: str,
+        controller_dialog: ControllerDetailsDialog,
+    ) -> None:
+        """Edit a controller resource from Controller Details."""
+        resource = get_controller_resource(
+            self.store.semantic_model,
+            resource_id,
+        )
+
+        if resource.controller_id != controller_id:
+            QMessageBox.information(
+                self,
+                "Controller Resource",
+                (
+                    "The selected resource is not currently "
+                    "owned by this controller."
+                ),
+            )
+            return
+
+        dialog = ControllerResourceDetailsDialog(
+            resource=resource,
+            controller_name=controller_name,
+            parent=controller_dialog,
+        )
+
+        if (
+            dialog.exec()
+            != dialog.DialogCode.Accepted
+        ):
+            return
+
+        result = dialog.result()
+
+        if result is None:
+            return
+
+        self.store.commit(
+            UpdateControllerResource(
+                resource_id=resource.id,
+                name=result.name,
+                resource_type=result.resource_type,
+                controller_id=resource.controller_id,
+                properties=dict(
+                    resource.properties
+                ),
+                provenance=list(
+                    resource.provenance
+                ),
+            )
+        )
+
+        updated_resource = get_controller_resource(
+            self.store.semantic_model,
+            resource.id,
+        )
+
+        controller_dialog.refresh_resource(
+            updated_resource
+        )
+
+        self.statusBar().showMessage(
+            f"Updated controller resource: {result.name}"
         )
 
     def _edit_semantic_port(

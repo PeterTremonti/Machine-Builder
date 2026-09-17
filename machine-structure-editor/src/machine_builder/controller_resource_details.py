@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
@@ -40,26 +41,35 @@ class ControllerResourceDetailsDialog(QDialog):
             "Controller Resource Details"
         )
 
-        self._result: ControllerResourceDetailsResult | None = None
+        self._result: (
+            ControllerResourceDetailsResult | None
+        ) = None
 
         self._name_edit = QLineEdit(
             resource.name
         )
+
         self._resource_type_edit = QLineEdit(
             resource.resource_type
+        )
+
+        self._controller_id = (
+            resource.controller_id
         )
 
         resource_id_label = QLabel(
             resource.id
         )
+
         resource_id_label.setTextInteractionFlags(
-            resource_id_label.textInteractionFlags()
+            Qt.TextInteractionFlag.TextSelectableByMouse
         )
 
         controller_text = (
             controller_name
             if controller_name is not None
-            else resource.controller_id or "Unassigned"
+            else resource.controller_id
+            or "Unassigned"
         )
 
         controller_label = QLabel(
@@ -67,18 +77,22 @@ class ControllerResourceDetailsDialog(QDialog):
         )
 
         form = QFormLayout()
+
         form.addRow(
             "Resource ID:",
             resource_id_label,
         )
+
         form.addRow(
             "Name:",
             self._name_edit,
         )
+
         form.addRow(
             "Resource Type:",
             self._resource_type_edit,
         )
+
         form.addRow(
             "Controller:",
             controller_label,
@@ -88,19 +102,30 @@ class ControllerResourceDetailsDialog(QDialog):
             QDialogButtonBox.StandardButton.Ok
             | QDialogButtonBox.StandardButton.Cancel
         )
+
         buttons.accepted.connect(
             self._accept
         )
+
         buttons.rejected.connect(
             self.reject
         )
 
-        layout = QVBoxLayout(self)
-        layout.addLayout(form)
-        layout.addWidget(buttons)
+        layout = QVBoxLayout(
+            self
+        )
+
+        layout.addLayout(
+            form
+        )
+
+        layout.addWidget(
+            buttons
+        )
 
     def _accept(self) -> None:
         name = self._name_edit.text().strip()
+
         resource_type = (
             self._resource_type_edit.text().strip()
         )
@@ -117,12 +142,15 @@ class ControllerResourceDetailsDialog(QDialog):
             ControllerResourceDetailsResult(
                 name=name,
                 resource_type=resource_type,
-                controller_id=None,
+                controller_id=self._controller_id,
             )
         )
 
         self.accept()
 
-    def result(self) -> ControllerResourceDetailsResult | None:
+    def result(
+        self,
+    ) -> ControllerResourceDetailsResult | None:
         """Return the accepted dialog result."""
+
         return self._result
