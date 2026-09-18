@@ -20,7 +20,8 @@ env/
 ENV/
 
 # IDE/editor files
-.vscode/
+.vscode/*
+!.vscode/launch.json
 .idea/
 
 # OS-generated files
