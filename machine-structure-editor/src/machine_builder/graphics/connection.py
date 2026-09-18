@@ -61,7 +61,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         x2: float,
         y2: float,
     ) -> None:
-        """Build the complete obstacle-aware visual connection."""
+        """Build the complete relevance-scoped visual connection."""
         start = QPointF(
             x1,
             y1,
@@ -73,6 +73,9 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         )
 
         obstacles = self._collect_obstacles()
+        ignored_obstacles = (
+            self._collect_endpoint_obstacles()
+        )
 
         start_escape, start_direction = (
             self._build_endpoint_escape(
@@ -96,6 +99,8 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             start_direction=start_direction,
             end_direction=end_direction,
             obstacles=obstacles,
+            direct_start=start,
+            direct_end=end,
         )
 
         path = QPainterPath(
@@ -103,17 +108,25 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         )
 
         for point in start_escape[1:]:
-            path.lineTo(point)
+            path.lineTo(
+                point,
+            )
 
         for point in route[1:]:
-            path.lineTo(point)
+            path.lineTo(
+                point,
+            )
 
         for point in reversed(
             end_escape[:-1]
         ):
-            path.lineTo(point)
+            path.lineTo(
+                point,
+            )
 
-        path.lineTo(end)
+        path.lineTo(
+            end,
+        )
 
         self.setPath(
             path,
@@ -192,6 +205,41 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
                 )
             ),
         )
+
+    def _collect_endpoint_obstacles(self) -> list[Any]:
+        """Return expanded rectangles for both endpoint nodes."""
+        obstacles: list[Any] = []
+
+        for port_id in (
+            self.endpoint_a_id,
+            self.endpoint_b_id,
+        ):
+            node = self._find_endpoint_node(
+                port_id,
+            )
+
+            if node is None:
+                continue
+
+            rect = node.sceneBoundingRect().adjusted(
+                -self.ROUTING_MARGIN,
+                -self.ROUTING_MARGIN,
+                self.ROUTING_MARGIN,
+                self.ROUTING_MARGIN,
+            )
+
+            if rect.isEmpty():
+                continue
+
+            if not any(
+                rect == existing
+                for existing in obstacles
+            ):
+                obstacles.append(
+                    rect,
+                )
+
+        return obstacles
 
     def _find_port_item(
         self,

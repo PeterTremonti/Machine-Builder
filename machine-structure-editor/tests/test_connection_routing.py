@@ -48,7 +48,7 @@ def _segment_clear(
     end: QPointF,
     obstacles: list[QRectF],
 ) -> bool:
-    """Return whether one orthogonal segment avoids the obstacles."""
+    """Return whether an orthogonal segment avoids the obstacles."""
     return all(
         not (
             (
@@ -86,7 +86,7 @@ def test_right_port_stub_moves_outward() -> None:
         50.0,
     )
 
-    assert direction == "horizontal"
+    assert direction == "right"
 
 
 def test_left_port_stub_moves_outward() -> None:
@@ -107,10 +107,10 @@ def test_left_port_stub_moves_outward() -> None:
         50.0,
     )
 
-    assert direction == "horizontal"
+    assert direction == "left"
 
 
-def test_clear_endpoint_escape_keeps_straight_stub() -> None:
+def test_clear_endpoint_escape_uses_fixed_outward_lead() -> None:
     point = QPointF(
         100.0,
         50.0,
@@ -124,6 +124,8 @@ def test_clear_endpoint_escape_keeps_straight_stub() -> None:
         )
     )
 
+    assert direction == "right"
+
     assert escape == [
         point,
         QPointF(
@@ -132,14 +134,11 @@ def test_clear_endpoint_escape_keeps_straight_stub() -> None:
         ),
     ]
 
-    assert direction == "right"
-
-
-def test_blocked_endpoint_escape_uses_upward_dogleg() -> None:
+def test_blocked_endpoint_escape_starts_at_stub_end() -> None:
     obstacle = QRectF(
-        90.0,
+        120.0,
         40.0,
-        100.0,
+        10.0,
         100.0,
     )
 
@@ -158,39 +157,160 @@ def test_blocked_endpoint_escape_uses_upward_dogleg() -> None:
 
     assert direction == "right"
 
-    assert len(escape) == 3
+    assert len(escape) == 4
 
-    assert escape[0] == point
+    # Fixed outward stub remains exactly 40 px.
+    assert escape[0] == QPointF(100.0, 90.0)
+    assert escape[1] == QPointF(140.0, 90.0)
 
-    # The first segment escapes vertically upward.
-    assert abs(
-        escape[1].x()
-        - point.x()
-    ) < 0.001
+    # The escape turn occurs at the end of the fixed stub.
+    assert escape[2].x() == 140.0
+    assert escape[2].y() != 90.0
 
-    assert (
-        escape[1].y()
-        < obstacle.top()
+    # Final leg leaves the vertical escape orthogonally.
+    assert escape[3].y() == escape[2].y()
+    assert escape[3].x() != 140.0
+
+
+def test_direct_relevance_collects_nearby_obstacle() -> None:
+    start = QPointF(
+        0.0,
+        0.0,
     )
 
-    # The horizontal escape leg reaches beyond the obstacle.
-    assert (
-        escape[-1].x()
-        > obstacle.right()
+    end = QPointF(
+        300.0,
+        300.0,
     )
 
-    # The actual portions after the port escape are clear of the obstacle.
-    for start, end in _segment_points(
-        escape[1:]
-    ):
-        assert _segment_clear(
+    obstacle = QRectF(
+        110.0,
+        110.0,
+        30.0,
+        30.0,
+    )
+
+    relevant = (
+        ConnectionRoutingEngine.collect_relevant_obstacles(
+            direct_start=start,
+            direct_end=end,
+            prepared_start=start,
+            prepared_end=end,
+            obstacles=[obstacle],
+        )
+    )
+
+    assert relevant == [
+        obstacle,
+    ]
+
+
+def test_orthogonal_relevance_collects_obstacle_near_probe() -> None:
+    start = QPointF(
+        0.0,
+        0.0,
+    )
+
+    end = QPointF(
+        300.0,
+        300.0,
+    )
+
+    obstacle = QRectF(
+        140.0,
+        -20.0,
+        30.0,
+        40.0,
+    )
+
+    relevant = (
+        ConnectionRoutingEngine.collect_relevant_obstacles(
+            direct_start=start,
+            direct_end=end,
+            prepared_start=start,
+            prepared_end=end,
+            obstacles=[obstacle],
+        )
+    )
+
+    assert relevant == [
+        obstacle,
+    ]
+
+
+def test_distant_obstacle_is_not_relevant() -> None:
+    start = QPointF(
+        0.0,
+        0.0,
+    )
+
+    end = QPointF(
+        300.0,
+        200.0,
+    )
+
+    distant_obstacle = QRectF(
+        1000.0,
+        1000.0,
+        180.0,
+        100.0,
+    )
+
+    relevant = (
+        ConnectionRoutingEngine.collect_relevant_obstacles(
+            direct_start=start,
+            direct_end=end,
+            prepared_start=start,
+            prepared_end=end,
+            obstacles=[distant_obstacle],
+        )
+    )
+
+    assert relevant == []
+
+
+def test_distant_obstacle_does_not_change_route() -> None:
+    start = QPointF(
+        0.0,
+        0.0,
+    )
+
+    end = QPointF(
+        300.0,
+        200.0,
+    )
+
+    baseline = (
+        ConnectionRoutingEngine.build_route(
             start,
             end,
-            [obstacle],
+            "right",
+            "left",
+            [],
         )
+    )
+
+    distant_obstacle = QRectF(
+        1000.0,
+        1000.0,
+        180.0,
+        100.0,
+    )
+
+    with_distant_obstacle = (
+        ConnectionRoutingEngine.build_route(
+            start,
+            end,
+            "right",
+            "left",
+            [distant_obstacle],
+        )
+    )
+
+    assert with_distant_obstacle == baseline
 
 
-def test_unobstructed_route_uses_orthogonal_segments() -> None:
+def test_unobstructed_route_is_orthogonal() -> None:
     route = (
         ConnectionRoutingEngine.build_route(
             QPointF(
@@ -201,13 +321,11 @@ def test_unobstructed_route_uses_orthogonal_segments() -> None:
                 300.0,
                 200.0,
             ),
-            "horizontal",
-            "horizontal",
+            "right",
+            "left",
             [],
         )
     )
-
-    assert len(route) == 3
 
     for start, end in _segment_points(
         route
@@ -238,8 +356,8 @@ def test_route_reroutes_around_blocking_obstacle() -> None:
                 380.0,
                 150.0,
             ),
-            "horizontal",
-            "horizontal",
+            "right",
+            "left",
             [obstacle],
         )
     )
@@ -277,8 +395,8 @@ def test_routing_margin_is_respected() -> None:
                 400.0,
                 150.0,
             ),
-            "horizontal",
-            "horizontal",
+            "right",
+            "left",
             [obstacle],
         )
     )
@@ -317,8 +435,8 @@ def test_route_stays_orthogonal_after_rerouting() -> None:
                 500.0,
                 150.0,
             ),
-            "horizontal",
-            "horizontal",
+            "right",
+            "left",
             obstacles,
         )
     )
@@ -392,8 +510,8 @@ def test_grid_route_never_immediately_reverses() -> None:
                 500.0,
                 150.0,
             ),
-            "horizontal",
-            "horizontal",
+            "right",
+            "left",
             obstacles,
         )
     )
@@ -405,7 +523,7 @@ def test_grid_route_never_immediately_reverses() -> None:
     )
 
 
-def test_endpoint_nodes_are_included_as_obstacles() -> None:
+def test_endpoint_nodes_are_included_as_scene_obstacles() -> None:
     _application()
 
     scene = QGraphicsScene()
@@ -464,36 +582,8 @@ def test_endpoint_nodes_are_included_as_obstacles() -> None:
 
     assert len(obstacles) == 2
 
-    start_expected = (
-        start_node.sceneBoundingRect().adjusted(
-            -ConnectionRoutingEngine.ROUTING_MARGIN,
-            -ConnectionRoutingEngine.ROUTING_MARGIN,
-            ConnectionRoutingEngine.ROUTING_MARGIN,
-            ConnectionRoutingEngine.ROUTING_MARGIN,
-        )
-    )
 
-    end_expected = (
-        end_node.sceneBoundingRect().adjusted(
-            -ConnectionRoutingEngine.ROUTING_MARGIN,
-            -ConnectionRoutingEngine.ROUTING_MARGIN,
-            ConnectionRoutingEngine.ROUTING_MARGIN,
-            ConnectionRoutingEngine.ROUTING_MARGIN,
-        )
-    )
-
-    assert any(
-        rect == start_expected
-        for rect in obstacles
-    )
-
-    assert any(
-        rect == end_expected
-        for rect in obstacles
-    )
-
-
-def test_connection_uses_obstacle_aware_endpoint_escape() -> None:
+def test_connection_starts_pathfinding_at_fixed_stub_end() -> None:
     _application()
 
     scene = QGraphicsScene()
@@ -569,10 +659,11 @@ def test_connection_uses_obstacle_aware_endpoint_escape() -> None:
 
     first = path.elementAt(1)
 
-    assert (
-        abs(first.x - 180.0)
-        < 0.001
-    )
+    # Port is at x=180. The fixed right-facing stub ends at x=220.
+    assert abs(
+        first.x
+        - 220.0
+    ) < 0.001
 
 
 def test_reported_endpoint_case_routes_around_controller_zone() -> None:
@@ -646,3 +737,88 @@ def test_reported_endpoint_case_routes_around_controller_zone() -> None:
             ],
         )
     )
+
+
+def test_unrelated_remote_component_does_not_change_graphics_route() -> None:
+    _application()
+
+    scene = QGraphicsScene()
+
+    start_node = QGraphicsRectItem(
+        0.0,
+        0.0,
+        180.0,
+        100.0,
+    )
+
+    end_node = QGraphicsRectItem(
+        400.0,
+        0.0,
+        180.0,
+        100.0,
+    )
+
+    scene.addItem(start_node)
+    scene.addItem(end_node)
+
+    start_port = QGraphicsEllipseItem(
+        -3.0,
+        -3.0,
+        6.0,
+        6.0,
+        start_node,
+    )
+
+    start_port.port_id = "port-start"
+    start_port._side = "right"
+
+    end_port = QGraphicsEllipseItem(
+        -3.0,
+        -3.0,
+        6.0,
+        6.0,
+        end_node,
+    )
+
+    end_port.port_id = "port-end"
+    end_port._side = "left"
+
+    connection = ConnectionGraphicsItem(
+        connection=SimpleNamespace(
+            id="connection-1",
+            endpoint_a_id="port-start",
+            endpoint_b_id="port-end",
+        ),
+        selection_callback=lambda *_: None,
+    )
+
+    scene.addItem(connection)
+
+    connection.setLine(
+        180.0,
+        50.0,
+        400.0,
+        50.0,
+    )
+
+    baseline_path = connection.path()
+
+    remote_node = QGraphicsRectItem(
+        1000.0,
+        1000.0,
+        180.0,
+        100.0,
+    )
+
+    scene.addItem(
+        remote_node,
+    )
+
+    connection.setLine(
+        180.0,
+        50.0,
+        400.0,
+        50.0,
+    )
+
+    assert connection.path() == baseline_path

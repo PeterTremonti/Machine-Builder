@@ -118,7 +118,6 @@ def segment_blocked(
             for rect in obstacles
         )
 
-    # Routing geometry must remain orthogonal.
     return True
 
 
@@ -145,6 +144,7 @@ def simplify_route(
             previous,
             current,
         )
+
         direction_b = _segment_direction(
             current,
             following,
@@ -382,9 +382,7 @@ def _find_grid_route(
                     start_direction,
                 )
             ):
-                move_cost += (
-                    endpoint_direction_penalty
-                )
+                move_cost += endpoint_direction_penalty
 
             if (
                 neighbor_key == end_key
@@ -393,9 +391,7 @@ def _find_grid_route(
                     end_direction,
                 )
             ):
-                move_cost += (
-                    endpoint_direction_penalty
-                )
+                move_cost += endpoint_direction_penalty
 
             if (
                 previous_key is not None
@@ -494,6 +490,7 @@ def _connect_horizontal(
 
     for key in points:
         x, y = key
+
         groups.setdefault(
             y,
             [],
@@ -572,6 +569,7 @@ def _connect_vertical(
 
     for key in points:
         x, y = key
+
         groups.setdefault(
             x,
             [],
@@ -733,6 +731,22 @@ def _build_fallback_route(
         )
 
     return candidates[0]
+
+
+def _remove_duplicate_points(
+    route: list[QPointF],
+) -> list[QPointF]:
+    result = [
+        route[0],
+    ]
+
+    for point in route[1:]:
+        if point != result[-1]:
+            result.append(
+                point,
+            )
+
+    return result
 
 
 def _route_length(

@@ -4,10 +4,8 @@ from __future__ import annotations
 
 from PySide6.QtCore import QPointF, QRectF
 
-from .connection_routing_endpoint import (
-    build_endpoint_escape,
-    build_endpoint_stub,
-)
+from . import connection_routing_endpoint as endpoint_routing
+from . import connection_routing_relevance as relevance
 from .connection_routing_pathfinder import (
     build_route as build_pathfinder_route,
 )
@@ -20,10 +18,14 @@ from .connection_routing_pathfinder import (
 
 
 class ConnectionRoutingEngine:
-    """Coordinate endpoint escape and orthogonal pathfinding."""
+    """Coordinate relevance detection, endpoint preparation, and pathfinding."""
 
     ROUTING_MARGIN = 16.0
     STUB_LENGTH = 40.0
+    ROUTING_RELEVANCE_RADIUS = (
+        relevance.ROUTING_RELEVANCE_RADIUS
+    )
+
     BEND_PENALTY = 80.0
     ENDPOINT_DIRECTION_PENALTY = 160.0
     U_TURN_MIN_SEPARATION = 32.0
@@ -35,8 +37,8 @@ class ConnectionRoutingEngine:
         port_position: QPointF,
         side: str,
     ) -> tuple[QPointF, str]:
-        """Return the traditional outward endpoint stub."""
-        return build_endpoint_stub(
+        """Return the fixed outward endpoint stub."""
+        return endpoint_routing.build_endpoint_stub(
             port_position,
             side,
             cls.STUB_LENGTH,
@@ -50,14 +52,74 @@ class ConnectionRoutingEngine:
         obstacles: list[QRectF],
         ignored_obstacles: list[QRectF] | None = None,
     ) -> tuple[list[QPointF], str]:
-        """Build an obstacle-aware route out of an endpoint port."""
-        return build_endpoint_escape(
+        """Build a fixed outward stub or an obstacle escape."""
+        return endpoint_routing.build_endpoint_escape(
             port_position=port_position,
             side=side,
             obstacles=obstacles,
             stub_length=cls.STUB_LENGTH,
             escape_clearance=cls.ESCAPE_CLEARANCE,
             ignored_obstacles=ignored_obstacles or [],
+        )
+
+    @classmethod
+    def collect_relevant_obstacles(
+        cls,
+        *,
+        direct_start: QPointF,
+        direct_end: QPointF,
+        prepared_start: QPointF,
+        prepared_end: QPointF,
+        obstacles: list[QRectF],
+        ignored_obstacles: list[QRectF] | None = None,
+    ) -> list[QRectF]:
+        """Collect obstacles from the direct and orthogonal relevance passes."""
+        ignored = ignored_obstacles or []
+
+        direct_route = [
+            direct_start,
+            direct_end,
+        ]
+
+        orthogonal_probe_routes = (
+            relevance.build_orthogonal_probe_routes(
+                direct_start,
+                direct_end,
+            )
+        )
+
+        # The prepared endpoint route is also relevant. This catches
+        # geometry introduced by the fixed endpoint stubs.
+        orthogonal_probe_routes.append(
+            [
+                prepared_start,
+                prepared_end,
+            ]
+        )
+
+        relevant: list[QRectF] = []
+
+        relevant.extend(
+            relevance.collect_relevant_obstacles(
+                direct_route,
+                obstacles,
+                cls.ROUTING_RELEVANCE_RADIUS,
+                ignored,
+            )
+        )
+
+        for probe_route in orthogonal_probe_routes:
+            relevant.extend(
+                relevance.collect_relevant_obstacles(
+                    probe_route,
+                    obstacles,
+                    cls.ROUTING_RELEVANCE_RADIUS,
+                    ignored,
+                )
+            )
+
+        return relevance.dedupe_rectangles(
+            relevant,
         )
 
     @classmethod
@@ -68,37 +130,37 @@ class ConnectionRoutingEngine:
         start_direction: str,
         end_direction: str,
         obstacles: list[QRectF],
+        direct_start: QPointF | None = None,
+        direct_end: QPointF | None = None,
+        ignored_obstacles: list[QRectF] | None = None,
     ) -> list[QPointF]:
-        """Build the preferred route, then fall back to pathfinding."""
+        """Find an orthogonal route using only locally relevant obstacles."""
         if start == end:
             return [start]
 
-        preferred = cls._build_preferred_route(
-            start,
-            end,
-            start_direction,
-            end_direction,
-        )
+        if direct_start is None:
+            direct_start = start
 
-        if (
-            cls.route_is_clear(
-                preferred,
-                obstacles,
+        if direct_end is None:
+            direct_end = end
+
+        relevant_obstacles = (
+            cls.collect_relevant_obstacles(
+                direct_start=direct_start,
+                direct_end=direct_end,
+                prepared_start=start,
+                prepared_end=end,
+                obstacles=obstacles,
+                ignored_obstacles=ignored_obstacles,
             )
-            and not cls._has_immediate_uturn(
-                preferred,
-            )
-        ):
-            return cls._simplify_route(
-                preferred,
-            )
+        )
 
         return build_pathfinder_route(
             start=start,
             end=end,
             start_direction=start_direction,
             end_direction=end_direction,
-            obstacles=obstacles,
+            obstacles=relevant_obstacles,
             bend_penalty=cls.BEND_PENALTY,
             endpoint_direction_penalty=(
                 cls.ENDPOINT_DIRECTION_PENALTY
@@ -118,128 +180,32 @@ class ConnectionRoutingEngine:
             obstacles,
         )
 
-    @classmethod
-    def _build_preferred_route(
-        cls,
+    @staticmethod
+    def _segment_blocked(
         start: QPointF,
         end: QPointF,
-        start_direction: str,
-        end_direction: str,
-    ) -> list[QPointF]:
-        """Choose between the two simple orthogonal L-shaped routes."""
-        candidates = [
-            [
-                start,
-                QPointF(
-                    end.x(),
-                    start.y(),
-                ),
-                end,
-            ],
-            [
-                start,
-                QPointF(
-                    start.x(),
-                    end.y(),
-                ),
-                end,
-            ],
-        ]
-
-        candidates = [
-            cls._remove_duplicate_points(
-                route,
-            )
-            for route in candidates
-        ]
-
-        def score(
-            route: list[QPointF],
-        ) -> float:
-            directions = [
-                cls._segment_direction(
-                    route[index],
-                    route[index + 1],
-                )
-                for index in range(
-                    len(route) - 1,
-                )
-            ]
-
-            bends = sum(
-                directions[index]
-                != directions[index - 1]
-                for index in range(
-                    1,
-                    len(directions),
-                )
-            )
-
-            result = cls._route_length(
-                route,
-            )
-
-            result += bends * cls.BEND_PENALTY
-
-            if directions:
-                if not cls._direction_matches(
-                    directions[0],
-                    start_direction,
-                ):
-                    result += (
-                        cls.ENDPOINT_DIRECTION_PENALTY
-                    )
-
-                if not cls._direction_matches(
-                    directions[-1],
-                    end_direction,
-                ):
-                    result += (
-                        cls.ENDPOINT_DIRECTION_PENALTY
-                    )
-
-            if cls._has_immediate_uturn(
-                route,
-            ):
-                result += 10_000.0
-
-            return result
-
-        return min(
-            candidates,
-            key=score,
+        obstacles: list[QRectF],
+    ) -> bool:
+        return segment_blocked(
+            start,
+            end,
+            obstacles,
         )
 
     @staticmethod
-    def _remove_duplicate_points(
+    def _simplify_route(
         route: list[QPointF],
     ) -> list[QPointF]:
-        result = [
-            route[0],
-        ]
-
-        for point in route[1:]:
-            if point != result[-1]:
-                result.append(point)
-
-        return result
+        return simplify_route(
+            route,
+        )
 
     @staticmethod
-    def _route_length(
+    def _has_immediate_uturn(
         route: list[QPointF],
-    ) -> float:
-        return sum(
-            abs(
-                route[index + 1].x()
-                - route[index].x()
-            )
-            + abs(
-                route[index + 1].y()
-                - route[index].y()
-            )
-            for index in range(
-                len(route) - 1,
-            )
+    ) -> bool:
+        return has_immediate_uturn(
+            route,
         )
 
     @staticmethod
@@ -293,24 +259,6 @@ class ConnectionRoutingEngine:
 
         return actual == preferred
 
-    @classmethod
-    def _simplify_route(
-        cls,
-        route: list[QPointF],
-    ) -> list[QPointF]:
-        return simplify_route(
-            route,
-        )
-
-    @classmethod
-    def _has_immediate_uturn(
-        cls,
-        route: list[QPointF],
-    ) -> bool:
-        return has_immediate_uturn(
-            route,
-        )
-
     @staticmethod
     def _opposite_direction(
         direction: str,
@@ -323,53 +271,4 @@ class ConnectionRoutingEngine:
         }.get(
             direction,
             "none",
-        )
-
-    @staticmethod
-    def _normalize_side(
-        side: str,
-    ) -> str:
-        normalized = side.lower().strip()
-
-        if normalized in {
-            "left",
-            "right",
-            "top",
-            "bottom",
-        }:
-            return normalized
-
-        return "none"
-
-    @staticmethod
-    def _distance(
-        start: QPointF,
-        end: QPointF,
-    ) -> float:
-        return (
-            abs(start.x() - end.x())
-            + abs(start.y() - end.y())
-        )
-
-    @staticmethod
-    def _point_blocked(
-        point: QPointF,
-        obstacles: list[QRectF],
-    ) -> bool:
-        return any(
-            rect.left() < point.x() < rect.right()
-            and rect.top() < point.y() < rect.bottom()
-            for rect in obstacles
-        )
-
-    @staticmethod
-    def _segment_blocked(
-        start: QPointF,
-        end: QPointF,
-        obstacles: list[QRectF],
-    ) -> bool:
-        return segment_blocked(
-            start,
-            end,
-            obstacles,
         )

@@ -10,7 +10,7 @@ def build_endpoint_stub(
     side: str,
     stub_length: float,
 ) -> tuple[QPointF, str]:
-    """Return the traditional straight outward stub."""
+    """Return the fixed outward endpoint stub."""
     normalized = _normalize_side(side)
 
     if normalized == "left":
@@ -19,7 +19,7 @@ def build_endpoint_stub(
                 port_position.x() - stub_length,
                 port_position.y(),
             ),
-            "horizontal",
+            "left",
         )
 
     if normalized == "right":
@@ -28,7 +28,7 @@ def build_endpoint_stub(
                 port_position.x() + stub_length,
                 port_position.y(),
             ),
-            "horizontal",
+            "right",
         )
 
     if normalized == "top":
@@ -37,7 +37,7 @@ def build_endpoint_stub(
                 port_position.x(),
                 port_position.y() - stub_length,
             ),
-            "vertical",
+            "up",
         )
 
     if normalized == "bottom":
@@ -46,7 +46,7 @@ def build_endpoint_stub(
                 port_position.x(),
                 port_position.y() + stub_length,
             ),
-            "vertical",
+            "down",
         )
 
     return (
@@ -64,11 +64,7 @@ def build_endpoint_escape(
     escape_clearance: float,
     ignored_obstacles: list[QRectF],
 ) -> tuple[list[QPointF], str]:
-    """Escape from a port using a straight path or a dogleg.
-
-    For a blocked horizontal departure, upward escape is preferred.
-    Downward escape is the fallback.
-    """
+    """Build a fixed outward stub or an obstacle escape."""
 
     normalized = _normalize_side(side)
 
@@ -87,26 +83,24 @@ def build_endpoint_escape(
         )
     ]
 
-    stub_end, _ = build_endpoint_stub(
+    stub_end, direction = build_endpoint_stub(
         port_position,
         normalized,
         stub_length,
     )
 
-    direct = [
+    fixed_stub = [
         port_position,
         stub_end,
     ]
 
-    if _candidate_is_clear(
-        direct,
-        active_obstacles,
-    ):
-        return (
-            direct,
-            normalized,
-        )
-
+    # Determine whether the fixed stub is actually blocked.
+    #
+    # Do not use _candidate_is_clear() here because that helper
+    # intentionally permits the first segment to overlap an improperly
+    # placed component. That behavior is correct when validating an
+    # escape candidate, but it would incorrectly classify a blocked
+    # fixed stub as clear and prevent escape generation.
     blocking = _blocking_obstacles(
         port_position,
         stub_end,
@@ -115,8 +109,8 @@ def build_endpoint_escape(
 
     if not blocking:
         return (
-            direct,
-            normalized,
+            fixed_stub,
+            direction,
         )
 
     candidates = _build_escape_candidates(
@@ -134,12 +128,14 @@ def build_endpoint_escape(
         ):
             return (
                 candidate,
-                normalized,
+                direction,
             )
 
+    # The placement is probably invalid. Preserve the fixed stub instead
+    # of moving the component or inventing an arbitrary route.
     return (
-        direct,
-        normalized,
+        fixed_stub,
+        direction,
     )
 
 
@@ -151,7 +147,7 @@ def _build_escape_candidates(
     blocking: list[QRectF],
     clearance: float,
 ) -> list[list[QPointF]]:
-    """Build escape candidates in preferred order."""
+    """Build escape routes that turn at the end of the fixed stub."""
 
     if side in {
         "right",
@@ -173,46 +169,42 @@ def _build_escape_candidates(
             + clearance
         )
 
-        if side == "right":
-            far_x = max(
-                stub_end.x(),
-                max(
-                    rect.right()
-                    for rect in blocking
-                )
-                + clearance,
+        horizontal_clear_x = (
+            max(
+                rect.right()
+                for rect in blocking
             )
-        else:
-            far_x = min(
-                stub_end.x(),
-                min(
-                    rect.left()
-                    for rect in blocking
-                )
-                - clearance,
+            + clearance
+            if side == "right"
+            else min(
+                rect.left()
+                for rect in blocking
             )
+            - clearance
+        )
 
-        # UP first. This is the deliberate preference for now.
         return [
             [
                 port_position,
+                stub_end,
                 QPointF(
-                    port_position.x(),
+                    stub_end.x(),
                     up_y,
                 ),
                 QPointF(
-                    far_x,
+                    horizontal_clear_x,
                     up_y,
                 ),
             ],
             [
                 port_position,
+                stub_end,
                 QPointF(
-                    port_position.x(),
+                    stub_end.x(),
                     down_y,
                 ),
                 QPointF(
-                    far_x,
+                    horizontal_clear_x,
                     down_y,
                 ),
             ],
@@ -234,46 +226,43 @@ def _build_escape_candidates(
         + clearance
     )
 
-    if side == "top":
-        far_y = min(
-            stub_end.y(),
-            min(
-                rect.top()
-                for rect in blocking
-            )
-            - clearance,
+    vertical_clear_y = (
+        min(
+            rect.top()
+            for rect in blocking
         )
-    else:
-        far_y = max(
-            stub_end.y(),
-            max(
-                rect.bottom()
-                for rect in blocking
-            )
-            + clearance,
+        - clearance
+        if side == "top"
+        else max(
+            rect.bottom()
+            for rect in blocking
         )
+        + clearance
+    )
 
     return [
         [
             port_position,
+            stub_end,
             QPointF(
                 left_x,
-                port_position.y(),
+                stub_end.y(),
             ),
             QPointF(
                 left_x,
-                far_y,
+                vertical_clear_y,
             ),
         ],
         [
             port_position,
+            stub_end,
             QPointF(
                 right_x,
-                port_position.y(),
+                stub_end.y(),
             ),
             QPointF(
                 right_x,
-                far_y,
+                vertical_clear_y,
             ),
         ],
     ]
@@ -283,12 +272,13 @@ def _candidate_is_clear(
     route: list[QPointF],
     obstacles: list[QRectF],
 ) -> bool:
-    """Validate an escape route.
+    """Validate an endpoint escape.
 
-    The first segment may begin inside an overlapping obstacle, but it must
-    actually escape that obstacle. Every later segment must be clear.
+    The first segment is allowed to pass through an improperly overlapping
+    module because placement validation will handle that condition later.
+    Once the wire reaches the end of its fixed stub, subsequent escape
+    segments must be clear.
     """
-
     if len(route) < 2:
         return True
 
@@ -317,17 +307,11 @@ def _candidate_is_clear(
         if not blocking:
             continue
 
-        if index != 0:
-            return False
+        # The fixed stub itself may overlap an improperly placed module.
+        if index == 0:
+            continue
 
-        # The first segment is allowed to leave an obstacle that already
-        # contains the port. It is not allowed to enter a new obstacle.
-        for rect in blocking:
-            if not _point_inside(
-                start,
-                rect,
-            ):
-                return False
+        return False
 
     return True
 
@@ -337,25 +321,83 @@ def _blocking_obstacles(
     end: QPointF,
     obstacles: list[QRectF],
 ) -> list[QRectF]:
+    """Return obstacles intersecting the candidate fixed stub."""
     return [
-        rect
-        for rect in obstacles
-        if _point_inside(
-            start,
-            rect,
-        )
-        or _segment_blocked(
+        obstacle
+        for obstacle in obstacles
+        if _segment_blocked(
             start,
             end,
-            [rect],
+            [obstacle],
         )
     ]
+
+
+def _segment_blocked(
+    start: QPointF,
+    end: QPointF,
+    obstacles: list[QRectF],
+) -> bool:
+    """Return whether an orthogonal segment crosses any obstacle."""
+    if (
+        abs(start.x() - end.x()) < 0.001
+        and abs(start.y() - end.y()) < 0.001
+    ):
+        return False
+
+    if abs(start.y() - end.y()) < 0.001:
+        y = start.y()
+
+        left = min(
+            start.x(),
+            end.x(),
+        )
+
+        right = max(
+            start.x(),
+            end.x(),
+        )
+
+        return any(
+            rect.top()
+            < y
+            < rect.bottom()
+            and right > rect.left()
+            and left < rect.right()
+            for rect in obstacles
+        )
+
+    if abs(start.x() - end.x()) < 0.001:
+        x = start.x()
+
+        top = min(
+            start.y(),
+            end.y(),
+        )
+
+        bottom = max(
+            start.y(),
+            end.y(),
+        )
+
+        return any(
+            rect.left()
+            < x
+            < rect.right()
+            and bottom > rect.top()
+            and top < rect.bottom()
+            for rect in obstacles
+        )
+
+    # Endpoint escape geometry is expected to remain orthogonal.
+    return True
 
 
 def _point_inside_any(
     point: QPointF,
     obstacles: list[QRectF],
 ) -> bool:
+    """Return whether a point lies strictly inside any obstacle."""
     return any(
         _point_inside(
             point,
@@ -369,83 +411,48 @@ def _point_inside(
     point: QPointF,
     rect: QRectF,
 ) -> bool:
+    """Return whether a point lies strictly inside a rectangle."""
     return (
-        rect.left() < point.x() < rect.right()
-        and rect.top() < point.y() < rect.bottom()
+        rect.left()
+        < point.x()
+        < rect.right()
+        and rect.top()
+        < point.y()
+        < rect.bottom()
     )
-
-
-def _segment_blocked(
-    start: QPointF,
-    end: QPointF,
-    obstacles: list[QRectF],
-) -> bool:
-    if (
-        abs(start.x() - end.x()) < 0.001
-        and abs(start.y() - end.y()) < 0.001
-    ):
-        return False
-
-    if abs(start.y() - end.y()) < 0.001:
-        y = start.y()
-        left = min(
-            start.x(),
-            end.x(),
-        )
-        right = max(
-            start.x(),
-            end.x(),
-        )
-
-        return any(
-            rect.top() < y < rect.bottom()
-            and right > rect.left()
-            and left < rect.right()
-            for rect in obstacles
-        )
-
-    if abs(start.x() - end.x()) < 0.001:
-        x = start.x()
-        top = min(
-            start.y(),
-            end.y(),
-        )
-        bottom = max(
-            start.y(),
-            end.y(),
-        )
-
-        return any(
-            rect.left() < x < rect.right()
-            and bottom > rect.top()
-            and top < rect.bottom()
-            for rect in obstacles
-        )
-
-    return True
 
 
 def _is_ignored(
     obstacle: QRectF,
-    ignored: list[QRectF],
+    ignored_obstacles: list[QRectF],
 ) -> bool:
+    """Return whether an obstacle should be excluded from routing."""
     return any(
-        obstacle == candidate
-        for candidate in ignored
+        obstacle == ignored
+        for ignored in ignored_obstacles
     )
 
 
 def _normalize_side(
     side: str,
 ) -> str:
-    normalized = side.lower().strip()
+    """Normalize endpoint side names."""
+    normalized = str(side).strip().lower()
 
-    if normalized in {
-        "left",
-        "right",
-        "top",
-        "bottom",
-    }:
-        return normalized
+    aliases = {
+        "l": "left",
+        "left": "left",
+        "r": "right",
+        "right": "right",
+        "t": "top",
+        "top": "top",
+        "up": "top",
+        "b": "bottom",
+        "bottom": "bottom",
+        "down": "bottom",
+    }
 
-    return "none"
+    return aliases.get(
+        normalized,
+        "none",
+    )
