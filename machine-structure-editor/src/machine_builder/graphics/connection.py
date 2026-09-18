@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtCore import QPointF, Qt
 from PySide6.QtGui import QColor, QPainterPath, QPen
 from PySide6.QtWidgets import (
     QGraphicsItem,
@@ -18,25 +18,11 @@ from .connection_routing import ConnectionRoutingEngine
 class ConnectionGraphicsItem(QGraphicsPathItem):
     """Rendered representation of one committed visual connection."""
 
-    NORMAL_COLOR = QColor(
-        "#aab4c4"
-    )
+    NORMAL_COLOR = QColor("#aab4c4")
+    SELECTED_COLOR = QColor("#58a6ff")
 
-    SELECTED_COLOR = QColor(
-        "#58a6ff"
-    )
-
-    ROUTING_MARGIN = (
-        ConnectionRoutingEngine.ROUTING_MARGIN
-    )
-
-    STUB_LENGTH = (
-        ConnectionRoutingEngine.STUB_LENGTH
-    )
-
-    BEND_PENALTY = (
-        ConnectionRoutingEngine.BEND_PENALTY
-    )
+    ROUTING_MARGIN = ConnectionRoutingEngine.ROUTING_MARGIN
+    STUB_LENGTH = ConnectionRoutingEngine.STUB_LENGTH
 
     def __init__(
         self,
@@ -48,9 +34,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         self.connection_id = connection.id
         self.endpoint_a_id = connection.endpoint_a_id
         self.endpoint_b_id = connection.endpoint_b_id
-        self._selection_callback = (
-            selection_callback
-        )
+        self._selection_callback = selection_callback
 
         self.setPen(
             QPen(
@@ -59,9 +43,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             )
         )
 
-        self.setZValue(
-            -10.0
-        )
+        self.setZValue(-10.0)
 
         self.setFlag(
             QGraphicsItem.GraphicsItemFlag.ItemIsSelectable,
@@ -79,7 +61,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         x2: float,
         y2: float,
     ) -> None:
-        """Build an orthogonal route with visual endpoint stubs."""
+        """Build the complete obstacle-aware visual connection."""
         start = QPointF(
             x1,
             y1,
@@ -90,57 +72,98 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             y2,
         )
 
-        (
-            start_stub,
-            start_direction,
-        ) = self._build_endpoint_stub(
-            self.endpoint_a_id,
-            start,
-        )
-
-        (
-            end_stub,
-            end_direction,
-        ) = self._build_endpoint_stub(
-            self.endpoint_b_id,
-            end,
-        )
-
         obstacles = self._collect_obstacles()
 
+        start_escape, start_direction = (
+            self._build_endpoint_escape(
+                self.endpoint_a_id,
+                start,
+                obstacles,
+            )
+        )
+
+        end_escape, end_direction = (
+            self._build_endpoint_escape(
+                self.endpoint_b_id,
+                end,
+                obstacles,
+            )
+        )
+
         route = ConnectionRoutingEngine.build_route(
-            start_stub,
-            end_stub,
-            start_direction,
-            end_direction,
-            obstacles,
+            start=start_escape[-1],
+            end=end_escape[-1],
+            start_direction=start_direction,
+            end_direction=end_direction,
+            obstacles=obstacles,
         )
 
         path = QPainterPath(
-            start
+            start,
         )
 
-        if start_stub != start:
-            path.lineTo(
-                start_stub
-            )
+        for point in start_escape[1:]:
+            path.lineTo(point)
 
-        for point in route:
-            path.lineTo(
-                point
-            )
+        for point in route[1:]:
+            path.lineTo(point)
 
-        if end_stub != end:
-            path.lineTo(
-                end_stub
-            )
+        for point in reversed(
+            end_escape[:-1]
+        ):
+            path.lineTo(point)
 
-        path.lineTo(
-            end
-        )
+        path.lineTo(end)
 
         self.setPath(
-            path
+            path,
+        )
+
+    def _build_endpoint_escape(
+        self,
+        port_id: str,
+        port_position: QPointF,
+        obstacles: list[Any],
+    ) -> tuple[list[QPointF], str]:
+        port_item = self._find_port_item(
+            port_id,
+        )
+
+        if port_item is None:
+            return (
+                [port_position],
+                "none",
+            )
+
+        side = str(
+            getattr(
+                port_item,
+                "_side",
+                "",
+            )
+        )
+
+        ignored_obstacles: list[Any] = []
+
+        endpoint_node = self._find_endpoint_node(
+            port_id,
+        )
+
+        if endpoint_node is not None:
+            ignored_obstacles.append(
+                endpoint_node.sceneBoundingRect().adjusted(
+                    -self.ROUTING_MARGIN,
+                    -self.ROUTING_MARGIN,
+                    self.ROUTING_MARGIN,
+                    self.ROUTING_MARGIN,
+                )
+            )
+
+        return ConnectionRoutingEngine.build_endpoint_escape(
+            port_position=port_position,
+            side=side,
+            obstacles=obstacles,
+            ignored_obstacles=ignored_obstacles,
         )
 
     def _build_endpoint_stub(
@@ -148,9 +171,9 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         port_id: str,
         port_position: QPointF,
     ) -> tuple[QPointF, str]:
-        """Return an outward endpoint stub and its direction."""
+        """Compatibility helper retained for diagnostics/tests."""
         port_item = self._find_port_item(
-            port_id
+            port_id,
         )
 
         if port_item is None:
@@ -159,35 +182,35 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
                 "none",
             )
 
-        return (
-            ConnectionRoutingEngine.build_endpoint_stub(
-                port_position,
-                str(
-                    getattr(
-                        port_item,
-                        "_side",
-                        "",
-                    )
-                ),
-            )
+        return ConnectionRoutingEngine.build_endpoint_stub(
+            port_position,
+            str(
+                getattr(
+                    port_item,
+                    "_side",
+                    "",
+                )
+            ),
         )
 
     def _find_port_item(
         self,
         port_id: str,
     ) -> QGraphicsItem | None:
-        """Find the visual port item belonging to an endpoint."""
         scene = self.scene()
 
         if scene is None:
             return None
 
         for item in scene.items():
-            if getattr(
-                item,
-                "port_id",
-                None,
-            ) == port_id:
+            if (
+                getattr(
+                    item,
+                    "port_id",
+                    None,
+                )
+                == port_id
+            ):
                 return item
 
         return None
@@ -196,9 +219,8 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         self,
         port_id: str,
     ) -> QGraphicsItem | None:
-        """Find the node graphics item containing an endpoint port."""
         port_item = self._find_port_item(
-            port_id
+            port_id,
         )
 
         if port_item is None:
@@ -206,16 +228,13 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
 
         return port_item.parentItem()
 
-    def _collect_obstacles(
-        self,
-    ) -> list[QRectF]:
-        """Collect all expanded visual node rectangles as obstacles."""
+    def _collect_obstacles(self) -> list[Any]:
         scene = self.scene()
 
         if scene is None:
             return []
 
-        obstacles: list[QRectF] = []
+        obstacles = []
 
         for item in scene.items():
             if not isinstance(
@@ -248,14 +267,11 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         change: QGraphicsItem.GraphicsItemChange,
         value: Any,
     ) -> Any:
-        """Update visual state when the connection is selected."""
         if (
             change
             == QGraphicsItem.GraphicsItemChange.ItemSelectedChange
         ):
-            selected = bool(
-                value
-            )
+            selected = bool(value)
 
             self.setPen(
                 QPen(
