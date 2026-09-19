@@ -8,6 +8,317 @@ from itertools import count
 from PySide6.QtCore import QPointF, QRectF
 
 
+
+def _points_equal(
+    first: QPointF,
+    second: QPointF,
+) -> bool:
+    """Return whether two points are equal within routing tolerance."""
+    return (
+        abs(first.x() - second.x()) < 0.001
+        and abs(first.y() - second.y()) < 0.001
+    )
+
+
+def _point_on_segment(
+    point: QPointF,
+    start: QPointF,
+    end: QPointF,
+) -> bool:
+    """Return whether a point lies on an orthogonal segment."""
+    if abs(start.y() - end.y()) < 0.001:
+        return (
+            abs(point.y() - start.y()) < 0.001
+            and min(
+                start.x(),
+                end.x(),
+            ) - 0.001
+            <= point.x()
+            <= max(
+                start.x(),
+                end.x(),
+            ) + 0.001
+        )
+
+    if abs(start.x() - end.x()) < 0.001:
+        return (
+            abs(point.x() - start.x()) < 0.001
+            and min(
+                start.y(),
+                end.y(),
+            ) - 0.001
+            <= point.y()
+            <= max(
+                start.y(),
+                end.y(),
+            ) + 0.001
+        )
+
+    return False
+
+
+def _segment_cleanup_intersection(
+    first_start: QPointF,
+    first_end: QPointF,
+    second_start: QPointF,
+    second_end: QPointF,
+) -> QPointF | None:
+    """Return a useful intersection point for route-loop cleanup."""
+    first_horizontal = (
+        abs(first_start.y() - first_end.y()) < 0.001
+    )
+    second_horizontal = (
+        abs(second_start.y() - second_end.y()) < 0.001
+    )
+
+    if first_horizontal and second_horizontal:
+        if abs(
+            first_start.y()
+            - second_start.y()
+        ) >= 0.001:
+            return None
+
+        overlap_left = max(
+            min(
+                first_start.x(),
+                first_end.x(),
+            ),
+            min(
+                second_start.x(),
+                second_end.x(),
+            ),
+        )
+
+        overlap_right = min(
+            max(
+                first_start.x(),
+                first_end.x(),
+            ),
+            max(
+                second_start.x(),
+                second_end.x(),
+            ),
+        )
+
+        if overlap_left > overlap_right + 0.001:
+            return None
+
+        candidates = [
+            QPointF(
+                overlap_left,
+                first_start.y(),
+            ),
+            QPointF(
+                overlap_right,
+                first_start.y(),
+            ),
+        ]
+
+        return max(
+            candidates,
+            key=lambda point: (
+                point.x() - first_end.x()
+            ) ** 2
+            + (
+                point.y() - first_end.y()
+            ) ** 2,
+        )
+
+    if not first_horizontal and not second_horizontal:
+        if abs(
+            first_start.x()
+            - second_start.x()
+        ) >= 0.001:
+            return None
+
+        overlap_top = max(
+            min(
+                first_start.y(),
+                first_end.y(),
+            ),
+            min(
+                second_start.y(),
+                second_end.y(),
+            ),
+        )
+
+        overlap_bottom = min(
+            max(
+                first_start.y(),
+                first_end.y(),
+            ),
+            max(
+                second_start.y(),
+                second_end.y(),
+            ),
+        )
+
+        if overlap_top > overlap_bottom + 0.001:
+            return None
+
+        candidates = [
+            QPointF(
+                first_start.x(),
+                overlap_top,
+            ),
+            QPointF(
+                first_start.x(),
+                overlap_bottom,
+            ),
+        ]
+
+        return max(
+            candidates,
+            key=lambda point: (
+                point.x() - first_end.x()
+            ) ** 2
+            + (
+                point.y() - first_end.y()
+            ) ** 2,
+        )
+
+    if first_horizontal:
+        vertical = (
+            second_start,
+            second_end,
+        )
+        horizontal = (
+            first_start,
+            first_end,
+        )
+    else:
+        vertical = (
+            first_start,
+            first_end,
+        )
+        horizontal = (
+            second_start,
+            second_end,
+        )
+
+    intersection = QPointF(
+        vertical[0].x(),
+        horizontal[0].y(),
+    )
+
+    if (
+        _point_on_segment(
+            intersection,
+            horizontal[0],
+            horizontal[1],
+        )
+        and _point_on_segment(
+            intersection,
+            vertical[0],
+            vertical[1],
+        )
+    ):
+        return intersection
+
+    return None
+
+
+def _clean_route_geometry(
+    route: list[QPointF],
+) -> list[QPointF]:
+    """Remove route loops, retracing, and self-crossing geometry."""
+    if len(route) <= 2:
+        return route
+
+    result = list(
+        simplify_route(
+            route,
+        )
+    )
+
+    changed = True
+
+    while changed and len(result) > 2:
+        changed = False
+
+        # First remove exact point re-entry.
+        for first_index in range(
+            len(result) - 2,
+        ):
+            for second_index in range(
+                first_index + 2,
+                len(result),
+            ):
+                if not _points_equal(
+                    result[first_index],
+                    result[second_index],
+                ):
+                    continue
+
+                result = (
+                    result[: first_index + 1]
+                    + result[second_index + 1 :]
+                )
+                result = simplify_route(
+                    result,
+                )
+                changed = True
+                break
+
+            if changed:
+                break
+
+        if changed:
+            continue
+
+        # Then remove non-adjacent segment crossings or overlaps.
+        for first_index in range(
+            len(result) - 2,
+        ):
+            for second_index in range(
+                first_index + 2,
+                len(result) - 1,
+            ):
+                intersection = (
+                    _segment_cleanup_intersection(
+                        result[first_index],
+                        result[first_index + 1],
+                        result[second_index],
+                        result[second_index + 1],
+                    )
+                )
+
+                if intersection is None:
+                    continue
+
+                candidate = result[
+                    : first_index + 1
+                ]
+
+                if not _points_equal(
+                    candidate[-1],
+                    intersection,
+                ):
+                    candidate.append(
+                        intersection,
+                    )
+
+                candidate.extend(
+                    result[second_index + 1 :],
+                )
+
+                cleaned = simplify_route(
+                    candidate,
+                )
+
+                if len(cleaned) >= 2:
+                    result = cleaned
+                    changed = True
+
+                break
+
+            if changed:
+                break
+
+    return result
+
+
+
 def build_route(
     *,
     start: QPointF,
@@ -18,7 +329,7 @@ def build_route(
     bend_penalty: float,
     endpoint_direction_penalty: float,
     u_turn_min_separation: float,
-) -> list[QPointF]:
+) -> list[QPointF] | None:
     """Find an orthogonal route through the obstacle visibility grid."""
 
     route = _find_grid_route(
@@ -37,6 +348,19 @@ def build_route(
     )
 
     if route is not None:
+        cleaned = _clean_route_geometry(
+            route,
+        )
+
+        # Route cleanup is never allowed to turn a valid route into
+        # obstacle-crossing geometry. If cleanup produces an invalid
+        # result, preserve the original valid route.
+        if route_is_clear(
+            cleaned,
+            obstacles,
+        ):
+            return cleaned
+
         return simplify_route(
             route,
         )
@@ -48,10 +372,22 @@ def build_route(
         u_turn_min_separation,
     )
 
-    return simplify_route(
+    if fallback is None:
+        return None
+
+    cleaned = _clean_route_geometry(
         fallback,
     )
 
+    if route_is_clear(
+        cleaned,
+        obstacles,
+    ):
+        return cleaned
+
+    return simplify_route(
+        fallback,
+    )
 
 def route_is_clear(
     route: list[QPointF],
@@ -358,6 +694,28 @@ def _find_grid_route(
             current_key,
             [],
         ):
+            # Once the fixed endpoint stub has been established, the
+            # main route must never immediately travel back through it.
+            if (
+                current_key == start_key
+                and start_direction != "none"
+                and direction
+                == _opposite_direction(
+                    start_direction,
+                )
+            ):
+                continue
+
+            # Do not enter the destination stub along the same direction
+            # as the stub itself. That would cause the main route to
+            # overlap the fixed stub and make the stub appear shorter.
+            if (
+                neighbor_key == end_key
+                and end_direction != "none"
+                and direction == end_direction
+            ):
+                continue
+
             if (
                 current_direction != "none"
                 and direction
@@ -468,7 +826,6 @@ def _find_grid_route(
         points[key]
         for key in keys
     ]
-
 
 def _connect_horizontal(
     points: dict[
@@ -633,7 +990,7 @@ def _build_fallback_route(
     end: QPointF,
     obstacles: list[QRectF],
     separation: float,
-) -> list[QPointF]:
+) -> list[QPointF] | None:
     if not obstacles:
         return [
             start,
@@ -730,8 +1087,9 @@ def _build_fallback_route(
             key=_route_length,
         )
 
-    return candidates[0]
-
+    # There is no legal orthogonal fallback route. Returning an invalid
+    # route would hide an impossible placement behind a false wire.
+    return None
 
 def _remove_duplicate_points(
     route: list[QPointF],

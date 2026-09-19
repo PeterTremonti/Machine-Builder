@@ -133,7 +133,7 @@ class ConnectionRoutingEngine:
         direct_start: QPointF | None = None,
         direct_end: QPointF | None = None,
         ignored_obstacles: list[QRectF] | None = None,
-    ) -> list[QPointF]:
+    ) -> list[QPointF] | None:
         """Find an orthogonal route using only locally relevant obstacles."""
         if start == end:
             return [start]

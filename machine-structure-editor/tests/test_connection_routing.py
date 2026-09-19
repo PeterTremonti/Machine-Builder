@@ -822,3 +822,223 @@ def test_unrelated_remote_component_does_not_change_graphics_route() -> None:
     )
 
     assert connection.path() == baseline_path
+
+def test_fixed_endpoint_route_does_not_backtrack_over_stub() -> None:
+    from PySide6.QtCore import QPointF, QRectF
+
+    from machine_builder.graphics.connection_routing import (
+        ConnectionRoutingEngine,
+    )
+
+    start = QPointF(
+        76.0,
+        57.0,
+    )
+
+    end = QPointF(
+        54.0,
+        199.0,
+    )
+
+    obstacles = [
+        QRectF(
+            -160.0,
+            -9.0,
+            212.0,
+            132.0,
+        ),
+        QRectF(
+            -182.0,
+            133.0,
+            212.0,
+            132.0,
+        ),
+    ]
+
+    route = ConnectionRoutingEngine.build_route(
+        start=start,
+        end=end,
+        start_direction="right",
+        end_direction="right",
+        obstacles=obstacles,
+    )
+
+    assert len(route) >= 2
+
+    first = route[1]
+
+    # The fixed sensor stub already traveled right to x=76.
+    # The main route must not immediately travel back left across it.
+    assert not (
+        first.y() == start.y()
+        and first.x() < start.x()
+    )
+
+def test_route_cleanup_removes_repeated_point_loop() -> None:
+    from PySide6.QtCore import QPointF
+
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        _clean_route_geometry,
+    )
+
+    route = [
+        QPointF(0.0, 0.0),
+        QPointF(40.0, 0.0),
+        QPointF(40.0, 40.0),
+        QPointF(0.0, 40.0),
+        QPointF(0.0, 0.0),
+        QPointF(0.0, 80.0),
+    ]
+
+    cleaned = _clean_route_geometry(
+        route,
+    )
+
+    assert cleaned == [
+        QPointF(0.0, 0.0),
+        QPointF(0.0, 80.0),
+    ]
+
+
+def test_route_cleanup_removes_orthogonal_self_crossing() -> None:
+    from PySide6.QtCore import QPointF
+
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        _clean_route_geometry,
+    )
+
+    route = [
+        QPointF(0.0, 0.0),
+        QPointF(80.0, 0.0),
+        QPointF(80.0, 80.0),
+        QPointF(40.0, 80.0),
+        QPointF(40.0, -20.0),
+        QPointF(100.0, -20.0),
+        QPointF(100.0, 100.0),
+    ]
+
+    cleaned = _clean_route_geometry(
+        route,
+    )
+
+    for index in range(
+        len(cleaned) - 2,
+    ):
+        for following in range(
+            index + 2,
+            len(cleaned) - 1,
+        ):
+            first_start = cleaned[index]
+            first_end = cleaned[index + 1]
+            second_start = cleaned[following]
+            second_end = cleaned[following + 1]
+
+            assert not (
+                first_start.x() == first_end.x()
+                and second_start.x() == second_end.x()
+                and first_start.x() == second_start.x()
+                and max(
+                    min(
+                        first_start.y(),
+                        first_end.y(),
+                    ),
+                    min(
+                        second_start.y(),
+                        second_end.y(),
+                    ),
+                )
+                <= min(
+                    max(
+                        first_start.y(),
+                        first_end.y(),
+                    ),
+                    max(
+                        second_start.y(),
+                        second_end.y(),
+                    ),
+                )
+            )
+
+def test_build_route_returns_none_for_impossible_endpoint_geometry() -> None:
+    from PySide6.QtCore import QPointF, QRectF
+
+    from machine_builder.graphics.connection_routing import (
+        ConnectionRoutingEngine,
+    )
+
+    route = ConnectionRoutingEngine.build_route(
+        start=QPointF(
+            -177.0,
+            -12.0,
+        ),
+        end=QPointF(
+            37.0,
+            -12.0,
+        ),
+        start_direction="right",
+        end_direction="right",
+        obstacles=[
+            QRectF(
+                -413.0,
+                -78.0,
+                212.0,
+                132.0,
+            ),
+            QRectF(
+                -199.0,
+                -78.0,
+                212.0,
+                132.0,
+            ),
+        ],
+    )
+
+    assert route is None
+
+def test_route_does_not_enter_destination_stub_collinearly() -> None:
+    from PySide6.QtCore import QPointF, QRectF
+
+    from machine_builder.graphics.connection_routing import (
+        ConnectionRoutingEngine,
+    )
+
+    route = ConnectionRoutingEngine.build_route(
+        start=QPointF(
+            -15.0,
+            -92.0,
+        ),
+        end=QPointF(
+            19.0,
+            -289.0,
+        ),
+        start_direction="right",
+        end_direction="right",
+        obstacles=[
+            QRectF(
+                -251.0,
+                -158.0,
+                212.0,
+                132.0,
+            ),
+            QRectF(
+                -217.0,
+                -355.0,
+                212.0,
+                132.0,
+            ),
+        ],
+    )
+
+    assert route is not None
+    assert len(route) >= 2
+
+    previous = route[-2]
+    final = route[-1]
+
+    # The destination stub points right. The main route must not arrive
+    # horizontally from the left, because that would overlap the stub.
+    assert not (
+        abs(previous.y() - final.y()) < 0.001
+        and final.x() > previous.x()
+    )
+

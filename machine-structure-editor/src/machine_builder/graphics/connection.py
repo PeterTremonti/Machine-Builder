@@ -112,21 +112,41 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
                 point,
             )
 
-        for point in route[1:]:
+        if route is not None:
+            for point in route[1:]:
+                path.lineTo(
+                    point,
+                )
+
+            for point in reversed(
+                end_escape[:-1]
+            ):
+                path.lineTo(
+                    point,
+                )
+
             path.lineTo(
-                point,
+                end,
+            )
+        else:
+            # No legal route exists between the fixed endpoint escapes.
+            # Preserve the endpoint geometry without drawing a wire through
+            # an obstructing component. Placement validation can flag the
+            # offending geometry separately in the future.
+            path.moveTo(
+                end_escape[-1],
             )
 
-        for point in reversed(
-            end_escape[:-1]
-        ):
-            path.lineTo(
-                point,
-            )
+            for point in reversed(
+                end_escape[:-1]
+            ):
+                path.lineTo(
+                    point,
+                )
 
-        path.lineTo(
-            end,
-        )
+            path.lineTo(
+                end,
+            )
 
         self.setPath(
             path,
