@@ -136,7 +136,11 @@ class CanvasUIMixin:
         )
 
         self.selection_inspector = (
-            SelectionInspector()
+            SelectionInspector(
+                routing_debug_callback=(
+                    self.set_routing_debug_mode
+                )
+            )
         )
 
         main_layout.addWidget(

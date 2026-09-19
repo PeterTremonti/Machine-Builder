@@ -82,6 +82,47 @@ class MachineCanvas(
             self.store.model
         )
 
+    def set_routing_debug_mode(
+        self,
+        enabled: bool,
+    ) -> None:
+        """Toggle deterministic visual routing diagnostics."""
+        self._routing_debug_mode = bool(
+            enabled
+        )
+
+        for graphics in (
+            self._connection_items.values()
+        ):
+            graphics.set_routing_debug_mode(
+                self._routing_debug_mode
+            )
+
+        self._update_connection_graphics()
+
+        overlay = getattr(
+            self,
+            "_routing_debug_overlay",
+            None,
+        )
+
+        if overlay is not None:
+            overlay.setVisible(
+                self._routing_debug_mode
+            )
+            overlay.refresh()
+
+        inspector = getattr(
+            self,
+            "selection_inspector",
+            None,
+        )
+
+        if inspector is not None:
+            inspector.set_routing_debug_mode(
+                self._routing_debug_mode
+            )
+
     def _model_changed(
         self,
         model: VisualModel,
@@ -90,6 +131,24 @@ class MachineCanvas(
         self._scene_controller.synchronize(
             model
         )
+
+        if self._routing_debug_mode:
+            for graphics in (
+                self._connection_items.values()
+            ):
+                graphics.set_routing_debug_mode(
+                    True
+                )
+
+            self._update_connection_graphics()
+
+            overlay = getattr(
+                self,
+                "_routing_debug_overlay",
+                None,
+            )
+            if overlay is not None:
+                overlay.refresh()
 
         self._refresh_selection_inspector()
 

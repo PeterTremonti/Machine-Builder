@@ -132,6 +132,18 @@ class MachineGraphicsView(QGraphicsView):
             event.accept()
             return
 
+        if (
+            event.button()
+            == Qt.MouseButton.LeftButton
+        ):
+            scene_position = self.mapToScene(
+                event.position().toPoint()
+            )
+
+            self._canvas._record_last_click(
+                scene_position
+            )
+
         super().mousePressEvent(
             event
         )

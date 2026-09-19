@@ -43,6 +43,11 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             dict[str, Any],
         ] = {}
 
+        self._routing_debug_mode = False
+        self._debug_start_escape: tuple[QPointF, ...] = ()
+        self._debug_route: tuple[QPointF, ...] | None = None
+        self._debug_end_escape: tuple[QPointF, ...] = ()
+
         self.OVERLAP_ESCAPE_RESELECT_DISTANCE = 24.0
         self.OVERLAP_ESCAPE_IMPROVEMENT_RATIO = 0.20
         self.OVERLAP_ESCAPE_MIN_IMPROVEMENT = 24.0
@@ -263,7 +268,10 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
 
         points = escape[0]
 
-        if len(points) < 3:
+        if (
+            self._routing_debug_mode
+            or len(points) < 3
+        ):
             self._overlap_escape_state.pop(
                 port_id,
                 None,
