@@ -240,6 +240,50 @@ def test_orthogonal_relevance_collects_obstacle_near_probe() -> None:
     ]
 
 
+def test_relevance_closes_across_nearby_obstacle_chain() -> None:
+    start = QPointF(
+        0.0,
+        0.0,
+    )
+
+    end = QPointF(
+        300.0,
+        0.0,
+    )
+
+    first_obstacle = QRectF(
+        100.0,
+        -50.0,
+        40.0,
+        65.0,
+    )
+
+    second_obstacle = QRectF(
+        140.0,
+        60.0,
+        40.0,
+        40.0,
+    )
+
+    relevant = (
+        ConnectionRoutingEngine.collect_relevant_obstacles(
+            direct_start=start,
+            direct_end=end,
+            prepared_start=start,
+            prepared_end=end,
+            obstacles=[
+                first_obstacle,
+                second_obstacle,
+            ],
+        )
+    )
+
+    assert relevant == [
+        first_obstacle,
+        second_obstacle,
+    ]
+
+
 def test_distant_obstacle_is_not_relevant() -> None:
     start = QPointF(
         0.0,

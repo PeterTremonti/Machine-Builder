@@ -134,8 +134,15 @@ class ConnectionRoutingEngine:
                 )
             )
 
-        return relevance.dedupe_rectangles(
+        relevant = relevance.dedupe_rectangles(
             relevant,
+        )
+
+        return relevance.expand_relevant_obstacles(
+            relevant_obstacles=relevant,
+            obstacles=obstacles,
+            radius=cls.ROUTING_RELEVANCE_RADIUS,
+            ignored_obstacles=ignored,
         )
 
     @classmethod

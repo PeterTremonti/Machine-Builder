@@ -78,6 +78,8 @@ class MachineCanvas(
             self._model_changed
         )
 
+        self._routing_debug_mode = False
+
         self._model_changed(
             self.store.model
         )
@@ -90,6 +92,15 @@ class MachineCanvas(
         self._routing_debug_mode = bool(
             enabled
         )
+
+        if self._routing_debug_mode:
+            self.view.setViewportUpdateMode(
+                self.view.ViewportUpdateMode.FullViewportUpdate
+            )
+        else:
+            self.view.setViewportUpdateMode(
+                self.view.ViewportUpdateMode.MinimalViewportUpdate
+            )
 
         for graphics in (
             self._connection_items.values()
@@ -112,6 +123,9 @@ class MachineCanvas(
             )
             overlay.refresh()
 
+            self.view.viewport().update()
+            self.view.scene().update()
+ 
         inspector = getattr(
             self,
             "selection_inspector",
@@ -122,6 +136,15 @@ class MachineCanvas(
             inspector.set_routing_debug_mode(
                 self._routing_debug_mode
             )
+
+    def _record_last_click(
+        self,
+        scene_position: QPointF,
+    ) -> None:
+        """Record the most recent canvas click for routing diagnostics."""
+        self.selection_inspector.set_last_click_position(
+            scene_position
+        )
 
     def _model_changed(
         self,

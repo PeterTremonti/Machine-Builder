@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QPointF, Qt
 from PySide6.QtWidgets import (
     QApplication,
+    QCheckBox,
     QLabel,
     QPlainTextEdit,
     QPushButton,
@@ -25,6 +26,7 @@ class SelectionInspector(QWidget):
     def __init__(
         self,
         parent=None,
+        routing_debug_callback=None,
     ) -> None:
         super().__init__(parent)
 
@@ -37,6 +39,9 @@ class SelectionInspector(QWidget):
         )
 
         self._current_debug_text = ""
+        self._routing_debug_callback = (
+            routing_debug_callback
+        )
 
         layout = QVBoxLayout(
             self
@@ -56,6 +61,33 @@ class SelectionInspector(QWidget):
 
         self._selection_label.setWordWrap(
             True
+        )
+
+        self._last_click_label = QLabel(
+            "Last canvas click: ?"
+        )
+        self._last_click_label.setWordWrap(
+            True
+        )
+
+        self._routing_debug_check = QCheckBox(
+            "Routing Debug Mode"
+        )
+        self._routing_debug_check.setToolTip(
+            "Shows physical bounds, routing envelopes, "
+            "endpoint stages, and main routes. "
+            "Hysteresis is OFF."
+        )
+        self._routing_debug_check.toggled.connect(
+            self._routing_debug_toggled
+        )
+
+        self._routing_debug_legend = QLabel()
+        self._routing_debug_legend.setWordWrap(
+            True
+        )
+        self._routing_debug_legend.setVisible(
+            False
         )
 
         self._details = QPlainTextEdit()
@@ -85,6 +117,18 @@ class SelectionInspector(QWidget):
         )
 
         layout.addWidget(
+            self._last_click_label
+        )
+
+        layout.addWidget(
+            self._routing_debug_check
+        )
+
+        layout.addWidget(
+            self._routing_debug_legend
+        )
+
+        layout.addWidget(
             self._details,
             1,
         )
@@ -94,6 +138,71 @@ class SelectionInspector(QWidget):
         )
 
         self.clear()
+
+    def _routing_debug_toggled(
+        self,
+        enabled: bool,
+    ) -> None:
+        if self._routing_debug_callback is not None:
+            self._routing_debug_callback(
+                enabled
+            )
+
+    def set_routing_debug_mode(
+        self,
+        enabled: bool,
+    ) -> None:
+        self._routing_debug_check.blockSignals(
+            True
+        )
+
+        self._routing_debug_check.setChecked(
+            enabled
+        )
+
+        self._routing_debug_check.blockSignals(
+            False
+        )
+
+        if enabled:
+            self._routing_debug_legend.setText(
+                "DEBUG COLORS<br>"
+                "<span style='color:#ff6666'>"
+                "red tint"
+                "</span> = physical component bounds<br>"
+                "<span style='color:#f2c94c'>"
+                "amber dashed"
+                "</span> = routing clearance envelope<br>"
+                "<span style='color:#168a52'>"
+                "dark green"
+                "</span> = fixed endpoint stub<br>"
+                "<span style='color:#00b894'>"
+                "teal"
+                "</span> = endpoint escape<br>"
+                "<span style='color:#66ff33'>"
+                "bright green"
+                "</span> = main route<br>"
+                "<span style='color:#ff3030'>"
+                "red marker"
+                "</span> = no legal main route<br>"
+                "<b>Hysteresis: OFF</b>"
+            )
+        else:
+            self._routing_debug_legend.clear()
+
+        self._routing_debug_legend.setVisible(
+            enabled
+        )
+
+    def set_last_click_position(
+        self,
+        scene_position: QPointF,
+    ) -> None:
+        self._last_click_label.setText(
+            "Last canvas click: "
+            f"x={scene_position.x():.3f}, "
+            f"y={scene_position.y():.3f}"
+        )
 
     def _routing_debug_toggled(
         self,

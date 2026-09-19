@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from PySide6.QtCore import QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QPainter, QPen
+from PySide6.QtGui import QBrush, QColor, QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QGraphicsItem
 
 
@@ -71,6 +71,10 @@ class RoutingDebugOverlay(QGraphicsItem):
             200000.0,
             200000.0,
         )
+
+    def shape(self) -> QPainterPath:
+        """Make the diagnostic overlay completely transparent to hit testing."""
+        return QPainterPath()
 
     def refresh(self) -> None:
         self.update()

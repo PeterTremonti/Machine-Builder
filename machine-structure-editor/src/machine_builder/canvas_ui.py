@@ -14,6 +14,7 @@ from PySide6.QtWidgets import (
 )
 
 from .graphics.palette import PaletteList
+from .graphics.routing_debug import RoutingDebugOverlay
 from .graphics.view import MachineGraphicsView
 from .selection_inspector import SelectionInspector
 
@@ -133,6 +134,14 @@ class CanvasUIMixin:
         self.view = MachineGraphicsView(
             scene=self.scene,
             canvas=self,
+        )
+
+        self._routing_debug_overlay = RoutingDebugOverlay(
+            self,
+        )
+
+        self.scene.addItem(
+            self._routing_debug_overlay,
         )
 
         self.selection_inspector = (

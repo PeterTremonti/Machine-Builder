@@ -70,6 +70,30 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             Qt.MouseButton.LeftButton
         )
 
+    def set_routing_debug_mode(
+        self,
+        enabled: bool,
+    ) -> None:
+        """Enable or disable temporary routing diagnostics."""
+        self._routing_debug_mode = bool(enabled)
+
+        # Diagnostics deliberately ignore history-based escape selection.
+        self._overlap_escape_state.clear()
+
+    def debug_geometry(
+        self,
+    ) -> tuple[
+        tuple[QPointF, ...],
+        tuple[QPointF, ...] | None,
+        tuple[QPointF, ...],
+    ]:
+        """Return the last computed routing stages for diagnostics."""
+        return (
+            self._debug_start_escape,
+            self._debug_route,
+            self._debug_end_escape,
+        )
+
     def setLine(
         self,
         x1: float,
@@ -117,6 +141,23 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             obstacles=obstacles,
             direct_start=start,
             direct_end=end,
+        )
+
+        self._debug_start_escape = tuple(
+            QPointF(point)
+            for point in start_escape
+        )
+        self._debug_route = (
+            tuple(
+                QPointF(point)
+                for point in route
+            )
+            if route is not None
+            else None
+        )
+        self._debug_end_escape = tuple(
+            QPointF(point)
+            for point in end_escape
         )
 
         path = QPainterPath(
@@ -213,6 +254,9 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         state = self._overlap_escape_state.get(
             port_id,
         )
+
+        if self._routing_debug_mode:
+            state = None
 
         preferred_direction = (
             state.get("direction")
