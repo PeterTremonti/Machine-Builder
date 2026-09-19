@@ -157,20 +157,22 @@ def test_blocked_endpoint_escape_starts_at_stub_end() -> None:
 
     assert direction == "right"
 
-    assert len(escape) == 4
+    assert len(escape) == 3
 
-    # Fixed outward stub remains exactly 40 px.
-    assert escape[0] == QPointF(100.0, 90.0)
-    assert escape[1] == QPointF(140.0, 90.0)
+    assert escape[0] == QPointF(
+        100.0,
+        90.0,
+    )
 
-    # The escape turn occurs at the end of the fixed stub.
+    assert escape[1] == QPointF(
+        140.0,
+        90.0,
+    )
+
+    # The escape remains local to the fixed stub.
+    # The turn occurs at the stub endpoint.
     assert escape[2].x() == 140.0
     assert escape[2].y() != 90.0
-
-    # Final leg leaves the vertical escape orthogonally.
-    assert escape[3].y() == escape[2].y()
-    assert escape[3].x() != 140.0
-
 
 def test_direct_relevance_collects_nearby_obstacle() -> None:
     start = QPointF(
@@ -1040,5 +1042,87 @@ def test_route_does_not_enter_destination_stub_collinearly() -> None:
     assert not (
         abs(previous.y() - final.y()) < 0.001
         and final.x() > previous.x()
+    )
+
+def test_blocked_endpoint_escape_prefers_nearest_clear_direction() -> None:
+    from PySide6.QtCore import QPointF, QRectF
+
+    from machine_builder.graphics.connection_routing_endpoint import (
+        build_endpoint_escape,
+    )
+
+    escape, direction = build_endpoint_escape(
+        port_position=QPointF(
+            0.0,
+            0.0,
+        ),
+        side="right",
+        obstacles=[
+            QRectF(
+                20.0,
+                -5.0,
+                20.0,
+                35.0,
+            ),
+        ],
+        stub_length=40.0,
+        escape_clearance=1.0,
+        ignored_obstacles=[],
+    )
+
+    assert direction == "right"
+    assert escape[-1] == QPointF(
+        40.0,
+        -6.0,
+    )
+
+
+def test_blocked_endpoint_escape_hysteresis_holds_previous_direction() -> None:
+    from PySide6.QtCore import QPointF, QRectF
+
+    from machine_builder.graphics.connection_routing_endpoint import (
+        build_endpoint_escape,
+    )
+
+    kwargs = {
+        "port_position": QPointF(
+            0.0,
+            0.0,
+        ),
+        "side": "right",
+        "obstacles": [
+            QRectF(
+                20.0,
+                -5.0,
+                20.0,
+                35.0,
+            ),
+        ],
+        "stub_length": 40.0,
+        "escape_clearance": 1.0,
+        "ignored_obstacles": [],
+        "preferred_escape_direction": "down",
+        "escape_hysteresis_ratio": 0.20,
+        "escape_hysteresis_distance": 24.0,
+    }
+
+    held, _ = build_endpoint_escape(
+        **kwargs,
+        allow_escape_reselection=False,
+    )
+
+    switched, _ = build_endpoint_escape(
+        **kwargs,
+        allow_escape_reselection=True,
+    )
+
+    assert held[-1] == QPointF(
+        40.0,
+        31.0,
+    )
+
+    assert switched[-1] == QPointF(
+        40.0,
+        -6.0,
     )
 

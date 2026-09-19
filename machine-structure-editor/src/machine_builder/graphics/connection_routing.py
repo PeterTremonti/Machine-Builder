@@ -51,6 +51,10 @@ class ConnectionRoutingEngine:
         side: str,
         obstacles: list[QRectF],
         ignored_obstacles: list[QRectF] | None = None,
+        preferred_escape_direction: str | None = None,
+        allow_escape_reselection: bool = True,
+        escape_hysteresis_ratio: float = 0.20,
+        escape_hysteresis_distance: float = 24.0,
     ) -> tuple[list[QPointF], str]:
         """Build a fixed outward stub or an obstacle escape."""
         return endpoint_routing.build_endpoint_escape(
@@ -60,6 +64,18 @@ class ConnectionRoutingEngine:
             stub_length=cls.STUB_LENGTH,
             escape_clearance=cls.ESCAPE_CLEARANCE,
             ignored_obstacles=ignored_obstacles or [],
+            preferred_escape_direction=(
+                preferred_escape_direction
+            ),
+            allow_escape_reselection=(
+                allow_escape_reselection
+            ),
+            escape_hysteresis_ratio=(
+                escape_hysteresis_ratio
+            ),
+            escape_hysteresis_distance=(
+                escape_hysteresis_distance
+            ),
         )
 
     @classmethod

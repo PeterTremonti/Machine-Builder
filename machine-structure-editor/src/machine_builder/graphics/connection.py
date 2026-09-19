@@ -36,6 +36,17 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         self.endpoint_b_id = connection.endpoint_b_id
         self._selection_callback = selection_callback
 
+        # Temporary overlap-routing state. This is presentation/runtime
+        # state only; it is not part of the canonical machine model.
+        self._overlap_escape_state: dict[
+            str,
+            dict[str, Any],
+        ] = {}
+
+        self.OVERLAP_ESCAPE_RESELECT_DISTANCE = 24.0
+        self.OVERLAP_ESCAPE_IMPROVEMENT_RATIO = 0.20
+        self.OVERLAP_ESCAPE_MIN_IMPROVEMENT = 24.0
+
         self.setPen(
             QPen(
                 self.NORMAL_COLOR,
@@ -73,15 +84,14 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         )
 
         obstacles = self._collect_obstacles()
-        ignored_obstacles = (
-            self._collect_endpoint_obstacles()
-        )
+        physical_obstacles = self._collect_physical_obstacles()
 
         start_escape, start_direction = (
             self._build_endpoint_escape(
                 self.endpoint_a_id,
                 start,
                 obstacles,
+                physical_obstacles,
             )
         )
 
@@ -90,6 +100,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
                 self.endpoint_b_id,
                 end,
                 obstacles,
+                physical_obstacles,
             )
         )
 
@@ -157,6 +168,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         port_id: str,
         port_position: QPointF,
         obstacles: list[Any],
+        physical_obstacles: list[Any] | None = None,
     ) -> tuple[list[QPointF], str]:
         port_item = self._find_port_item(
             port_id,
@@ -184,20 +196,113 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
 
         if endpoint_node is not None:
             ignored_obstacles.append(
-                endpoint_node.sceneBoundingRect().adjusted(
-                    -self.ROUTING_MARGIN,
-                    -self.ROUTING_MARGIN,
-                    self.ROUTING_MARGIN,
-                    self.ROUTING_MARGIN,
-                )
+                endpoint_node.sceneBoundingRect()
             )
 
-        return ConnectionRoutingEngine.build_endpoint_escape(
-            port_position=port_position,
-            side=side,
-            obstacles=obstacles,
-            ignored_obstacles=ignored_obstacles,
+        endpoint_collision_obstacles = (
+            physical_obstacles
+            if physical_obstacles is not None
+            else obstacles
         )
+
+        state = self._overlap_escape_state.get(
+            port_id,
+        )
+
+        preferred_direction = (
+            state.get("direction")
+            if state is not None
+            else None
+        )
+
+        previous_position = (
+            state.get("position")
+            if state is not None
+            else None
+        )
+
+        if previous_position is None:
+            allow_reselection = True
+        else:
+            movement = (
+                (
+                    port_position.x()
+                    - previous_position.x()
+                ) ** 2
+                + (
+                    port_position.y()
+                    - previous_position.y()
+                ) ** 2
+            ) ** 0.5
+
+            allow_reselection = (
+                movement
+                >= self.OVERLAP_ESCAPE_RESELECT_DISTANCE
+            )
+
+        escape = (
+            ConnectionRoutingEngine.build_endpoint_escape(
+                port_position=port_position,
+                side=side,
+                obstacles=endpoint_collision_obstacles,
+                ignored_obstacles=ignored_obstacles,
+                preferred_escape_direction=(
+                    preferred_direction
+                ),
+                allow_escape_reselection=(
+                    allow_reselection
+                ),
+                escape_hysteresis_ratio=(
+                    self.OVERLAP_ESCAPE_IMPROVEMENT_RATIO
+                ),
+                escape_hysteresis_distance=(
+                    self.OVERLAP_ESCAPE_MIN_IMPROVEMENT
+                ),
+            )
+        )
+
+        points = escape[0]
+
+        if len(points) < 3:
+            self._overlap_escape_state.pop(
+                port_id,
+                None,
+            )
+        else:
+            previous = points[-2]
+            final = points[-1]
+
+            if abs(
+                final.x()
+                - previous.x()
+            ) >= 0.001:
+                escape_direction = (
+                    "right"
+                    if final.x() > previous.x()
+                    else "left"
+                )
+            elif abs(
+                final.y()
+                - previous.y()
+            ) >= 0.001:
+                escape_direction = (
+                    "down"
+                    if final.y() > previous.y()
+                    else "up"
+                )
+            else:
+                escape_direction = "none"
+
+            self._overlap_escape_state[
+                port_id
+            ] = {
+                "direction": escape_direction,
+                "position": QPointF(
+                    port_position,
+                ),
+            }
+
+        return escape
 
     def _build_endpoint_stub(
         self,
@@ -295,6 +400,36 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             return None
 
         return port_item.parentItem()
+
+    def _collect_physical_obstacles(self) -> list[Any]:
+        """Return actual component bounds for endpoint-stub collision checks."""
+        scene = self.scene()
+
+        if scene is None:
+            return []
+
+        obstacles = []
+
+        for item in scene.items():
+            if not isinstance(
+                item,
+                QGraphicsRectItem,
+            ):
+                continue
+
+            if item is self:
+                continue
+
+            rect = item.sceneBoundingRect()
+
+            if rect.isEmpty():
+                continue
+
+            obstacles.append(
+                rect,
+            )
+
+        return obstacles
 
     def _collect_obstacles(self) -> list[Any]:
         scene = self.scene()

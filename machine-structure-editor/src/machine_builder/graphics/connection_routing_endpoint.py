@@ -63,6 +63,10 @@ def build_endpoint_escape(
     stub_length: float,
     escape_clearance: float,
     ignored_obstacles: list[QRectF],
+    preferred_escape_direction: str | None = None,
+    allow_escape_reselection: bool = True,
+    escape_hysteresis_ratio: float = 0.20,
+    escape_hysteresis_distance: float = 24.0,
 ) -> tuple[list[QPointF], str]:
     """Build a fixed outward stub or an obstacle escape."""
 
@@ -121,15 +125,28 @@ def build_endpoint_escape(
         clearance=escape_clearance,
     )
 
-    for candidate in candidates:
+    clear_candidates = [
+        candidate
+        for candidate in candidates
         if _candidate_is_clear(
             candidate,
             active_obstacles,
-        ):
-            return (
-                candidate,
-                direction,
-            )
+        )
+    ]
+
+    if clear_candidates:
+        selected = _choose_escape_candidate(
+            clear_candidates,
+            preferred_direction=preferred_escape_direction,
+            allow_reselection=allow_escape_reselection,
+            improvement_ratio=escape_hysteresis_ratio,
+            minimum_improvement=escape_hysteresis_distance,
+        )
+
+        return (
+            selected,
+            direction,
+        )
 
     # The placement is probably invalid. Preserve the fixed stub instead
     # of moving the component or inventing an arbitrary route.
@@ -137,6 +154,124 @@ def build_endpoint_escape(
         fixed_stub,
         direction,
     )
+
+
+def _escape_candidate_direction(
+    candidate: list[QPointF],
+) -> str:
+    """Return the direction of the candidate's escape turn."""
+    if len(candidate) < 3:
+        return "none"
+
+    start = candidate[-2]
+    end = candidate[-1]
+
+    if abs(end.x() - start.x()) >= 0.001:
+        return (
+            "right"
+            if end.x() > start.x()
+            else "left"
+        )
+
+    if abs(end.y() - start.y()) >= 0.001:
+        return (
+            "down"
+            if end.y() > start.y()
+            else "up"
+        )
+
+    return "none"
+
+
+def _escape_candidate_distance(
+    candidate: list[QPointF],
+) -> float:
+    """Return the distance traveled after the fixed stub."""
+    if len(candidate) < 3:
+        return 0.0
+
+    return sum(
+        abs(
+            candidate[index + 1].x()
+            - candidate[index].x()
+        )
+        + abs(
+            candidate[index + 1].y()
+            - candidate[index].y()
+        )
+        for index in range(
+            1,
+            len(candidate) - 1,
+        )
+    )
+
+
+def _choose_escape_candidate(
+    candidates: list[list[QPointF]],
+    *,
+    preferred_direction: str | None,
+    allow_reselection: bool,
+    improvement_ratio: float,
+    minimum_improvement: float,
+) -> list[QPointF]:
+    """Choose the nearest escape while honoring hysteresis."""
+    if not candidates:
+        raise ValueError(
+            "At least one escape candidate is required."
+        )
+
+    best = min(
+        candidates,
+        key=_escape_candidate_distance,
+    )
+
+    if not preferred_direction:
+        return best
+
+    preferred = next(
+        (
+            candidate
+            for candidate in candidates
+            if _escape_candidate_direction(candidate)
+            == preferred_direction
+        ),
+        None,
+    )
+
+    if preferred is None:
+        return best
+
+    if preferred is best:
+        return preferred
+
+    if not allow_reselection:
+        return preferred
+
+    preferred_distance = _escape_candidate_distance(
+        preferred,
+    )
+
+    best_distance = _escape_candidate_distance(
+        best,
+    )
+
+    improvement = (
+        preferred_distance
+        - best_distance
+    )
+
+    if (
+        improvement >= minimum_improvement
+        and best_distance
+        <= preferred_distance
+        * (
+            1.0
+            - improvement_ratio
+        )
+    ):
+        return best
+
+    return preferred
 
 
 def _build_escape_candidates(
@@ -147,7 +282,7 @@ def _build_escape_candidates(
     blocking: list[QRectF],
     clearance: float,
 ) -> list[list[QPointF]]:
-    """Build escape routes that turn at the end of the fixed stub."""
+    """Build local escapes that turn at the end of the fixed stub."""
 
     if side in {
         "right",
@@ -169,20 +304,8 @@ def _build_escape_candidates(
             + clearance
         )
 
-        horizontal_clear_x = (
-            max(
-                rect.right()
-                for rect in blocking
-            )
-            + clearance
-            if side == "right"
-            else min(
-                rect.left()
-                for rect in blocking
-            )
-            - clearance
-        )
-
+        # Escape only perpendicular to the fixed stub.
+        # The main route owns the global movement after this point.
         return [
             [
                 port_position,
@@ -191,20 +314,12 @@ def _build_escape_candidates(
                     stub_end.x(),
                     up_y,
                 ),
-                QPointF(
-                    horizontal_clear_x,
-                    up_y,
-                ),
             ],
             [
                 port_position,
                 stub_end,
                 QPointF(
                     stub_end.x(),
-                    down_y,
-                ),
-                QPointF(
-                    horizontal_clear_x,
                     down_y,
                 ),
             ],
@@ -226,20 +341,8 @@ def _build_escape_candidates(
         + clearance
     )
 
-    vertical_clear_y = (
-        min(
-            rect.top()
-            for rect in blocking
-        )
-        - clearance
-        if side == "top"
-        else max(
-            rect.bottom()
-            for rect in blocking
-        )
-        + clearance
-    )
-
+    # Escape only perpendicular to the fixed stub.
+    # The main route owns the global movement after this point.
     return [
         [
             port_position,
@@ -248,10 +351,6 @@ def _build_escape_candidates(
                 left_x,
                 stub_end.y(),
             ),
-            QPointF(
-                left_x,
-                vertical_clear_y,
-            ),
         ],
         [
             port_position,
@@ -260,13 +359,8 @@ def _build_escape_candidates(
                 right_x,
                 stub_end.y(),
             ),
-            QPointF(
-                right_x,
-                vertical_clear_y,
-            ),
         ],
     ]
-
 
 def _candidate_is_clear(
     route: list[QPointF],
