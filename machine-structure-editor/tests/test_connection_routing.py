@@ -356,6 +356,91 @@ def test_distant_obstacle_does_not_change_route() -> None:
     assert with_distant_obstacle == baseline
 
 
+def test_route_does_not_use_too_narrow_obstacle_corridor() -> None:
+    obstacles = [
+        QRectF(
+            100.0,
+            -102.0,
+            100.0,
+            100.0,
+        ),
+        QRectF(
+            100.0,
+            2.0,
+            100.0,
+            100.0,
+        ),
+    ]
+
+    route = ConnectionRoutingEngine.build_route(
+        QPointF(
+            0.0,
+            0.0,
+        ),
+        QPointF(
+            300.0,
+            0.0,
+        ),
+        "right",
+        "left",
+        obstacles,
+    )
+
+    assert route is not None
+    assert len(route) > 2
+    assert ConnectionRoutingEngine.route_is_clear(
+        route,
+        obstacles,
+    )
+
+
+def test_route_relevance_expands_from_candidate_route() -> None:
+    start = QPointF(
+        100.0,
+        150.0,
+    )
+
+    end = QPointF(
+        500.0,
+        150.0,
+    )
+
+    first_obstacle = QRectF(
+        180.0,
+        80.0,
+        80.0,
+        140.0,
+    )
+
+    second_obstacle = QRectF(
+        300.0,
+        -20.0,
+        100.0,
+        80.0,
+    )
+
+    route = ConnectionRoutingEngine.build_route(
+        start,
+        end,
+        "right",
+        "left",
+        [
+            first_obstacle,
+            second_obstacle,
+        ],
+    )
+
+    assert route is not None
+
+    assert ConnectionRoutingEngine.route_is_clear(
+        route,
+        [
+            first_obstacle,
+            second_obstacle,
+        ],
+    )
+
+
 def test_unobstructed_route_is_orthogonal() -> None:
     route = (
         ConnectionRoutingEngine.build_route(
@@ -783,6 +868,125 @@ def test_reported_endpoint_case_routes_around_controller_zone() -> None:
             ],
         )
     )
+
+
+def test_route_cost_treats_equal_distance_and_bends_as_equal() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    route_a = (
+        QPointF(0.0, 0.0),
+        QPointF(10.0, 0.0),
+        QPointF(10.0, 10.0),
+        QPointF(20.0, 10.0),
+    )
+
+    route_b = (
+        QPointF(0.0, 0.0),
+        QPointF(10.0, 0.0),
+        QPointF(10.0, -10.0),
+        QPointF(20.0, -10.0),
+    )
+
+    assert connection._route_cost(
+        route_a,
+        "right",
+        "right",
+    ) == connection._route_cost(
+        route_b,
+        "right",
+        "right",
+    )
+
+
+def test_route_stability_keeps_equal_cost_previous_route() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    previous = (
+        QPointF(0.0, 0.0),
+        QPointF(10.0, 0.0),
+        QPointF(10.0, 10.0),
+        QPointF(20.0, 10.0),
+    )
+
+    candidate = (
+        QPointF(0.0, 0.0),
+        QPointF(0.0, 10.0),
+        QPointF(10.0, 10.0),
+        QPointF(20.0, 10.0),
+    )
+
+    connection._stable_route = previous
+
+    selected = connection._select_stable_route(
+        candidate_route=list(candidate),
+        start=previous[0],
+        end=previous[-1],
+        start_direction="right",
+        end_direction="right",
+        obstacles=[],
+    )
+
+    assert selected == list(previous)
+
+
+def test_route_stability_accepts_materially_better_route() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    previous = (
+        QPointF(0.0, 0.0),
+        QPointF(100.0, 0.0),
+        QPointF(100.0, 100.0),
+        QPointF(0.0, 100.0),
+        QPointF(0.0, 200.0),
+        QPointF(200.0, 200.0),
+    )
+
+    candidate = (
+        QPointF(0.0, 0.0),
+        QPointF(0.0, 10.0),
+        QPointF(200.0, 10.0),
+        QPointF(200.0, 200.0),
+    )
+
+    connection._stable_route = previous
+
+    selected = connection._select_stable_route(
+        candidate_route=list(candidate),
+        start=previous[0],
+        end=previous[-1],
+        start_direction="right",
+        end_direction="right",
+        obstacles=[],
+    )
+
+    assert selected == list(candidate)
 
 
 def test_unrelated_remote_component_does_not_change_graphics_route() -> None:

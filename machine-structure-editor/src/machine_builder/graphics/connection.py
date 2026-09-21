@@ -44,6 +44,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         ] = {}
 
         self._routing_debug_mode = False
+        self._stable_route: tuple[QPointF, ...] | None = None
         self._debug_start_escape: tuple[QPointF, ...] = ()
         self._debug_route: tuple[QPointF, ...] | None = None
         self._debug_end_escape: tuple[QPointF, ...] = ()
@@ -51,6 +52,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         self.OVERLAP_ESCAPE_RESELECT_DISTANCE = 24.0
         self.OVERLAP_ESCAPE_IMPROVEMENT_RATIO = 0.20
         self.OVERLAP_ESCAPE_MIN_IMPROVEMENT = 24.0
+        self.ROUTE_STABILITY_COST_TOLERANCE = 4.0
 
         self.setPen(
             QPen(
@@ -94,6 +96,134 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             self._debug_end_escape,
         )
 
+    @staticmethod
+    def _route_direction(
+        start: QPointF,
+        end: QPointF,
+    ) -> str:
+        delta_x = end.x() - start.x()
+        delta_y = end.y() - start.y()
+
+        if abs(delta_x) >= 0.001:
+            return "right" if delta_x > 0 else "left"
+
+        if abs(delta_y) >= 0.001:
+            return "down" if delta_y > 0 else "up"
+
+        return "none"
+
+    @classmethod
+    def _route_cost(
+        cls,
+        route: tuple[QPointF, ...] | list[QPointF],
+        start_direction: str,
+        end_direction: str,
+    ) -> float:
+        if len(route) < 2:
+            return 0.0
+
+        distance = 0.0
+
+        for index in range(len(route) - 1):
+            distance += (
+                abs(
+                    route[index + 1].x()
+                    - route[index].x()
+                )
+                + abs(
+                    route[index + 1].y()
+                    - route[index].y()
+                )
+            )
+
+        cost = (
+            distance
+            + max(0, len(route) - 2)
+            * ConnectionRoutingEngine.BEND_PENALTY
+        )
+
+        first_direction = cls._route_direction(
+            route[0],
+            route[1],
+        )
+        last_direction = cls._route_direction(
+            route[-2],
+            route[-1],
+        )
+
+        if (
+            start_direction != "none"
+            and first_direction != start_direction
+        ):
+            cost += (
+                ConnectionRoutingEngine.ENDPOINT_DIRECTION_PENALTY
+            )
+
+        if (
+            end_direction != "none"
+            and last_direction != end_direction
+        ):
+            cost += (
+                ConnectionRoutingEngine.ENDPOINT_DIRECTION_PENALTY
+            )
+
+        return cost
+
+    def _select_stable_route(
+        self,
+        candidate_route: list[QPointF] | None,
+        start: QPointF,
+        end: QPointF,
+        start_direction: str,
+        end_direction: str,
+        obstacles: list[Any],
+    ) -> list[QPointF] | None:
+        if candidate_route is None:
+            self._stable_route = None
+            return None
+
+        candidate = tuple(
+            QPointF(point)
+            for point in candidate_route
+        )
+
+        previous = self._stable_route
+
+        if (
+            self._routing_debug_mode
+            or previous is None
+            or len(previous) < 2
+            or previous[0] != start
+            or previous[-1] != end
+            or not ConnectionRoutingEngine.route_is_clear(
+                list(previous),
+                obstacles,
+            )
+        ):
+            self._stable_route = candidate
+            return list(candidate)
+
+        candidate_cost = self._route_cost(
+            candidate,
+            start_direction,
+            end_direction,
+        )
+        previous_cost = self._route_cost(
+            previous,
+            start_direction,
+            end_direction,
+        )
+
+        if (
+            previous_cost
+            <= candidate_cost
+            + self.ROUTE_STABILITY_COST_TOLERANCE
+        ):
+            return list(previous)
+
+        self._stable_route = candidate
+        return list(candidate)
+
     def setLine(
         self,
         x1: float,
@@ -133,7 +263,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             )
         )
 
-        route = ConnectionRoutingEngine.build_route(
+        candidate_route = ConnectionRoutingEngine.build_route(
             start=start_escape[-1],
             end=end_escape[-1],
             start_direction=start_direction,
@@ -141,6 +271,15 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             obstacles=obstacles,
             direct_start=start,
             direct_end=end,
+        )
+
+        route = self._select_stable_route(
+            candidate_route=candidate_route,
+            start=start_escape[-1],
+            end=end_escape[-1],
+            start_direction=start_direction,
+            end_direction=end_direction,
+            obstacles=obstacles,
         )
 
         self._debug_start_escape = tuple(

@@ -896,3 +896,629 @@ At a meaningful implementation checkpoint:
 6. use the repository as the starting point for the next chat
 
 The repository is the durable shared memory between chats.
+
+
+
+
+Note from the human:
+as of 9/20/26 9:45pm, the maximum length of the chat has been reached with no warning before i was able to push to github.  Here is the last few bits of the conversation that i could copy...
+
+I kept going, and I found one important thing before we make another change:
+
+
+After that, the important live test is the controller-body case. Put the controller back where you previously got the wire to pass through it and see whether the route now recognizes the controller as an obstacle and goes around it.
+
+686 passed in 2.51s
+
+I can't get the wire to go through another box any more.
+
+Excellent. That confirms the iterative relevance fix is doing what we wanted. The router is no longer allowing a component to disappear from consideration just because it wasn't near the initial probe.
+
+Current checkpoint:
+
+686 passed
+
+And we now have:
+
+Routing diagnostics working.
+Debug repaint/vapor-trail problem fixed.
+Narrow-corridor protection added.
+Relevance-chain protection added.
+Candidate-route relevance expanded iteratively.
+No more reproducible wires passing through component bodies.
+
+The remaining question is the elbow stability behavior. Now that collision avoidance is behaving properly, I'd test that with Routing Debug Mode OFF, because our stability code intentionally bypasses route-history reuse while diagnostics are enabled.
+
+Move one of the components around where you've previously seen the elbow change. We don't need to reproduce the exact five positions; we're just checking whether an otherwise-valid elbow now stays put instead of hopping between equivalent positions.
+
+If that looks stable, we're probably at another good checkpoint.
+
+this is the closest i can get to a jitter. here are the 4 positions first.
+
+Selection
+----------
+label: Temperature Sensor
+id: node-1
+type: temperature_sensor
+semantic reference: component-node-1
+
+Position
+--------
+x: -261.000
+y: -180.000
+width: 180.000
+height: 100.000
+rotation: 0.000
+
+Bounds
+------
+left: -261.000
+top: -180.000
+right: -81.000
+bottom: -80.000
+
+Ports
+-----
+Reference / Ground [node-1-ground]
+  side: left
+  order: 0
+  type: electrical
+  direction: bidirectional
+  semantic reference: none
+  connections: none
+Temperature Output [node-1-temperature]
+  side: right
+  order: 0
+  type: signal
+  direction: output
+  semantic reference: none
+  connections:
+    connection-1 → Temperature Controller / Temperature Input
+
+Selection
+----------
+label: Temperature Controller
+id: node-2
+type: temperature_controller
+semantic reference: component-node-2
+
+Position
+--------
+x: -254.107
+y: 159.786
+width: 180.000
+height: 100.000
+rotation: 0.000
+
+Bounds
+------
+left: -254.107
+top: 159.786
+right: -74.107
+bottom: 259.786
+
+Ports
+-----
+Power Input [node-2-power]
+  side: left
+  order: 0
+  type: electrical
+  direction: input
+  semantic reference: none
+  connections: none
+Temperature Input [node-2-temperature]
+  side: right
+  order: 0
+  type: signal
+  direction: input
+  semantic reference: none
+  connections:
+    connection-1 → Temperature Sensor / Temperature Output
+
+Selection
+----------
+label: Component
+id: node-4
+type: component
+semantic reference: component-node-4
+
+Position
+--------
+x: -33.000
+y: 26.000
+width: 180.000
+height: 100.000
+rotation: 0.000
+
+Bounds
+------
+left: -33.000
+top: 26.000
+right: 147.000
+bottom: 126.000
+
+Ports
+-----
+Interface [node-4-port]
+  side: right
+  order: 0
+  type: unknown
+  direction: unknown
+  semantic reference: none
+  connections: none
+
+Selection
+----------
+label: Component
+id: node-3
+type: component
+semantic reference: component-node-3
+
+Position
+--------
+x: -26.102
+y: 1.611
+width: 180.000
+height: 100.000
+rotation: 0.000
+
+Bounds
+------
+left: -26.102
+top: 1.611
+right: 153.898
+bottom: 101.611
+
+Ports
+-----
+Interface [node-3-port]
+  side: right
+  order: 0
+  type: unknown
+  direction: unknown
+  semantic reference: none
+  connections: none
+
+Got it. I’ll treat this as position 1 of 4 and hold off on analyzing the routing until you send the other three positions and what the wire is doing in each.
+
+
+right now, the wire goes up from the controller stub, then left to the edge of the lower component, then up above the boundary layer of the upper component, then right past the sensor stub, then up to the sensor stub, then left into the sensor stub.
+
+2nd location. just jumps up to the lower sensor boundary layer before turning.
+Selection
+----------
+label: Component
+id: node-3
+type: component
+semantic reference: component-node-3
+
+Position
+--------
+x: -25.613
+y: 1.285
+width: 180.000
+height: 100.000
+rotation: 0.000
+
+Bounds
+------
+left: -25.613
+top: 1.285
+right: 154.387
+bottom: 101.285
+
+Ports
+-----
+Interface [node-3-port]
+  side: right
+  order: 0
+  type: unknown
+  direction: unknown
+  semantic reference: none
+  connections: none
+
+after moving the upper component slightly, the wire jumps to the upper component boundary layer.
+
+Selection
+----------
+label: Component
+id: node-3
+type: component
+semantic reference: component-node-3
+
+Position
+--------
+x: -24.308
+y: 2.590
+width: 180.000
+height: 100.000
+rotation: 0.000
+
+Bounds
+------
+left: -24.308
+top: 2.590
+right: 155.692
+bottom: 102.590
+
+Ports
+-----
+Interface [node-3-port]
+  side: right
+  order: 0
+  type: unknown
+  direction: unknown
+  semantic reference: none
+  connections: none
+
+Yep, I can see the pattern starting to emerge, but I don't want to diagnose it from only three states.
+
+So far we have:
+
+Position 1
+The route takes the long path around the lower component, then above the upper component, then to the sensor.
+
+Position 2
+A tiny movement changes the elbow to the lower component's clearance boundary.
+
+Position 3
+Another tiny movement changes it again to the upper component's clearance boundary.
+
+The especially interesting part is that these are very small movements:
+
+position 1 → 2:
+x -26.102 → -25.613
+y   1.611 →   1.285
+
+position 2 → 3:
+x -25.613 → -24.308
+y   1.285 →  2.590
+
+That is exactly the sort of behavior our route-stability logic was supposed to suppress when the previous route remains valid and approximately equal in cost.
+
+Send me the fourth position/description. Then I'll compare all four against the stability logic rather than guessing from the visual behavior.
+
+i don't seem to be able to recreate a 4th position right now
+
+That's okay. We don't need a fourth position anymore. The three positions are enough to investigate this because the interesting behavior is already visible: tiny movement of node-3 is changing which clearance boundary the route uses.
+
+Rather than making you hunt for a fourth position, let's test those three exact positions against the current router and, crucially, check whether the previous route is still considered valid when the component moves.
+Run this read-only test:
+
+@'
+from PySide6.QtCore import QPointF, QRectF
+
+from machine_builder.graphics.connection_routing import (
+    ConnectionRoutingEngine,
+)
+
+# Fixed endpoint ports from the three captured states.
+sensor_port = QPointF(-81.0, -130.0)
+controller_port = QPointF(-74.107, 209.786)
+
+sensor_stub = ConnectionRoutingEngine.build_endpoint_stub(
+    sensor_port,
+    "right",
+)[0]
+
+controller_stub = ConnectionRoutingEngine.build_endpoint_stub(
+    controller_port,
+    "right",
+)[0]
+
+cases = [
+    ("1", -26.102, 1.611),
+    ("2", -25.613, 1.285),
+    ("3", -24.308, 2.590),
+]
+
+lower = QRectF(
+    -33.0,
+    26.0,
+    180.0,
+    100.0,
+).adjusted(
+    -ConnectionRoutingEngine.ROUTING_MARGIN,
+    -ConnectionRoutingEngine.ROUTING_MARGIN,
+    ConnectionRoutingEngine.ROUTING_MARGIN,
+    ConnectionRoutingEngine.ROUTING_MARGIN,
+)
+
+previous = None
+
+for label, x, y in cases:
+    upper = QRectF(
+        x,
+        y,
+        180.0,
+        100.0,
+    ).adjusted(
+        -ConnectionRoutingEngine.ROUTING_MARGIN,
+        -ConnectionRoutingEngine.ROUTING_MARGIN,
+        ConnectionRoutingEngine.ROUTING_MARGIN,
+        ConnectionRoutingEngine.ROUTING_MARGIN,
+    )
+
+    obstacles = [lower, upper]
+
+    route = ConnectionRoutingEngine.build_route(
+        start=sensor_stub,
+        end=controller_stub,
+        start_direction="right",
+        end_direction="right",
+        obstacles=obstacles,
+    )
+
+    print()
+    print(f"=== POSITION {label} ===")
+    print("upper:", upper)
+
+    if route is None:
+        print("RAW ROUTE: NONE")
+        previous = None
+        continue
+
+    length = 0.0
+
+    for i in range(len(route) - 1):
+        length += (
+            abs(route[i + 1].x() - route[i].x())
+            + abs(route[i + 1].y() - route[i].y())
+        )
+
+    bends = max(0, len(route) - 2)
+    cost = (
+        length
+        + bends * ConnectionRoutingEngine.BEND_PENALTY
+    )
+
+    print("raw length:", round(length, 3))
+    print("raw bends:", bends)
+    print("raw cost:", round(cost, 3))
+    print("raw route:")
+
+    for point in route:
+        print(
+            "  ",
+            round(point.x(), 3),
+            round(point.y(), 3),
+        )
+
+    if previous is not None:
+        still_clear = ConnectionRoutingEngine.route_is_clear(
+            previous,
+            obstacles,
+        )
+
+        print("previous route still clear:", still_clear)
+
+    previous = route
+'@ | python
+
+This is the key question now:
+
+When the elbow jumps, is the previous route actually becoming invalid, or is the stability mechanism failing to preserve a still-valid equal-cost route?
+
+Those are two very different problems, and this test should tell us which one we're dealing with.
+
+
+
+=== POSITION 1 ===
+upper: PySide6.QtCore.QRectF(-42.102000, -14.389000, 212.000000, 132.000000)
+raw length: 376.465
+raw bends: 5
+raw cost: 776.465
+raw route:
+   -41.0 -130.0
+   -34.107 -130.0
+   -34.107 -14.389
+   -49.0 -14.389
+   -49.0 174.0
+   -34.107 174.0
+   -34.107 209.786
+
+=== POSITION 2 ===
+upper: PySide6.QtCore.QRectF(-41.613000, -14.715000, 212.000000, 132.000000)
+raw length: 376.465
+raw bends: 5
+raw cost: 776.465
+raw route:
+   -41.0 -130.0
+   -34.107 -130.0
+   -34.107 -22.0
+   -49.0 -22.0
+   -49.0 174.0
+   -34.107 174.0
+   -34.107 209.786
+previous route still clear: False
+
+=== POSITION 3 ===
+upper: PySide6.QtCore.QRectF(-40.308000, -13.410000, 212.000000, 132.000000)
+raw length: 364.063
+raw bends: 5
+raw cost: 764.063
+raw route:
+   -41.0 -130.0
+   -40.308 -130.0
+   -40.308 10.0
+   -49.0 10.0
+   -49.0 174.0
+   -34.107 174.0
+   -34.107 209.786
+previous route still clear: True
+(.venv) PS C:\Users\Peter\Documents\GitHub\Machine-Builder\machine-structure-editor> 
+
+That result finally gives us a very clear answer.
+
+Position 1 → Position 2
+
+The old route becomes invalid:
+
+previous route still clear: False
+
+So the router must change routes. That's correct behavior.
+
+Position 2 → Position 3
+
+This is the interesting one:
+
+previous route still clear: True
+
+but the newly calculated route is:
+
+old cost: 776.465
+new cost: 764.063
+difference: 12.402
+
+Both routes have 5 bends, so the entire improvement is geometric distance.
+
+Our stability rule currently says:
+
+keep old route when:
+old cost <= new cost + 4
+
+But here the new route is 12.4 cost units better, so the code deliberately switches.
+
+And that's exactly why you're seeing the elbow jump.
+
+So the stability fix is working — but our threshold is probably too small
+
+We successfully eliminated arbitrary equal-cost switching. Now we've uncovered a subtler UX issue:
+
+A very small improvement in route cost can produce a large visible relocation of an elbow.
+
+The path moves from approximately:
+
+(-49, -22)
+
+to:
+
+(-49, 10)
+
+That's a 32-pixel vertical jump, even though the route only became 12.4 cost units better.
+
+I would not call the routing algorithm broken anymore. The question is now what visual stability policy we want.
+
+My instinct is to increase the route-stability tolerance from:
+
+ROUTE_STABILITY_COST_TOLERANCE = 4.0
+
+to something closer to the existing 24 px hysteresis scale.
+
+But I don't want to blindly choose 24 just because that number already exists elsewhere. The next sensible step is to test the same three positions with a few candidate tolerances and see what would happen.
+
+We can do that entirely from the console before touching the code.
+
+ok. go for it
+
+That gives us a pretty clean result.
+
+For the captured position 2 → position 3 transition:
+
+Stability tolerance	Result
+4 px	switches
+8 px	switches
+10 px	switches
+12 px	switches
+12.5 px	holds previous route
+16 px	holds
+20 px	holds
+24 px	holds
+
+The candidate route is only 12.402 px cheaper, while moving the visible elbow by roughly 32 px. So the current 4 px tolerance is definitely too small for the visual behavior we're trying to achieve.
+
+The important part is that position 1 → 2 still must change because the previous route is no longer clear. The stability tolerance does not interfere with that safety condition.
+
+What I'd use
+
+I recommend changing:
+
+ROUTE_STABILITY_COST_TOLERANCE = 4.0
+
+to:
+
+ROUTE_STABILITY_COST_TOLERANCE = 16.0
+
+That gives us some room above the 12.402 px case without going all the way to the existing 24 px endpoint hysteresis.
+
+I would not use 24 yet. That's enough of a preference that it could start making legitimate route improvements feel sluggish.
+
+No code has been changed from this experiment.
+
+Today 3:34 PM
+so do i do anything now or do you keep testing different positions?
+
+Don’t change anything yet.
+
+For the three positions we already captured, the evidence is clear: 4 px is too small, and 16 px looks like a sensible candidate. But I would rather test a few more different movements before locking that value in.
+
+The important distinction is that I can analyze the captured geometry here, but I can’t generate new GUI positions from your running editor. So the next useful step is for you to move the controller through a few nearby positions and send me the debug geometry/cost output when you see the route change.
+
+Leave the code exactly as it is for now.
+
+ok. keep it going
+
+I kept going, and I found one important thing before we make another change:
+
+The GitHub WIP branch I can access does not contain the newer route-stability code yet. Its connection.py still goes directly from build_route() to drawing the result, while the endpoint escape hysteresis is present at 24 px.
+
+The routing grid itself is deterministic: candidate coordinates are built from obstacle edges, and the horizontal/vertical adjacency lists are sorted before pathfinding. So this is not looking like random router behavior.
+
+So I don't want you changing or pushing anything yet. Our local 685-test stability patch is ahead of what's on GitHub, and I can't reliably generate new-position results against that exact unpushed state from here.
+
+The next useful experiment is therefore still with the three-position sequence you already have, plus a few more nearby movements in the running editor. Keep Routing Debug Mode OFF while doing this, since the stability logic intentionally bypasses history when diagnostics are enabled.
+
+You haven't broken anything or reached a dead end—we've narrowed this down to tuning the route-hold behavior rather than rewriting the router.
+
+ok. keep it going and let me know when to merge the branch or whatever
+
+Yep. I’m continuing with the code-side analysis, and you do not merge anything yet.
+
+I checked the current wip-routing-diagnostics branch again. The router is deterministic: its candidate points are sorted, and Dijkstra uses an explicit cost consisting of distance plus bend and endpoint-direction penalties. The existing endpoint escape hysteresis is also already 24 px.
+
+The one thing that is not yet on GitHub is our newer main-route stability layer; the remote connection.py still sends the freshly calculated route directly to the graphics path.
+
+So our order is:
+
+1. Finish validating the stability behavior.
+2. Choose the tolerance.
+3. Add/finish regression tests for the actual jitter case.
+4. Run the full suite.
+5. Commit/push the completed WIP checkpoint.
+6. Then I’ll tell you “this is ready to merge.”
+
+Until I say that, stay on wip-routing-diagnostics and don't merge it into main.
+
+One useful thing I confirmed from the existing tests is that the project already treats routing persistence/hysteresis as presentation/runtime behavior rather than canonical machine data, which is exactly where this stability fix belongs.
+
+So we're still on the right track; nothing for you to change right now.
+
+ok. what's next?
+
+Next is one targeted GUI test pass, not a code change.
+
+We have already established that:
+
+Position 1 → 2: the old route becomes invalid, so changing routes is required.
+Position 2 → 3: the old route is still valid, but the router finds a route only 12.402 cost units cheaper, causing the large elbow jump.
+That tells us the stability mechanism works, but we don't yet know whether 16 px is the right threshold across other geometries.
+
+So, on your current WIP branch, leave the code alone and do this:
+
+Turn Routing Debug Mode OFF.
+Put the controller/sensor in the geometry where you were seeing the elbow jump.
+Move the controller in small increments around that area.
+Watch for three kinds of behavior:
+route stays put while the box moves slightly;
+route moves smoothly when it actually needs to;
+route changes abruptly even though the previous route is still visibly valid.
+
+We only need a handful of distinct examples. Don't try to reproduce an exact sequence unless it happens naturally.
+
+Once we've got those cases, I'll decide whether the final rule should simply be 16.0, or whether the stability logic needs a slightly better criterion than raw route-cost tolerance.
+
+And still don't merge anything. The next checkpoint will be: code finalized → full pytest run → commit/push → then I'll tell you it's ready to merge.
+
+You've reached the maximum length for this conversation, but you can keep talking by starting a new chat.
+
+Start new chat

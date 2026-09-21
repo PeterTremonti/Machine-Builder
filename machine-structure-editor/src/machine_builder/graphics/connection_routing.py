@@ -178,20 +178,89 @@ class ConnectionRoutingEngine:
             )
         )
 
-        return build_pathfinder_route(
-            start=start,
-            end=end,
-            start_direction=start_direction,
-            end_direction=end_direction,
-            obstacles=relevant_obstacles,
-            bend_penalty=cls.BEND_PENALTY,
-            endpoint_direction_penalty=(
-                cls.ENDPOINT_DIRECTION_PENALTY
-            ),
-            u_turn_min_separation=(
-                cls.U_TURN_MIN_SEPARATION
-            ),
+        # Relevance is discovered iteratively. An obstacle that is not
+        # near the initial probes may still become relevant after the
+        # pathfinder chooses a route around another obstacle.
+        max_passes = max(
+            1,
+            len(obstacles) + 1,
         )
+
+        for _ in range(max_passes):
+            route = build_pathfinder_route(
+                start=start,
+                end=end,
+                start_direction=start_direction,
+                end_direction=end_direction,
+                obstacles=relevant_obstacles,
+                bend_penalty=cls.BEND_PENALTY,
+                endpoint_direction_penalty=(
+                    cls.ENDPOINT_DIRECTION_PENALTY
+                ),
+                u_turn_min_separation=(
+                    cls.U_TURN_MIN_SEPARATION
+                ),
+            )
+
+            if route is None:
+                return None
+
+            newly_relevant = (
+                relevance.collect_relevant_obstacles(
+                    route,
+                    obstacles,
+                    cls.ROUTING_RELEVANCE_RADIUS,
+                    ignored_obstacles or [],
+                )
+            )
+
+            merged = relevance.dedupe_rectangles(
+                [
+                    *relevant_obstacles,
+                    *newly_relevant,
+                ]
+            )
+
+            if len(merged) == len(relevant_obstacles):
+                # Final safety check: an obstacle that the relevance
+                # geometry somehow missed must not remain invisible if
+                # the candidate route actually crosses it.
+                blocking = [
+                    obstacle
+                    for obstacle in obstacles
+                    if any(
+                        obstacle == ignored
+                        for ignored in (
+                            ignored_obstacles or []
+                        )
+                    )
+                    or not (
+                        cls.route_is_clear(
+                            route,
+                            [obstacle],
+                        )
+                    )
+                ]
+
+                if blocking:
+                    merged = relevance.dedupe_rectangles(
+                        [
+                            *relevant_obstacles,
+                            *blocking,
+                        ]
+                    )
+
+                    if len(merged) != len(
+                        relevant_obstacles
+                    ):
+                        relevant_obstacles = merged
+                        continue
+
+                return route
+
+            relevant_obstacles = merged
+
+        return None
 
     @staticmethod
     def route_is_clear(
