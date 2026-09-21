@@ -52,7 +52,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         self.OVERLAP_ESCAPE_RESELECT_DISTANCE = 24.0
         self.OVERLAP_ESCAPE_IMPROVEMENT_RATIO = 0.20
         self.OVERLAP_ESCAPE_MIN_IMPROVEMENT = 24.0
-        self.ROUTE_STABILITY_COST_TOLERANCE = 4.0
+        self.ROUTE_STABILITY_COST_TOLERANCE = 16.0
 
         self.setPen(
             QPen(

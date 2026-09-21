@@ -1522,3 +1522,60 @@ And still don't merge anything. The next checkpoint will be: code finalized → 
 You've reached the maximum length for this conversation, but you can keep talking by starting a new chat.
 
 Start new chat
+
+
+
+Here's a message from the last chat on updating the readme file. it said to put this near the implementatino/current status section but i didn't look for it and just pasted it here instead:
+
+## Current Routing Diagnostics Work
+
+The visual editor currently has a temporary **Routing Debug Mode** used to inspect connection-routing behavior during development.
+
+The diagnostic view can show:
+
+* physical component bounds
+* routing-clearance envelopes
+* fixed endpoint stubs
+* endpoint escape geometry
+* main routed paths
+* unroutable endpoints
+* the last canvas click
+
+Routing Debug Mode is intentionally diagnostic/presentation-only. Routing geometry is not part of the canonical machine semantics.
+
+Recent routing work has addressed several correctness problems:
+
+* incomplete obstacle relevance
+* chains of nearby obstacles being omitted from local routing
+* routes crossing component/controller bodies
+* pathological subpixel-width obstacle corridors
+* stale viewport repaint artifacts during routing diagnostics
+
+The routing system is currently deterministic and uses orthogonal pathfinding with distance, bend, and endpoint-direction costs.
+
+### Current routing-stability work
+
+A visual route-stability layer is being evaluated to prevent an already-valid wire from jumping to a different, nearly equal-cost route when a component moves slightly.
+
+The stability mechanism:
+
+* preserves the previous route when it remains valid
+* allows a materially better route to replace it
+* never allows stability to override obstacle collision safety
+* is bypassed in Routing Debug Mode so raw router behavior remains inspectable
+
+The current working branch for this investigation is:
+
+```text
+wip-routing-diagnostics
+```
+
+The stability threshold is still under evaluation and should not be treated as finalized until additional movement cases have been tested.
+
+The current implementation checkpoint should be verified with:
+
+```powershell
+python -m pytest
+```
+
+before further routing changes are made.
