@@ -989,6 +989,236 @@ def test_route_stability_accepts_materially_better_route() -> None:
     assert selected == list(candidate)
 
 
+def test_route_stability_default_tolerance_is_16() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    assert connection.ROUTE_STABILITY_COST_TOLERANCE == 16.0
+
+
+def test_route_stability_holds_captured_12_402_cost_improvement() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    previous = (
+        QPointF(-41.0, -130.0),
+        QPointF(-34.107, -130.0),
+        QPointF(-34.107, -22.0),
+        QPointF(-49.0, -22.0),
+        QPointF(-49.0, 174.0),
+        QPointF(-34.107, 174.0),
+        QPointF(-34.107, 209.786),
+    )
+
+    candidate = (
+        QPointF(-41.0, -130.0),
+        QPointF(-40.308, -130.0),
+        QPointF(-40.308, 10.0),
+        QPointF(-49.0, 10.0),
+        QPointF(-49.0, 174.0),
+        QPointF(-34.107, 174.0),
+        QPointF(-34.107, 209.786),
+    )
+
+    connection._stable_route = previous
+
+    improvement = (
+        connection._route_cost(
+            previous,
+            "right",
+            "right",
+        )
+        - connection._route_cost(
+            candidate,
+            "right",
+            "right",
+        )
+    )
+
+    assert abs(improvement - 12.402) < 0.001
+
+    selected = connection._select_stable_route(
+        candidate_route=list(candidate),
+        start=previous[0],
+        end=previous[-1],
+        start_direction="right",
+        end_direction="right",
+        obstacles=[],
+    )
+
+    assert selected == list(previous)
+
+
+def test_route_stability_switches_when_previous_route_is_blocked() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    previous = (
+        QPointF(0.0, 0.0),
+        QPointF(100.0, 0.0),
+        QPointF(100.0, 100.0),
+        QPointF(200.0, 100.0),
+    )
+
+    candidate = (
+        QPointF(0.0, 0.0),
+        QPointF(0.0, 20.0),
+        QPointF(100.0, 20.0),
+        QPointF(100.0, 100.0),
+        QPointF(200.0, 100.0),
+    )
+
+    obstacles = [
+        QRectF(
+            40.0,
+            -5.0,
+            20.0,
+            10.0,
+        ),
+    ]
+
+    connection._stable_route = previous
+
+    selected = connection._select_stable_route(
+        candidate_route=list(candidate),
+        start=previous[0],
+        end=previous[-1],
+        start_direction="right",
+        end_direction="right",
+        obstacles=obstacles,
+    )
+
+    assert selected == list(candidate)
+
+
+def test_route_stability_does_not_oscillate_between_near_tie_routes() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    stable_route = (
+        QPointF(0.0, 0.0),
+        QPointF(100.0, 0.0),
+        QPointF(95.0, 45.0),
+        QPointF(100.0, 100.0),
+        QPointF(200.0, 100.0),
+    )
+
+    candidate_a = (
+        QPointF(0.0, 0.0),
+        QPointF(100.0, 0.0),
+        QPointF(96.0, 44.0),
+        QPointF(100.0, 100.0),
+        QPointF(200.0, 100.0),
+    )
+
+    candidate_b = (
+        QPointF(0.0, 0.0),
+        QPointF(100.0, 0.0),
+        QPointF(97.0, 43.0),
+        QPointF(100.0, 100.0),
+        QPointF(200.0, 100.0),
+    )
+
+    connection._stable_route = stable_route
+
+    first = connection._select_stable_route(
+        candidate_route=list(candidate_a),
+        start=stable_route[0],
+        end=stable_route[-1],
+        start_direction="right",
+        end_direction="right",
+        obstacles=[],
+    )
+
+    second = connection._select_stable_route(
+        candidate_route=list(candidate_b),
+        start=stable_route[0],
+        end=stable_route[-1],
+        start_direction="right",
+        end_direction="right",
+        obstacles=[],
+    )
+
+    assert first == list(stable_route)
+    assert second == list(stable_route)
+
+
+def test_route_stability_debug_mode_exposes_raw_candidate() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    previous = (
+        QPointF(0.0, 0.0),
+        QPointF(100.0, 0.0),
+        QPointF(95.0, 45.0),
+        QPointF(100.0, 100.0),
+        QPointF(200.0, 100.0),
+    )
+
+    candidate = (
+        QPointF(0.0, 0.0),
+        QPointF(100.0, 0.0),
+        QPointF(97.0, 43.0),
+        QPointF(100.0, 100.0),
+        QPointF(200.0, 100.0),
+    )
+
+    connection._stable_route = previous
+    connection.set_routing_debug_mode(True)
+
+    selected = connection._select_stable_route(
+        candidate_route=list(candidate),
+        start=previous[0],
+        end=previous[-1],
+        start_direction="right",
+        end_direction="right",
+        obstacles=[],
+    )
+
+    assert selected == list(candidate)
+    assert connection._stable_route == tuple(candidate)
+
+
 def test_unrelated_remote_component_does_not_change_graphics_route() -> None:
     _application()
 
