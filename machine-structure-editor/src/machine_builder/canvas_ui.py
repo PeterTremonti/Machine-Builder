@@ -148,7 +148,10 @@ class CanvasUIMixin:
             SelectionInspector(
                 routing_debug_callback=(
                     self.set_routing_debug_mode
-                )
+                ),
+                nudge_callback=(
+                    self._nudge_selected_nodes
+                ),
             )
         )
 

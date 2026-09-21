@@ -185,6 +185,91 @@ class CanvasInteractionMixin:
             node.y,
         )
 
+    def _nudge_selected_nodes(
+        self,
+        dx: float,
+        dy: float,
+    ) -> None:
+        """Move selected visual nodes by one precision-nudge step."""
+        if self._synchronizing_scene:
+            return
+
+        selected_nodes = [
+            item
+            for item in self.scene.selectedItems()
+            if isinstance(
+                item,
+                NodeGraphicsItem,
+            )
+        ]
+
+        if not selected_nodes:
+            self.statusBar().showMessage(
+                "Select a node to nudge."
+            )
+            return
+
+        positions: dict[
+            str,
+            tuple[float, float],
+        ] = {}
+
+        for item in selected_nodes:
+            node = self.store.model.nodes.get(
+                item.node_id
+            )
+
+            if node is None:
+                continue
+
+            positions[
+                item.node_id
+            ] = (
+                node.x + dx,
+                node.y + dy,
+            )
+
+        if not positions:
+            return
+
+        self.store.commit(
+            MoveNodes(
+                positions=positions
+            )
+        )
+
+        direction = []
+
+        if dx > 0:
+            direction.append(
+                f"+{dx:g} X"
+            )
+        elif dx < 0:
+            direction.append(
+                f"{dx:g} X"
+            )
+
+        if dy > 0:
+            direction.append(
+                f"+{dy:g} Y"
+            )
+        elif dy < 0:
+            direction.append(
+                f"{dy:g} Y"
+            )
+
+        self.statusBar().showMessage(
+            "Nudged "
+            f"{len(positions)} node"
+            + (
+                ""
+                if len(positions) == 1
+                else "s"
+            )
+            + " by "
+            + ", ".join(direction)
+        )
+
     def _begin_node_move(
         self,
         node_id: str,

@@ -6,6 +6,9 @@ from PySide6.QtCore import QPointF, Qt
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
+    QDoubleSpinBox,
+    QGridLayout,
+    QHBoxLayout,
     QLabel,
     QPlainTextEdit,
     QPushButton,
@@ -27,6 +30,7 @@ class SelectionInspector(QWidget):
         self,
         parent=None,
         routing_debug_callback=None,
+        nudge_callback=None,
     ) -> None:
         super().__init__(parent)
 
@@ -41,6 +45,9 @@ class SelectionInspector(QWidget):
         self._current_debug_text = ""
         self._routing_debug_callback = (
             routing_debug_callback
+        )
+        self._nudge_callback = (
+            nudge_callback
         )
 
         layout = QVBoxLayout(
@@ -124,6 +131,127 @@ class SelectionInspector(QWidget):
             self._routing_debug_check
         )
 
+        nudge_label = QLabel(
+            "Precision Nudge"
+        )
+        nudge_label.setStyleSheet(
+            "font-weight: bold;"
+        )
+
+        self._nudge_step = QDoubleSpinBox()
+        self._nudge_step.setDecimals(
+            3
+        )
+        self._nudge_step.setRange(
+            0.001,
+            1000.0,
+        )
+        self._nudge_step.setSingleStep(
+            0.1
+        )
+        self._nudge_step.setValue(
+            1.0
+        )
+        self._nudge_step.setToolTip(
+            "Distance to move the selected node for each nudge."
+        )
+
+        nudge_step_row = QHBoxLayout()
+
+        nudge_step_row.addWidget(
+            QLabel(
+                "Step:"
+            )
+        )
+        nudge_step_row.addWidget(
+            self._nudge_step
+        )
+
+        nudge_grid = QGridLayout()
+
+        nudge_up = QPushButton(
+            "?"
+        )
+        nudge_left = QPushButton(
+            "?"
+        )
+        nudge_right = QPushButton(
+            "?"
+        )
+        nudge_down = QPushButton(
+            "?"
+        )
+
+        for button in (
+            nudge_up,
+            nudge_left,
+            nudge_right,
+            nudge_down,
+        ):
+            button.setMinimumSize(
+                42,
+                30,
+            )
+            button.setFocusPolicy(
+                Qt.FocusPolicy.NoFocus
+            )
+
+        nudge_up.clicked.connect(
+            lambda: self._request_nudge(
+                0.0,
+                -1.0,
+            )
+        )
+        nudge_left.clicked.connect(
+            lambda: self._request_nudge(
+                -1.0,
+                0.0,
+            )
+        )
+        nudge_right.clicked.connect(
+            lambda: self._request_nudge(
+                1.0,
+                0.0,
+            )
+        )
+        nudge_down.clicked.connect(
+            lambda: self._request_nudge(
+                0.0,
+                1.0,
+            )
+        )
+
+        nudge_grid.addWidget(
+            nudge_up,
+            0,
+            1,
+        )
+        nudge_grid.addWidget(
+            nudge_left,
+            1,
+            0,
+        )
+        nudge_grid.addWidget(
+            nudge_right,
+            1,
+            2,
+        )
+        nudge_grid.addWidget(
+            nudge_down,
+            2,
+            1,
+        )
+
+        layout.addWidget(
+            nudge_label
+        )
+        layout.addLayout(
+            nudge_step_row
+        )
+        layout.addLayout(
+            nudge_grid
+        )
+
         layout.addWidget(
             self._routing_debug_legend
         )
@@ -138,6 +266,21 @@ class SelectionInspector(QWidget):
         )
 
         self.clear()
+
+    def _request_nudge(
+        self,
+        dx_scale: float,
+        dy_scale: float,
+    ) -> None:
+        if self._nudge_callback is None:
+            return
+
+        step = self._nudge_step.value()
+
+        self._nudge_callback(
+            dx_scale * step,
+            dy_scale * step,
+        )
 
     def _routing_debug_toggled(
         self,

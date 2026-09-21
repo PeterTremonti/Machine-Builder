@@ -1129,29 +1129,52 @@ def test_route_stability_does_not_oscillate_between_near_tie_routes() -> None:
 
     stable_route = (
         QPointF(0.0, 0.0),
-        QPointF(100.0, 0.0),
-        QPointF(95.0, 45.0),
-        QPointF(100.0, 100.0),
+        QPointF(80.0, 0.0),
+        QPointF(80.0, 100.0),
         QPointF(200.0, 100.0),
     )
 
     candidate_a = (
         QPointF(0.0, 0.0),
         QPointF(100.0, 0.0),
-        QPointF(96.0, 44.0),
         QPointF(100.0, 100.0),
         QPointF(200.0, 100.0),
     )
 
     candidate_b = (
         QPointF(0.0, 0.0),
-        QPointF(100.0, 0.0),
-        QPointF(97.0, 43.0),
-        QPointF(100.0, 100.0),
+        QPointF(120.0, 0.0),
+        QPointF(120.0, 100.0),
         QPointF(200.0, 100.0),
     )
 
     connection._stable_route = stable_route
+
+    assert (
+        connection._route_cost(
+            stable_route,
+            "right",
+            "right",
+        )
+        == connection._route_cost(
+            candidate_a,
+            "right",
+            "right",
+        )
+    )
+
+    assert (
+        connection._route_cost(
+            candidate_a,
+            "right",
+            "right",
+        )
+        == connection._route_cost(
+            candidate_b,
+            "right",
+            "right",
+        )
+    )
 
     first = connection._select_stable_route(
         candidate_route=list(candidate_a),
