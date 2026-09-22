@@ -456,19 +456,34 @@ class SelectionInspector(QWidget):
         self,
         connection: VisualConnection,
         model: VisualModel,
+        graphics_item=None,
     ) -> None:
         """Display one visual connection and its endpoints."""
         self._selection_label.setText(
             "Connection"
         )
 
-        self._set_debug_text(
-            self._build_connection_debug_text(
-                connection,
-                model,
-            )
+        text = self._build_connection_debug_text(
+            connection,
+            model,
         )
 
+        routing_diagnostics = getattr(
+            graphics_item,
+            "routing_diagnostics",
+            None,
+        )
+
+        if callable(routing_diagnostics):
+            text = (
+                text
+                + "\n\n"
+                + routing_diagnostics()
+            )
+
+        self._set_debug_text(
+            text
+        )
     def debug_text(self) -> str:
         """Return the complete currently displayed debug text."""
         return self._current_debug_text

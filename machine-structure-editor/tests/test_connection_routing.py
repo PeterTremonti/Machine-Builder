@@ -1065,6 +1065,66 @@ def test_route_stability_holds_captured_12_402_cost_improvement() -> None:
     assert selected == list(previous)
 
 
+def test_route_stability_diagnostics_reports_hold_decision() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    previous = (
+        QPointF(-41.0, -130.0),
+        QPointF(-34.107, -130.0),
+        QPointF(-34.107, -22.0),
+        QPointF(-49.0, -22.0),
+        QPointF(-49.0, 174.0),
+        QPointF(-34.107, 174.0),
+        QPointF(-34.107, 209.786),
+    )
+    candidate = (
+        QPointF(-41.0, -130.0),
+        QPointF(-40.308, -130.0),
+        QPointF(-40.308, 10.0),
+        QPointF(-49.0, 10.0),
+        QPointF(-49.0, 174.0),
+        QPointF(-34.107, 174.0),
+        QPointF(-34.107, 209.786),
+    )
+
+    connection._stable_route = previous
+
+    selected = connection._select_stable_route(
+        candidate_route=list(candidate),
+        start=previous[0],
+        end=previous[-1],
+        start_direction="right",
+        end_direction="right",
+        obstacles=[],
+    )
+
+    assert selected == list(previous)
+
+    diagnostics = connection.routing_diagnostics()
+
+    assert "debug mode: False" in diagnostics
+    assert "stability tolerance: 16.000" in diagnostics
+    assert (
+        "decision: previous stable route held within tolerance"
+        in diagnostics
+    )
+    assert "Previous Stable Main Route" in diagnostics
+    assert "Candidate Main Route" in diagnostics
+    assert "Selected Main Route" in diagnostics
+    assert "Start Escape" in diagnostics
+    assert "End Escape" in diagnostics
+    assert "candidate improvement" in diagnostics
+
+
 def test_route_stability_switches_when_previous_route_is_blocked() -> None:
     _application()
 
@@ -1113,6 +1173,10 @@ def test_route_stability_switches_when_previous_route_is_blocked() -> None:
     )
 
     assert selected == list(candidate)
+
+    diagnostics = connection.routing_diagnostics()
+
+    assert "decision: previous stable route was blocked" in diagnostics
 
 
 def test_route_stability_does_not_oscillate_between_near_tie_routes() -> None:
@@ -1240,6 +1304,14 @@ def test_route_stability_debug_mode_exposes_raw_candidate() -> None:
 
     assert selected == list(candidate)
     assert connection._stable_route == tuple(candidate)
+
+    diagnostics = connection.routing_diagnostics()
+
+    assert "debug mode: True" in diagnostics
+    assert (
+        "decision: debug mode bypassed route stability"
+        in diagnostics
+    )
 
 
 def test_unrelated_remote_component_does_not_change_graphics_route() -> None:
