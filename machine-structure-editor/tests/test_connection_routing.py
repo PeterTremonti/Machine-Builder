@@ -503,6 +503,92 @@ def test_route_reroutes_around_blocking_obstacle() -> None:
     assert len(route) > 3
 
 
+def test_route_boundary_tolerance_ignores_sub_epsilon_penetration() -> None:
+    exact_boundary = QRectF(
+        0.0,
+        0.0,
+        100.0,
+        100.0,
+    )
+
+    microscopically_inside = QRectF(
+        0.0,
+        0.0,
+        100.0,
+        100.0000000000001,
+    )
+
+    assert ConnectionRoutingEngine.route_is_clear(
+        [
+            QPointF(-20.0, 100.0),
+            QPointF(120.0, 100.0),
+        ],
+        [exact_boundary],
+    )
+
+    assert ConnectionRoutingEngine.route_is_clear(
+        [
+            QPointF(-20.0, 100.0),
+            QPointF(120.0, 100.0),
+        ],
+        [microscopically_inside],
+    )
+
+    assert not ConnectionRoutingEngine.route_is_clear(
+        [
+            QPointF(-20.0, 99.998),
+            QPointF(120.0, 99.998),
+        ],
+        [exact_boundary],
+    )
+
+    assert ConnectionRoutingEngine.route_is_clear(
+        [
+            QPointF(100.0, -20.0),
+            QPointF(100.0, 120.0),
+        ],
+        [exact_boundary],
+    )
+
+    assert ConnectionRoutingEngine.route_is_clear(
+        [
+            QPointF(99.9999999999999, -20.0),
+            QPointF(99.9999999999999, 120.0),
+        ],
+        [exact_boundary],
+    )
+
+    assert not ConnectionRoutingEngine.route_is_clear(
+        [
+            QPointF(99.998, -20.0),
+            QPointF(99.998, 120.0),
+        ],
+        [exact_boundary],
+    )
+
+def test_build_route_reports_final_pathfinder_obstacles():
+    obstacles = [
+        QRectF(
+            40.0,
+            -10.0,
+            20.0,
+            20.0,
+        ),
+    ]
+    diagnostic_obstacles = []
+
+    route = ConnectionRoutingEngine.build_route(
+        start=QPointF(0.0, 0.0),
+        end=QPointF(100.0, 0.0),
+        start_direction="right",
+        end_direction="left",
+        obstacles=obstacles,
+        diagnostic_obstacles=diagnostic_obstacles,
+    )
+
+    assert route is not None
+    assert diagnostic_obstacles == obstacles
+
 def test_routing_margin_is_respected() -> None:
     obstacle = QRectF(
         200.0,
@@ -1705,4 +1791,3 @@ def test_blocked_endpoint_escape_hysteresis_holds_previous_direction() -> None:
         40.0,
         -6.0,
     )
-

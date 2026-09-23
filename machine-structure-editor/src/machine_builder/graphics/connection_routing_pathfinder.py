@@ -430,9 +430,9 @@ def segment_blocked(
         )
 
         return any(
-            rect.top() < y < rect.bottom()
-            and right > rect.left()
-            and left < rect.right()
+            rect.top() + GEOMETRY_EPSILON < y < rect.bottom() - GEOMETRY_EPSILON
+            and right > rect.left() + GEOMETRY_EPSILON
+            and left < rect.right() - GEOMETRY_EPSILON
             for rect in obstacles
         )
 
@@ -448,9 +448,9 @@ def segment_blocked(
         )
 
         return any(
-            rect.left() < x < rect.right()
-            and bottom > rect.top()
-            and top < rect.bottom()
+            rect.left() + GEOMETRY_EPSILON < x < rect.right() - GEOMETRY_EPSILON
+            and bottom > rect.top() + GEOMETRY_EPSILON
+            and top < rect.bottom() - GEOMETRY_EPSILON
             for rect in obstacles
         )
 

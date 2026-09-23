@@ -55,6 +55,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         self._routing_previous_route: tuple[QPointF, ...] | None = None
         self._routing_candidate_route: tuple[QPointF, ...] | None = None
         self._routing_selected_route: tuple[QPointF, ...] | None = None
+        self._debug_routing_obstacles: tuple[Any, ...] = ()
         self._routing_previous_cost: float | None = None
         self._routing_candidate_cost: float | None = None
         self._routing_selected_cost: float | None = None
@@ -354,6 +355,24 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         )
 
     @staticmethod
+    def _format_routing_obstacles(
+        obstacles: tuple[Any, ...],
+    ) -> str:
+        if not obstacles:
+            return "none"
+
+        return "\n".join(
+            (
+                f"{index}: "
+                f"left={obstacle.left():.6f}, "
+                f"top={obstacle.top():.6f}, "
+                f"right={obstacle.right():.6f}, "
+                f"bottom={obstacle.bottom():.6f}"
+            )
+            for index, obstacle in enumerate(obstacles)
+        )
+
+    @staticmethod
     def _format_routing_points(
         route: tuple[QPointF, ...] | None,
     ) -> str:
@@ -408,6 +427,12 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             "----------",
             self._format_routing_points(
                 self._debug_end_escape
+            ),
+            "",
+            "Final Pathfinder Obstacles",
+            "---------------------------",
+            self._format_routing_obstacles(
+                self._debug_routing_obstacles
             ),
             "",
             "Costs",
@@ -533,6 +558,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             )
         )
 
+        diagnostic_obstacles: list[Any] = []
         candidate_route = ConnectionRoutingEngine.build_route(
             start=start_escape[-1],
             end=end_escape[-1],
