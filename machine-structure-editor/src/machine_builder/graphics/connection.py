@@ -59,6 +59,23 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         self._routing_candidate_cost: float | None = None
         self._routing_selected_cost: float | None = None
 
+        # Persists the last actual route-stability transition so a later
+        # diagnostic capture can still reveal the event that caused a
+        # visible route change.
+        self._routing_last_transition_reason = "none recorded"
+        self._routing_last_transition_previous_route = (
+            None
+        )
+        self._routing_last_transition_candidate_route = (
+            None
+        )
+        self._routing_last_transition_selected_route = (
+            None
+        )
+        self._routing_last_transition_previous_cost = None
+        self._routing_last_transition_candidate_cost = None
+        self._routing_last_transition_selected_cost = None
+
         self.OVERLAP_ESCAPE_RESELECT_DISTANCE = 24.0
         self.OVERLAP_ESCAPE_IMPROVEMENT_RATIO = 0.20
         self.OVERLAP_ESCAPE_MIN_IMPROVEMENT = 24.0
@@ -255,6 +272,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             self._routing_stability_reason = (
                 "previous stable route was malformed"
             )
+            self._record_routing_transition()
             return list(candidate)
 
         if previous[0] != start or previous[-1] != end:
@@ -264,6 +282,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             self._routing_stability_reason = (
                 "previous stable route endpoint mismatch"
             )
+            self._record_routing_transition()
             return list(candidate)
 
         if not ConnectionRoutingEngine.route_is_clear(
@@ -276,6 +295,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             self._routing_stability_reason = (
                 "previous stable route was blocked"
             )
+            self._record_routing_transition()
             return list(candidate)
 
         previous_cost = self._route_cost(
@@ -306,7 +326,32 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         self._routing_stability_reason = (
             "candidate route beat stability tolerance"
         )
+        self._record_routing_transition()
         return list(candidate)
+
+    def _record_routing_transition(self) -> None:
+        """Persist the latest route-stability transition."""
+        self._routing_last_transition_reason = (
+            self._routing_stability_reason
+        )
+        self._routing_last_transition_previous_route = (
+            self._routing_previous_route
+        )
+        self._routing_last_transition_candidate_route = (
+            self._routing_candidate_route
+        )
+        self._routing_last_transition_selected_route = (
+            self._routing_selected_route
+        )
+        self._routing_last_transition_previous_cost = (
+            self._routing_previous_cost
+        )
+        self._routing_last_transition_candidate_cost = (
+            self._routing_candidate_cost
+        )
+        self._routing_last_transition_selected_cost = (
+            self._routing_selected_cost
+        )
 
     @staticmethod
     def _format_routing_points(
@@ -396,6 +441,56 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
                 "(previous - candidate): "
                 f"{self._routing_previous_cost - self._routing_candidate_cost:.3f}"
             )
+
+        lines.extend(
+            [
+                "",
+                "Last Recorded Transition",
+                "-------------------------",
+                (
+                    "reason: "
+                    f"{self._routing_last_transition_reason}"
+                ),
+                "Previous Route at Transition",
+                "----------------------------",
+                self._format_routing_points(
+                    self._routing_last_transition_previous_route
+                ),
+                "Candidate Route at Transition",
+                "------------------------------",
+                self._format_routing_points(
+                    self._routing_last_transition_candidate_route
+                ),
+                "Selected Route at Transition",
+                "-----------------------------",
+                self._format_routing_points(
+                    self._routing_last_transition_selected_route
+                ),
+                "Transition Costs",
+                "----------------",
+                (
+                    "previous: "
+                    f"{self._routing_last_transition_previous_cost:.3f}"
+                    if self._routing_last_transition_previous_cost
+                    is not None
+                    else "previous: n/a"
+                ),
+                (
+                    "candidate: "
+                    f"{self._routing_last_transition_candidate_cost:.3f}"
+                    if self._routing_last_transition_candidate_cost
+                    is not None
+                    else "candidate: n/a"
+                ),
+                (
+                    "selected: "
+                    f"{self._routing_last_transition_selected_cost:.3f}"
+                    if self._routing_last_transition_selected_cost
+                    is not None
+                    else "selected: n/a"
+                ),
+            ]
+        )
 
         return "\n".join(lines)
 

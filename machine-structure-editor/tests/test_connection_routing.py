@@ -1177,6 +1177,13 @@ def test_route_stability_switches_when_previous_route_is_blocked() -> None:
     diagnostics = connection.routing_diagnostics()
 
     assert "decision: previous stable route was blocked" in diagnostics
+    assert (
+        "Last Recorded Transition" in diagnostics
+    )
+    assert (
+        "reason: previous stable route was blocked"
+        in diagnostics
+    )
 
 
 def test_route_stability_does_not_oscillate_between_near_tie_routes() -> None:

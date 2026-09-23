@@ -1579,3 +1579,10 @@ python -m pytest
 ```
 
 before further routing changes are made.
+
+Implementation Chat Workflow
+
+For implementation/coder chats, read CODER_CHAT_WORKFLOW.md.
+
+The current routing investigation is tracked in:
+machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md
