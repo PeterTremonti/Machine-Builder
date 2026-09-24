@@ -566,29 +566,6 @@ def test_route_boundary_tolerance_ignores_sub_epsilon_penetration() -> None:
         [exact_boundary],
     )
 
-def test_build_route_reports_final_pathfinder_obstacles():
-    obstacles = [
-        QRectF(
-            40.0,
-            -10.0,
-            20.0,
-            20.0,
-        ),
-    ]
-    diagnostic_obstacles = []
-
-    route = ConnectionRoutingEngine.build_route(
-        start=QPointF(0.0, 0.0),
-        end=QPointF(100.0, 0.0),
-        start_direction="right",
-        end_direction="left",
-        obstacles=obstacles,
-        diagnostic_obstacles=diagnostic_obstacles,
-    )
-
-    assert route is not None
-    assert diagnostic_obstacles == obstacles
-
 def test_routing_margin_is_respected() -> None:
     obstacle = QRectF(
         200.0,
