@@ -28,26 +28,69 @@ The developer applies code changes locally through PowerShell and reports the ac
 
 Do not claim that local files were edited, local tests were run, commits were made, or changes were pushed unless the developer provides the actual result or an available tool demonstrably performs that operation.
 
+## Preferred file-edit workflow
+
+For Machine Builder implementation changes, prefer complete-file replacements when practical.
+
+When providing a file replacement:
+
+* give the exact repository-relative path
+* give the complete intended file contents
+* provide a PowerShell command that replaces the file
+* avoid requiring manual surgery through a large source file
+
+Small focused PowerShell patches remain acceptable when a complete replacement would create unnecessary risk or excessive output.
+
+The developer's local file and test result remain authoritative after the replacement.
+
 ## Tool-use guidance
 
 For ordinary implementation work, prefer:
 
-- normal reasoning
-- repository inspection based on user-provided local results
-- complete PowerShell patches
-- developer-run pytest
+* normal reasoning
+* repository inspection based on user-provided local results
+* GitHub/web inspection when genuinely useful
+* complete-file PowerShell replacements when practical
+* focused PowerShell commands for source inspection
+* developer-run pytest
+* developer-run GUI validation
+
+### Python / Jupyter / Data Analysis
+
+Do not use Python, Jupyter, ChatGPT Data Analysis, or similar data-analysis execution for ordinary Machine Builder implementation or routing work unless:
+
+* the user explicitly requests it, or
+* the task genuinely cannot be completed without it.
+
+For the Machine Builder 4.4 routing investigation, Python/Jupyter/Data Analysis is intentionally prohibited so that the effect of those tools on cross-chat usage-limit behavior can be observed separately.
+
+Use the developer's local PowerShell, pytest, and GUI output instead.
+
+### GitHub / web access
+
+GitHub and web access remain explicitly allowed.
+
+Do not avoid GitHub searches or committed-remote repository inspection merely because the project is avoiding Python/Jupyter.
+
+GitHub/web access may be used when:
+
+* current committed repository state is useful
+* a source file must be inspected remotely
+* external documentation or research is genuinely relevant
+* a current external fact needs verification
+
+GitHub/web access is not a substitute for the developer's local working tree when current uncommitted state matters.
+
+### Other tools
 
 Avoid unnecessary use of:
 
-- Python/data-analysis workflows
-- python_user_visible
-- container/sandbox execution
-- File Library/file-analysis workflows
-- unnecessary tool orchestration
+* python_user_visible
+* container/sandbox execution
+* File Library/file-analysis workflows
+* unnecessary tool orchestration
 
-These tools are not inherently bad or unavailable. Avoid them because ordinary Machine Builder implementation work does not normally require them, and long coding sessions have previously encountered separate usage limits for chats involving data analysis.
-
-Use web/GitHub access when current committed remote state or genuinely current external information is required. Do not use it as a substitute for the user's local working tree.
+These tools are not inherently unavailable. They are simply not the normal path for Machine Builder implementation work.
 
 ## Change/checkpoint cadence
 
@@ -60,6 +103,8 @@ Do not make a tiny commit for every experiment.
 Do not wait until a large investigation or conversation is nearly exhausted before checkpointing important progress.
 
 At a checkpoint, make the repository itself contain enough documentation for the next coding chat to resume without reconstructing everything from conversation history.
+
+Smaller checkpoints are preferred when a long investigation is becoming difficult to carry safely across chats.
 
 ## Testing authority
 
@@ -75,6 +120,15 @@ Routing Debug Mode intentionally bypasses normal route-stability history. It is 
 
 Do not change routing constants merely to suppress a route transition until the reason for that transition is understood.
 
+Do not increase ROUTE_STABILITY_COST_TOLERANCE merely to hide a transition whose underlying cause is still unexplained.
+
+During incremental-routing experiments, distinguish:
+
+* route geometry changes: the same basic topology/corridor remains while coordinates move
+* route topology changes: the sequence of corridor directions/elbows/sides changes
+
+A small geometric movement should not automatically be treated as evidence that a topology change is desirable.
+
 ## Recovery when a chat approaches a usage/context limit
 
 If a coding chat approaches a usage or context limit:
@@ -86,6 +140,8 @@ If a coding chat approaches a usage or context limit:
 5. Start the next coder chat from the repository state.
 
 The next chat should establish its state from the repository before relying on historical conversation details.
+
+If a tool-specific usage limit appears to affect one conversation while another conversation remains usable, do not assume the limit is conversation-local. Record the observed behavior and continue the implementation using text-only/local workflows where practical.
 
 ## Machine Builder documentation boundaries
 
@@ -99,33 +155,32 @@ The primary implementation handoff is:
 
 `machine-structure-editor/handoffs/V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md`
 
-The current routing investigation has a more specific handoff:
+The active routing investigation handoff is:
 
-`machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md`
+`machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md`
+
+The previous 4.3 routing handoff remains historical context.
 
 ## Research / implementation / visual-editor coordination
 
 Keep the implementation chat focused on implementation.
 
-Routing diagnostics, hysteresis, route selection, endpoint escape behavior,
-and similar routing mechanisms are visual/presentation/runtime concerns.
-They must not be promoted into the canonical semantic machine model merely
-because implementation work exposes an interesting idea.
+Routing diagnostics, hysteresis, route selection, endpoint escape behavior, incremental route continuity, and similar routing mechanisms are visual/presentation/runtime concerns.
 
-Genuine semantic or architectural questions should be reported to the
-appropriate Research chat.
+They must not be promoted into the canonical semantic machine model merely because implementation work exposes an interesting idea.
+
+Genuine semantic or architectural questions should be reported to the appropriate Research chat.
 
 The implementation roadmap's modularity rules remain in force:
 
-- small cohesive modules
-- low coupling
-- smallest reasonable changes
-- clear subsystem boundaries
-- normal refactoring when justified
-- focused tests
-- focused commits
-- repeated implementation friction may be architectural evidence
+* small cohesive modules
+* low coupling
+* smallest reasonable changes
+* clear subsystem boundaries
+* normal refactoring when justified
+* focused tests
+* focused commits
 
-The current visual-editor canvas architecture is already split into focused
-modules. Do not move behavior back into a monolithic canvas implementation.
+Repeated implementation friction may be architectural evidence, but should not automatically trigger a broad refactor.
 
+The current visual-editor canvas architecture is already split into focused modules. Do not move behavior back into a monolithic canvas implementation.
