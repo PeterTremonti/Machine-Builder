@@ -36,7 +36,7 @@ When providing a file replacement:
 
 * give the exact repository-relative path
 * give the complete intended file contents
-* provide a PowerShell command that replaces the file
+* provide a PowerShell command or other straightforward replacement method
 * avoid requiring manual surgery through a large source file
 
 Small focused PowerShell patches remain acceptable when a complete replacement would create unnecessary risk or excessive output.
@@ -49,11 +49,11 @@ For ordinary implementation work, prefer:
 
 * normal reasoning
 * repository inspection based on user-provided local results
-* GitHub/web inspection when genuinely useful
 * complete-file PowerShell replacements when practical
 * focused PowerShell commands for source inspection
 * developer-run pytest
 * developer-run GUI validation
+* GitHub/web inspection when genuinely useful
 
 ### Python / Jupyter / Data Analysis
 
@@ -62,15 +62,29 @@ Do not use Python, Jupyter, ChatGPT Data Analysis, or similar data-analysis exec
 * the user explicitly requests it, or
 * the task genuinely cannot be completed without it.
 
-For the Machine Builder 4.4 routing investigation, Python/Jupyter/Data Analysis is intentionally prohibited so that the effect of those tools on cross-chat usage-limit behavior can be observed separately.
+For Machine Builder Coder 4.4 routing work, Python/Jupyter/Data Analysis is intentionally prohibited.
 
-Use the developer's local PowerShell, pytest, and GUI output instead.
+The purpose is to observe whether cross-chat usage pauses change when the routing workstream uses text-only/local-console workflows.
+
+Use the developer's local PowerShell, pytest, GUI output, and pasted console results instead.
+
+### Files / images
+
+For the Coder 4.4 routing experiment:
+
+* do not upload new files
+* do not upload new images
+* do not use file/image analysis as an implementation workflow
+
+Use pasted text and local console output instead.
+
+Existing repository files may still be inspected through GitHub/web when that is useful; this restriction is specifically about introducing file/image-analysis usage into the chat.
 
 ### GitHub / web access
 
 GitHub and web access remain explicitly allowed.
 
-Do not avoid GitHub searches or committed-remote repository inspection merely because the project is avoiding Python/Jupyter.
+Do not avoid GitHub searches or committed-remote repository inspection merely because the project is avoiding Python/Jupyter/files/images.
 
 GitHub/web access may be used when:
 
@@ -91,6 +105,23 @@ Avoid unnecessary use of:
 * unnecessary tool orchestration
 
 These tools are not inherently unavailable. They are simply not the normal path for Machine Builder implementation work.
+
+## Usage-limit observation rule
+
+The project has observed that a tool-related pause can appear in one Machine Builder conversation while another conversation remains usable.
+
+Recent observed banners have included:
+
+* "You've reached the limit for chats that include data analysis."
+* "You've reached the limit for chats that include files or images."
+
+The project does not currently know the exact internal accounting model behind these pauses.
+
+Do not assume that usage is conversation-local merely because the pause appears in one conversation.
+
+For the Coder 4.4 routing experiment, keep the routing chat free of Python/Jupyter/Data Analysis and new file/image uploads so that this variable can be observed separately.
+
+Record the exact pause message and reset time when relevant.
 
 ## Change/checkpoint cadence
 
@@ -120,14 +151,72 @@ Routing Debug Mode intentionally bypasses normal route-stability history. It is 
 
 Do not change routing constants merely to suppress a route transition until the reason for that transition is understood.
 
-Do not increase ROUTE_STABILITY_COST_TOLERANCE merely to hide a transition whose underlying cause is still unexplained.
+Do not increase `ROUTE_STABILITY_COST_TOLERANCE` merely to hide a transition whose underlying cause is still unexplained.
 
-During incremental-routing experiments, distinguish:
+When investigating incremental routing, distinguish:
 
-* route geometry changes: the same basic topology/corridor remains while coordinates move
-* route topology changes: the sequence of corridor directions/elbows/sides changes
+### Route geometry
 
-A small geometric movement should not automatically be treated as evidence that a topology change is desirable.
+The exact spatial realization of a route:
+
+* segment coordinates
+* elbow coordinates
+* offsets
+* segment lengths
+* endpoint-adjacent movement
+
+### Route topology
+
+The structural organization of a route:
+
+* corridor choice
+* side choice
+* bend sequence
+* structural route path
+
+A small geometric change should not automatically be interpreted as evidence that a topology change is desirable.
+
+A promising incremental-routing strategy may be:
+
+```text
+existing route
+    ↓
+attempt small topology-preserving geometric adjustment
+    ↓
+retain existing topology when legal
+    ↓
+fall back to fresh route selection only when repair is impossible
+```
+
+This remains an implementation investigation, not yet a final architecture decision.
+
+## Current route-selection observations
+
+The current implementation performs stability checks after candidate generation.
+
+The previous route can be discarded before cost/tolerance comparison when, among other conditions:
+
+* the previous route is malformed
+* its prepared endpoints no longer match
+* the previous route is blocked by current obstacles
+
+Endpoint mismatch is therefore a real bypass of ordinary hysteresis.
+
+However, the captured node-4 transition did not involve endpoint mismatch.
+
+At the observed transition:
+
+```text
+node-4 Y = 24.250
+    →
+node-4 Y = 24.260
+```
+
+the start and end escapes remained unchanged.
+
+The previous route instead became blocked because the obstacle boundary moved by approximately 0.010 units.
+
+Therefore endpoint mismatch is not sufficient to explain the current T-like topology jump.
 
 ## Recovery when a chat approaches a usage/context limit
 
@@ -141,7 +230,7 @@ If a coding chat approaches a usage or context limit:
 
 The next chat should establish its state from the repository before relying on historical conversation details.
 
-If a tool-specific usage limit appears to affect one conversation while another conversation remains usable, do not assume the limit is conversation-local. Record the observed behavior and continue the implementation using text-only/local workflows where practical.
+If a tool-specific usage limit appears to affect one conversation while another conversation remains usable, record the exact banner rather than assuming why it happened.
 
 ## Machine Builder documentation boundaries
 
@@ -149,7 +238,7 @@ Do not reopen settled V0.2 ontology/architecture decisions merely because an imp
 
 Genuine semantic or architectural issues should be reported back to the appropriate Research chat rather than silently changing the implementation architecture.
 
-## Current implementation handoff
+## Current implementation handoffs
 
 The primary implementation handoff is:
 
@@ -159,7 +248,7 @@ The active routing investigation handoff is:
 
 `machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md`
 
-The previous 4.3 routing handoff remains historical context.
+The previous routing handoff is retained as historical context.
 
 ## Research / implementation / visual-editor coordination
 

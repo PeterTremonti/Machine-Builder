@@ -1,41 +1,197 @@
 ﻿# Routing Stability Investigation Handoff — Coder 4.4
 
-Date: 2026-09-24
+Date: 2026-09-25
 
-## Current checkpoint
+## Purpose
 
-Branch:
+This handoff continues the focused single-wire routing investigation on:
 
 `wip-routing-diagnostics`
 
-Current reported repository state:
+The immediate goal is to understand and, if appropriate, improve route continuity during tiny component movements without rewriting the routing system.
 
-* working tree clean
-* branch up to date with `origin/wip-routing-diagnostics`
-* focused connection-routing tests: 38 passed
-* full test suite: 695 passed
-
-The latest local commit attempt reported:
-
-`nothing to commit, working tree clean`
-
-Therefore the current branch already contains the latest committed routing state.
-
-A Windows pytest cleanup `PermissionError` occurred after the full suite reported all tests passing. This is treated as a post-test cleanup warning, not a test failure.
-
-## Current routing problem
-
-The remaining visual problem is an abrupt wire/elbow topology change when a component is moved by a very small amount through a tight clearance.
-
-The observed visual result can become a 180-degree / overlapping T-like shape.
-
-The active investigation is intentionally limited to a single connection.
+The next experiment must distinguish route geometry changes from route topology changes.
 
 Do not add a second wire until the single-wire behavior is understood.
 
-## Current production routing modules
+---
 
-The production router remains split into focused modules:
+# Current checkpoint
+
+## Branch
+
+```text
+wip-routing-diagnostics
+```
+
+## Current reported local state
+
+The latest developer-reported working state was:
+
+```text
+working tree clean
+branch pushed
+```
+
+The developer has also created a separate branch from `main` for controller-board work:
+
+```text
+wip-controller-board-breakout
+```
+
+That branch is intentionally independent of routing.
+
+## Current tests
+
+Latest directly reported local results:
+
+```text
+tests/test_connection_routing.py
+38 passed
+
+full suite
+695 passed
+```
+
+The full suite produced a Windows pytest cleanup warning after all tests passed:
+
+```text
+PermissionError: [WinError 5]
+...
+pytest-current
+```
+
+This occurred during pytest's post-suite cleanup and was not a test failure.
+
+An earlier project checkpoint referenced:
+
+```text
+54 focused tests
+694 full tests
+```
+
+That appears to have represented a broader focused routing/inspector/canvas test selection rather than only `tests/test_connection_routing.py`.
+
+Use current local test output as authority.
+
+---
+
+# Tool-use constraint for Coder 4.4
+
+The Coder 4.4 routing experiment is intentionally being run without:
+
+* Python
+* Jupyter
+* ChatGPT Data Analysis
+* new file uploads
+* new image uploads
+
+GitHub/web inspection remains explicitly allowed.
+
+Normal local development should use:
+
+* PowerShell
+* pasted source/output when necessary
+* local pytest
+* local GUI testing
+* GitHub/web research when useful
+
+The reason for the restriction is experimental: recent chats have shown capability-specific usage pauses that appear to affect different conversations.
+
+Recent observed banners included:
+
+```text
+You've reached the limit for chats that include data analysis.
+```
+
+and:
+
+```text
+You've reached the limit for chats that include files or images.
+```
+
+One routing conversation became blocked while several other Machine Builder conversations remained usable.
+
+The exact service-side accounting is unknown.
+
+Coder 4.4 should therefore remain text/GitHub/local-console based so that its own behavior does not introduce Python/Data Analysis or file/image usage into the experiment.
+
+---
+
+# Current architecture boundary
+
+Routing remains a visual/editor/runtime concern.
+
+Canonical machine semantics remain authoritative for:
+
+* Machine
+* Machine Components
+* Hardware Definitions
+* Ports
+* Connectors
+* Pins/terminals
+* Connections
+* Functions
+* Capabilities
+* Controller Resources
+* Assignments
+* Calibration
+* provenance
+* semantic relationships
+
+Visual/editor state includes:
+
+* node positions
+* node sizes
+* visual layout
+* routing geometry
+* route continuity state
+* selection
+* zoom
+* pan
+* diagnostics
+* temporary routing debug information
+
+Do not move routing heuristics into the canonical machine model.
+
+---
+
+# Important conceptual distinction
+
+The investigation now has concrete evidence supporting the distinction between:
+
+## Route geometry
+
+The exact spatial realization:
+
+* segment coordinates
+* elbow coordinates
+* distances
+* offsets
+* endpoint-adjacent adjustments
+
+## Route topology
+
+The structural path organization:
+
+* side/corridor selection
+* sequence of bends
+* structural direction pattern
+* which spatial corridor the route uses
+
+These are related but not identical.
+
+A tiny component movement can require a small geometric adjustment without necessarily requiring a topology change.
+
+That distinction is now considered an important visual-editor concept.
+
+Whether route topology needs explicit persistent representation remains an architecture/persistence question and has not been decided.
+
+---
+
+# Current production routing modules
+
+The router remains modular:
 
 ```text
 src/machine_builder/graphics/
@@ -46,25 +202,27 @@ src/machine_builder/graphics/
     connection_routing_endpoint.py
 ```
 
-Do not refactor these modules merely because the routing test file is large.
-
-The canvas remains modular, with focused modules including:
+The canvas remains modular:
 
 ```text
+canvas.py
 canvas_ui.py
 canvas_editing.py
 canvas_palette.py
 canvas_selection.py
 canvas_interaction.py
 canvas_scene.py
-canvas.py
 ```
 
-`canvas.py` remains a coordinator.
+Do not move routing behavior back into a monolithic canvas implementation.
 
-## Current routing constants
+Do not refactor the routing modules merely because the routing test file is large.
 
-Known values currently include:
+---
+
+# Current routing constants
+
+Known current values:
 
 ```text
 ROUTING_MARGIN = 16.0
@@ -77,42 +235,136 @@ ESCAPE_CLEARANCE = 1.0
 ROUTE_STABILITY_COST_TOLERANCE = 16.0
 ```
 
-Do not change these values merely to suppress the observed transition.
+`ROUTE_STABILITY_COST_TOLERANCE = 16.0` remains experimental.
 
-The stability tolerance remains experimental and is not a final architectural decision.
+Do not tune it further as the next step.
 
-## Important geometry-boundary fix already present
+Do not use a huge hysteresis value to conceal an underlying topology problem.
 
-The routing pathfinder's segment collision test was updated to use `GEOMETRY_EPSILON` when testing whether a horizontal or vertical segment lies inside an obstacle rectangle.
+---
 
-The purpose is to prevent microscopic floating-point penetration from turning an effectively boundary-aligned route into a blocked route.
+# Existing routing protections
+
+The router already contains several protections/fixes.
+
+## Obstacle relevance
+
+Relevant obstacles are expanded through nearby obstacle chains rather than considering only the initially detected obstacle set.
+
+This prevents the router from ignoring a component that becomes important through a chain of nearby obstacles.
+
+## Candidate-route relevance
+
+The route can trigger additional obstacle relevance checking and rebuilding.
+
+There is also final blocking protection so a returned route does not knowingly cross an obstacle.
+
+## Narrow-corridor protection
+
+The pathfinder has geometry safeguards including:
+
+```text
+MIN_ROUTING_CORRIDOR = 8.0
+GEOMETRY_EPSILON = 0.001
+```
+
+These protect against effectively unusable sliver corridors.
+
+## Boundary floating-point fix
+
+The orthogonal collision test was updated to treat exact/sub-epsilon boundary contact robustly instead of letting microscopic floating-point drift turn a boundary-aligned segment into a blocked route.
 
 Regression coverage was added for:
 
-* exact boundary contact
+* exact boundary
 * sub-epsilon penetration
 * meaningful penetration
 
-The routing tests and full suite passed after this change.
+This fix passed the reported routing tests and full suite.
 
-This change should not be reverted merely because other routing behavior remains under investigation.
+Do not revert it merely because the topology issue remains.
 
-## Stability behavior
+---
 
-The intended stability behavior remains:
+# Routing Debug Mode
 
-* hold a previous valid route when the new candidate is only slightly better
-* switch when improvement is meaningful
-* switch immediately when the previous route is genuinely invalid
-* avoid rapid oscillation between near-tie routes
+Routing Debug Mode deliberately bypasses route stability history.
 
-Routing Debug Mode bypasses route-stability history and is used to observe raw route selection.
+It is useful for observing raw deterministic route selection.
 
-## Critical observed transition at node-4 Y = 24.250 -> 24.260
+It should not be used as the normal-mode stability test.
+
+When Debug Mode is ON:
+
+```text
+debug mode bypassed route stability
+```
+
+When Debug Mode is OFF:
+
+normal stable-route history and cost comparison apply.
+
+---
+
+# Current route-selection behavior
+
+The current route-selection process is approximately:
+
+```text
+candidate route generated
+        ↓
+candidate cost calculated
+        ↓
+debug-mode bypass
+        ↓
+previous stable route exists?
+        ↓
+previous route structurally valid?
+        ↓
+prepared endpoint coordinates still match?
+        ↓
+previous route still clear of obstacles?
+        ↓
+compare previous/candidate cost
+        ↓
+apply stability tolerance
+```
+
+The important point is that several conditions can discard the previous route before the normal cost/tolerance comparison.
+
+---
+
+# Endpoint mismatch hypothesis
+
+The current implementation does contain an endpoint-mismatch branch.
+
+When:
+
+```text
+previous[0] != start
+or
+previous[-1] != end
+```
+
+the previous route can be rejected before normal cost/tolerance comparison.
+
+Therefore the hypothesis:
+
+> a prepared endpoint movement can bypass the existing hysteresis mechanism
+
+is valid as a property of the current code.
+
+However, it has NOT been established as the cause of the current node-4 elbow jump.
+
+---
+
+# Critical captured transition
 
 Saved test machine:
 
-`machine-structure-editor/wiring test machines/4 parts.machine.json`
+```text
+wiring test machines/4 parts.machine.json
+```
 
 Important nodes:
 
@@ -141,15 +393,95 @@ node-4 Controller
 x = -8
 width = 180
 height = 100
-Y varied during the test
+Y varied during testing
 ```
 
 Connection:
 
 ```text
 connection-1
-Temperature Sensor output -> Temperature Controller input
+Temperature Sensor output
+        →
+Temperature Controller input
 ```
+
+---
+
+# Node-4 transition: Y = 24.250 → 24.260
+
+This is the most important captured case.
+
+## At Y = 24.250
+
+The route was:
+
+```text
+(-5.000, 240.000)
+→ (-1.250, 240.000)
+→ (-1.250, 141.500)
+→ (-25.250, 141.500)
+→ (-25.250, 6.250)
+→ (-10.000, 6.250)
+→ (-10.000, -25.000)
+```
+
+The wire looked normal.
+
+## At Y = 24.260
+
+The route became:
+
+```text
+(-5.000, 240.000)
+→ (-1.250, 240.000)
+→ (-1.250, 141.510)
+→ (-25.250, 141.510)
+→ (-25.250, -24.990)
+→ (-10.000, -24.990)
+→ (-10.000, -25.000)
+```
+
+The visual result became the unwanted T/180-degree-like shape.
+
+The change occurred when the user moved the controller down by only:
+
+```text
+0.010
+```
+
+---
+
+# Critical diagnostic finding
+
+In this transition, the diagnostics reported:
+
+```text
+reason: previous stable route was blocked
+```
+
+The endpoint escapes remained unchanged:
+
+```text
+Start Escape
+(-45.000, 240.000) -> (-5.000, 240.000)
+
+End Escape
+(-50.000, -25.000) -> (-10.000, -25.000)
+```
+
+Therefore the transition is NOT an endpoint mismatch.
+
+The obstacle moved.
+
+The previous route became technically blocked.
+
+The stability mechanism therefore had no opportunity to preserve the old route through its normal cost/tolerance comparison.
+
+This is a key correction to the original endpoint-mismatch hypothesis.
+
+---
+
+# Why the old route becomes blocked
 
 At:
 
@@ -157,331 +489,541 @@ At:
 node-4 Y = 24.250
 ```
 
-the route was:
+the relevant routing boundary is approximately:
 
 ```text
-(-5.000, 240.000)
--> (-1.250, 240.000)
--> (-1.250, 141.500)
--> (-25.250, 141.500)
--> (-25.250, 6.250)
--> (-10.000, 6.250)
--> (-10.000, -25.000)
+141.500
 ```
 
-Moving node-4 downward by only 0.010 px to:
+At:
 
 ```text
 node-4 Y = 24.260
 ```
 
-produced:
-
-```text
-(-5.000, 240.000)
--> (-1.250, 240.000)
--> (-1.250, 141.510)
--> (-25.250, 141.510)
--> (-25.250, -24.990)
--> (-10.000, -24.990)
--> (-10.000, -25.000)
-```
-
-The resulting visual geometry is the unwanted T-like / overlapping 180-degree appearance.
-
-The diagnostic reason was:
-
-`previous stable route was blocked`
-
-The candidate and selected route costs were both:
-
-`868.000`
-
-The current normal-mode stability tolerance therefore did not cause this transition.
-
-## Important endpoint finding
-
-The current implementation performs this decision sequence inside `_select_stable_route()`:
-
-1. candidate route is calculated
-2. candidate cost is calculated
-3. debug mode may bypass stability
-4. previous route is checked
-5. previous route length is checked
-6. previous route endpoint coordinates are compared with the current prepared start/end
-7. previous route is checked for collision with current obstacles
-8. only then is previous cost compared with candidate cost and stability tolerance
-
-The endpoint-mismatch branch is:
-
-```text
-if previous[0] != start or previous[-1] != end:
-    ...
-    reason = "previous stable route endpoint mismatch"
-    ...
-    return candidate
-```
-
-So the user's hypothesis that a prepared-endpoint mismatch can bypass the normal hysteresis comparison is valid as a property of the current implementation.
-
-However, the observed node-4 transition above does NOT exercise that condition.
-
-In the captured transition:
-
-```text
-Start Escape:
-(-45.000, 240.000) -> (-5.000, 240.000)
-
-End Escape:
-(-50.000, -25.000) -> (-10.000, -25.000)
-```
-
-The endpoint escapes did not move.
-
-Therefore:
-
-`endpoint mismatch` is NOT the cause of the node-4 Y = 24.250 -> 24.260 transition.
-
-The actual cause of that transition is that the previous route became blocked according to the current obstacle geometry.
-
-## Why the previous route becomes blocked
-
-Node-4's expanded routing boundary moves with its Y coordinate.
-
-At:
-
-```text
-Y = 24.250
-```
-
-the relevant lower boundary is:
-
-```text
-141.500
-```
-
-At:
-
-```text
-Y = 24.260
-```
-
-the relevant lower boundary is:
+the corresponding boundary becomes approximately:
 
 ```text
 141.510
 ```
 
-The old route's upper horizontal is at:
+The previous route remains at:
 
 ```text
-141.500
+Y = 141.500
 ```
 
-Therefore, after the movement, the old route is approximately:
+Thus the old route becomes approximately:
 
 ```text
-0.010 px
+0.010
 ```
 
-inside the expanded obstacle.
+inside the moved routing boundary.
 
-The router consequently rejects the old route before stability/cost hysteresis can preserve it.
+The router correctly classifies that previous route as blocked.
 
-## Important incremental-routing observation
+The important problem is what happens NEXT.
 
-This exposes a more useful routing question than simply increasing the stability tolerance.
-
-The old route and the new candidate are not unrelated shortest paths.
-
-The old route could plausibly be viewed as the same basic topology with its upper horizontal moved from:
+Instead of making only the small geometric adjustment needed to maintain the same route structure, the fresh candidate changes the lower section from:
 
 ```text
-141.500
+... → 141.500
+    → 6.250
+    → -25.000
 ```
 
 to:
 
 ```text
-141.510
+... → 141.510
+    → -24.990
+    → -25.000
 ```
 
-while much of the existing corridor structure remains unchanged.
-
-The fresh candidate instead changes the lower portion dramatically:
+That creates the tiny:
 
 ```text
-old:
-141.500
--> 6.250
--> -25.000
-
-new:
-141.510
--> -24.990
--> -25.000
-```
-
-This creates the tiny:
-
-```text
-0.010 px
+0.010
 ```
 
 segment near the endpoint escape.
 
-This is evidence supporting investigation of a small topology-preserving repair step before falling back to a completely fresh route.
+---
 
-This is an investigation target, not yet an implementation decision.
+# Current interpretation
 
-## Revised investigation goal
-
-Distinguish two concepts:
-
-### Route geometry
-
-The route retains the same basic topology/corridor sequence while coordinates move slightly to remain legal.
-
-### Route topology
-
-The route changes which sides/corridors/elbows it uses.
-
-The undesirable behavior appears to be a topology change triggered by a tiny geometric movement.
-
-The next implementation experiment should therefore ask:
-
-Can the existing route topology be preserved with small geometric adjustments when the previous route becomes microscopically illegal?
-
-Only if the old topology cannot be repaired legally should a full new route be selected.
-
-## Next investigation
-
-Do not tune:
-
-`ROUTE_STABILITY_COST_TOLERANCE`
-
-Do not add another wire.
-
-Do not replace the router.
-
-Do not perform a broad architecture rewrite.
-
-First inspect the current route-selection and route-normalization behavior in enough detail to determine the smallest topology-preserving mechanism.
-
-A promising conceptual location is between:
+The problem is no longer best described as:
 
 ```text
-previous route exists
+stability tolerance is too small
 ```
 
-and:
+It is better described as:
 
 ```text
-previous stable route was blocked
+tiny obstacle movement
+    ↓
+previous topology becomes technically illegal
+    ↓
+previous route discarded
+    ↓
+fresh shortest-path search
+    ↓
+new topology selected
+    ↓
+large visible elbow change
 ```
 
-Possible future shape:
+The fresh search is legal, but its structural change is disproportionately large compared with the physical movement.
+
+---
+
+# Incremental-routing hypothesis
+
+The next experiment should test whether the previous route can be treated as a topology candidate even after becoming microscopically geometrically invalid.
+
+Conceptually:
 
 ```text
 previous route
-    |
-    +-- endpoint mismatch? ---- yes --> normal new candidate
-    |
-    +-- malformed? ------------ yes --> normal new candidate
-    |
-    +-- currently clear? ------- yes --> normal stability comparison
-    |
-    +-- blocked
-          |
-          +-- can existing topology be repaired slightly?
-                  |
-                  +-- yes --> compare/use repaired topology
-                  |
-                  +-- no --> normal fresh candidate
+      |
+      v
+old topology still recognizable?
+      |
+      +-- no --> normal fresh route
+      |
+      +-- yes
+           |
+           v
+      adjust geometry
+           |
+           v
+      repaired route legal?
+           |
+           +-- no --> normal fresh route
+           |
+           +-- yes
+                |
+                v
+         preserve topology
 ```
 
-The repair mechanism must be small, deterministic, obstacle-aware, and limited to presentation/runtime routing.
+This is deliberately smaller than implementing libavoid, yFiles, or another mature routing system.
 
-It should not enter the canonical machine model.
+The aim is only to introduce a limited continuity preference into the existing modular architecture.
 
-## Required regression coverage before moving to multi-wire
+---
 
-At minimum, establish tests for:
+# Important constraint
 
-1. A tiny obstacle movement that can be absorbed by preserving the existing topology.
-2. A tiny movement that genuinely makes the old topology impossible.
-3. A route with a small endpoint-adjacent geometric change that does not require a topology change.
-4. A genuine topology-improvement case that should still permit a new route.
-5. Endpoint movement where the prepared endpoint really does change, so the endpoint-mismatch branch is explicitly understood and tested.
+Do not automatically implement the above mechanism yet.
 
-The tests should verify both:
+First establish the smallest safe definition of:
 
-* route point geometry
-* route topology / segment-direction sequence
+```text
+topology-preserving repair
+```
 
-Do not test only total route cost.
+The repair should be:
 
-## Current diagnostic interpretation
+* deterministic
+* obstacle-aware
+* local
+* small
+* understandable
+* compatible with the existing route representation
+* entirely visual/runtime routing state
 
-Captured normal-mode evidence:
+It should not change Connection semantics.
+
+---
+
+# What the repair experiment should eventually test
+
+A route should ideally be able to behave like:
+
+```text
+original:
+      ┌──────────────┐
+      │              │
+──────┘              └──────
+
+tiny obstacle movement:
+      ┌──────────────┐
+      │              │
+──────┘              └──────
+            ↑
+     elbows shift slightly
+```
+
+rather than:
+
+```text
+original topology
+       ↓
+tiny geometry change
+       ↓
+completely different corridor
+       ↓
+large elbow jump
+```
+
+The exact visual diagrams are conceptual only.
+
+---
+
+# Required regression categories
+
+Before moving to multi-wire routing, add regression tests covering at least:
+
+## 1. Tiny geometric movement, same topology
+
+Previous route remains conceptually usable.
+
+A small obstacle/end geometry change should permit a topology-preserving repair.
+
+Expected:
+
+```text
+same topology
+different coordinates
+```
+
+## 2. Tiny movement that makes old topology impossible
+
+The old structural route cannot legally be repaired.
+
+Expected:
+
+```text
+fresh route
+```
+
+## 3. Endpoint-adjacent geometry movement
+
+A small endpoint movement changes local geometry without necessarily requiring a global topology change.
+
+Expected:
+
+```text
+same topology where legal
+```
+
+## 4. Genuine topology improvement
+
+A different route is substantially better.
+
+Expected:
+
+```text
+new topology accepted
+```
+
+The existing stability policy must not prevent a legitimate improvement.
+
+## 5. Endpoint mismatch behavior
+
+Construct an explicit case where the prepared endpoint really moves.
+
+Verify that the endpoint-mismatch branch is understood and does not produce accidental topology churn.
+
+## 6. Repeated movement around the threshold
+
+Move the obstacle/component back and forth across the transition.
+
+Look for:
+
+```text
+no unnecessary topology oscillation
+```
+
+---
+
+# What not to do
+
+Do NOT:
+
+* increase `ROUTE_STABILITY_COST_TOLERANCE` just to suppress this transition
+* rewrite the router
+* replace the pathfinder
+* move routing into the canvas
+* alter canonical Connection semantics
+* introduce routing state into firmware mappings
+* add a second wire before this single-wire case is understood
+* assume every topology change is bad
+* assume every geometry change should preserve topology
+* use a crude minimum-segment threshold as the first fix
+
+A near-zero segment remains a diagnostic clue, not yet a justification for a generic minimum-length rule.
+
+---
+
+# Open implementation questions
+
+## How is topology represented?
+
+The current route is stored as a sequence of points.
+
+There is not yet a separate explicit topology object.
+
+One likely approach is to derive a topology signature from the route's segment directions/corridor relationships rather than introducing a large new data model.
+
+Do not choose this until the route-repair experiment establishes what information is actually needed.
+
+## How much movement can be repaired?
+
+This should not become an arbitrary large tolerance.
+
+The intended mechanism is local and geometry-driven.
+
+## How should obstacle boundaries be handled?
+
+The existing:
+
+```text
+GEOMETRY_EPSILON = 0.001
+```
+
+and boundary-safe collision behavior remain in force.
+
+A repair must use the same legality model as ordinary routing.
+
+---
+
+# Diagnostic limitations still known
+
+For transitions caused by a blocked previous route, the transition recorder currently reports:
+
+```text
+previous cost: n/a
+```
+
+This is because the transition is recorded before the previous-route cost is calculated.
+
+That is a diagnostics limitation, not evidence that the cost is unknowable.
+
+Do not confuse that with route selection behavior.
+
+---
+
+# Existing GUI evidence
+
+Normal mode has demonstrated:
 
 ```text
 decision: previous stable route held within tolerance
 ```
 
-occurs in positions where previous and candidate routes can be identical.
+when the previous and candidate routes were effectively equivalent.
 
-This shows that the stability layer is capable of holding the route and is not itself responsible for every elbow movement.
+This proves that route stability can hold a route.
 
-Captured transition evidence:
+It also demonstrates that not every visible movement or elbow change is caused by the stability layer itself.
+
+The specific node-4 transition instead reported:
 
 ```text
 reason: previous stable route was blocked
 ```
 
-is the important trigger for the current node-4 experiment.
+That distinction must remain explicit.
 
-The current diagnostic recorder reports previous cost as `n/a` for blocked-route transitions because the transition is recorded before calculating previous-route cost.
+---
 
-That is only a diagnostic limitation.
+# Boundary-precision investigation result
 
-## Deferred maintenance
+Before the geometry-epsilon fix, direct collision testing showed that microscopic positive penetration could change a segment from clear to blocked.
 
-Do not mix these into the active routing behavior experiment unless necessary:
+The behavior flipped around approximately:
 
-* duplicate routing-debug definitions in `selection_inspector.py`
-* stale V0.2 planning text in `IMPLEMENTATION_ROADMAP.md`
-* refresh of `V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md`
+```text
++1e-13
+```
 
-These remain maintenance/documentation items.
+of penetration.
 
-## Tool-use constraint for Coder 4.4
+The new geometry-epsilon logic suppresses this sub-epsilon sensitivity while still identifying meaningful penetration.
 
-For the 4.4 routing experiment:
+A focused regression was added for horizontal and vertical cases.
 
-* do not use Python
-* do not use Jupyter
-* do not use ChatGPT Data Analysis
-* use local PowerShell commands and user-reported output
-* use pytest locally
-* use GUI testing locally
-* GitHub/web inspection is explicitly allowed
+This fixed one genuine numerical stability issue but did not eliminate the larger topology-change problem.
 
-The purpose is to isolate whether Python/Data Analysis usage is contributing to the cross-chat usage pauses observed by the developer.
+---
 
-## Startup for the next coder chat
+# Architectural classification
 
-At the beginning of the next coder chat:
+## REINFORCE
 
-1. Read `Machine-Builder/CODER_CHAT_WORKFLOW.md`.
-2. Read `machine-structure-editor/handoffs/V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md`.
-3. Read `machine-structure-editor/IMPLEMENTATION_ROADMAP.md`.
-4. Read this 4.4 routing handoff.
-5. Establish actual local branch, commit, and status.
-6. Run focused routing tests.
-7. Run the full suite at the appropriate checkpoint.
-8. Treat the user's local results as authoritative.
+### Connection semantics vs visual routing
 
-Do not reconstruct the entire routing history from previous chat messages.
+Routing behavior remains presentation/runtime state and should stay separate from canonical Connection semantics.
 
-The immediate goal is a small, evidence-driven experiment in incremental route continuity for the existing single-wire case.
+### Controller Resource vs visual Port
+
+Nothing in routing requires these concepts to be collapsed.
+
+### Hardware Definition vs Controller instance
+
+Routing provides no reason to change this distinction.
+
+### Firmware implementation vs machine identity
+
+Routing provides no firmware-specific semantic identity issue.
+
+### Modular canvas/routing structure
+
+The existing modular structure remains appropriate.
+
+## NEW PRINCIPLE
+
+### Route topology vs route geometry
+
+The current behavior provides concrete evidence that the distinction is useful and meaningful in the visual/editor layer.
+
+## WATCH
+
+### Incremental topology-preserving routing
+
+The current bug strongly motivates testing this strategy, but no implementation or schema change has yet been justified.
+
+### Persisted topology representation
+
+It is not yet known whether topology needs explicit persistence or can remain an internal derived routing concept.
+
+---
+
+# Cross-workstream notes
+
+## Planning / Architecture
+
+The routing work supports a visual-layer distinction between:
+
+```text
+route topology
+route geometry
+```
+
+It does NOT currently justify changing the canonical semantic model.
+
+The architecture question is limited to whether this distinction eventually needs to become an explicit persisted presentation concept.
+
+## Controller / Board Breakout
+
+The board work should continue independently.
+
+Do not treat:
+
+```text
+Controller Resource
+Port
+Connector
+Pin
+visual routing endpoint
+```
+
+as interchangeable concepts.
+
+Board visualization may present them together, but the semantic distinctions remain important.
+
+## Firmware Mapping
+
+No routing finding currently changes firmware mapping.
+
+A route represents visual presentation of a connection, not the firmware-specific implementation of that connection.
+
+## Semantic Authoring
+
+A user may move a component and therefore change visual route geometry without changing the semantic machine relationship.
+
+That is further evidence for strong semantic/presentation separation.
+
+---
+
+# Startup procedure for Coder 4.4
+
+At the beginning of Coder 4.4:
+
+1. Establish the actual branch and worktree state locally.
+2. Confirm the repository is on `wip-routing-diagnostics`.
+3. Run the focused routing tests.
+4. Run the full suite at the next meaningful checkpoint.
+5. Keep Python/Jupyter/Data Analysis disabled for this workstream.
+6. Keep new file/image uploads disabled.
+7. GitHub/web inspection remains allowed.
+8. Do not add a second wire yet.
+9. Read this handoff before modifying routing code.
+
+The first coding task should be investigation, not immediate implementation.
+
+The first goal is:
+
+> Determine the smallest topology-preserving repair that can absorb a tiny obstacle movement without forcing a fresh topology selection.
+
+Only after that mechanism is understood should a focused implementation be proposed.
+
+---
+
+# Current project branch structure
+
+The project now has intentionally separate WIP branches:
+
+```text
+main
+│
+├── wip-routing-diagnostics
+│   └── single-wire routing / diagnostics / route continuity
+│
+└── wip-controller-board-breakout
+    └── controller boards / ports / controller resources / board presentation
+```
+
+The board branch starts from `main`.
+
+The routing branch remains separate until its routing milestone is coherent.
+
+Do not merge either WIP branch merely because another chat needs a clean starting point.
+
+---
+
+# Merge guidance
+
+`wip-routing-diagnostics` should eventually return to `main` after a coherent routing milestone rather than after every experiment.
+
+A reasonable routing milestone is:
+
+```text
+single-wire topology problem understood
++
+focused regression tests
++
+full suite passing
++
+GUI behavior validated
++
+documentation updated
+```
+
+The second-wire experiment may occur before or after that milestone depending on what the single-wire investigation establishes.
+
+The controller-board branch should merge independently when that work reaches its own coherent milestone.
+
+---
+
+# Final immediate objective
+
+The immediate objective for Coder 4.4 is NOT:
+
+```text
+make the wire never move
+```
+
+It is:
+
+```text
+preserve route topology when a small geometry change can be absorbed
+and permit genuine rerouting when preservation is no longer legal
+or a materially different route is actually warranted.
+```
+
+That distinction should guide the next implementation experiment.
