@@ -577,8 +577,8 @@ def _find_grid_route(
         QPointF,
     ] = {}
 
-    for x in coordinates_x:
-        for y in coordinates_y:
+    for x in sorted(coordinates_x):
+        for y in sorted(coordinates_y):
             point = QPointF(
                 x,
                 y,

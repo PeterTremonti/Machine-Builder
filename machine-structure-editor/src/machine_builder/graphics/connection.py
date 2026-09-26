@@ -140,6 +140,257 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
 
         return "none"
 
+    @staticmethod
+    def _route_topology_signature(
+        route: tuple[QPointF, ...] | list[QPointF],
+    ) -> tuple[str, ...]:
+        return tuple(
+            ConnectionGraphicsItem._route_direction(
+                route[index],
+                route[index + 1],
+            )
+            for index in range(
+                len(route) - 1,
+            )
+        )
+    def _blend_route_geometry(
+        self,
+        previous: tuple[QPointF, ...],
+        candidate: tuple[QPointF, ...],
+    ) -> tuple[QPointF, ...] | None:
+        """Follow small candidate geometry changes without large jumps."""
+        if len(previous) != len(candidate):
+            return None
+
+        if (
+            self._route_topology_signature(
+                previous,
+            )
+            != self._route_topology_signature(
+                candidate,
+            )
+        ):
+            return None
+
+        blended = [
+            QPointF(previous[0]),
+        ]
+
+        for index in range(
+            1,
+            len(previous) - 1,
+        ):
+            old_point = previous[index]
+            new_point = candidate[index]
+
+            displacement = (
+                (
+                    new_point.x()
+                    - old_point.x()
+                ) ** 2
+                + (
+                    new_point.y()
+                    - old_point.y()
+                ) ** 2
+            ) ** 0.5
+
+            if displacement <= self.ROUTING_MARGIN:
+                blended.append(
+                    QPointF(new_point),
+                )
+            else:
+                blended.append(
+                    QPointF(old_point),
+                )
+
+        blended.append(
+            QPointF(previous[-1]),
+        )
+
+        if (
+            self._route_topology_signature(
+                blended,
+            )
+            != self._route_topology_signature(
+                previous,
+            )
+        ):
+            return None
+
+        return tuple(blended)
+
+    def _repair_blocked_route_geometry(
+        self,
+        previous: tuple[QPointF, ...],
+        obstacles: list[Any],
+    ) -> tuple[QPointF, ...] | None:
+        """Try a small coordinate repair without changing route topology."""
+        if len(previous) < 4:
+            return None
+
+        topology = self._route_topology_signature(
+            previous,
+        )
+
+        if any(
+            direction == "none"
+            for direction in topology
+        ):
+            return None
+
+        repairs: list[
+            tuple[
+                float,
+                int,
+                float,
+                tuple[QPointF, ...],
+            ]
+        ] = []
+
+        # The first and last route segments touch fixed endpoint escapes.
+        # A topology-preserving repair therefore only moves interior segments.
+        for index in range(
+            1,
+            len(previous) - 2,
+        ):
+            segment_start = previous[index]
+            segment_end = previous[index + 1]
+
+            direction = self._route_direction(
+                segment_start,
+                segment_end,
+            )
+
+            if direction not in {
+                "left",
+                "right",
+                "up",
+                "down",
+            }:
+                continue
+
+            if not ConnectionRoutingEngine._segment_blocked(
+                segment_start,
+                segment_end,
+                obstacles,
+            ):
+                continue
+
+            boundary_coordinates: set[float] = set()
+
+            for obstacle in obstacles:
+                if not ConnectionRoutingEngine._segment_blocked(
+                    segment_start,
+                    segment_end,
+                    [obstacle],
+                ):
+                    continue
+
+                if direction in {
+                    "left",
+                    "right",
+                }:
+                    boundary_coordinates.add(
+                        obstacle.top(),
+                    )
+                    boundary_coordinates.add(
+                        obstacle.bottom(),
+                    )
+                else:
+                    boundary_coordinates.add(
+                        obstacle.left(),
+                    )
+                    boundary_coordinates.add(
+                        obstacle.right(),
+                    )
+
+            if direction in {
+                "left",
+                "right",
+            }:
+                current_coordinate = segment_start.y()
+            else:
+                current_coordinate = segment_start.x()
+
+            for boundary_coordinate in sorted(
+                boundary_coordinates,
+            ):
+                displacement = abs(
+                    boundary_coordinate
+                    - current_coordinate
+                )
+
+                if displacement <= 0.0:
+                    continue
+
+                if (
+                    displacement
+                    > self.ROUTING_MARGIN
+                ):
+                    continue
+
+                repaired = [
+                    QPointF(point)
+                    for point in previous
+                ]
+
+                if direction in {
+                    "left",
+                    "right",
+                }:
+                    repaired[index] = QPointF(
+                        repaired[index].x(),
+                        boundary_coordinate,
+                    )
+                    repaired[index + 1] = QPointF(
+                        repaired[index + 1].x(),
+                        boundary_coordinate,
+                    )
+                else:
+                    repaired[index] = QPointF(
+                        boundary_coordinate,
+                        repaired[index].y(),
+                    )
+                    repaired[index + 1] = QPointF(
+                        boundary_coordinate,
+                        repaired[index + 1].y(),
+                    )
+
+                if (
+                    self._route_topology_signature(
+                        repaired,
+                    )
+                    != topology
+                ):
+                    continue
+
+                if not ConnectionRoutingEngine.route_is_clear(
+                    repaired,
+                    obstacles,
+                ):
+                    continue
+
+                repairs.append(
+                    (
+                        displacement,
+                        index,
+                        boundary_coordinate,
+                        tuple(repaired),
+                    )
+                )
+
+        if not repairs:
+            return None
+
+        repairs.sort(
+            key=lambda item: (
+                item[0],
+                item[1],
+                item[2],
+            )
+        )
+
+        return repairs[0][3]
     @classmethod
     def _route_cost(
         cls,
@@ -286,50 +537,133 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             self._record_routing_transition()
             return list(candidate)
 
-        if not ConnectionRoutingEngine.route_is_clear(
-            list(previous),
-            obstacles,
-        ):
+        previous_is_clear = (
+            ConnectionRoutingEngine.route_is_clear(
+                list(previous),
+                obstacles,
+            )
+        )
+
+        if previous_is_clear:
+            continuity_route = (
+                self._blend_route_geometry(
+                    previous,
+                    candidate,
+                )
+            )
+
+            if (
+                continuity_route is not None
+                and ConnectionRoutingEngine.route_is_clear(
+                    list(continuity_route),
+                    obstacles,
+                )
+            ):
+                continuity_cost = self._route_cost(
+                    continuity_route,
+                    start_direction,
+                    end_direction,
+                )
+                self._routing_previous_cost = continuity_cost
+
+                if (
+                    continuity_cost
+                    <= candidate_cost
+                    + self.ROUTE_STABILITY_COST_TOLERANCE
+                ):
+                    self._stable_route = continuity_route
+                    self._routing_selected_route = continuity_route
+                    self._routing_selected_cost = continuity_cost
+
+                    if continuity_route != previous:
+                        self._routing_stability_reason = (
+                            "previous stable route held topology "
+                            "with small geometry adjustment"
+                        )
+                    else:
+                        self._routing_stability_reason = (
+                            "previous stable route held within tolerance"
+                        )
+
+                    return list(continuity_route)
+
+            previous_cost = self._route_cost(
+                previous,
+                start_direction,
+                end_direction,
+            )
+            self._routing_previous_cost = previous_cost
+
+            if (
+                previous_cost
+                <= candidate_cost
+                + self.ROUTE_STABILITY_COST_TOLERANCE
+            ):
+                self._routing_selected_route = tuple(
+                    QPointF(point)
+                    for point in previous
+                )
+                self._routing_selected_cost = previous_cost
+                self._routing_stability_reason = (
+                    "previous stable route held within tolerance"
+                )
+                return list(previous)
+
             self._stable_route = candidate
             self._routing_selected_route = candidate
             self._routing_selected_cost = candidate_cost
             self._routing_stability_reason = (
-                "previous stable route was blocked"
+                "candidate route beat stability tolerance"
             )
             self._record_routing_transition()
             return list(candidate)
 
-        previous_cost = self._route_cost(
+        repaired = self._repair_blocked_route_geometry(
             previous,
-            start_direction,
-            end_direction,
+            obstacles,
         )
-        self._routing_previous_cost = previous_cost
 
-        if (
-            previous_cost
-            <= candidate_cost
-            + self.ROUTE_STABILITY_COST_TOLERANCE
-        ):
-            self._routing_selected_route = tuple(
-                QPointF(point)
-                for point in previous
+        if repaired is not None:
+            repaired_cost = self._route_cost(
+                repaired,
+                start_direction,
+                end_direction,
             )
-            self._routing_selected_cost = previous_cost
+            self._routing_previous_cost = repaired_cost
+
+            if (
+                repaired_cost
+                <= candidate_cost
+                + self.ROUTE_STABILITY_COST_TOLERANCE
+            ):
+                self._stable_route = repaired
+                self._routing_selected_route = repaired
+                self._routing_selected_cost = repaired_cost
+                self._routing_stability_reason = (
+                    "previous stable route was blocked; "
+                    "topology-preserving geometry repair "
+                    "held within tolerance"
+                )
+                return list(repaired)
+
+            self._stable_route = candidate
+            self._routing_selected_route = candidate
+            self._routing_selected_cost = candidate_cost
             self._routing_stability_reason = (
-                "previous stable route held within tolerance"
+                "candidate route beat stability tolerance "
+                "after topology-preserving repair"
             )
-            return list(previous)
+            self._record_routing_transition()
+            return list(candidate)
 
         self._stable_route = candidate
         self._routing_selected_route = candidate
         self._routing_selected_cost = candidate_cost
         self._routing_stability_reason = (
-            "candidate route beat stability tolerance"
+            "previous stable route was blocked"
         )
         self._record_routing_transition()
         return list(candidate)
-
     def _record_routing_transition(self) -> None:
         """Persist the latest route-stability transition."""
         self._routing_last_transition_reason = (
