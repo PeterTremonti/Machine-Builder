@@ -4,13 +4,13 @@
 
 **Status:** Living project snapshot; not a replacement for architecture/decision documents.
 
-**Last updated:** 2026-09-25
+**Last updated:** 2026-09-27
 
 ---
 
-## 1. Purpose of this document
+# 1. Purpose of this document
 
-Machine Builder is being developed through several parallel chats/workstreams.
+Machine Builder is being developed through several parallel chats/workstreams, all working against the same evolving program.
 
 This document provides a shared project-level snapshot so that a new or returning workstream can understand:
 
@@ -31,7 +31,7 @@ Use:
 
 * canonical architecture/decision documents for settled architectural decisions
 * source code and tests for actual implementation state
-* current branch state for work-in-progress implementation details
+* current `main` working tree and current test results for active implementation state
 * this document for cross-workstream context
 
 Do not turn an exploratory observation in this document into an architectural decision without the appropriate research/architecture review.
@@ -40,25 +40,51 @@ Do not turn an exploratory observation in this document into an architectural de
 
 # 2. Current project structure
 
-Machine Builder currently uses multiple parallel workstreams.
+Machine Builder is developed through multiple parallel chats/workstreams, but they all work against the **same evolving program**.
+
+The current Git development model is intentionally simple:
+
+```text
+GitHub repository
+    ↓
+main
+    ↓
+one local checkout
+    ↓
+all active Machine Builder workstreams
+```
+
+The normal local development checkout is:
+
+```text
+C:\Users\Peter\Documents\GitHub\Machine-Builder
+```
+
+and it remains on:
 
 ```text
 main
-├── wip-routing-diagnostics
-│   └── wire routing / interactive routing investigation
-│
-└── wip-controller-board-breakout
-    └── controller boards / board visualization /
-       controller resources / ports / related work
 ```
 
-The workstreams are intentionally independent.
+Routing, Controller/Board, semantic-authoring, and other areas remain separate **workstreams of responsibility**, but they are no longer represented by separate Git branches or Git worktrees.
+
+This means:
+
+* routing changes are made on `main`
+* controller/board changes are made on `main`
+* semantic/editor changes are made on `main`
+* each chat remains responsible for its focused area and its own handoff documentation
+* every workstream can inspect the same current codebase
+* implementation discoveries become immediately visible to the other workstreams
+
+The workstreams are intentionally independent in **responsibility**, not in Git history.
 
 They are **not competing architectures**.
 
-Their purpose is to allow implementation to proceed in focused areas while concrete implementation discoveries feed back into research and architecture.
+Their purpose is to allow work to proceed in focused areas while concrete implementation discoveries feed back into research and architecture.
 
 The intended feedback loop is:
+
 
 ```text
 Research / Architecture
@@ -172,28 +198,31 @@ The increasing complexity of implementation is not, by itself, evidence that the
 
 # 5. Active workstream: Routing / Diagnostics
 
-## Branch
+## Git status
 
-`wip-routing-diagnostics`
+Routing is an active workstream on the shared `main` branch.
 
-## Current reported status
+The former `wip-routing-diagnostics` branch was merged into `main` and retired.
 
-Latest directly reported routing workstream result:
+There is no separate routing worktree.
+
+## Current verified status
+
+The combined `main` branch currently reports:
 
 ```text
-Full suite: 695 passed
-tests/test_connection_routing.py: 38 passed
+706 passed in 4.12s
 ```
 
-An earlier broader routing-focused group was reported as 54 tests with 694 full-suite tests.
+The working tree is clean and `git diff --check` is clean.
 
-For current synchronization purposes:
+Earlier routing-specific checkpoints remain useful as historical information:
 
-* **695** = latest reported full-suite result
-* **38** = current directly targeted `tests/test_connection_routing.py` result
-* **54 / 694** = historical checkpoint information
+* **695** = earlier routing workstream full-suite result
+* **38** = earlier directly targeted `tests/test_connection_routing.py` result
+* **54 / 694** = earlier broader focused-routing checkpoint
 
-The exact local branch state should be verified from the developer's checkout when implementation work resumes.
+The current project-wide baseline is the combined `main` result of **706 passing tests**.
 
 ---
 
@@ -240,6 +269,7 @@ route topology changes substantially
 This distinguishes the current problem from a simple "stability tolerance is too small" problem.
 
 ---
+
 
 ## Routing implementation progress
 
@@ -379,13 +409,19 @@ This is currently a **WATCH** item, not a decision.
 
 # 8. Active workstream: Controller / Board
 
-## Branch
+## Git status
 
-`wip-controller-board-breakout`
+Controller/Board is an active workstream on the shared `main` branch.
 
-This branch was created from `main`.
+The former `wip-controller-board-breakout` branch was merged into `main` and retired.
 
-Its purpose is to investigate and implement:
+There is no separate board worktree.
+
+The initial board experiment has already been merged into `main` as commit:
+
+`5ba33fc — Link controllers to hardware definitions`
+
+Its continuing purpose is to investigate and implement:
 
 * controller-board creation
 * board/node presentation
@@ -394,9 +430,10 @@ Its purpose is to investigate and implement:
 * resource assignment presentation
 * related board functionality
 
-It remains independent of the routing branch.
+The workstream remains logically separate from routing and other areas in terms of responsibility, but all implementation now uses the same `main` branch and local checkout.
 
 ---
+
 
 # 9. Controller / board architecture currently supported
 
@@ -676,7 +713,8 @@ Controller Resource Assignment
 Physical Connection
 ```
 
-The routing branch should remain independent of the board branch unless a concrete dependency appears.
+Routing and board work remain separate responsibilities, but they now share the same `main` development history. A dependency between them should be introduced only when a concrete implementation need exists.
+
 
 ---
 
@@ -881,19 +919,30 @@ Current focus:
 
 ### Controller / Board
 
-Use `wip-controller-board-breakout`.
+Work on the shared `main` branch.
 
-Start with one real documented board and test whether the existing concepts compose cleanly.
+Continue with one real documented board and test whether the existing concepts compose cleanly.
+
+Record implementation discoveries in the appropriate board handoff documentation and report any project-level architectural implications back to Planning / Architecture.
 
 ### Routing / Diagnostics
 
-Use `wip-routing-diagnostics`.
+Work on the shared `main` branch.
 
 Continue investigating topology-preserving route repair rather than simply increasing stability tolerance.
 
+Record implementation discoveries in the appropriate routing handoff documentation and report any project-level architectural implications back to Planning / Architecture.
+
 ### All workstreams
 
-When a durable project-level discovery occurs, report it back to Planning / Architecture and consider updating this document at the next meaningful checkpoint.
+All implementation work currently shares the same `main` branch and local checkout.
+
+Chats remain specialized by responsibility, but they should inspect the current shared codebase before making assumptions about another workstream's state.
+
+When a durable project-level discovery occurs, report it back to Planning / Architecture and consider updating `PROJECT_CURRENT_STATE.md` at the next meaningful checkpoint.
+
+The purpose of this document is to keep the workstreams synchronized without turning every implementation detail into architecture.
+
 
 ---
 
@@ -904,9 +953,11 @@ As of this document:
 * V0.2 architecture remains intact.
 * Routing provides concrete evidence supporting a topology/geometry distinction in visual route state.
 * Routing's current failure mode appears to involve invalidation of the previous route followed by fresh path selection.
-* A topology-preserving repair mechanism is a promising implementation experiment, not yet an architectural requirement.
-* Controller-board implementation has a separate branch: `wip-controller-board-breakout`.
-* Existing controller, resource, assignment, hardware-definition, semantic-port, and controller-visual infrastructure provides a substantial foundation.
+* A topology-preserving route-repair mechanism is a promising implementation experiment, not yet an architectural requirement.
+* Controller-board work is now part of the shared `main` branch.
+* The former `wip-controller-board-breakout` and `wip-routing-diagnostics` branches have been merged into `main` and retired.
+* There is now one normal local checkout and one active Git branch: `main`.
+* Existing controller, resource, assignment, hardware-definition, semantic-port, and controller-visual infrastructure provides a substantial foundation for board work.
 * The main unresolved board architecture question is how an installed Controller relates to its reusable Hardware Definition.
 * No new canonical Board ontology has yet been justified.
 * The project should continue using implementation evidence to reinforce or refine architecture rather than allowing implementation complexity alone to trigger redesign.
