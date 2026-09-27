@@ -233,3 +233,34 @@ def build_generic_120vac_400w_heater() -> (
         hardware,
         ports,
     )
+
+
+DUET2_MAESTRO_HARDWARE_SOURCE = (
+    "https://github.com/Duet3D/Duet-2-Hardware/tree/master/"
+    "Duet2/Duet2Maestro_v1.0"
+)
+
+
+def build_duet_2_maestro() -> HardwareDefinition:
+    """Build the documented Duet 2 Maestro v1.0 hardware definition."""
+    return HardwareDefinition(
+        id="duet-2-maestro-v1-0",
+        family="Duet 2 Maestro",
+        manufacturer="Duet3D",
+        variant="v1.0",
+        properties={
+            "processor": "ATSAM4S8C",
+            "onboard_stepper_driver_count": 5,
+            "onboard_stepper_driver_type": "TMC2224",
+            "heater_output_count": 3,
+            "controlled_fan_output_count": 3,
+        },
+        provenance=[
+            Provenance(
+                source=DUET2_MAESTRO_HARDWARE_SOURCE,
+                evidence_type="published",
+                method="manufacturer hardware design repository",
+                context="Duet 2 Maestro v1.0 hardware design files.",
+            )
+        ],
+    )

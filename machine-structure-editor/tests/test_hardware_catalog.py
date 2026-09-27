@@ -182,3 +182,40 @@ def test_fan_and_heater_are_distinct_hardware_definitions() -> None:
         fan.variant
         != heater.variant
     )
+
+
+def test_duet_2_maestro_definition_has_documented_identity() -> None:
+    from machine_builder.hardware_catalog import build_duet_2_maestro
+
+    hardware = build_duet_2_maestro()
+
+    assert hardware.id == "duet-2-maestro-v1-0"
+    assert hardware.family == "Duet 2 Maestro"
+    assert hardware.manufacturer == "Duet3D"
+    assert hardware.variant == "v1.0"
+
+
+def test_duet_2_maestro_definition_preserves_documented_board_facts() -> None:
+    from machine_builder.hardware_catalog import build_duet_2_maestro
+
+    hardware = build_duet_2_maestro()
+
+    assert hardware.properties["processor"] == "ATSAM4S8C"
+    assert hardware.properties["onboard_stepper_driver_count"] == 5
+    assert hardware.properties["onboard_stepper_driver_type"] == "TMC2224"
+    assert hardware.properties["heater_output_count"] == 3
+    assert hardware.properties["controlled_fan_output_count"] == 3
+
+
+def test_duet_2_maestro_definition_preserves_hardware_source() -> None:
+    from machine_builder.hardware_catalog import (
+        DUET2_MAESTRO_HARDWARE_SOURCE,
+        build_duet_2_maestro,
+    )
+
+    hardware = build_duet_2_maestro()
+
+    assert DUET2_MAESTRO_HARDWARE_SOURCE in {
+        provenance.source
+        for provenance in hardware.provenance
+    }
