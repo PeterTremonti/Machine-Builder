@@ -211,7 +211,7 @@ There is no separate routing worktree.
 The combined `main` branch currently reports:
 
 ```text
-706 passed in 4.12s
+717 passed in 2.46s
 ```
 
 The working tree is clean and `git diff --check` is clean.
@@ -496,9 +496,9 @@ It can be:
 * edited
 * persisted
 
-The current Controller model does **not** currently contain an explicit `hardware_definition_id`.
+The Controller now contains an explicit typed `hardware_definition_id` reference to a reusable `HardwareDefinition`.
 
-This has become an architectural **WATCH** item.
+The reference is validated when a Controller is added to the canonical model and is covered by persistence round-trip tests. This boundary is now **REINFORCED**.
 
 ---
 
@@ -548,19 +548,23 @@ That shortcut should be avoided unless concrete evidence requires a new represen
 
 # 11. Controller / board architectural watch items
 
-## WATCH 1 — Installed Controller ↔ Hardware Definition
+## Controller ↔ Hardware Definition — resolved
 
 `MachineComponent` already has an explicit hardware-definition relationship.
 
-`Controller` currently does not.
+The Controller now has the corresponding typed relationship:
 
-The board work should test a real documented controller board and answer:
+```text
+Controller
+    ↓ hardware_definition_id
+HardwareDefinition
+```
 
-> How should an installed Controller identify or reference its reusable Hardware Definition?
+The reference is validated against the canonical hardware-definition collection and survives persistence round trips.
 
-Do not solve this prematurely by putting a board identifier into an untyped property bag.
+This does **not** introduce a new Board ontology.
 
-At present this is a **WATCH** item, not an architectural change.
+Status: **REINFORCE**
 
 ---
 
@@ -758,7 +762,7 @@ Firmware remains an implementation of the machine rather than the machine's iden
 | Route topology vs route geometry          | NEW PRINCIPLE — candidate | Useful visual-layer distinction exposed by implementation                               |
 | Incremental/topology-preserving routing   | WATCH                     | Strong implementation/UX candidate, not yet architecture                                |
 | Persistent route topology                 | WATCH                     | Need further evidence                                                                   |
-| Controller ↔ Hardware Definition          | WATCH                     | First real board should test this boundary                                              |
+| Controller ↔ Hardware Definition          | REINFORCE                 | Typed Controller → HardwareDefinition reference is implemented and tested              |
 | Resource ↔ Connector/Pin                  | WATCH                     | Real board should determine whether relationship is needed                              |
 | Board visual structure                    | WATCH                     | Existing visual infrastructure should be tested before introducing new semantic objects |
 | New Board ontology                        | REINFORCE                 | No evidence currently requires one                                                      |
@@ -913,7 +917,6 @@ Continue evaluating concrete implementation findings without unnecessarily reope
 Current focus:
 
 * route topology vs route geometry
-* Controller ↔ Hardware Definition question
 * board/resource/port boundaries
 * maintaining project-wide architectural coherence
 
