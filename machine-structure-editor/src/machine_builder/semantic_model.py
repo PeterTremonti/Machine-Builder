@@ -541,6 +541,16 @@ class CanonicalMachineModel:
                 f"Unknown machine: {machine_id}"
             )
 
+        if controller.hardware_definition_id is not None:
+            if (
+                controller.hardware_definition_id
+                not in self.hardware_definitions
+            ):
+                raise ValueError(
+                    "Unknown hardware definition: "
+                    f"{controller.hardware_definition_id}"
+                )
+
         self.controllers[
             controller.id
         ] = controller

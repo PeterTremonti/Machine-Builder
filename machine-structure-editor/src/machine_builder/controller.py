@@ -18,6 +18,8 @@ class Controller:
     controller_type: str
     version: str | None = None
 
+    hardware_definition_id: str | None = None
+
     properties: dict[str, Any] = field(
         default_factory=dict
     )
