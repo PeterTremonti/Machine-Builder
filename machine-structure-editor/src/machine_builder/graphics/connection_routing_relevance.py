@@ -71,6 +71,50 @@ def collect_relevant_obstacles(
     return relevant
 
 
+def expand_relevant_obstacles(
+    relevant_obstacles: list[QRectF],
+    obstacles: list[QRectF],
+    radius: float,
+    ignored_obstacles: list[QRectF] | None = None,
+) -> list[QRectF]:
+    """Expand relevance through nearby chains of obstacles."""
+    ignored = ignored_obstacles or []
+    relevant = list(relevant_obstacles)
+
+    changed = True
+
+    while changed:
+        changed = False
+
+        for obstacle in obstacles:
+            if any(
+                obstacle == ignored_obstacle
+                for ignored_obstacle in ignored
+            ):
+                continue
+
+            if any(
+                obstacle == existing
+                for existing in relevant
+            ):
+                continue
+
+            for existing in relevant:
+                expanded = existing.adjusted(
+                    -radius,
+                    -radius,
+                    radius,
+                    radius,
+                )
+
+                if expanded.intersects(obstacle):
+                    relevant.append(obstacle)
+                    changed = True
+                    break
+
+    return relevant
+
+
 def polyline_intersects_relevance_zone(
     route: list[QPointF],
     obstacle: QRectF,

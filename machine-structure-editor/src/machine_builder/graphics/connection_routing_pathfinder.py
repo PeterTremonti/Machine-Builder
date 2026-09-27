@@ -430,9 +430,9 @@ def segment_blocked(
         )
 
         return any(
-            rect.top() < y < rect.bottom()
-            and right > rect.left()
-            and left < rect.right()
+            rect.top() + GEOMETRY_EPSILON < y < rect.bottom() - GEOMETRY_EPSILON
+            and right > rect.left() + GEOMETRY_EPSILON
+            and left < rect.right() - GEOMETRY_EPSILON
             for rect in obstacles
         )
 
@@ -448,9 +448,9 @@ def segment_blocked(
         )
 
         return any(
-            rect.left() < x < rect.right()
-            and bottom > rect.top()
-            and top < rect.bottom()
+            rect.left() + GEOMETRY_EPSILON < x < rect.right() - GEOMETRY_EPSILON
+            and bottom > rect.top() + GEOMETRY_EPSILON
+            and top < rect.bottom() - GEOMETRY_EPSILON
             for rect in obstacles
         )
 
@@ -577,8 +577,8 @@ def _find_grid_route(
         QPointF,
     ] = {}
 
-    for x in coordinates_x:
-        for y in coordinates_y:
+    for x in sorted(coordinates_x):
+        for y in sorted(coordinates_y):
             point = QPointF(
                 x,
                 y,
@@ -827,6 +827,92 @@ def _find_grid_route(
         for key in keys
     ]
 
+MIN_ROUTING_CORRIDOR = 8.0
+GEOMETRY_EPSILON = 0.001
+
+
+def _horizontal_corridor_too_narrow(
+    start: QPointF,
+    end: QPointF,
+    obstacles: list[QRectF],
+) -> bool:
+    """Reject horizontal segments squeezed through a narrow obstacle gap."""
+    if abs(start.y() - end.y()) > GEOMETRY_EPSILON:
+        return False
+
+    y = start.y()
+    left = min(start.x(), end.x())
+    right = max(start.x(), end.x())
+
+    below: list[float] = []
+    above: list[float] = []
+
+    for rect in obstacles:
+        if (
+            rect.right() <= left
+            or rect.left() >= right
+        ):
+            continue
+
+        if rect.bottom() <= y - GEOMETRY_EPSILON:
+            below.append(rect.bottom())
+
+        if rect.top() >= y + GEOMETRY_EPSILON:
+            above.append(rect.top())
+
+    if not below or not above:
+        return False
+
+    nearest_below = max(below)
+    nearest_above = min(above)
+
+    return (
+        nearest_above - nearest_below
+        < MIN_ROUTING_CORRIDOR
+    )
+
+
+def _vertical_corridor_too_narrow(
+    start: QPointF,
+    end: QPointF,
+    obstacles: list[QRectF],
+) -> bool:
+    """Reject vertical segments squeezed through a narrow obstacle gap."""
+    if abs(start.x() - end.x()) > GEOMETRY_EPSILON:
+        return False
+
+    x = start.x()
+    top = min(start.y(), end.y())
+    bottom = max(start.y(), end.y())
+
+    left: list[float] = []
+    right: list[float] = []
+
+    for rect in obstacles:
+        if (
+            rect.bottom() <= top
+            or rect.top() >= bottom
+        ):
+            continue
+
+        if rect.right() <= x - GEOMETRY_EPSILON:
+            left.append(rect.right())
+
+        if rect.left() >= x + GEOMETRY_EPSILON:
+            right.append(rect.left())
+
+    if not left or not right:
+        return False
+
+    nearest_left = max(left)
+    nearest_right = min(right)
+
+    return (
+        nearest_right - nearest_left
+        < MIN_ROUTING_CORRIDOR
+    )
+
+
 def _connect_horizontal(
     points: dict[
         tuple[float, float],
@@ -871,6 +957,20 @@ def _connect_horizontal(
             point_b = points[key_b]
 
             if segment_blocked(
+                point_a,
+                point_b,
+                obstacles,
+            ):
+                continue
+
+            if _vertical_corridor_too_narrow(
+                point_a,
+                point_b,
+                obstacles,
+            ):
+                continue
+
+            if _horizontal_corridor_too_narrow(
                 point_a,
                 point_b,
                 obstacles,

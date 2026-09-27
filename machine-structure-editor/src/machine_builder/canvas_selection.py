@@ -63,6 +63,7 @@ class CanvasSelectionMixin:
             self.selection_inspector.set_connection(
                 connection,
                 self.store.model,
+                item,
             )
 
             return

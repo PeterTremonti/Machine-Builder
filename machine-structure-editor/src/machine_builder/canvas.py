@@ -78,8 +78,72 @@ class MachineCanvas(
             self._model_changed
         )
 
+        self._routing_debug_mode = False
+
         self._model_changed(
             self.store.model
+        )
+
+    def set_routing_debug_mode(
+        self,
+        enabled: bool,
+    ) -> None:
+        """Toggle deterministic visual routing diagnostics."""
+        self._routing_debug_mode = bool(
+            enabled
+        )
+
+        if self._routing_debug_mode:
+            self.view.setViewportUpdateMode(
+                self.view.ViewportUpdateMode.FullViewportUpdate
+            )
+        else:
+            self.view.setViewportUpdateMode(
+                self.view.ViewportUpdateMode.MinimalViewportUpdate
+            )
+
+        for graphics in (
+            self._connection_items.values()
+        ):
+            graphics.set_routing_debug_mode(
+                self._routing_debug_mode
+            )
+
+        self._update_connection_graphics()
+
+        overlay = getattr(
+            self,
+            "_routing_debug_overlay",
+            None,
+        )
+
+        if overlay is not None:
+            overlay.setVisible(
+                self._routing_debug_mode
+            )
+            overlay.refresh()
+
+            self.view.viewport().update()
+            self.view.scene().update()
+ 
+        inspector = getattr(
+            self,
+            "selection_inspector",
+            None,
+        )
+
+        if inspector is not None:
+            inspector.set_routing_debug_mode(
+                self._routing_debug_mode
+            )
+
+    def _record_last_click(
+        self,
+        scene_position: QPointF,
+    ) -> None:
+        """Record the most recent canvas click for routing diagnostics."""
+        self.selection_inspector.set_last_click_position(
+            scene_position
         )
 
     def _model_changed(
@@ -90,6 +154,24 @@ class MachineCanvas(
         self._scene_controller.synchronize(
             model
         )
+
+        if self._routing_debug_mode:
+            for graphics in (
+                self._connection_items.values()
+            ):
+                graphics.set_routing_debug_mode(
+                    True
+                )
+
+            self._update_connection_graphics()
+
+            overlay = getattr(
+                self,
+                "_routing_debug_overlay",
+                None,
+            )
+            if overlay is not None:
+                overlay.refresh()
 
         self._refresh_selection_inspector()
 

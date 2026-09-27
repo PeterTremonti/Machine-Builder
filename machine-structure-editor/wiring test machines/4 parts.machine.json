@@ -1,0 +1,341 @@
+{
+  "format": "machine-builder-editor",
+  "format_version": 1,
+  "state": {
+    "__type__": "machine_builder.editor_state.EditorState",
+    "fields": {
+      "semantic_model": {
+        "__type__": "machine_builder.semantic_model.CanonicalMachineModel",
+        "fields": {
+          "capabilities": {
+            "__dict__": {}
+          },
+          "components": {
+            "__dict__": {
+              "component-node-1": {
+                "__type__": "machine_builder.semantic_model.MachineComponent",
+                "fields": {
+                  "hardware_definition_id": null,
+                  "id": "component-node-1",
+                  "label": "Temperature Sensor",
+                  "port_ids": {
+                    "__list__": []
+                  },
+                  "properties": {
+                    "__dict__": {
+                      "visual_node_type": "temperature_sensor"
+                    }
+                  },
+                  "provenance": {
+                    "__list__": []
+                  },
+                  "role": "Temperature Sensor"
+                }
+              },
+              "component-node-2": {
+                "__type__": "machine_builder.semantic_model.MachineComponent",
+                "fields": {
+                  "hardware_definition_id": null,
+                  "id": "component-node-2",
+                  "label": "Temperature Controller",
+                  "port_ids": {
+                    "__list__": []
+                  },
+                  "properties": {
+                    "__dict__": {
+                      "visual_node_type": "temperature_controller"
+                    }
+                  },
+                  "provenance": {
+                    "__list__": []
+                  },
+                  "role": "Temperature Controller"
+                }
+              },
+              "component-node-3": {
+                "__type__": "machine_builder.semantic_model.MachineComponent",
+                "fields": {
+                  "hardware_definition_id": null,
+                  "id": "component-node-3",
+                  "label": "Component",
+                  "port_ids": {
+                    "__list__": []
+                  },
+                  "properties": {
+                    "__dict__": {
+                      "visual_node_type": "component"
+                    }
+                  },
+                  "provenance": {
+                    "__list__": []
+                  },
+                  "role": "Component"
+                }
+              }
+            }
+          },
+          "connections": {
+            "__dict__": {}
+          },
+          "controller_resource_assignments": {
+            "__dict__": {}
+          },
+          "controller_resources": {
+            "__dict__": {}
+          },
+          "controllers": {
+            "__dict__": {
+              "controller-4": {
+                "__type__": "machine_builder.controller.Controller",
+                "fields": {
+                  "controller_type": "controller",
+                  "id": "controller-4",
+                  "name": "Controller",
+                  "properties": {
+                    "__dict__": {}
+                  },
+                  "provenance": {
+                    "__list__": []
+                  },
+                  "version": null
+                }
+              }
+            }
+          },
+          "functions": {
+            "__dict__": {}
+          },
+          "hardware_definitions": {
+            "__dict__": {}
+          },
+          "machines": {
+            "__dict__": {
+              "machine-1": {
+                "__type__": "machine_builder.semantic_model.Machine",
+                "fields": {
+                  "capability_ids": {
+                    "__list__": []
+                  },
+                  "component_ids": {
+                    "__list__": [
+                      "component-node-1",
+                      "component-node-2",
+                      "component-node-3"
+                    ]
+                  },
+                  "controller_ids": {
+                    "__list__": [
+                      "controller-4"
+                    ]
+                  },
+                  "controller_resource_assignment_ids": {
+                    "__list__": []
+                  },
+                  "controller_resource_ids": {
+                    "__list__": []
+                  },
+                  "function_ids": {
+                    "__list__": []
+                  },
+                  "id": "machine-1",
+                  "name": "Untitled Machine",
+                  "properties": {
+                    "__dict__": {}
+                  },
+                  "provenance": {
+                    "__list__": []
+                  }
+                }
+              }
+            }
+          },
+          "ports": {
+            "__dict__": {}
+          },
+          "relationships": {
+            "__dict__": {}
+          }
+        }
+      },
+      "visual_model": {
+        "__type__": "machine_builder.visual_model.VisualModel",
+        "fields": {
+          "connections": {
+            "__dict__": {
+              "connection-1": {
+                "__type__": "machine_builder.visual_model.VisualConnection",
+                "fields": {
+                  "connection_type": "signal",
+                  "endpoint_a_id": "node-2-temperature",
+                  "endpoint_b_id": "node-1-temperature",
+                  "geometry": {
+                    "__dict__": {}
+                  },
+                  "id": "connection-1"
+                }
+              }
+            }
+          },
+          "groups": {
+            "__dict__": {}
+          },
+          "nodes": {
+            "__dict__": {
+              "node-1": {
+                "__type__": "machine_builder.visual_model.VisualNode",
+                "fields": {
+                  "height": 100.0,
+                  "id": "node-1",
+                  "label": "Temperature Sensor",
+                  "node_type": "temperature_sensor",
+                  "ports": {
+                    "__dict__": {
+                      "node-1-ground": {
+                        "__type__": "machine_builder.visual_model.VisualPort",
+                        "fields": {
+                          "direction": "bidirectional",
+                          "id": "node-1-ground",
+                          "label": "Reference / Ground",
+                          "node_id": "node-1",
+                          "order": 0,
+                          "port_type": "electrical",
+                          "semantic_reference": null,
+                          "side": "left"
+                        }
+                      },
+                      "node-1-temperature": {
+                        "__type__": "machine_builder.visual_model.VisualPort",
+                        "fields": {
+                          "direction": "output",
+                          "id": "node-1-temperature",
+                          "label": "Temperature Output",
+                          "node_id": "node-1",
+                          "order": 0,
+                          "port_type": "signal",
+                          "semantic_reference": null,
+                          "side": "right"
+                        }
+                      }
+                    }
+                  },
+                  "properties": {
+                    "__dict__": {}
+                  },
+                  "rotation": 0.0,
+                  "semantic_reference": "component-node-1",
+                  "width": 180.0,
+                  "x": -230.0,
+                  "y": -75.0
+                }
+              },
+              "node-2": {
+                "__type__": "machine_builder.visual_model.VisualNode",
+                "fields": {
+                  "height": 100.0,
+                  "id": "node-2",
+                  "label": "Temperature Controller",
+                  "node_type": "temperature_controller",
+                  "ports": {
+                    "__dict__": {
+                      "node-2-power": {
+                        "__type__": "machine_builder.visual_model.VisualPort",
+                        "fields": {
+                          "direction": "input",
+                          "id": "node-2-power",
+                          "label": "Power Input",
+                          "node_id": "node-2",
+                          "order": 0,
+                          "port_type": "electrical",
+                          "semantic_reference": null,
+                          "side": "left"
+                        }
+                      },
+                      "node-2-temperature": {
+                        "__type__": "machine_builder.visual_model.VisualPort",
+                        "fields": {
+                          "direction": "input",
+                          "id": "node-2-temperature",
+                          "label": "Temperature Input",
+                          "node_id": "node-2",
+                          "order": 0,
+                          "port_type": "signal",
+                          "semantic_reference": null,
+                          "side": "right"
+                        }
+                      }
+                    }
+                  },
+                  "properties": {
+                    "__dict__": {}
+                  },
+                  "rotation": 0.0,
+                  "semantic_reference": "component-node-2",
+                  "width": 180.0,
+                  "x": -225.0,
+                  "y": 190.0
+                }
+              },
+              "node-3": {
+                "__type__": "machine_builder.visual_model.VisualNode",
+                "fields": {
+                  "height": 100.0,
+                  "id": "node-3",
+                  "label": "Component",
+                  "node_type": "component",
+                  "ports": {
+                    "__dict__": {
+                      "node-3-port": {
+                        "__type__": "machine_builder.visual_model.VisualPort",
+                        "fields": {
+                          "direction": "unknown",
+                          "id": "node-3-port",
+                          "label": "Interface",
+                          "node_id": "node-3",
+                          "order": 0,
+                          "port_type": "unknown",
+                          "semantic_reference": null,
+                          "side": "right"
+                        }
+                      }
+                    }
+                  },
+                  "properties": {
+                    "__dict__": {}
+                  },
+                  "rotation": 0.0,
+                  "semantic_reference": "component-node-3",
+                  "width": 180.0,
+                  "x": -222.0,
+                  "y": 55.0
+                }
+              },
+              "node-4": {
+                "__type__": "machine_builder.visual_model.VisualNode",
+                "fields": {
+                  "height": 100.0,
+                  "id": "node-4",
+                  "label": "Controller",
+                  "node_type": "controller",
+                  "ports": {
+                    "__dict__": {}
+                  },
+                  "properties": {
+                    "__dict__": {}
+                  },
+                  "rotation": 0.0,
+                  "semantic_reference": "controller-4",
+                  "width": 180.0,
+                  "x": -7.999999999999999,
+                  "y": 57.0
+                }
+              }
+            }
+          },
+          "views": {
+            "__dict__": {}
+          }
+        }
+      }
+    }
+  }
+}

@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 
 from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QPushButton
 
 from machine_builder.canvas import MachineCanvas
 from machine_builder.canvas_ui import CanvasUIMixin
@@ -87,6 +88,31 @@ def test_canonical_canvas_has_selection_inspector() -> None:
 
     assert (
         canvas.selection_inspector is not None
+    )
+
+
+def test_selection_inspector_has_precision_nudge_controls() -> None:
+    _application()
+
+    canvas = MachineCanvas()
+    inspector = canvas.selection_inspector
+
+    assert inspector._nudge_step.value() == 1.0
+
+    buttons = {
+        button.text()
+        for button in inspector.findChildren(
+            QPushButton
+        )
+    }
+
+    assert {
+        "?",
+        "?",
+        "?",
+        "?",
+    }.issubset(
+        buttons
     )
 
 

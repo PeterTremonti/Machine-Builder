@@ -189,6 +189,34 @@ def test_connection_debug_text_contains_endpoints() -> None:
     assert "Stepper X" in text
 
 
+def test_connection_debug_text_includes_routing_diagnostics() -> None:
+    _application()
+
+    model = make_model()
+    inspector = SelectionInspector()
+
+    class FakeGraphicsItem:
+        def routing_diagnostics(self) -> str:
+            return (
+                "Routing Stability\n"
+                "decision: previous stable route held within tolerance"
+            )
+
+    inspector.set_connection(
+        model.connections["connection-1"],
+        model,
+        FakeGraphicsItem(),
+    )
+
+    text = inspector.debug_text()
+
+    assert "Routing Stability" in text
+    assert (
+        "decision: previous stable route held within tolerance"
+        in text
+    )
+
+
 def test_multiple_selection_is_reported() -> None:
     _application()
 

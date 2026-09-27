@@ -43,9 +43,44 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             dict[str, Any],
         ] = {}
 
+        self._routing_debug_mode = False
+        self._stable_route: tuple[QPointF, ...] | None = None
+        self._debug_start_escape: tuple[QPointF, ...] = ()
+        self._debug_route: tuple[QPointF, ...] | None = None
+        self._debug_end_escape: tuple[QPointF, ...] = ()
+
+        # Live routing-decision diagnostics. This is runtime/presentation
+        # state only and is not part of the canonical machine model.
+        self._routing_stability_reason = "not evaluated"
+        self._routing_previous_route: tuple[QPointF, ...] | None = None
+        self._routing_candidate_route: tuple[QPointF, ...] | None = None
+        self._routing_selected_route: tuple[QPointF, ...] | None = None
+        self._debug_routing_obstacles: tuple[Any, ...] = ()
+        self._routing_previous_cost: float | None = None
+        self._routing_candidate_cost: float | None = None
+        self._routing_selected_cost: float | None = None
+
+        # Persists the last actual route-stability transition so a later
+        # diagnostic capture can still reveal the event that caused a
+        # visible route change.
+        self._routing_last_transition_reason = "none recorded"
+        self._routing_last_transition_previous_route = (
+            None
+        )
+        self._routing_last_transition_candidate_route = (
+            None
+        )
+        self._routing_last_transition_selected_route = (
+            None
+        )
+        self._routing_last_transition_previous_cost = None
+        self._routing_last_transition_candidate_cost = None
+        self._routing_last_transition_selected_cost = None
+
         self.OVERLAP_ESCAPE_RESELECT_DISTANCE = 24.0
         self.OVERLAP_ESCAPE_IMPROVEMENT_RATIO = 0.20
         self.OVERLAP_ESCAPE_MIN_IMPROVEMENT = 24.0
+        self.ROUTE_STABILITY_COST_TOLERANCE = 16.0
 
         self.setPen(
             QPen(
@@ -64,6 +99,759 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         self.setAcceptedMouseButtons(
             Qt.MouseButton.LeftButton
         )
+
+    def set_routing_debug_mode(
+        self,
+        enabled: bool,
+    ) -> None:
+        """Enable or disable temporary routing diagnostics."""
+        self._routing_debug_mode = bool(enabled)
+
+        # Diagnostics deliberately ignore history-based escape selection.
+        self._overlap_escape_state.clear()
+
+    def debug_geometry(
+        self,
+    ) -> tuple[
+        tuple[QPointF, ...],
+        tuple[QPointF, ...] | None,
+        tuple[QPointF, ...],
+    ]:
+        """Return the last computed routing stages for diagnostics."""
+        return (
+            self._debug_start_escape,
+            self._debug_route,
+            self._debug_end_escape,
+        )
+
+    @staticmethod
+    def _route_direction(
+        start: QPointF,
+        end: QPointF,
+    ) -> str:
+        delta_x = end.x() - start.x()
+        delta_y = end.y() - start.y()
+
+        if abs(delta_x) >= 0.001:
+            return "right" if delta_x > 0 else "left"
+
+        if abs(delta_y) >= 0.001:
+            return "down" if delta_y > 0 else "up"
+
+        return "none"
+
+    @staticmethod
+    def _route_topology_signature(
+        route: tuple[QPointF, ...] | list[QPointF],
+    ) -> tuple[str, ...]:
+        return tuple(
+            ConnectionGraphicsItem._route_direction(
+                route[index],
+                route[index + 1],
+            )
+            for index in range(
+                len(route) - 1,
+            )
+        )
+    def _blend_route_geometry(
+        self,
+        previous: tuple[QPointF, ...],
+        candidate: tuple[QPointF, ...],
+    ) -> tuple[QPointF, ...] | None:
+        """Follow small candidate geometry changes without large jumps."""
+        if len(previous) != len(candidate):
+            return None
+
+        if (
+            self._route_topology_signature(
+                previous,
+            )
+            != self._route_topology_signature(
+                candidate,
+            )
+        ):
+            return None
+
+        blended = [
+            QPointF(previous[0]),
+        ]
+
+        for index in range(
+            1,
+            len(previous) - 1,
+        ):
+            old_point = previous[index]
+            new_point = candidate[index]
+
+            displacement = (
+                (
+                    new_point.x()
+                    - old_point.x()
+                ) ** 2
+                + (
+                    new_point.y()
+                    - old_point.y()
+                ) ** 2
+            ) ** 0.5
+
+            if displacement <= self.ROUTING_MARGIN:
+                blended.append(
+                    QPointF(new_point),
+                )
+            else:
+                blended.append(
+                    QPointF(old_point),
+                )
+
+        blended.append(
+            QPointF(previous[-1]),
+        )
+
+        if (
+            self._route_topology_signature(
+                blended,
+            )
+            != self._route_topology_signature(
+                previous,
+            )
+        ):
+            return None
+
+        return tuple(blended)
+
+    def _repair_blocked_route_geometry(
+        self,
+        previous: tuple[QPointF, ...],
+        obstacles: list[Any],
+    ) -> tuple[QPointF, ...] | None:
+        """Try a small coordinate repair without changing route topology."""
+        if len(previous) < 4:
+            return None
+
+        topology = self._route_topology_signature(
+            previous,
+        )
+
+        if any(
+            direction == "none"
+            for direction in topology
+        ):
+            return None
+
+        repairs: list[
+            tuple[
+                float,
+                int,
+                float,
+                tuple[QPointF, ...],
+            ]
+        ] = []
+
+        # The first and last route segments touch fixed endpoint escapes.
+        # A topology-preserving repair therefore only moves interior segments.
+        for index in range(
+            1,
+            len(previous) - 2,
+        ):
+            segment_start = previous[index]
+            segment_end = previous[index + 1]
+
+            direction = self._route_direction(
+                segment_start,
+                segment_end,
+            )
+
+            if direction not in {
+                "left",
+                "right",
+                "up",
+                "down",
+            }:
+                continue
+
+            if not ConnectionRoutingEngine._segment_blocked(
+                segment_start,
+                segment_end,
+                obstacles,
+            ):
+                continue
+
+            boundary_coordinates: set[float] = set()
+
+            for obstacle in obstacles:
+                if not ConnectionRoutingEngine._segment_blocked(
+                    segment_start,
+                    segment_end,
+                    [obstacle],
+                ):
+                    continue
+
+                if direction in {
+                    "left",
+                    "right",
+                }:
+                    boundary_coordinates.add(
+                        obstacle.top(),
+                    )
+                    boundary_coordinates.add(
+                        obstacle.bottom(),
+                    )
+                else:
+                    boundary_coordinates.add(
+                        obstacle.left(),
+                    )
+                    boundary_coordinates.add(
+                        obstacle.right(),
+                    )
+
+            if direction in {
+                "left",
+                "right",
+            }:
+                current_coordinate = segment_start.y()
+            else:
+                current_coordinate = segment_start.x()
+
+            for boundary_coordinate in sorted(
+                boundary_coordinates,
+            ):
+                displacement = abs(
+                    boundary_coordinate
+                    - current_coordinate
+                )
+
+                if displacement <= 0.0:
+                    continue
+
+                if (
+                    displacement
+                    > self.ROUTING_MARGIN
+                ):
+                    continue
+
+                repaired = [
+                    QPointF(point)
+                    for point in previous
+                ]
+
+                if direction in {
+                    "left",
+                    "right",
+                }:
+                    repaired[index] = QPointF(
+                        repaired[index].x(),
+                        boundary_coordinate,
+                    )
+                    repaired[index + 1] = QPointF(
+                        repaired[index + 1].x(),
+                        boundary_coordinate,
+                    )
+                else:
+                    repaired[index] = QPointF(
+                        boundary_coordinate,
+                        repaired[index].y(),
+                    )
+                    repaired[index + 1] = QPointF(
+                        boundary_coordinate,
+                        repaired[index + 1].y(),
+                    )
+
+                if (
+                    self._route_topology_signature(
+                        repaired,
+                    )
+                    != topology
+                ):
+                    continue
+
+                if not ConnectionRoutingEngine.route_is_clear(
+                    repaired,
+                    obstacles,
+                ):
+                    continue
+
+                repairs.append(
+                    (
+                        displacement,
+                        index,
+                        boundary_coordinate,
+                        tuple(repaired),
+                    )
+                )
+
+        if not repairs:
+            return None
+
+        repairs.sort(
+            key=lambda item: (
+                item[0],
+                item[1],
+                item[2],
+            )
+        )
+
+        return repairs[0][3]
+    @classmethod
+    def _route_cost(
+        cls,
+        route: tuple[QPointF, ...] | list[QPointF],
+        start_direction: str,
+        end_direction: str,
+    ) -> float:
+        if len(route) < 2:
+            return 0.0
+
+        distance = 0.0
+
+        for index in range(len(route) - 1):
+            distance += (
+                abs(
+                    route[index + 1].x()
+                    - route[index].x()
+                )
+                + abs(
+                    route[index + 1].y()
+                    - route[index].y()
+                )
+            )
+
+        cost = (
+            distance
+            + max(0, len(route) - 2)
+            * ConnectionRoutingEngine.BEND_PENALTY
+        )
+
+        first_direction = cls._route_direction(
+            route[0],
+            route[1],
+        )
+        last_direction = cls._route_direction(
+            route[-2],
+            route[-1],
+        )
+
+        if (
+            start_direction != "none"
+            and first_direction != start_direction
+        ):
+            cost += (
+                ConnectionRoutingEngine.ENDPOINT_DIRECTION_PENALTY
+            )
+
+        if (
+            end_direction != "none"
+            and last_direction != end_direction
+        ):
+            cost += (
+                ConnectionRoutingEngine.ENDPOINT_DIRECTION_PENALTY
+            )
+
+        return cost
+
+    def _select_stable_route(
+        self,
+        candidate_route: list[QPointF] | None,
+        start: QPointF,
+        end: QPointF,
+        start_direction: str,
+        end_direction: str,
+        obstacles: list[Any],
+    ) -> list[QPointF] | None:
+        previous = self._stable_route
+
+        self._routing_previous_route = (
+            tuple(
+                QPointF(point)
+                for point in previous
+            )
+            if previous is not None
+            else None
+        )
+        self._routing_candidate_route = (
+            tuple(
+                QPointF(point)
+                for point in candidate_route
+            )
+            if candidate_route is not None
+            else None
+        )
+        self._routing_previous_cost = None
+        self._routing_candidate_cost = None
+        self._routing_selected_cost = None
+
+        if candidate_route is None:
+            self._stable_route = None
+            self._routing_selected_route = None
+            self._routing_stability_reason = (
+                "no legal candidate route"
+            )
+            return None
+
+        candidate = tuple(
+            QPointF(point)
+            for point in candidate_route
+        )
+
+        candidate_cost = self._route_cost(
+            candidate,
+            start_direction,
+            end_direction,
+        )
+        self._routing_candidate_cost = candidate_cost
+
+        if self._routing_debug_mode:
+            self._stable_route = candidate
+            self._routing_selected_route = candidate
+            self._routing_selected_cost = candidate_cost
+            self._routing_stability_reason = (
+                "debug mode bypassed route stability"
+            )
+            return list(candidate)
+
+        if previous is None:
+            self._stable_route = candidate
+            self._routing_selected_route = candidate
+            self._routing_selected_cost = candidate_cost
+            self._routing_stability_reason = (
+                "no previous stable route"
+            )
+            return list(candidate)
+
+        if len(previous) < 2:
+            self._stable_route = candidate
+            self._routing_selected_route = candidate
+            self._routing_selected_cost = candidate_cost
+            self._routing_stability_reason = (
+                "previous stable route was malformed"
+            )
+            self._record_routing_transition()
+            return list(candidate)
+
+        if previous[0] != start or previous[-1] != end:
+            self._stable_route = candidate
+            self._routing_selected_route = candidate
+            self._routing_selected_cost = candidate_cost
+            self._routing_stability_reason = (
+                "previous stable route endpoint mismatch"
+            )
+            self._record_routing_transition()
+            return list(candidate)
+
+        previous_is_clear = (
+            ConnectionRoutingEngine.route_is_clear(
+                list(previous),
+                obstacles,
+            )
+        )
+
+        if previous_is_clear:
+            continuity_route = (
+                self._blend_route_geometry(
+                    previous,
+                    candidate,
+                )
+            )
+
+            if (
+                continuity_route is not None
+                and ConnectionRoutingEngine.route_is_clear(
+                    list(continuity_route),
+                    obstacles,
+                )
+            ):
+                continuity_cost = self._route_cost(
+                    continuity_route,
+                    start_direction,
+                    end_direction,
+                )
+                self._routing_previous_cost = continuity_cost
+
+                if (
+                    continuity_cost
+                    <= candidate_cost
+                    + self.ROUTE_STABILITY_COST_TOLERANCE
+                ):
+                    self._stable_route = continuity_route
+                    self._routing_selected_route = continuity_route
+                    self._routing_selected_cost = continuity_cost
+
+                    if continuity_route != previous:
+                        self._routing_stability_reason = (
+                            "previous stable route held topology "
+                            "with small geometry adjustment"
+                        )
+                    else:
+                        self._routing_stability_reason = (
+                            "previous stable route held within tolerance"
+                        )
+
+                    return list(continuity_route)
+
+            previous_cost = self._route_cost(
+                previous,
+                start_direction,
+                end_direction,
+            )
+            self._routing_previous_cost = previous_cost
+
+            if (
+                previous_cost
+                <= candidate_cost
+                + self.ROUTE_STABILITY_COST_TOLERANCE
+            ):
+                self._routing_selected_route = tuple(
+                    QPointF(point)
+                    for point in previous
+                )
+                self._routing_selected_cost = previous_cost
+                self._routing_stability_reason = (
+                    "previous stable route held within tolerance"
+                )
+                return list(previous)
+
+            self._stable_route = candidate
+            self._routing_selected_route = candidate
+            self._routing_selected_cost = candidate_cost
+            self._routing_stability_reason = (
+                "candidate route beat stability tolerance"
+            )
+            self._record_routing_transition()
+            return list(candidate)
+
+        repaired = self._repair_blocked_route_geometry(
+            previous,
+            obstacles,
+        )
+
+        if repaired is not None:
+            repaired_cost = self._route_cost(
+                repaired,
+                start_direction,
+                end_direction,
+            )
+            self._routing_previous_cost = repaired_cost
+
+            if (
+                repaired_cost
+                <= candidate_cost
+                + self.ROUTE_STABILITY_COST_TOLERANCE
+            ):
+                self._stable_route = repaired
+                self._routing_selected_route = repaired
+                self._routing_selected_cost = repaired_cost
+                self._routing_stability_reason = (
+                    "previous stable route was blocked; "
+                    "topology-preserving geometry repair "
+                    "held within tolerance"
+                )
+                return list(repaired)
+
+            self._stable_route = candidate
+            self._routing_selected_route = candidate
+            self._routing_selected_cost = candidate_cost
+            self._routing_stability_reason = (
+                "candidate route beat stability tolerance "
+                "after topology-preserving repair"
+            )
+            self._record_routing_transition()
+            return list(candidate)
+
+        self._stable_route = candidate
+        self._routing_selected_route = candidate
+        self._routing_selected_cost = candidate_cost
+        self._routing_stability_reason = (
+            "previous stable route was blocked"
+        )
+        self._record_routing_transition()
+        return list(candidate)
+    def _record_routing_transition(self) -> None:
+        """Persist the latest route-stability transition."""
+        self._routing_last_transition_reason = (
+            self._routing_stability_reason
+        )
+        self._routing_last_transition_previous_route = (
+            self._routing_previous_route
+        )
+        self._routing_last_transition_candidate_route = (
+            self._routing_candidate_route
+        )
+        self._routing_last_transition_selected_route = (
+            self._routing_selected_route
+        )
+        self._routing_last_transition_previous_cost = (
+            self._routing_previous_cost
+        )
+        self._routing_last_transition_candidate_cost = (
+            self._routing_candidate_cost
+        )
+        self._routing_last_transition_selected_cost = (
+            self._routing_selected_cost
+        )
+
+    @staticmethod
+    def _format_routing_obstacles(
+        obstacles: tuple[Any, ...],
+    ) -> str:
+        if not obstacles:
+            return "none"
+
+        return "\n".join(
+            (
+                f"{index}: "
+                f"left={obstacle.left():.6f}, "
+                f"top={obstacle.top():.6f}, "
+                f"right={obstacle.right():.6f}, "
+                f"bottom={obstacle.bottom():.6f}"
+            )
+            for index, obstacle in enumerate(obstacles)
+        )
+
+    @staticmethod
+    def _format_routing_points(
+        route: tuple[QPointF, ...] | None,
+    ) -> str:
+        if route is None:
+            return "none"
+
+        if not route:
+            return "(empty)"
+
+        return " -> ".join(
+            f"({point.x():.3f}, {point.y():.3f})"
+            for point in route
+        )
+
+    def routing_diagnostics(self) -> str:
+        """Return the last live route-selection decision."""
+        lines = [
+            "Routing Stability",
+            "-----------------",
+            f"debug mode: {self._routing_debug_mode}",
+            (
+                "stability tolerance: "
+                f"{self.ROUTE_STABILITY_COST_TOLERANCE:.3f}"
+            ),
+            f"decision: {self._routing_stability_reason}",
+            "",
+            "Start Escape",
+            "------------",
+            self._format_routing_points(
+                self._debug_start_escape
+            ),
+            "",
+            "Previous Stable Main Route",
+            "---------------------------",
+            self._format_routing_points(
+                self._routing_previous_route
+            ),
+            "",
+            "Candidate Main Route",
+            "--------------------",
+            self._format_routing_points(
+                self._routing_candidate_route
+            ),
+            "",
+            "Selected Main Route",
+            "-------------------",
+            self._format_routing_points(
+                self._routing_selected_route
+            ),
+            "",
+            "End Escape",
+            "----------",
+            self._format_routing_points(
+                self._debug_end_escape
+            ),
+            "",
+            "Final Pathfinder Obstacles",
+            "---------------------------",
+            self._format_routing_obstacles(
+                self._debug_routing_obstacles
+            ),
+            "",
+            "Costs",
+            "-----",
+            (
+                "previous: "
+                f"{self._routing_previous_cost:.3f}"
+                if self._routing_previous_cost is not None
+                else "previous: n/a"
+            ),
+            (
+                "candidate: "
+                f"{self._routing_candidate_cost:.3f}"
+                if self._routing_candidate_cost is not None
+                else "candidate: n/a"
+            ),
+            (
+                "selected: "
+                f"{self._routing_selected_cost:.3f}"
+                if self._routing_selected_cost is not None
+                else "selected: n/a"
+            ),
+        ]
+
+        if (
+            self._routing_previous_cost is not None
+            and self._routing_candidate_cost is not None
+        ):
+            lines.append(
+                "candidate improvement "
+                "(previous - candidate): "
+                f"{self._routing_previous_cost - self._routing_candidate_cost:.3f}"
+            )
+
+        lines.extend(
+            [
+                "",
+                "Last Recorded Transition",
+                "-------------------------",
+                (
+                    "reason: "
+                    f"{self._routing_last_transition_reason}"
+                ),
+                "Previous Route at Transition",
+                "----------------------------",
+                self._format_routing_points(
+                    self._routing_last_transition_previous_route
+                ),
+                "Candidate Route at Transition",
+                "------------------------------",
+                self._format_routing_points(
+                    self._routing_last_transition_candidate_route
+                ),
+                "Selected Route at Transition",
+                "-----------------------------",
+                self._format_routing_points(
+                    self._routing_last_transition_selected_route
+                ),
+                "Transition Costs",
+                "----------------",
+                (
+                    "previous: "
+                    f"{self._routing_last_transition_previous_cost:.3f}"
+                    if self._routing_last_transition_previous_cost
+                    is not None
+                    else "previous: n/a"
+                ),
+                (
+                    "candidate: "
+                    f"{self._routing_last_transition_candidate_cost:.3f}"
+                    if self._routing_last_transition_candidate_cost
+                    is not None
+                    else "candidate: n/a"
+                ),
+                (
+                    "selected: "
+                    f"{self._routing_last_transition_selected_cost:.3f}"
+                    if self._routing_last_transition_selected_cost
+                    is not None
+                    else "selected: n/a"
+                ),
+            ]
+        )
+
+        return "\n".join(lines)
 
     def setLine(
         self,
@@ -104,7 +892,8 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             )
         )
 
-        route = ConnectionRoutingEngine.build_route(
+        diagnostic_obstacles: list[Any] = []
+        candidate_route = ConnectionRoutingEngine.build_route(
             start=start_escape[-1],
             end=end_escape[-1],
             start_direction=start_direction,
@@ -112,6 +901,32 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             obstacles=obstacles,
             direct_start=start,
             direct_end=end,
+        )
+
+        route = self._select_stable_route(
+            candidate_route=candidate_route,
+            start=start_escape[-1],
+            end=end_escape[-1],
+            start_direction=start_direction,
+            end_direction=end_direction,
+            obstacles=obstacles,
+        )
+
+        self._debug_start_escape = tuple(
+            QPointF(point)
+            for point in start_escape
+        )
+        self._debug_route = (
+            tuple(
+                QPointF(point)
+                for point in route
+            )
+            if route is not None
+            else None
+        )
+        self._debug_end_escape = tuple(
+            QPointF(point)
+            for point in end_escape
         )
 
         path = QPainterPath(
@@ -209,6 +1024,9 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             port_id,
         )
 
+        if self._routing_debug_mode:
+            state = None
+
         preferred_direction = (
             state.get("direction")
             if state is not None
@@ -263,7 +1081,10 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
 
         points = escape[0]
 
-        if len(points) < 3:
+        if (
+            self._routing_debug_mode
+            or len(points) < 3
+        ):
             self._overlap_escape_state.pop(
                 port_id,
                 None,
