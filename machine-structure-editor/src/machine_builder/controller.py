@@ -28,6 +28,10 @@ class Controller:
         default_factory=list
     )
 
+    port_ids: list[str] = field(
+        default_factory=list
+    )
+
     def __post_init__(self) -> None:
         """Validate the controller's basic identity."""
         if not self.id:

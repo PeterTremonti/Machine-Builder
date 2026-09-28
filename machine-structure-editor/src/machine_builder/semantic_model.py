@@ -47,10 +47,10 @@ class HardwareDefinition:
 
 @dataclass
 class SemanticPort:
-    """A canonical interface belonging to a machine component."""
+    """A canonical physical interface owned by a component or controller."""
 
     id: str
-    component_id: str
+    component_id: str | None
     purpose: str
     direction: str = "unknown"
 
@@ -62,6 +62,8 @@ class SemanticPort:
     provenance: list[Provenance] = field(
         default_factory=list
     )
+
+    controller_id: str | None = None
 
 
 @dataclass
@@ -339,32 +341,70 @@ class CanonicalMachineModel:
         self,
         port: SemanticPort,
     ) -> None:
-        """Add a canonical port to its machine component."""
+        """Add a canonical port to exactly one supported owner."""
         if port.id in self.ports:
             raise ValueError(
                 f"Port already exists: {port.id}"
             )
 
-        component = self.components.get(
-            port.component_id
+        has_component = (
+            port.component_id is not None
         )
-        if component is None:
+        has_controller = (
+            port.controller_id is not None
+        )
+
+        if has_component == has_controller:
             raise ValueError(
-                "Unknown component: "
-                f"{port.component_id}"
+                "A port must have exactly one owner: "
+                "component or controller."
             )
 
-        if port.id in component.port_ids:
+        if has_component:
+            component = self.components.get(
+                port.component_id
+            )
+            if component is None:
+                raise ValueError(
+                    "Unknown component: "
+                    f"{port.component_id}"
+                )
+
+            if port.id in component.port_ids:
+                raise ValueError(
+                    "Port is already attached to component: "
+                    f"{port.component_id}"
+                )
+
+            self.ports[
+                port.id
+            ] = port
+
+            component.port_ids.append(
+                port.id
+            )
+            return
+
+        controller = self.controllers.get(
+            port.controller_id
+        )
+        if controller is None:
             raise ValueError(
-                "Port is already attached to component: "
-                f"{port.component_id}"
+                "Unknown controller: "
+                f"{port.controller_id}"
+            )
+
+        if port.id in controller.port_ids:
+            raise ValueError(
+                "Port is already attached to controller: "
+                f"{port.controller_id}"
             )
 
         self.ports[
             port.id
         ] = port
 
-        component.port_ids.append(
+        controller.port_ids.append(
             port.id
         )
 
