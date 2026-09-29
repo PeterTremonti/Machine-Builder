@@ -2272,3 +2272,157 @@ def test_route_stability_rejects_large_same_topology_geometry_jump() -> None:
     ) == _route_topology_for_test(
         list(previous),
     )
+def test_parallel_segments_separation_rejects_near_horizontal_segments() -> None:
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        parallel_segments_within_separation,
+    )
+
+    assert parallel_segments_within_separation(
+        QPointF(
+            0.0,
+            0.0,
+        ),
+        QPointF(
+            100.0,
+            0.0,
+        ),
+        QPointF(
+            0.0,
+            0.001,
+        ),
+        QPointF(
+            100.0,
+            0.001,
+        ),
+        8.0,
+    )
+
+
+def test_parallel_segments_separation_accepts_threshold() -> None:
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        parallel_segments_within_separation,
+    )
+
+    assert not parallel_segments_within_separation(
+        QPointF(
+            0.0,
+            0.0,
+        ),
+        QPointF(
+            100.0,
+            0.0,
+        ),
+        QPointF(
+            0.0,
+            8.0,
+        ),
+        QPointF(
+            100.0,
+            8.0,
+        ),
+        8.0,
+    )
+
+
+def test_parallel_segments_separation_ignores_non_overlapping_horizontal_segments() -> None:
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        parallel_segments_within_separation,
+    )
+
+    assert not parallel_segments_within_separation(
+        QPointF(
+            0.0,
+            0.0,
+        ),
+        QPointF(
+            50.0,
+            0.0,
+        ),
+        QPointF(
+            50.0,
+            0.001,
+        ),
+        QPointF(
+            100.0,
+            0.001,
+        ),
+        8.0,
+    )
+
+
+def test_parallel_segments_separation_rejects_near_vertical_segments() -> None:
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        parallel_segments_within_separation,
+    )
+
+    assert parallel_segments_within_separation(
+        QPointF(
+            0.0,
+            0.0,
+        ),
+        QPointF(
+            0.0,
+            100.0,
+        ),
+        QPointF(
+            0.001,
+            0.0,
+        ),
+        QPointF(
+            0.001,
+            100.0,
+        ),
+        8.0,
+    )
+
+
+def test_parallel_segments_separation_ignores_perpendicular_segments() -> None:
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        parallel_segments_within_separation,
+    )
+
+    assert not parallel_segments_within_separation(
+        QPointF(
+            0.0,
+            0.0,
+        ),
+        QPointF(
+            100.0,
+            0.0,
+        ),
+        QPointF(
+            50.0,
+            -50.0,
+        ),
+        QPointF(
+            50.0,
+            50.0,
+        ),
+        8.0,
+    )
+
+
+def test_parallel_segments_separation_matches_current_endpoint_pathology() -> None:
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        parallel_segments_within_separation,
+    )
+
+    assert parallel_segments_within_separation(
+        QPointF(
+            -25.250,
+            -24.999,
+        ),
+        QPointF(
+            -10.000,
+            -24.999,
+        ),
+        QPointF(
+            -50.000,
+            -25.000,
+        ),
+        QPointF(
+            -10.000,
+            -25.000,
+        ),
+        8.0,
+    )

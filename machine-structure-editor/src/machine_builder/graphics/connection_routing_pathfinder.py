@@ -319,6 +319,126 @@ def _clean_route_geometry(
 
 
 
+def parallel_segments_within_separation(
+    first_start: QPointF,
+    first_end: QPointF,
+    second_start: QPointF,
+    second_end: QPointF,
+    minimum_separation: float,
+    epsilon: float = 0.001,
+) -> bool:
+    """Return whether overlapping parallel segments are too close."""
+    if minimum_separation <= epsilon:
+        return False
+
+    first_horizontal = (
+        abs(
+            first_start.y()
+            - first_end.y()
+        )
+        < epsilon
+    )
+    second_horizontal = (
+        abs(
+            second_start.y()
+            - second_end.y()
+        )
+        < epsilon
+    )
+
+    first_vertical = (
+        abs(
+            first_start.x()
+            - first_end.x()
+        )
+        < epsilon
+    )
+    second_vertical = (
+        abs(
+            second_start.x()
+            - second_end.x()
+        )
+        < epsilon
+    )
+
+    if first_horizontal and second_horizontal:
+        first_left = min(
+            first_start.x(),
+            first_end.x(),
+        )
+        first_right = max(
+            first_start.x(),
+            first_end.x(),
+        )
+        second_left = min(
+            second_start.x(),
+            second_end.x(),
+        )
+        second_right = max(
+            second_start.x(),
+            second_end.x(),
+        )
+
+        overlap = min(
+            first_right,
+            second_right,
+        ) - max(
+            first_left,
+            second_left,
+        )
+
+        if overlap <= epsilon:
+            return False
+
+        separation = abs(
+            first_start.y()
+            - second_start.y()
+        )
+
+        return separation < (
+            minimum_separation - epsilon
+        )
+
+    if first_vertical and second_vertical:
+        first_top = min(
+            first_start.y(),
+            first_end.y(),
+        )
+        first_bottom = max(
+            first_start.y(),
+            first_end.y(),
+        )
+        second_top = min(
+            second_start.y(),
+            second_end.y(),
+        )
+        second_bottom = max(
+            second_start.y(),
+            second_end.y(),
+        )
+
+        overlap = min(
+            first_bottom,
+            second_bottom,
+        ) - max(
+            first_top,
+            second_top,
+        )
+
+        if overlap <= epsilon:
+            return False
+
+        separation = abs(
+            first_start.x()
+            - second_start.x()
+        )
+
+        return separation < (
+            minimum_separation - epsilon
+        )
+
+    return False
+
 def build_route(
     *,
     start: QPointF,
