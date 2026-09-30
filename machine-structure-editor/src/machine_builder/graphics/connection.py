@@ -893,6 +893,25 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         )
 
         diagnostic_obstacles: list[Any] = []
+
+        protected_segments: list[
+            tuple[QPointF, QPointF]
+        ] = []
+
+        for escape in (
+            start_escape,
+            end_escape,
+        ):
+            for index in range(
+                len(escape) - 1
+            ):
+                protected_segments.append(
+                    (
+                        escape[index],
+                        escape[index + 1],
+                    )
+                )
+
         candidate_route = ConnectionRoutingEngine.build_route(
             start=start_escape[-1],
             end=end_escape[-1],
@@ -901,6 +920,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             obstacles=obstacles,
             direct_start=start,
             direct_end=end,
+            protected_segments=protected_segments,
         )
 
         route = self._select_stable_route(

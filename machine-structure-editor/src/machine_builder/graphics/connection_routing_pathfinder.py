@@ -439,6 +439,56 @@ def parallel_segments_within_separation(
 
     return False
 
+
+
+def _segments_share_endpoint(
+    first_start: QPointF,
+    first_end: QPointF,
+    second_start: QPointF,
+    second_end: QPointF,
+) -> bool:
+    # Return whether two segments meet at an endpoint.
+    return (
+        _points_equal(first_start, second_start)
+        or _points_equal(first_start, second_end)
+        or _points_equal(first_end, second_start)
+        or _points_equal(first_end, second_end)
+    )
+
+
+def route_respects_segment_separation(
+    route: list[QPointF],
+    protected_segments: list[tuple[QPointF, QPointF]],
+    minimum_separation: float,
+) -> bool:
+    # Return whether route segments maintain protected spacing.
+    if minimum_separation <= 0.0:
+        return True
+
+    for index in range(len(route) - 1):
+        route_start = route[index]
+        route_end = route[index + 1]
+
+        for protected_start, protected_end in protected_segments:
+            if _segments_share_endpoint(
+                route_start,
+                route_end,
+                protected_start,
+                protected_end,
+            ):
+                continue
+
+            if parallel_segments_within_separation(
+                route_start,
+                route_end,
+                protected_start,
+                protected_end,
+                minimum_separation,
+            ):
+                return False
+
+    return True
+
 def build_route(
     *,
     start: QPointF,
@@ -449,6 +499,8 @@ def build_route(
     bend_penalty: float,
     endpoint_direction_penalty: float,
     u_turn_min_separation: float,
+    protected_segments: list[tuple[QPointF, QPointF]] | None = None,
+    minimum_segment_separation: float = 0.0,
 ) -> list[QPointF] | None:
     """Find an orthogonal route through the obstacle visibility grid."""
 
@@ -464,6 +516,12 @@ def build_route(
         ),
         u_turn_min_separation=(
             u_turn_min_separation
+        ),
+        protected_segments=(
+            protected_segments or []
+        ),
+        minimum_segment_separation=(
+            minimum_segment_separation
         ),
     )
 
@@ -658,6 +716,8 @@ def _find_grid_route(
     bend_penalty: float,
     endpoint_direction_penalty: float,
     u_turn_min_separation: float,
+    protected_segments: list[tuple[QPointF, QPointF]],
+    minimum_segment_separation: float,
 ) -> list[QPointF] | None:
     coordinates_x = {
         start.x(),
@@ -691,6 +751,33 @@ def _find_grid_route(
                 + u_turn_min_separation,
             }
         )
+
+    if protected_segments and minimum_segment_separation > 0.0:
+        for protected_start, protected_end in protected_segments:
+            if abs(
+                protected_start.y()
+                - protected_end.y()
+            ) < 0.001:
+                coordinates_y.update(
+                    {
+                        protected_start.y()
+                        - minimum_segment_separation,
+                        protected_start.y()
+                        + minimum_segment_separation,
+                    }
+                )
+            elif abs(
+                protected_start.x()
+                - protected_end.x()
+            ) < 0.001:
+                coordinates_x.update(
+                    {
+                        protected_start.x()
+                        - minimum_segment_separation,
+                        protected_start.x()
+                        + minimum_segment_separation,
+                    }
+                )
 
     points: dict[
         tuple[float, float],
@@ -844,6 +931,18 @@ def _find_grid_route(
                 )
             ):
                 continue
+
+            if protected_segments:
+                neighbor_point = points[neighbor_key]
+                if not route_respects_segment_separation(
+                    [
+                        points[current_key],
+                        neighbor_point,
+                    ],
+                    protected_segments,
+                    minimum_segment_separation,
+                ):
+                    continue
 
             move_cost = distance
 

@@ -29,6 +29,7 @@ class ConnectionRoutingEngine:
     BEND_PENALTY = 80.0
     ENDPOINT_DIRECTION_PENALTY = 160.0
     U_TURN_MIN_SEPARATION = 32.0
+    MIN_ROUTE_SEGMENT_SEPARATION = 8.0
     ESCAPE_CLEARANCE = 1.0
 
     @classmethod
@@ -156,6 +157,7 @@ class ConnectionRoutingEngine:
         direct_start: QPointF | None = None,
         direct_end: QPointF | None = None,
         ignored_obstacles: list[QRectF] | None = None,
+        protected_segments: list[tuple[QPointF, QPointF]] | None = None,
     ) -> list[QPointF] | None:
         """Find an orthogonal route using only locally relevant obstacles."""
         if start == end:
@@ -199,6 +201,12 @@ class ConnectionRoutingEngine:
                 ),
                 u_turn_min_separation=(
                     cls.U_TURN_MIN_SEPARATION
+                ),
+                protected_segments=(
+                    protected_segments or []
+                ),
+                minimum_segment_separation=(
+                    cls.MIN_ROUTE_SEGMENT_SEPARATION
                 ),
             )
 
