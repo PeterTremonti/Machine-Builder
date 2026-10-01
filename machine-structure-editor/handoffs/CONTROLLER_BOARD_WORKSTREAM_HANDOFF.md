@@ -470,7 +470,28 @@ Should intermateability be modeled as a relationship between reusable definition
 Does Machine Builder eventually need to persist the fact that two installed connector instances are actually mated?
 When harness generation becomes important, how should reusable connector housings, contacts, terminals, and termination interfaces be represented without over-expanding the core ontology?
 Does the existing SemanticPort plus connector_id structure remain sufficient for the first Maestro representation?
-Next action
+
+# Checkpoint 23 — First Maestro Physical Interface Representation
+
+Date: 2026-09-30
+
+## What we've done so far
+
+The first concrete Maestro physical-interface implementation experiment has now been completed and tested.
+
+The experiment used the existing Controller-owned `SemanticPort` model together with `connector_id` grouping. No new canonical Connector, MatingInterface, Intermateability, BoardConnector, or similar entity was introduced.
+
+The fixture represents representative externally accessible Maestro interfaces:
+
+```text
+X motor       4 positions
+Z A motor     4 positions
+Z B motor     4 positions
+heater        2 positions
+thermistor    2 positions
+endstop       3 positions
+Z probe       5 positions
+fan           2 positions
 
 Prepare a concrete implementation design for the first Maestro connector representation using the existing Machine Builder concepts.
 
@@ -488,3 +509,24 @@ Before implementation, verify the exact current source/test state on shared main
 Do not add MatingInterface, Intermateability, BoardConnector, or similar canonical classes unless subsequent evidence demonstrates that the existing architecture cannot represent the required Maestro case cleanly.
 
 The next implementation checkpoint should include tests demonstrating the relationship between controller resources and their externally accessible physical interfaces without collapsing those concepts.
+
+# Next action
+
+## PROJECT CURRENT STATE UPDATE REQUEST
+
+Why: The first real Board implementation experiment provides project-level evidence that the existing `Controller → controller-owned SemanticPort → connector_id → pin position` structure can represent externally accessible controller interfaces without requiring a new canonical Connector entity. It also reinforces the distinction between Controller Resources and physical access points.
+
+Proposed location: The Controller / Board or controller-resource portion of `PROJECT_CURRENT_STATE.md`.
+
+Proposed content:
+
+```markdown
+### Controller / Board physical-interface checkpoint — REINFORCE
+
+The first real documented board implementation experiment, using the Duet 2 Maestro, demonstrated that the existing canonical structure can represent externally accessible controller interfaces without introducing a new canonical Connector entity.
+
+A Controller can own `SemanticPort` objects, with `connector_id` grouping the accessible positions belonging to a physical connector and `pin_id` identifying positions within that group.
+
+The Maestro `Z A` / `Z B` case also reinforces that Controller Resources and physical connectors are distinct concepts and that a single controller resource may ultimately correspond to multiple physical access points.
+
+The experiment did not implement Resource → Physical Interface mapping; that relationship remains the next Board architecture question.

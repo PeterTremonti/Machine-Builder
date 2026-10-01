@@ -95,6 +95,15 @@ GitHub/web access may be used when:
 
 GitHub/web access is not a substitute for the developer's local working tree when current uncommitted state matters.
 
+## GitHub inspection:
+- GitHub is authoritative for committed remote state.
+- Do not assume a branch-based raw.githubusercontent.com URL is fresh.
+- When inspecting rapidly changing files, prefer an immutable commit-SHA URL.
+- When checking current main, use a cache-busted raw URL.
+- Do not treat PROJECT_CURRENT_STATE.md as proof of the latest implementation/test state; it is a project synchronization checkpoint.
+- For a current test/code claim, prefer the latest pushed commit plus the actual source/test files.
+- If local work is ahead of GitHub, explicitly say so rather than reconstructing it from stale remote content.
+
 ### Other tools
 
 Avoid unnecessary use of:
