@@ -654,6 +654,26 @@ The experiment should answer:
 
 The objective is to **test composition of existing concepts**, not invent a new Board ontology before evidence exists.
 
+## Verified Maestro endstop connector information — IMPLEMENTED
+
+The Duet 2 Maestro Hardware Definition now includes reusable connector specification information for the five documented endstop interfaces:
+
+`X stop`, `Y stop`, `Z stop`, `E0 stop`, and `E1 stop`.
+
+Each is represented as a three-position 2.54 mm interface with the verified roles:
+
+* Pin 1: axis-specific endstop signal input
+* Pin 2: +3.3 V supply
+* Pin 3: GND
+
+Installed physical interfaces remain controller-owned `SemanticPort` objects with connector grouping through `connector_id` and pin-specific electrical roles.
+
+The existing `Controller Resource --exposed_through--> SemanticPort` relationship remains unchanged.
+
+This provides additional implementation evidence that reusable connector information can remain catalog data while installed physical access points remain canonical `SemanticPort` objects, without requiring a canonical Connector entity.
+
+Validation: the full repository suite passed `743 passed in 2.23s` at this implementation checkpoint.
+
 ---
 
 # 13. What the board work has NOT justified
