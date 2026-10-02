@@ -249,8 +249,9 @@ DUET2_MAESTRO_HEADERS_SOURCE = (
     "Duet2/Duet2Maestro_v1.0/Headers.sch"
 )
 
-DUET2_MAESTRO_ENDSTOP_DOC_SOURCE = (
-    "https://docs.duet3d.com/User_manual/Tuning/Triggers"
+DUET2_MAESTRO_WIRING_SOURCE = (
+    "https://docs.duet3d.com/en/How_to_guides/"
+    "Wiring_your_Duet_2"
 )
 
 DUET2_MAESTRO_MOTOR_PIN_LABELS = (
@@ -343,6 +344,136 @@ DUET2_MAESTRO_ENDSTOP_CONNECTOR_SPEC = {
 }
 
 
+DUET2_MAESTRO_HEATER_CONNECTOR_IDS = (
+    "bed-heat-molex",
+    "bed-heat-screw",
+    "e0-heat-molex",
+    "e0-heat-screw",
+    "e1-heat-molex",
+    "e1-heat-screw",
+)
+
+DUET2_MAESTRO_HEATER_RESOURCES = (
+    (
+        "bed-heater",
+        "Bed heater",
+        "bed-heat-molex",
+        "bed-heat-screw",
+    ),
+    (
+        "e0-heater",
+        "E0 heater",
+        "e0-heat-molex",
+        "e0-heat-screw",
+    ),
+    (
+        "e1-heater",
+        "E1 heater",
+        "e1-heat-molex",
+        "e1-heat-screw",
+    ),
+)
+
+DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS = {
+    "bed-heat-molex": {
+        "position_count": 2,
+        "interface_type": "Molex-compatible heater output",
+        "output_voltage": "VIN",
+        "maximum_current": "2 A at 24 V",
+        "mating_interface_family": (
+            "Molex-compatible 2.54 mm"
+        ),
+        "mating_housing_part_number": None,
+        "mating_contact_part_number": (
+            "08-50-0114"
+        ),
+        "mating_part_number_status": (
+            "Exact heater-output housing not independently "
+            "verified; 2-way KK housing is a candidate."
+        ),
+    },
+    "e0-heat-molex": {
+        "position_count": 2,
+        "interface_type": "Molex-compatible heater output",
+        "output_voltage": "VIN",
+        "maximum_current": "2 A at 24 V",
+        "mating_interface_family": (
+            "Molex-compatible 2.54 mm"
+        ),
+        "mating_housing_part_number": None,
+        "mating_contact_part_number": (
+            "08-50-0114"
+        ),
+        "mating_part_number_status": (
+            "Exact heater-output housing not independently "
+            "verified; 2-way KK housing is a candidate."
+        ),
+    },
+    "e1-heat-molex": {
+        "position_count": 2,
+        "interface_type": "Molex-compatible heater output",
+        "output_voltage": "VIN",
+        "maximum_current": "2 A at 24 V",
+        "mating_interface_family": (
+            "Molex-compatible 2.54 mm"
+        ),
+        "mating_housing_part_number": None,
+        "mating_contact_part_number": (
+            "08-50-0114"
+        ),
+        "mating_part_number_status": (
+            "Exact heater-output housing not independently "
+            "verified; 2-way KK housing is a candidate."
+        ),
+    },
+    "bed-heat-screw": {
+        "position_count": 2,
+        "interface_type": "2-position screw terminal",
+        "output_voltage": "VIN",
+        "maximum_current": "5 A at 24 V",
+        "mating_interface_family": (
+            "Direct wire-entry screw terminal"
+        ),
+        "mating_housing_part_number": None,
+        "mating_contact_part_number": None,
+        "mating_part_number_status": (
+            "No separate mating housing; conductor is "
+            "secured directly in the board terminal."
+        ),
+    },
+    "e0-heat-screw": {
+        "position_count": 2,
+        "interface_type": "2-position screw terminal",
+        "output_voltage": "VIN",
+        "maximum_current": "5 A at 24 V",
+        "mating_interface_family": (
+            "Direct wire-entry screw terminal"
+        ),
+        "mating_housing_part_number": None,
+        "mating_contact_part_number": None,
+        "mating_part_number_status": (
+            "No separate mating housing; conductor is "
+            "secured directly in the board terminal."
+        ),
+    },
+    "e1-heat-screw": {
+        "position_count": 2,
+        "interface_type": "2-position screw terminal",
+        "output_voltage": "VIN",
+        "maximum_current": "5 A at 24 V",
+        "mating_interface_family": (
+            "Direct wire-entry screw terminal"
+        ),
+        "mating_housing_part_number": None,
+        "mating_contact_part_number": None,
+        "mating_part_number_status": (
+            "No separate mating housing; conductor is "
+            "secured directly in the board terminal."
+        ),
+    },
+}
+
+
 def build_duet_2_maestro() -> HardwareDefinition:
     """Build the documented Duet 2 Maestro v1.0 hardware definition."""
     motor_connector_specifications = {
@@ -392,6 +523,17 @@ def build_duet_2_maestro() -> HardwareDefinition:
             "connector_specifications": (
                 motor_connector_specifications
                 | endstop_connector_specifications
+                | {
+                    connector_id: dict(
+                        specification
+                    )
+                    for (
+                        connector_id,
+                        specification,
+                    ) in (
+                        DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS.items()
+                    )
+                }
             ),
         },
         provenance=[
@@ -406,65 +548,43 @@ def build_duet_2_maestro() -> HardwareDefinition:
                 evidence_type="published",
                 method="manufacturer schematic",
                 context=(
-                    "Headers.sch identifies the five X/Y/Z/E0/E1 "
-                    "endstop connectors as 3-position headers and "
-                    "shows their signal, +3.3 V, and GND connections."
+                    "Headers.sch documents the Maestro's physical "
+                    "connector interfaces."
+                ),
+            ),
+            Provenance(
+                source=DUET2_MAESTRO_WIRING_SOURCE,
+                evidence_type="published",
+                method="manufacturer wiring documentation",
+                context=(
+                    "The Maestro wiring diagram identifies Molex "
+                    "heater outputs rated 2 A at 24 V and screw "
+                    "terminal heater outputs rated 5 A at 24 V."
                 ),
             ),
             Provenance(
                 source=(
-                    "https://forum.duet3d.com/topic/22167/"
-                    "nema-14-don-t-work-with-duet-wifi-drivers"
+                    "https://reprapltd.com/shop/duet-2-maestro/"
                 ),
                 evidence_type="published",
-                method="manufacturer support forum",
+                method="product documentation",
                 context=(
-                    "Duet3D administrator identifies the Duet 2 Maestro "
-                    "motor connector convention as B1, B2, A1, A2."
+                    "The Duet 2 Maestro has three heater channels "
+                    "and is supplied with Molex-compatible plugs "
+                    "and crimps."
                 ),
             ),
             Provenance(
                 source=(
-                    "https://reprapltd.com/documentation/"
-                    "fisher-build-instructions/troubleshooting/"
+                    "https://github.com/Duet3D/wiki-content/"
+                    "blob/master/User_manual/"
+                    "Connecting_hardware/Motors_servos.md"
                 ),
-                evidence_type="published",
-                method="technical documentation",
-                context=(
-                    "RepRap Ltd identifies the Duet wiring crimps as "
-                    "standard Molex KK 2.54 mm crimps."
-                ),
-            ),
-            Provenance(
-                source=DUET2_MAESTRO_ENDSTOP_DOC_SOURCE,
                 evidence_type="published",
                 method="manufacturer technical documentation",
                 context=(
-                    "Duet documentation describes Duet 2 endstop "
-                    "connections using the endstop signal and GND, "
-                    "and identifies Molex KK as the connector family."
-                ),
-            ),
-            Provenance(
-                source=(
-                    "https://www.connecticc.com/mol22-01-3037.html"
-                ),
-                evidence_type="published",
-                method="component distributor catalog",
-                context=(
-                    "Molex 22-01-3037 is a 3-circuit KK 254 "
-                    "crimp housing."
-                ),
-            ),
-            Provenance(
-                source=(
-                    "https://www.connecticc.com/mol08-50-0114.html"
-                ),
-                evidence_type="published",
-                method="component distributor catalog",
-                context=(
-                    "Molex 08-50-0114 is a KK 254 crimp terminal "
-                    "used with the mating housing."
+                    "Duet documentation describes heater outputs "
+                    "as PWM-controlled outputs on the ground side."
                 ),
             ),
         ],

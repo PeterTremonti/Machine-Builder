@@ -22,11 +22,7 @@ def make_test_model() -> CanonicalMachineModel:
     return model
 
 
-def get_fixture() -> tuple[
-    CanonicalMachineModel,
-    object,
-    tuple,
-]:
+def get_fixture():
     model = make_test_model()
 
     controller, ports = (
@@ -60,7 +56,7 @@ def test_fixture_creates_installed_controller() -> None:
 def test_fixture_creates_controller_owned_physical_ports() -> None:
     _, controller, ports = get_fixture()
 
-    assert len(ports) == 38
+    assert len(ports) == 48
 
     assert all(
         port.component_id is None
@@ -85,7 +81,12 @@ def test_fixture_connector_group_sizes() -> None:
         "x-motor": 4,
         "z-a-motor": 4,
         "z-b-motor": 4,
-        "heater": 2,
+        "bed-heat-molex": 2,
+        "bed-heat-screw": 2,
+        "e0-heat-molex": 2,
+        "e0-heat-screw": 2,
+        "e1-heat-molex": 2,
+        "e1-heat-screw": 2,
         "thermistor": 2,
         "x-stop": 3,
         "y-stop": 3,
@@ -119,7 +120,12 @@ def test_fixture_connector_positions_are_numbered() -> None:
         "x-motor": 4,
         "z-a-motor": 4,
         "z-b-motor": 4,
-        "heater": 2,
+        "bed-heat-molex": 2,
+        "bed-heat-screw": 2,
+        "e0-heat-molex": 2,
+        "e0-heat-screw": 2,
+        "e1-heat-molex": 2,
+        "e1-heat-screw": 2,
         "thermistor": 2,
         "x-stop": 3,
         "y-stop": 3,
@@ -165,6 +171,7 @@ def test_z_a_and_z_b_are_separate_connector_groups() -> None:
 
     assert len(z_a_ids) == 4
     assert len(z_b_ids) == 4
+
     assert z_a_ids.isdisjoint(
         z_b_ids
     )
@@ -216,6 +223,59 @@ def test_endstop_connector_pins_have_verified_roles() -> None:
         ] == list(pin_labels)
 
 
+def test_heater_connector_groups_are_present() -> None:
+    _, _, ports = get_fixture()
+
+    expected_groups = {
+        "bed-heat-molex",
+        "bed-heat-screw",
+        "e0-heat-molex",
+        "e0-heat-screw",
+        "e1-heat-molex",
+        "e1-heat-screw",
+    }
+
+    actual_groups = {
+        port.connector_id
+        for port in ports
+        if port.connector_id in expected_groups
+    }
+
+    assert actual_groups == expected_groups
+
+
+def test_heater_ports_have_verified_output_information() -> None:
+    _, _, ports = get_fixture()
+
+    heater_ports = [
+        port
+        for port in ports
+        if port.connector_id
+        in {
+            "bed-heat-molex",
+            "bed-heat-screw",
+            "e0-heat-molex",
+            "e0-heat-screw",
+            "e1-heat-molex",
+            "e1-heat-screw",
+        }
+    ]
+
+    assert len(heater_ports) == 12
+
+    assert all(
+        port.direction == "output"
+        for port in heater_ports
+    )
+
+    assert all(
+        port.properties[
+            "electrical_role"
+        ] == "heater_output"
+        for port in heater_ports
+    )
+
+
 def test_z_stepper_resource_is_exposed_through_z_a_and_z_b() -> None:
     model, controller, ports = get_fixture()
 
@@ -253,6 +313,54 @@ def test_z_stepper_resource_is_exposed_through_z_a_and_z_b() -> None:
     } == expected_ports
 
 
+def test_heater_resources_are_exposed_through_molex_and_screw_interfaces() -> None:
+    model, controller, ports = get_fixture()
+
+    expected = {
+        "bed-heater": {
+            "bed-heat-molex",
+            "bed-heat-screw",
+        },
+        "e0-heater": {
+            "e0-heat-molex",
+            "e0-heat-screw",
+        },
+        "e1-heater": {
+            "e1-heat-molex",
+            "e1-heat-screw",
+        },
+    }
+
+    for resource_suffix, connector_ids in (
+        expected.items()
+    ):
+        resource_id = (
+            f"{controller.id}-{resource_suffix}"
+        )
+
+        relationships = [
+            relationship
+            for relationship
+            in model.relationships.values()
+            if (
+                relationship.source_id
+                == resource_id
+                and relationship.relationship_type
+                == "exposed_through"
+            )
+        ]
+
+        assert len(relationships) == 4
+
+        assert {
+            model.ports[
+                relationship.target_id
+            ].connector_id
+            for relationship
+            in relationships
+        } == connector_ids
+
+
 def test_fixture_does_not_create_controller_resource_assignment() -> None:
     model, _, _ = get_fixture()
 
@@ -263,7 +371,7 @@ def test_fixture_does_not_create_controller_resource_assignment() -> None:
 
     assert len(
         model.controller_resources
-    ) == 1
+    ) == 4
 
 
 def test_removing_z_stepper_resource_removes_exposure_relationships() -> None:

@@ -1026,6 +1026,165 @@ electrical-role detail.
 The next connector family should test whether the model handles another
 electrical pattern without requiring new ontology.
 
+# Checkpoint 28 — Verified Maestro Heater Interfaces
+
+Date: 2026-10-02
+
+## Classification
+
+IMPLEMENTATION / DECIDED
+
+## What we've done so far
+
+Extended the Duet 2 Maestro physical-interface representation to cover its
+three heater resources:
+
+* Bed heater
+* E0 heater
+* E1 heater
+
+Each heater resource is represented as a Controller Resource and is related
+through `exposed_through` to two distinct physical access-point groups:
+
+* a two-position Molex-compatible heater interface;
+* a two-position screw-terminal heater interface.
+
+This produces the concrete many-access-point pattern:
+
+`ControllerResource`
+→ Molex physical interface
+
+and
+
+`ControllerResource`
+→ screw-terminal physical interface
+
+for the same heater resource.
+
+## Verified heater interface characteristics
+
+The documented Maestro heater outputs distinguish the two physical output
+types by current capability.
+
+The Molex-compatible heater outputs are represented as:
+
+* two positions;
+* 24 V output;
+* 2 A maximum current.
+
+The screw-terminal heater outputs are represented as:
+
+* two positions;
+* 24 V output;
+* 5 A maximum current.
+
+The exact mating housing part number for the Molex heater output is
+intentionally not asserted because it has not yet been independently
+verified to the board-specific heater connector.
+
+The common KK 254 contact information is retained where supported by the
+available evidence.
+
+## Semantic result
+
+The heater case provides stronger evidence that `exposed_through` is the
+correct relationship for Controller Resource physical exposure.
+
+One Controller Resource can have multiple physical access-point groups, and
+those groups do not have to be identical in connector type.
+
+The representation remains:
+
+`ControllerResource --exposed_through--> SemanticPort`
+
+with the individual physical contacts represented by controller-owned
+SemanticPorts and grouped by `connector_id`.
+
+No canonical Connector entity was introduced.
+
+No new Resource-to-Interface association entity was introduced.
+
+No connector housing or mating-interface ontology was introduced.
+
+## Files changed
+
+`machine-structure-editor/src/machine_builder/hardware_catalog.py`
+
+Added reusable Maestro heater connector specifications, interface types,
+voltage/current characteristics, and evidence/status information.
+
+`machine-structure-editor/src/machine_builder/controller_board_fixtures.py`
+
+Added the six physical heater connector groups and three heater Controller
+Resources, with `exposed_through` relationships from each resource to its
+Molex and screw-terminal physical interfaces.
+
+`machine-structure-editor/tests/test_controller_board_fixtures.py`
+
+Updated physical-port counts and added coverage for heater connector groups,
+heater output characteristics, and resource-to-interface exposure.
+
+`machine-structure-editor/tests/test_duet_2_maestro_heater_specs.py`
+
+Added focused coverage for the reusable heater connector specifications,
+the two physical access types, and their differing current ratings.
+
+## Test result
+
+Focused heater/Board/relationship tests:
+
+`29 passed in 0.29s`
+
+Full repository suite:
+
+`750 passed in 4.36s`
+
+The full suite confirms that the heater implementation does not regress the
+existing semantic model, resource exposure relationships, connector
+specification representation, or prior Board fixtures.
+
+## Current state
+
+The Duet 2 Maestro Board representation now covers three distinct connector
+families:
+
+1. stepper motor interfaces;
+2. endstop interfaces;
+3. heater interfaces.
+
+The same fundamental representation works across all three:
+
+`HardwareDefinition`
+→ reusable connector information
+
+`Controller`
+→ installed controller-owned SemanticPorts
+
+`ControllerResource`
+→ `exposed_through`
+→ one or more physical SemanticPorts
+
+The heater case additionally demonstrates that one resource may be exposed
+through physically different connector/interface types.
+
+## WATCH
+
+The heater Molex mating housing remains intentionally unspecified at the
+part-number level pending stronger board-specific evidence.
+
+The thermistor, fan, and Z probe interfaces remain the next useful Maestro
+families for testing the representation.
+
+The Z probe is especially useful because it is a five-position interface and
+may introduce multiple electrical roles within one connector.
+
+## Next action
+
+Investigate the Maestro Z probe interface next, using its five-position
+physical connector and verified electrical roles as the next connector-family
+stress test.
+
+
 ## Next action
 
 Investigate the Maestro heater connector family next. It is a useful test

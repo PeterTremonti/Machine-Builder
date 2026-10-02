@@ -6,6 +6,8 @@ from .controller_resource import ControllerResource
 from .hardware_catalog import (
     DUET2_MAESTRO_ENDSTOP_CONNECTOR_IDS,
     DUET2_MAESTRO_ENDSTOP_SIGNAL_LABELS,
+    DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS,
+    DUET2_MAESTRO_HEATER_RESOURCES,
     DUET2_MAESTRO_MOTOR_CONNECTOR_IDS,
     DUET2_MAESTRO_MOTOR_PIN_LABELS,
     build_duet_2_maestro,
@@ -22,7 +24,12 @@ DUET_2_MAESTRO_CONNECTOR_LAYOUT = (
     ("x-motor", "X motor", 4),
     ("z-a-motor", "Z A motor", 4),
     ("z-b-motor", "Z B motor", 4),
-    ("heater", "Heater", 2),
+    ("bed-heat-molex", "Bed heat Molex", 2),
+    ("bed-heat-screw", "Bed heat screw terminal", 2),
+    ("e0-heat-molex", "E0 heat Molex", 2),
+    ("e0-heat-screw", "E0 heat screw terminal", 2),
+    ("e1-heat-molex", "E1 heat Molex", 2),
+    ("e1-heat-screw", "E1 heat screw terminal", 2),
     ("thermistor", "Thermistor", 2),
     ("x-stop", "X stop", 3),
     ("y-stop", "Y stop", 3),
@@ -144,6 +151,45 @@ def add_duet_2_maestro_physical_interfaces(
                     "electrical_role"
                 ] = electrical_role
 
+            elif (
+                connector_id
+                in DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS
+            ):
+                specification = (
+                    DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS[
+                        connector_id
+                    ]
+                )
+
+                purpose = (
+                    f"{connector_name}"
+                    " output contact"
+                )
+
+                direction = "output"
+
+                port_properties[
+                    "interface_type"
+                ] = specification[
+                    "interface_type"
+                ]
+
+                port_properties[
+                    "output_voltage"
+                ] = specification[
+                    "output_voltage"
+                ]
+
+                port_properties[
+                    "maximum_current"
+                ] = specification[
+                    "maximum_current"
+                ]
+
+                port_properties[
+                    "electrical_role"
+                ] = "heater_output"
+
             port = SemanticPort(
                 id=(
                     f"{controller_id}"
@@ -165,6 +211,45 @@ def add_duet_2_maestro_physical_interfaces(
             )
 
             ports.append(port)
+
+    for (
+        resource_suffix,
+        resource_name,
+        molex_connector_id,
+        screw_connector_id,
+    ) in DUET2_MAESTRO_HEATER_RESOURCES:
+        resource = ControllerResource(
+            id=f"{controller_id}-{resource_suffix}",
+            name=resource_name,
+            resource_type="heater",
+            controller_id=controller_id,
+        )
+
+        model.add_controller_resource(
+            machine_id,
+            resource,
+        )
+
+        for port in ports:
+            if port.connector_id not in {
+                molex_connector_id,
+                screw_connector_id,
+            }:
+                continue
+
+            relationship = SemanticRelationship(
+                id=(
+                    f"{resource.id}"
+                    f"-exposed-through-{port.id}"
+                ),
+                source_id=resource.id,
+                target_id=port.id,
+                relationship_type="exposed_through",
+            )
+
+            model.add_relationship(
+                relationship
+            )
 
     z_stepper_resource = ControllerResource(
         id=f"{controller_id}-z-stepper",
