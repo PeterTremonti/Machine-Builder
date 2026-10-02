@@ -794,6 +794,143 @@ groups.
 The relationship vocabulary, fixture behavior, and lifecycle cleanup are
 covered by tests, and the complete repository suite passes.
 
+# Checkpoint 26 — Verified Maestro Motor Connector Information
+
+Date: 2026-10-02
+
+## Classification
+
+IMPLEMENTATION / DECIDED
+
+## What we've done so far
+
+Extended the first Maestro physical-interface representation with verified
+motor-connector information.
+
+The reusable Duet 2 Maestro Hardware Definition now contains connector
+specification data for the six external stepper-motor connector groups:
+
+- X motor
+- Y motor
+- Z A motor
+- Z B motor
+- E0 motor
+- E1 motor
+
+The specification records the four-position 2.54 mm board interface, the
+Molex KK 254-compatible mating interface family, representative mating
+housing and contact part numbers, and the verified motor pin-label
+convention.
+
+The installed physical SemanticPorts for motor connectors now carry the
+corresponding pin labels and more specific semantic purposes.
+
+## Maestro motor pin representation
+
+Each four-position motor connector is represented using the documented
+contact convention:
+
+- Pin 1 → B1
+- Pin 2 → B2
+- Pin 3 → A1
+- Pin 4 → A2
+
+For both Z A and Z B, the resulting physical representation is therefore:
+
+`Z A / Z B → B1, B2, A1, A2`
+
+The Z A and Z B connector groups remain separate physical access-point
+groups through `connector_id`.
+
+## Semantic boundary preserved
+
+The reusable connector information is stored as catalog information on the
+Duet 2 Maestro Hardware Definition.
+
+The installed connector contacts remain controller-owned SemanticPorts.
+
+The Controller Resource → physical interface relationship remains:
+
+`ControllerResource --exposed_through--> SemanticPort`
+
+No canonical Connector entity was introduced.
+
+No connector housing, contact, terminal, mating-interface, or intermateability
+ontology was introduced.
+
+Those remain deferred until broader hardware evidence requires them.
+
+## Files changed
+
+`machine-structure-editor/src/machine_builder/hardware_catalog.py`
+
+Added reusable Maestro motor connector specification data and verified motor
+pin labels.
+
+`machine-structure-editor/src/machine_builder/controller_board_fixtures.py`
+
+Applied the verified motor pin labels and semantic purposes to the installed
+Maestro physical-interface fixture.
+
+`machine-structure-editor/tests/test_duet_2_maestro_connector_specs.py`
+
+Added focused coverage for the reusable motor connector specifications and
+the installed Z A / Z B pin labels.
+
+## Test result
+
+Full repository suite:
+
+`742 passed in 3.84s`
+
+This confirms that the connector-information implementation does not regress
+the existing semantic model, relationship model, or Board fixture behavior.
+
+## Current state
+
+The Board workstream now has a working chain from:
+
+`Duet 2 Maestro Hardware Definition`
+
+to:
+
+`installed Controller`
+
+to:
+
+`controller-owned physical SemanticPorts`
+
+to:
+
+`verified motor connector/pin information`
+
+and:
+
+`Controller Resource --exposed_through--> physical SemanticPorts`
+
+The representation remains intentionally incomplete for non-motor Maestro
+interfaces.
+
+## WATCH
+
+The current connector specification is reusable catalog information, but
+its exact abstraction boundary should continue to be tested against the
+next connector families.
+
+The next useful Maestro evidence targets are the non-motor interfaces:
+heater, thermistor, endstop, fan, and Z probe.
+
+The objective is to determine whether their connector and pin information can
+continue to use the existing structures without introducing unnecessary new
+canonical entities.
+
+## Next action
+
+Investigate and model the next verified Maestro connector family, using the
+heater or endstop interface as the next test case, and compare its physical
+and mating-interface characteristics against the motor-connector
+representation.
+
 ## Next action
 
 Use this established resource-to-physical-interface pattern to investigate

@@ -2,6 +2,10 @@
 
 This module contains concrete hardware definitions that can be associated
 with machine components.
+
+Connector specifications stored in HardwareDefinition.properties describe
+reusable interface information associated with the documented hardware.
+They are catalog information, not separate canonical Connector entities.
 """
 
 from __future__ import annotations
@@ -240,9 +244,59 @@ DUET2_MAESTRO_HARDWARE_SOURCE = (
     "Duet2/Duet2Maestro_v1.0"
 )
 
+DUET2_MAESTRO_MOTOR_PIN_LABELS = (
+    "B1",
+    "B2",
+    "A1",
+    "A2",
+)
+
+DUET2_MAESTRO_MOTOR_CONNECTOR_IDS = (
+    "x-motor",
+    "y-motor",
+    "z-a-motor",
+    "z-b-motor",
+    "e0-motor",
+    "e1-motor",
+)
+
+DUET2_MAESTRO_MOTOR_CONNECTOR_SPEC = {
+    "position_count": 4,
+    "board_interface": (
+        "4-position 2.54 mm pin header"
+    ),
+    "mating_interface_family": (
+        "Molex KK 254-compatible"
+    ),
+    "mating_housing_part_number": (
+        "22-01-3047"
+    ),
+    "mating_contact_part_number": (
+        "08-50-0114"
+    ),
+    "pin_labels": list(
+        DUET2_MAESTRO_MOTOR_PIN_LABELS
+    ),
+    "pin_role": (
+        "Stepper motor coil terminal"
+    ),
+    "part_number_status": (
+        "Catalog-compatible mating components; "
+        "board-side header part number not yet verified."
+    ),
+}
+
 
 def build_duet_2_maestro() -> HardwareDefinition:
     """Build the documented Duet 2 Maestro v1.0 hardware definition."""
+    connector_specifications = {
+        connector_id: dict(
+            DUET2_MAESTRO_MOTOR_CONNECTOR_SPEC
+        )
+        for connector_id
+        in DUET2_MAESTRO_MOTOR_CONNECTOR_IDS
+    }
+
     return HardwareDefinition(
         id="duet-2-maestro-v1-0",
         family="Duet 2 Maestro",
@@ -254,6 +308,9 @@ def build_duet_2_maestro() -> HardwareDefinition:
             "onboard_stepper_driver_type": "TMC2224",
             "heater_output_count": 3,
             "controlled_fan_output_count": 3,
+            "connector_specifications": (
+                connector_specifications
+            ),
         },
         provenance=[
             Provenance(
@@ -261,6 +318,43 @@ def build_duet_2_maestro() -> HardwareDefinition:
                 evidence_type="published",
                 method="manufacturer hardware design repository",
                 context="Duet 2 Maestro v1.0 hardware design files.",
-            )
+            ),
+            Provenance(
+                source=(
+                    "https://forum.duet3d.com/topic/22167/"
+                    "nema-14-don-t-work-with-duet-wifi-drivers"
+                ),
+                evidence_type="published",
+                method="manufacturer support forum",
+                context=(
+                    "Duet3D administrator identifies the Duet 2 Maestro "
+                    "motor connector convention as B1, B2, A1, A2."
+                ),
+            ),
+            Provenance(
+                source=(
+                    "https://reprapltd.com/documentation/"
+                    "fisher-build-instructions/troubleshooting/"
+                ),
+                evidence_type="published",
+                method="technical documentation",
+                context=(
+                    "RepRap Ltd identifies the Duet wiring crimps and "
+                    "housings as Molex KK 2.54 mm."
+                ),
+            ),
+            Provenance(
+                source=(
+                    "https://www.connecticc.com/"
+                    "mol08-50-0114.html"
+                ),
+                evidence_type="published",
+                method="component distributor catalog",
+                context=(
+                    "Molex 08-50-0114 is identified as a KK 254 "
+                    "crimp terminal and the 22-01-3047 housing is "
+                    "identified as a 4-circuit KK 254 housing."
+                ),
+            ),
         ],
     )

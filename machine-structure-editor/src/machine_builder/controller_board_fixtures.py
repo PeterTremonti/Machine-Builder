@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 from .controller_resource import ControllerResource
-from .hardware_catalog import build_duet_2_maestro
+from .hardware_catalog import (
+    DUET2_MAESTRO_MOTOR_CONNECTOR_IDS,
+    DUET2_MAESTRO_MOTOR_PIN_LABELS,
+    build_duet_2_maestro,
+)
 from .semantic_model import (
     CanonicalMachineModel,
     Controller,
@@ -58,7 +62,42 @@ def add_duet_2_maestro_physical_interfaces(
         connector_name,
         position_count,
     ) in DUET_2_MAESTRO_CONNECTOR_LAYOUT:
-        for position in range(1, position_count + 1):
+        for position in range(
+            1,
+            position_count + 1,
+        ):
+            pin_label: str | None = None
+            purpose = (
+                f"{connector_name}"
+                " connector contact"
+            )
+
+            if (
+                connector_id
+                in DUET2_MAESTRO_MOTOR_CONNECTOR_IDS
+            ):
+                pin_label = (
+                    DUET2_MAESTRO_MOTOR_PIN_LABELS[
+                        position - 1
+                    ]
+                )
+
+                purpose = (
+                    f"Stepper motor coil "
+                    f"{pin_label} terminal"
+                )
+
+            port_properties: dict[str, object] = {
+                "connector_position_count": (
+                    position_count
+                )
+            }
+
+            if pin_label is not None:
+                port_properties[
+                    "pin_label"
+                ] = pin_label
+
             port = SemanticPort(
                 id=(
                     f"{controller_id}"
@@ -66,18 +105,11 @@ def add_duet_2_maestro_physical_interfaces(
                     f"-pin-{position}"
                 ),
                 component_id=None,
-                purpose=(
-                    f"{connector_name}"
-                    " connector contact"
-                ),
+                purpose=purpose,
                 direction="unknown",
                 connector_id=connector_id,
                 pin_id=str(position),
-                properties={
-                    "connector_position_count": (
-                        position_count
-                    )
-                },
+                properties=port_properties,
                 provenance=[],
                 controller_id=controller_id,
             )
