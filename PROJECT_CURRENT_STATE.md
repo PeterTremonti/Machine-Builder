@@ -674,6 +674,29 @@ This provides additional implementation evidence that reusable connector informa
 
 Validation: the full repository suite passed `743 passed in 2.23s` at this implementation checkpoint.
 
+## Verified Maestro heater interfaces — IMPLEMENTED
+
+The Duet 2 Maestro Board representation now includes three heater Controller Resources: Bed, E0, and E1.
+
+Each heater resource is related through the existing:
+
+`ControllerResource --exposed_through--> SemanticPort`
+
+relationship to two physical access-point groups:
+
+* a two-position Molex-compatible heater interface rated at 2 A at 24 V;
+* a two-position screw-terminal heater interface rated at 5 A at 24 V.
+
+This demonstrates that one Controller Resource may be exposed through multiple physical access-point groups that use different interface types.
+
+Reusable connector/interface information remains catalog data on the Hardware Definition. Installed physical interface positions remain controller-owned SemanticPorts grouped by `connector_id`.
+
+No canonical Connector entity or separate resource-to-interface association entity has been introduced.
+
+The exact mating housing part number for the Maestro heater Molex output remains intentionally unspecified pending stronger board-specific evidence.
+
+Validation: the full repository suite passed `750 passed in 4.36s` at this implementation checkpoint.
+
 ---
 
 # 13. What the board work has NOT justified
