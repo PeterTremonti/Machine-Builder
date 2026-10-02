@@ -726,6 +726,20 @@ class CanonicalMachineModel:
                 "Unknown controller resource: "
                 f"{resource_id}"
             )
+        relationship_ids = [
+            relationship_id
+            for relationship_id, relationship
+            in self.relationships.items()
+            if (
+                relationship.source_id == resource_id
+                or relationship.target_id == resource_id
+            )
+        ]
+
+        for relationship_id in relationship_ids:
+            del self.relationships[
+                relationship_id
+            ]
         assignment_ids = [
             assignment_id
             for assignment_id, assignment

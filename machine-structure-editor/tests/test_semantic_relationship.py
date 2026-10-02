@@ -94,6 +94,24 @@ def test_known_relationship_types_are_accepted() -> None:
         )
 
 
+def test_exposed_through_relationship_connects_resource_to_port() -> None:
+    relationship = SemanticRelationship(
+        id="relationship-resource-port",
+        source_id="controller-resource-z-stepper",
+        target_id="controller-port-z-a-pin-1",
+        relationship_type="exposed_through",
+    )
+
+    assert relationship.connects(
+        "controller-resource-z-stepper",
+        "controller-port-z-a-pin-1",
+    )
+
+    assert relationship.is_type(
+        "exposed_through"
+    )
+
+
 def test_unknown_relationship_type_is_rejected() -> None:
     with pytest.raises(
         ValueError,

@@ -510,6 +510,298 @@ Do not add MatingInterface, Intermateability, BoardConnector, or similar canonic
 
 The next implementation checkpoint should include tests demonstrating the relationship between controller resources and their externally accessible physical interfaces without collapsing those concepts.
 
+# Checkpoint 24 — Controller Resource Exposure Through Physical Interfaces
+
+Date: 2026-10-01
+
+## Classification
+
+DECIDED
+
+## What we've done so far
+
+Inspected the current Controller Resource, Controller Resource Assignment,
+and SemanticRelationship implementations and their tests to determine the
+smallest existing architectural mechanism for representing the physical
+interfaces through which a Controller Resource is externally accessible.
+
+`ControllerResource` contains the identity and controller ownership of a
+usable controller-supplied resource, but does not contain a physical-port
+reference.
+
+`ControllerResourceAssignment` has a distinct semantic purpose: it records
+the mapping between a machine-semantic object and a Controller Resource.
+It is therefore not appropriate for recording the physical exposure of a
+resource on a controller board.
+
+`SemanticRelationship` is already a directed relationship between canonical
+objects and is capable of relating a Controller Resource to a SemanticPort.
+The existing relationship vocabulary contains:
+
+- `realizes`
+- `supports`
+- `requires`
+- `depends_on`
+- `participates_in`
+
+None of these has a sufficiently precise meaning for physical exposure of
+a Controller Resource through an externally accessible interface.
+
+## Decision
+
+Use the existing `SemanticRelationship` mechanism with one new relationship
+type:
+
+`exposed_through`
+
+The direction is:
+
+`ControllerResource → SemanticPort`
+
+The meaning is:
+
+> A Controller Resource is externally accessible through this physical
+> interface.
+
+The relationship may occur multiple times for one Controller Resource.
+
+The Maestro Z resource is the concrete test case:
+
+`Z stepper resource`
+→ four Z A physical access-point ports
+
+and
+
+`Z stepper resource`
+→ four Z B physical access-point ports
+
+The two connector groups remain distinguishable through the existing
+`SemanticPort.connector_id` grouping.
+
+This does not introduce:
+
+- a new Connector canonical entity
+- a new Resource-to-Port association dataclass
+- a `port_id` field on Controller Resource
+- reuse of Controller Resource Assignment for physical exposure
+- a list of physical port IDs inside untyped properties
+
+## Semantic rationale
+
+A Controller Resource and a physical access point answer different semantic
+questions.
+
+Controller Resource:
+
+> What usable controller capability/resource does the installed controller
+> provide?
+
+Physical SemanticPort:
+
+> Where is that capability/resource externally accessible on the installed
+> hardware?
+
+Controller Resource Assignment answers another question:
+
+> Which machine-semantic purpose is using this controller resource?
+
+Keeping these as separate concepts preserves the distinction between
+semantic resource allocation and physical board topology.
+
+## Maestro Z A / Z B evidence
+
+The Duet 2 Maestro has one Z stepper-driver resource with two separate
+external motor connector groups, Z A and Z B.
+
+This is the required one-resource-to-multiple-physical-access-points case.
+
+The current physical-interface fixture already represents the connector
+contacts as controller-owned SemanticPorts and groups their positions with
+`connector_id`.
+
+The new relationship therefore needs to connect the single Z resource to
+the individual Z A and Z B SemanticPorts rather than attempting to create a
+new connector-level canonical object.
+
+## Current state
+
+The architectural mechanism is now settled, but the association has not yet
+been implemented.
+
+The next implementation slice should:
+
+1. add `exposed_through` to the relationship vocabulary;
+2. add focused relationship tests for the new semantic type;
+3. extend the Maestro fixture with a representative Z Controller Resource;
+4. create `exposed_through` relationships from that resource to the four Z A
+   and four Z B physical access-point ports;
+5. add tests proving one resource can be related to both connector groups;
+6. preserve the existing absence of Controller Resource Assignment in this
+   physical-exposure test.
+
+A lifecycle check is also warranted because relationship records involving
+Controller Resources and Ports must not become dangling references when
+those canonical objects are removed.
+
+## Unresolved / WATCH
+
+The current model does not make a connector group itself a canonical object.
+That is acceptable for this implementation because the physical access
+points are already canonical SemanticPorts and `connector_id` provides the
+grouping.
+
+Future evidence may justify richer connector-definition or mating-interface
+modeling, but this checkpoint does not introduce those concepts.
+
+## Next action
+
+Implement and test `exposed_through` using the Maestro Z resource with the
+Z A / Z B physical-interface fixture as the concrete many-access-point case.
+
+# Checkpoint 25 — Controller Resource Physical Exposure
+
+Date: 2026-10-02
+
+## Classification
+
+DECIDED / IMPLEMENTATION
+
+## What we've done so far
+
+Implemented the Controller Resource → physical interface relationship
+established by Checkpoint 24.
+
+The existing `SemanticRelationship` mechanism is now used with the new
+relationship type:
+
+`exposed_through`
+
+The relationship direction is:
+
+`ControllerResource → SemanticPort`
+
+and means:
+
+> A Controller Resource is externally accessible through this physical
+> interface.
+
+The Duet 2 Maestro fixture now includes a representative Z stepper
+Controller Resource and relates that single resource to all eight physical
+access-point ports belonging to the separate Z A and Z B motor connector
+groups.
+
+The implementation deliberately does not introduce a canonical Connector
+entity, a new Resource-to-Port association class, or a physical-port list
+field on Controller Resource.
+
+## Files changed
+
+`machine-structure-editor/src/machine_builder/semantic_relationship.py`
+
+Added `exposed_through` to the existing relationship vocabulary.
+
+`machine-structure-editor/src/machine_builder/controller_board_fixtures.py`
+
+Extended the Maestro fixture with a representative Z stepper Controller
+Resource and eight `exposed_through` relationships to the Z A and Z B
+physical access-point ports.
+
+`machine-structure-editor/src/machine_builder/semantic_model.py`
+
+Updated Controller Resource removal so relationships referencing a removed
+Controller Resource are also removed, preventing dangling semantic
+relationships.
+
+`machine-structure-editor/tests/test_semantic_relationship.py`
+
+Added coverage proving that `exposed_through` is accepted and preserves the
+directed relationship semantics.
+
+`machine-structure-editor/tests/test_controller_board_fixtures.py`
+
+Added coverage for:
+
+- creation of the representative Z stepper resource;
+- eight physical exposure relationships;
+- exposure through both Z A and Z B connector groups;
+- preservation of the distinction from Controller Resource Assignment;
+- cleanup of exposure relationships when the resource is removed.
+
+## Test result
+
+Focused tests:
+
+`19 passed in 0.22s`
+
+Full repository suite:
+
+`740 passed in 4.50s`
+
+The full suite is the current authoritative regression result for this
+implementation checkpoint.
+
+## Semantic result
+
+The Maestro Z A / Z B case confirms that one Controller Resource can be
+represented as externally accessible through multiple physical access
+points without conflating:
+
+`Controller Resource`
+
+with:
+
+`Physical SemanticPort`
+
+or:
+
+`Controller Resource Assignment`
+
+The individual physical contacts remain canonical SemanticPorts. Their
+existing `connector_id` values continue to group them into physical
+connector/access-point groups.
+
+## Important limitation
+
+The current Maestro fixture remains intentionally representative rather
+than a complete electrical pinout.
+
+The physical ports currently carry generic connector-contact purposes and
+do not yet model verified electrical roles, exact connector specifications,
+mating parts, or harness construction details.
+
+Those details remain future Board catalog work and should be added only as
+documented evidence supports them.
+
+## Rejected approaches
+
+The implementation did not:
+
+- add `port_id` or `port_ids` to Controller Resource;
+- reuse Controller Resource Assignment for physical exposure;
+- add a canonical Connector entity;
+- encode the relationship as an arbitrary list of IDs in `properties`;
+- model internal MCU/package wiring.
+
+## Current state
+
+Controller Resources can now be related to one or more externally accessible
+physical SemanticPorts through the canonical semantic relationship graph.
+
+The Duet 2 Maestro Z resource is the first concrete many-access-point
+example, with one resource exposed through both Z A and Z B motor connector
+groups.
+
+The relationship vocabulary, fixture behavior, and lifecycle cleanup are
+covered by tests, and the complete repository suite passes.
+
+## Next action
+
+Use this established resource-to-physical-interface pattern to investigate
+the next level of real Maestro board detail: verified connector identity,
+connector grouping, pin electrical purpose, and mating-interface information,
+while preserving the distinction between reusable connector information and
+installed physical interfaces.
+
 # Next action
 
 ## PROJECT CURRENT STATE UPDATE REQUEST

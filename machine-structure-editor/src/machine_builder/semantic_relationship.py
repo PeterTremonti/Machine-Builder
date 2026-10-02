@@ -15,6 +15,7 @@ RELATIONSHIP_TYPES = frozenset(
         "requires",
         "depends_on",
         "participates_in",
+        "exposed_through",
     }
 )
 
