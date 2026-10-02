@@ -244,6 +244,15 @@ DUET2_MAESTRO_HARDWARE_SOURCE = (
     "Duet2/Duet2Maestro_v1.0"
 )
 
+DUET2_MAESTRO_HEADERS_SOURCE = (
+    "https://github.com/Duet3D/Duet-2-Hardware/blob/master/"
+    "Duet2/Duet2Maestro_v1.0/Headers.sch"
+)
+
+DUET2_MAESTRO_ENDSTOP_DOC_SOURCE = (
+    "https://docs.duet3d.com/User_manual/Tuning/Triggers"
+)
+
 DUET2_MAESTRO_MOTOR_PIN_LABELS = (
     "B1",
     "B2",
@@ -287,15 +296,87 @@ DUET2_MAESTRO_MOTOR_CONNECTOR_SPEC = {
 }
 
 
+DUET2_MAESTRO_ENDSTOP_CONNECTOR_IDS = (
+    "x-stop",
+    "y-stop",
+    "z-stop",
+    "e0-stop",
+    "e1-stop",
+)
+
+DUET2_MAESTRO_ENDSTOP_SIGNAL_LABELS = {
+    "x-stop": "xstop",
+    "y-stop": "ystop",
+    "z-stop": "zstop",
+    "e0-stop": "e0stop",
+    "e1-stop": "e1stop",
+}
+
+DUET2_MAESTRO_ENDSTOP_CONNECTOR_SPEC = {
+    "position_count": 3,
+    "board_interface": (
+        "3-position 2.54 mm pin header"
+    ),
+    "mating_interface_family": (
+        "Molex KK 254-compatible"
+    ),
+    "mating_housing_part_number": (
+        "22-01-3037"
+    ),
+    "mating_contact_part_number": (
+        "08-50-0114"
+    ),
+    "pin_positions": {
+        "1": "endstop signal input",
+        "2": "+3.3 V supply",
+        "3": "GND",
+    },
+    "pin_roles": {
+        "1": "endstop_input",
+        "2": "power_supply_3v3",
+        "3": "ground_reference",
+    },
+    "part_number_status": (
+        "Catalog-compatible mating components; "
+        "board-side header part number not separately verified."
+    ),
+}
+
+
 def build_duet_2_maestro() -> HardwareDefinition:
     """Build the documented Duet 2 Maestro v1.0 hardware definition."""
-    connector_specifications = {
+    motor_connector_specifications = {
         connector_id: dict(
             DUET2_MAESTRO_MOTOR_CONNECTOR_SPEC
         )
         for connector_id
         in DUET2_MAESTRO_MOTOR_CONNECTOR_IDS
     }
+
+    endstop_connector_specifications = {}
+
+    for connector_id in (
+        DUET2_MAESTRO_ENDSTOP_CONNECTOR_IDS
+    ):
+        signal_label = (
+            DUET2_MAESTRO_ENDSTOP_SIGNAL_LABELS[
+                connector_id
+            ]
+        )
+
+        specification = dict(
+            DUET2_MAESTRO_ENDSTOP_CONNECTOR_SPEC
+        )
+
+        specification["pin_positions"] = {
+            "1": signal_label,
+            "2": "+3.3 V",
+            "3": "GND",
+        }
+
+        endstop_connector_specifications[
+            connector_id
+        ] = specification
 
     return HardwareDefinition(
         id="duet-2-maestro-v1-0",
@@ -309,7 +390,8 @@ def build_duet_2_maestro() -> HardwareDefinition:
             "heater_output_count": 3,
             "controlled_fan_output_count": 3,
             "connector_specifications": (
-                connector_specifications
+                motor_connector_specifications
+                | endstop_connector_specifications
             ),
         },
         provenance=[
@@ -318,6 +400,16 @@ def build_duet_2_maestro() -> HardwareDefinition:
                 evidence_type="published",
                 method="manufacturer hardware design repository",
                 context="Duet 2 Maestro v1.0 hardware design files.",
+            ),
+            Provenance(
+                source=DUET2_MAESTRO_HEADERS_SOURCE,
+                evidence_type="published",
+                method="manufacturer schematic",
+                context=(
+                    "Headers.sch identifies the five X/Y/Z/E0/E1 "
+                    "endstop connectors as 3-position headers and "
+                    "shows their signal, +3.3 V, and GND connections."
+                ),
             ),
             Provenance(
                 source=(
@@ -339,21 +431,40 @@ def build_duet_2_maestro() -> HardwareDefinition:
                 evidence_type="published",
                 method="technical documentation",
                 context=(
-                    "RepRap Ltd identifies the Duet wiring crimps and "
-                    "housings as Molex KK 2.54 mm."
+                    "RepRap Ltd identifies the Duet wiring crimps as "
+                    "standard Molex KK 2.54 mm crimps."
+                ),
+            ),
+            Provenance(
+                source=DUET2_MAESTRO_ENDSTOP_DOC_SOURCE,
+                evidence_type="published",
+                method="manufacturer technical documentation",
+                context=(
+                    "Duet documentation describes Duet 2 endstop "
+                    "connections using the endstop signal and GND, "
+                    "and identifies Molex KK as the connector family."
                 ),
             ),
             Provenance(
                 source=(
-                    "https://www.connecticc.com/"
-                    "mol08-50-0114.html"
+                    "https://www.connecticc.com/mol22-01-3037.html"
                 ),
                 evidence_type="published",
                 method="component distributor catalog",
                 context=(
-                    "Molex 08-50-0114 is identified as a KK 254 "
-                    "crimp terminal and the 22-01-3047 housing is "
-                    "identified as a 4-circuit KK 254 housing."
+                    "Molex 22-01-3037 is a 3-circuit KK 254 "
+                    "crimp housing."
+                ),
+            ),
+            Provenance(
+                source=(
+                    "https://www.connecticc.com/mol08-50-0114.html"
+                ),
+                evidence_type="published",
+                method="component distributor catalog",
+                context=(
+                    "Molex 08-50-0114 is a KK 254 crimp terminal "
+                    "used with the mating housing."
                 ),
             ),
         ],

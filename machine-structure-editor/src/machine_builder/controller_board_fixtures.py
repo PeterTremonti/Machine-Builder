@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from .controller_resource import ControllerResource
 from .hardware_catalog import (
+    DUET2_MAESTRO_ENDSTOP_CONNECTOR_IDS,
+    DUET2_MAESTRO_ENDSTOP_SIGNAL_LABELS,
     DUET2_MAESTRO_MOTOR_CONNECTOR_IDS,
     DUET2_MAESTRO_MOTOR_PIN_LABELS,
     build_duet_2_maestro,
@@ -22,7 +24,11 @@ DUET_2_MAESTRO_CONNECTOR_LAYOUT = (
     ("z-b-motor", "Z B motor", 4),
     ("heater", "Heater", 2),
     ("thermistor", "Thermistor", 2),
-    ("endstop", "Endstop", 3),
+    ("x-stop", "X stop", 3),
+    ("y-stop", "Y stop", 3),
+    ("z-stop", "Z stop", 3),
+    ("e0-stop", "E0 stop", 3),
+    ("e1-stop", "E1 stop", 3),
     ("z-probe", "Z probe", 5),
     ("fan", "Fan", 2),
 )
@@ -72,6 +78,14 @@ def add_duet_2_maestro_physical_interfaces(
                 " connector contact"
             )
 
+            port_properties: dict[str, object] = {
+                "connector_position_count": (
+                    position_count
+                )
+            }
+
+            direction = "unknown"
+
             if (
                 connector_id
                 in DUET2_MAESTRO_MOTOR_CONNECTOR_IDS
@@ -87,16 +101,48 @@ def add_duet_2_maestro_physical_interfaces(
                     f"{pin_label} terminal"
                 )
 
-            port_properties: dict[str, object] = {
-                "connector_position_count": (
-                    position_count
-                )
-            }
-
-            if pin_label is not None:
                 port_properties[
                     "pin_label"
                 ] = pin_label
+
+            elif (
+                connector_id
+                in DUET2_MAESTRO_ENDSTOP_CONNECTOR_IDS
+            ):
+                if position == 1:
+                    pin_label = (
+                        DUET2_MAESTRO_ENDSTOP_SIGNAL_LABELS[
+                            connector_id
+                        ]
+                    )
+                    purpose = (
+                        f"{connector_name}"
+                        " signal input"
+                    )
+                    direction = "input"
+                    electrical_role = (
+                        "endstop_input"
+                    )
+                elif position == 2:
+                    pin_label = "+3.3V"
+                    purpose = "+3.3 V supply"
+                    electrical_role = (
+                        "power_supply_3v3"
+                    )
+                else:
+                    pin_label = "GND"
+                    purpose = "Ground reference"
+                    electrical_role = (
+                        "ground_reference"
+                    )
+
+                port_properties[
+                    "pin_label"
+                ] = pin_label
+
+                port_properties[
+                    "electrical_role"
+                ] = electrical_role
 
             port = SemanticPort(
                 id=(
@@ -106,7 +152,7 @@ def add_duet_2_maestro_physical_interfaces(
                 ),
                 component_id=None,
                 purpose=purpose,
-                direction="unknown",
+                direction=direction,
                 connector_id=connector_id,
                 pin_id=str(position),
                 properties=port_properties,

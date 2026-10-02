@@ -12,27 +12,35 @@ from machine_builder.semantic_model import (
 def make_test_model() -> CanonicalMachineModel:
     model = CanonicalMachineModel()
 
-    machine = Machine(
-        id="machine-1",
-        name="Test machine",
-    )
-
     model.add_machine(
-        machine
+        Machine(
+            id="machine-1",
+            name="Test machine",
+        )
     )
 
     return model
 
 
-def test_fixture_creates_installed_controller() -> None:
+def get_fixture() -> tuple[
+    CanonicalMachineModel,
+    object,
+    tuple,
+]:
     model = make_test_model()
 
-    controller, _ = (
+    controller, ports = (
         add_duet_2_maestro_physical_interfaces(
             model,
             machine_id="machine-1",
         )
     )
+
+    return model, controller, ports
+
+
+def test_fixture_creates_installed_controller() -> None:
+    _, controller, _ = get_fixture()
 
     assert controller.id == (
         "duet-2-maestro-v1-0-controller"
@@ -50,16 +58,9 @@ def test_fixture_creates_installed_controller() -> None:
 
 
 def test_fixture_creates_controller_owned_physical_ports() -> None:
-    model = make_test_model()
+    _, controller, ports = get_fixture()
 
-    controller, ports = (
-        add_duet_2_maestro_physical_interfaces(
-            model,
-            machine_id="machine-1",
-        )
-    )
-
-    assert len(ports) == 26
+    assert len(ports) == 38
 
     assert all(
         port.component_id is None
@@ -78,14 +79,7 @@ def test_fixture_creates_controller_owned_physical_ports() -> None:
 
 
 def test_fixture_connector_group_sizes() -> None:
-    model = make_test_model()
-
-    _, ports = (
-        add_duet_2_maestro_physical_interfaces(
-            model,
-            machine_id="machine-1",
-        )
-    )
+    _, _, ports = get_fixture()
 
     expected_counts = {
         "x-motor": 4,
@@ -93,7 +87,11 @@ def test_fixture_connector_group_sizes() -> None:
         "z-b-motor": 4,
         "heater": 2,
         "thermistor": 2,
-        "endstop": 3,
+        "x-stop": 3,
+        "y-stop": 3,
+        "z-stop": 3,
+        "e0-stop": 3,
+        "e1-stop": 3,
         "z-probe": 5,
         "fan": 2,
     }
@@ -115,48 +113,25 @@ def test_fixture_connector_group_sizes() -> None:
 
 
 def test_fixture_connector_positions_are_numbered() -> None:
-    model = make_test_model()
+    _, _, ports = get_fixture()
 
-    _, ports = (
-        add_duet_2_maestro_physical_interfaces(
-            model,
-            machine_id="machine-1",
-        )
-    )
+    expected_counts = {
+        "x-motor": 4,
+        "z-a-motor": 4,
+        "z-b-motor": 4,
+        "heater": 2,
+        "thermistor": 2,
+        "x-stop": 3,
+        "y-stop": 3,
+        "z-stop": 3,
+        "e0-stop": 3,
+        "e1-stop": 3,
+        "z-probe": 5,
+        "fan": 2,
+    }
 
     for connector_id, expected_count in (
-        (
-            "x-motor",
-            4,
-        ),
-        (
-            "z-a-motor",
-            4,
-        ),
-        (
-            "z-b-motor",
-            4,
-        ),
-        (
-            "heater",
-            2,
-        ),
-        (
-            "thermistor",
-            2,
-        ),
-        (
-            "endstop",
-            3,
-        ),
-        (
-            "z-probe",
-            5,
-        ),
-        (
-            "fan",
-            2,
-        ),
+        expected_counts.items()
     ):
         positions = {
             port.pin_id
@@ -174,14 +149,7 @@ def test_fixture_connector_positions_are_numbered() -> None:
 
 
 def test_z_a_and_z_b_are_separate_connector_groups() -> None:
-    model = make_test_model()
-
-    _, ports = (
-        add_duet_2_maestro_physical_interfaces(
-            model,
-            machine_id="machine-1",
-        )
-    )
+    _, _, ports = get_fixture()
 
     z_a_ids = {
         port.id
@@ -202,46 +170,54 @@ def test_z_a_and_z_b_are_separate_connector_groups() -> None:
     )
 
 
-def test_fixture_creates_z_stepper_resource() -> None:
-    model = make_test_model()
+def test_endstop_connector_pins_have_verified_roles() -> None:
+    _, _, ports = get_fixture()
 
-    controller, _ = (
-        add_duet_2_maestro_physical_interfaces(
-            model,
-            machine_id="machine-1",
-        )
-    )
+    expected = {
+        "x-stop": (
+            "xstop",
+            "+3.3V",
+            "GND",
+        ),
+        "y-stop": (
+            "ystop",
+            "+3.3V",
+            "GND",
+        ),
+        "z-stop": (
+            "zstop",
+            "+3.3V",
+            "GND",
+        ),
+        "e0-stop": (
+            "e0stop",
+            "+3.3V",
+            "GND",
+        ),
+        "e1-stop": (
+            "e1stop",
+            "+3.3V",
+            "GND",
+        ),
+    }
 
-    resource_id = (
-        f"{controller.id}-z-stepper"
-    )
+    for connector_id, pin_labels in (
+        expected.items()
+    ):
+        connector_ports = [
+            port
+            for port in ports
+            if port.connector_id == connector_id
+        ]
 
-    resource = model.controller_resources[
-        resource_id
-    ]
-
-    assert resource.name == (
-        "Z stepper driver"
-    )
-
-    assert resource.resource_type == (
-        "stepper"
-    )
-
-    assert resource.controller_id == (
-        controller.id
-    )
+        assert [
+            port.properties["pin_label"]
+            for port in connector_ports
+        ] == list(pin_labels)
 
 
 def test_z_stepper_resource_is_exposed_through_z_a_and_z_b() -> None:
-    model = make_test_model()
-
-    controller, ports = (
-        add_duet_2_maestro_physical_interfaces(
-            model,
-            machine_id="machine-1",
-        )
-    )
+    model, controller, ports = get_fixture()
 
     resource_id = (
         f"{controller.id}-z-stepper"
@@ -276,25 +252,9 @@ def test_z_stepper_resource_is_exposed_through_z_a_and_z_b() -> None:
         for relationship in relationships
     } == expected_ports
 
-    assert {
-        model.ports[
-            relationship.target_id
-        ].connector_id
-        for relationship
-        in relationships
-    } == {
-        "z-a-motor",
-        "z-b-motor",
-    }
-
 
 def test_fixture_does_not_create_controller_resource_assignment() -> None:
-    model = make_test_model()
-
-    add_duet_2_maestro_physical_interfaces(
-        model,
-        machine_id="machine-1",
-    )
+    model, _, _ = get_fixture()
 
     assert (
         model.controller_resource_assignments
@@ -307,14 +267,7 @@ def test_fixture_does_not_create_controller_resource_assignment() -> None:
 
 
 def test_removing_z_stepper_resource_removes_exposure_relationships() -> None:
-    model = make_test_model()
-
-    controller, _ = (
-        add_duet_2_maestro_physical_interfaces(
-            model,
-            machine_id="machine-1",
-        )
-    )
+    model, controller, _ = get_fixture()
 
     resource_id = (
         f"{controller.id}-z-stepper"

@@ -924,6 +924,115 @@ The objective is to determine whether their connector and pin information can
 continue to use the existing structures without introducing unnecessary new
 canonical entities.
 
+# Checkpoint 27 — Verified Maestro Endstop Connector Information
+
+Date: 2026-10-02
+
+## Classification
+
+IMPLEMENTATION / DECIDED
+
+## What we've done so far
+
+Extended the Duet 2 Maestro connector representation with its five
+documented endstop connector groups:
+
+- X stop
+- Y stop
+- Z stop
+- E0 stop
+- E1 stop
+
+Each connector is represented as a three-position physical interface.
+
+The verified pin roles are:
+
+- Pin 1 → axis-specific endstop signal input
+- Pin 2 → +3.3 V supply
+- Pin 3 → GND
+
+The reusable Hardware Definition now contains the corresponding three-position
+connector specification and mating information.
+
+The installed controller-owned SemanticPorts now carry the verified pin
+labels, purposes, and electrical-role information.
+
+## Semantic boundary preserved
+
+The reusable connector information remains catalog information on the
+Duet 2 Maestro Hardware Definition.
+
+The installed physical access points remain controller-owned SemanticPorts.
+
+The existing relationship remains:
+
+`ControllerResource --exposed_through--> SemanticPort`
+
+No canonical Connector entity or separate connector/mating ontology was
+introduced.
+
+## Files changed
+
+`machine-structure-editor/src/machine_builder/hardware_catalog.py`
+
+Added reusable Maestro endstop connector specifications and verified
+three-pin electrical roles.
+
+`machine-structure-editor/src/machine_builder/controller_board_fixtures.py`
+
+Replaced the previous generic three-pin endstop placeholder with the five
+documented Maestro endstop connector groups and applied the verified pin
+roles to their physical SemanticPorts.
+
+`machine-structure-editor/tests/test_controller_board_fixtures.py`
+
+Updated the fixture coverage for the expanded endstop representation and
+verified electrical roles.
+
+`machine-structure-editor/tests/test_duet_2_maestro_connector_specs.py`
+
+Added coverage for reusable endstop connector specifications and installed
+pin electrical roles.
+
+## Test result
+
+Full repository suite:
+
+`743 passed in 2.23s`
+
+The full suite confirms that the endstop connector implementation remains
+compatible with the existing semantic model and Board implementation.
+
+## Current state
+
+The Board representation now covers two distinct physical connector
+families on the Maestro:
+
+1. four-position stepper motor connectors;
+2. three-position endstop connectors.
+
+Both use the same overall catalog-to-installed-interface pattern while
+retaining their different physical and electrical semantics.
+
+This provides useful evidence that the current representation can generalize
+across connector families without introducing a canonical Connector entity.
+
+## WATCH
+
+The current fixture still intentionally leaves the heater, thermistor,
+fan, and Z probe interfaces at representative rather than fully verified
+electrical-role detail.
+
+The next connector family should test whether the model handles another
+electrical pattern without requiring new ontology.
+
+## Next action
+
+Investigate the Maestro heater connector family next. It is a useful test
+because it combines a two-position physical interface with a power-output
+resource and should help determine whether `exposed_through`, connector
+specification data, and physical pin roles continue to generalize cleanly.
+
 ## Next action
 
 Investigate and model the next verified Maestro connector family, using the
