@@ -16,6 +16,7 @@ RELATIONSHIP_TYPES = frozenset(
         "depends_on",
         "participates_in",
         "exposed_through",
+        "mated_with",
     }
 )
 

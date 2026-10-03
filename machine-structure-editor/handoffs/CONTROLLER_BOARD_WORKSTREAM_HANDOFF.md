@@ -1472,6 +1472,172 @@ No new canonical entity is currently justified.
 
 No new relationship has been implemented yet.
 
+# Checkpoint 31 — Octopus Driver Module Mating Validated
+
+Date: 2026-10-02
+
+## Classification
+
+DECIDED / IMPLEMENTATION
+
+## What we've done so far
+
+Implemented and tested the first concrete BTT Octopus driver-module mating
+experiment identified by Research.
+
+The experiment uses only existing canonical object types:
+
+* a controller-owned `SemanticPort` for the receiving driver socket
+  interface;
+* an installed `MachineComponent` for the replaceable TMC5160T module;
+* a component-owned `SemanticPort` for the module mating interface;
+* one `SemanticRelationship` of type `mated_with`.
+
+No new `DriverSocket`, `MatingInterface`, `DriverModule`, or other canonical
+entity was introduced.
+
+## Mating relationship
+
+The implemented relationship direction is:
+
+`controller receiving interface --mated_with--> installed module mating interface`
+
+Both endpoints are interface-level `SemanticPort` objects and therefore have
+no required `pin_id`.
+
+This is distinct from:
+
+`ControllerResource --exposed_through--> SemanticPort`
+
+which answers where a controller resource is externally accessible.
+
+The new `mated_with` relationship instead answers which installed physical
+interface is actually mated to which receiving interface.
+
+## Octopus result
+
+The BTT Octopus/TMC5160T case demonstrates that the existing canonical
+structure can represent the physical module/socket relationship without a
+new canonical entity.
+
+The installed TMC5160T is represented as a real MachineComponent.
+
+The Octopus receiving socket is represented by a controller-owned
+interface-level SemanticPort.
+
+The TMC5160T module mating interface is represented by a component-owned
+interface-level SemanticPort.
+
+The relationship between them is:
+
+`mated_with`
+
+## Relationship boundaries preserved
+
+The canonical model now distinguishes three related but different meanings:
+
+`ControllerResourceAssignment`
+
+Maps a machine-semantic purpose to a Controller Resource.
+
+`ControllerResource --exposed_through--> SemanticPort`
+
+Identifies externally accessible physical interfaces through which a
+Controller Resource is exposed.
+
+`SemanticPort --mated_with--> SemanticPort`
+
+Identifies an interface-level physical mating relationship between a
+receiving interface and an installed module interface.
+
+These meanings are not interchangeable.
+
+## Lifecycle behavior
+
+The Octopus mating experiment also verifies that removing the installed
+module removes its associated mating relationship and its physical
+SemanticPort, while the controller-side receiving interface remains.
+
+This uses the existing canonical component-removal relationship cleanup
+mechanism rather than introducing a separate mating-lifecycle system.
+
+## Files changed
+
+`machine-structure-editor/src/machine_builder/semantic_relationship.py`
+
+Added `mated_with` to the existing semantic relationship vocabulary.
+
+`machine-structure-editor/src/machine_builder/controller_board_fixtures.py`
+
+Added the minimal Octopus/TMC5160T mating experiment using existing
+controller/component/port objects.
+
+`machine-structure-editor/tests/test_octopus_driver_mating.py`
+
+Added coverage proving:
+
+* the two interface endpoints are existing SemanticPort objects;
+* one endpoint is controller-owned;
+* the other endpoint is component-owned;
+* both are interface-level rather than contact-level ports;
+* the relationship is `mated_with`;
+* it is not represented as `exposed_through`;
+* removing the installed module removes the mating relationship and module
+  interface.
+
+## Test result
+
+Full repository suite:
+
+`754 passed in 5.51s`
+
+This confirms the Octopus mating implementation does not regress the existing
+Board, connector, resource, relationship, or semantic-model behavior.
+
+## Architectural result
+
+The Octopus stress test did not demonstrate a need for another canonical
+entity.
+
+Existing `SemanticPort` objects are sufficient to represent both sides of
+an interface-level mating relationship because:
+
+* they are canonical physical interfaces;
+* they may be controller-owned or component-owned;
+* `pin_id` is optional;
+* they can participate in the existing canonical relationship graph.
+
+The current architecture therefore remains:
+
+`Physical Machine`
+→ `Machine Component`
+→ `Hardware Definition`
+
+with controller resources and physical interfaces represented separately,
+and physical module mating represented as a relationship between existing
+physical interface objects.
+
+## WATCH
+
+The current semantic-port query helpers still contain component-oriented
+assumptions and do not yet provide equivalent convenience queries for
+controller-owned ports.
+
+That remains a query-layer implementation limitation, not an architectural
+reason to change the canonical model.
+
+The exact physical/electrical contact mapping between the Octopus socket and
+a specific TMC5160T module remains a separate level of detail from the
+interface-level `mated_with` relationship.
+
+## Next action
+
+Use the validated Octopus model to determine how replaceable driver modules
+and their physical contacts should be cataloged, beginning with the
+TMC5160T module's reusable Hardware Definition and interface information.
+Preserve `mated_with` at the interface level and avoid introducing contact-
+or socket-specific ontology until concrete evidence requires it.
+
 ## Next action
 
 Implement the smallest concrete Octopus experiment using an installed

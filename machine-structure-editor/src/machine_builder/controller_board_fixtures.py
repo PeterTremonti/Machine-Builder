@@ -15,6 +15,7 @@ from .hardware_catalog import (
 from .semantic_model import (
     CanonicalMachineModel,
     Controller,
+    MachineComponent,
     SemanticPort,
 )
 from .semantic_relationship import SemanticRelationship
@@ -285,3 +286,118 @@ def add_duet_2_maestro_physical_interfaces(
         )
 
     return controller, tuple(ports)
+
+
+def add_octopus_tmc5160t_mating_experiment(
+    model: CanonicalMachineModel,
+    machine_id: str,
+) -> tuple[
+    Controller,
+    MachineComponent,
+    SemanticPort,
+    SemanticPort,
+]:
+    """Add a minimal Octopus driver-socket/module mating experiment.
+
+    The experiment intentionally uses existing canonical objects only:
+
+    - a Controller-owned SemanticPort for the receiving driver socket;
+    - an installed MachineComponent for the replaceable driver module;
+    - a component-owned SemanticPort for the module mating interface;
+    - one mated_with relationship between those two interfaces.
+
+    No DriverSocket, MatingInterface, or DriverModule entity is introduced.
+    """
+    controller = Controller(
+        id="btt-octopus-v1-1-controller",
+        name="BTT Octopus V1.1",
+        controller_type="motion_controller",
+        version="V1.1",
+    )
+
+    model.add_controller(
+        machine_id,
+        controller,
+    )
+
+    socket_port = SemanticPort(
+        id=(
+            f"{controller.id}"
+            "-z-driver-socket-interface"
+        ),
+        component_id=None,
+        purpose=(
+            "Z stepper driver receiving interface"
+        ),
+        direction="unknown",
+        connector_id="z-driver-socket",
+        pin_id=None,
+        properties={
+            "interface_role": (
+                "driver_module_receiving_interface"
+            )
+        },
+        provenance=[],
+        controller_id=controller.id,
+    )
+
+    model.add_port(
+        socket_port
+    )
+
+    module = MachineComponent(
+        id="btt-tmc5160t-1",
+        role="stepper_driver_module",
+        label="BTT TMC5160T",
+    )
+
+    model.add_component(
+        machine_id,
+        module,
+    )
+
+    module_port = SemanticPort(
+        id=(
+            f"{module.id}"
+            "-mating-interface"
+        ),
+        component_id=module.id,
+        purpose=(
+            "Driver module mating interface"
+        ),
+        direction="unknown",
+        connector_id="tmc5160t-module-interface",
+        pin_id=None,
+        properties={
+            "interface_role": (
+                "driver_module_mating_interface"
+            )
+        },
+        provenance=[],
+    )
+
+    model.add_port(
+        module_port
+    )
+
+    relationship = SemanticRelationship(
+        id=(
+            f"{socket_port.id}"
+            "-mated-with-"
+            f"{module_port.id}"
+        ),
+        source_id=socket_port.id,
+        target_id=module_port.id,
+        relationship_type="mated_with",
+    )
+
+    model.add_relationship(
+        relationship
+    )
+
+    return (
+        controller,
+        module,
+        socket_port,
+        module_port,
+    )
