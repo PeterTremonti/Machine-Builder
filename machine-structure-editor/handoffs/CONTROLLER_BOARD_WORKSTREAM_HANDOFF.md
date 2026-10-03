@@ -1178,6 +1178,316 @@ families for testing the representation.
 The Z probe is especially useful because it is a five-position interface and
 may introduce multiple electrical roles within one connector.
 
+# Checkpoint 29 — Exposure Relationship Validated Against Maestro and Octopus
+
+Date: 2026-10-02
+
+## Classification
+
+DECIDED / WATCH
+
+## Investigation
+
+Re-examined the current:
+
+`ControllerResource --exposed_through--> SemanticPort`
+
+implementation against the verified Maestro cases and the anticipated
+BTT Octopus stress case.
+
+The current relationship is semantically sufficient for the verified
+Maestro cases.
+
+## Maestro validation
+
+### Z A / Z B
+
+One Maestro Z stepper resource can have multiple `exposed_through`
+relationships to the eight physical SemanticPorts belonging to the separate
+Z A and Z B motor connector groups.
+
+This directly satisfies the one-resource-to-multiple-physical-access-points
+requirement.
+
+### Heater interfaces
+
+Each Maestro heater resource can be exposed through multiple physical
+connector groups.
+
+For example:
+
+`Bed heater`
+→ Molex physical interface
+
+and:
+
+`Bed heater`
+→ screw-terminal physical interface
+
+The relationship does not need to contain the connector type itself.
+The target SemanticPort identifies the physical access point and its
+`connector_id` identifies the connector group. Reusable connector
+information remains available from the associated Hardware Definition.
+
+## Semantic sufficiency
+
+The relationship answers one precise question:
+
+> Where is this Controller Resource externally accessible?
+
+The resulting traversal is:
+
+`ControllerResource`
+→ `exposed_through`
+→ `SemanticPort`
+→ `connector_id`
+→ reusable connector specification
+
+No additional association or canonical Connector entity is required by the
+Maestro cases investigated so far.
+
+The current `connector_id` is a grouping identifier rather than a canonical
+Connector object reference. This remains acceptable at the current scope.
+
+## BTT Octopus stress test
+
+The BIGTREETECH Octopus provides an important additional validation case.
+
+The board has pluggable stepper-driver sockets and nine motor outputs, with
+`MOTOR2_1` and `MOTOR2_2` providing parallel outputs for the Z driver.
+
+The existing exposure relationship can represent this directly:
+
+`Z driver resource`
+→ `exposed_through`
+→ `MOTOR2_1`
+
+and:
+
+`Z driver resource`
+→ `exposed_through`
+→ `MOTOR2_2`
+
+Therefore the Octopus parallel-output case does not require a change to
+`exposed_through`.
+
+## New Octopus-specific architecture question
+
+The Octopus differs from the Maestro because its stepper drivers are
+replaceable physical modules.
+
+The board provides the driver socket/resource, while an installed driver
+module such as a BTT TMC5160T is a separate physical hardware item.
+
+The relationship between:
+
+`controller driver socket/resource`
+
+and:
+
+`installed driver module`
+
+is not the same semantic relationship as:
+
+`ControllerResource --exposed_through--> SemanticPort`
+
+It concerns installed replaceable hardware occupying or mating with a
+controller-provided interface.
+
+This is therefore a separate architecture question and must not be forced
+into the `exposed_through` relationship.
+
+## Additional Octopus considerations
+
+The Octopus supports different driver operating modes and configurable
+jumper states, including STEP/DIR, UART, and SPI configurations.
+
+Some Octopus variants also provide configurable motor-voltage routing per
+driver.
+
+These are configuration-dependent electrical and implementation
+characteristics. They are not additional meanings of `exposed_through`.
+
+They should be investigated separately when the Octopus controller/driver
+implementation is undertaken.
+
+## Current state
+
+`exposed_through` remains the canonical mechanism for:
+
+`Controller Resource → externally accessible physical interface`
+
+It supports:
+
+- one-to-one exposure;
+- one-to-many exposure;
+- multiple connector groups;
+- physically different access-interface types;
+- parallel physical outputs.
+
+No change to the relationship mechanism is required by the evidence so far.
+
+## WATCH
+
+The implicit relationship between `SemanticPort.connector_id` and the
+Hardware Definition's connector specification table should be monitored as
+the catalog grows.
+
+The BTT Octopus also introduces the future problem of modeling a removable
+driver module and its relationship to a controller-provided driver socket.
+
+Neither issue currently justifies a new canonical entity or relationship.
+
+# Checkpoint 30 — Existing Port Model Is Sufficient for Module Mating
+
+Date: 2026-10-02
+
+## Classification
+
+DECIDED / WATCH
+
+## Investigation
+
+Inspected the current `SemanticPort`, controller/component ownership,
+relationship validation, and semantic-port query implementations against
+the BTT Octopus driver-module/socket case identified by Research.
+
+`SemanticPort` is explicitly defined as a canonical physical interface
+owned by either a component or controller.
+
+The model permits `pin_id` to be unspecified, so a SemanticPort can represent
+an interface-level physical mating endpoint rather than only an individual
+contact.
+
+## Decision
+
+The existing `SemanticPort` object is sufficient for the physical endpoints
+of a future `mated_with` relationship.
+
+The intended Octopus representation is:
+
+`controller-owned SemanticPort`
+→ physical receiving driver-socket interface
+
+and:
+
+`component-owned SemanticPort`
+→ installed TMC5160T module mating interface
+
+The relationship would therefore be:
+
+`receiving interface --mated_with--> module mating interface`
+
+The individual electrical contacts remain separate physical access points
+and do not need individual `mated_with` relationships.
+
+## Relationship boundaries
+
+The following meanings remain distinct:
+
+`ControllerResourceAssignment`
+
+maps a machine-semantic purpose to a Controller Resource.
+
+`ControllerResource --exposed_through--> SemanticPort`
+
+identifies where a controller resource is externally accessible.
+
+`SemanticPort --mated_with--> SemanticPort`
+
+would identify an actual interface-to-interface mating relationship between
+a controller-provided receiving interface and an installed module interface.
+
+The last relationship is therefore not a replacement or extension of
+`exposed_through`.
+
+## Octopus Z driver case
+
+The BTT Octopus Z case can therefore be represented without introducing:
+
+- DriverSocket
+- BoardConnector
+- MatingInterface
+- DriverModule
+
+as new canonical entities.
+
+The anticipated structure is:
+
+`Z Controller Resource`
+→ `exposed_through`
+→ `Octopus Z driver socket interface`
+
+and separately:
+
+`Octopus Z driver socket interface`
+→ `mated_with`
+→ `installed TMC5160T module mating interface`
+
+The socket and module interfaces may each have separate contact-level
+SemanticPorts for electrical connections.
+
+## Current model evidence
+
+`SemanticPort` contains:
+
+- component ownership or controller ownership;
+- optional `connector_id`;
+- optional `pin_id`;
+- arbitrary properties;
+- provenance.
+
+This is sufficient to represent an interface-level port with `pin_id=None`
+while still allowing individual contact-level ports where required.
+
+`CanonicalMachineModel.add_port()` already validates exactly one owner:
+component or controller.
+
+The canonical relationship mechanism already accepts canonical object
+endpoints, so a future `mated_with` relationship can use existing
+SemanticPort objects as endpoints.
+
+## Query-layer limitation
+
+The inspection also identified a separate implementation limitation.
+
+`semantic_port_queries.py` currently assumes component ownership in
+`component_for_port()` and `machine_id_for_port()`.
+
+Controller-owned SemanticPorts therefore do not have equivalent query
+support through those helpers.
+
+This is a query-layer implementation gap, not evidence that the canonical
+SemanticPort ownership model is incorrect.
+
+Record this as WATCH and address it when controller-owned physical ports are
+made accessible through the broader Board/UI query surface.
+
+## Current state
+
+The current canonical model is sufficient to represent the two physical
+pieces involved in Octopus module mating using existing object types.
+
+No new canonical entity is currently justified.
+
+No new relationship has been implemented yet.
+
+## Next action
+
+Implement the smallest concrete Octopus experiment using an installed
+TMC5160T module and a controller-provided Z driver socket/interface.
+
+Use interface-level SemanticPorts as the endpoints and test whether a
+single `mated_with` relationship cleanly represents the installed module
+mating without semantic shortcuts.
+
+## Next action
+
+Investigate the BTT Octopus driver-slot/module case as a separate architecture
+question, starting with the installed TMC5160T module and the controller
+driver socket. Preserve `exposed_through` as the resource-to-external-port
+relationship unless new evidence directly contradicts its current semantics.
+
 ## Next action
 
 Investigate the Maestro Z probe interface next, using its five-position

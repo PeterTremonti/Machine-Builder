@@ -595,6 +595,29 @@ Port / Connector / Pin
 
 is **REINFORCED**.
 
+### Octopus driver-module mating — endpoint model validated
+
+The existing `SemanticPort` model is sufficient to represent the physical endpoints of a future driver-module mating relationship.
+
+A controller-owned `SemanticPort` can represent the Octopus driver receiving/socket interface, with `pin_id=None`, while an installed TMC5160T Machine Component can own a `SemanticPort` representing the module-side mating interface.
+
+The anticipated relationship is:
+
+`physical receiving interface --mated_with--> module mating interface`
+
+This is semantically distinct from:
+
+`ControllerResource --exposed_through--> SemanticPort`
+
+and from Controller Resource Assignment.
+
+The existing model therefore does not currently justify new canonical entities such as `DriverSocket`, `BoardConnector`, `MatingInterface`, or `DriverModule`.
+
+Individual electrical contacts may continue to be represented by separate `SemanticPort` objects and ordinary physical/electrical connections; they do not require separate `mated_with` relationships.
+
+The inspection also identified a separate query-layer limitation: current semantic-port query helpers assume component-owned ports and do not yet provide equivalent lookup support for controller-owned ports. This is implementation debt rather than an ontology change.
+
+
 ---
 
 ## WATCH 3 — Board-level visual detail
