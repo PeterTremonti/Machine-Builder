@@ -1630,86 +1630,180 @@ The exact physical/electrical contact mapping between the Octopus socket and
 a specific TMC5160T module remains a separate level of detail from the
 interface-level `mated_with` relationship.
 
-## Checkpoint 32 — Reusable TMC5160T Hardware Definition and Module Interface
+# Checkpoint 32 — Reusable TMC5160T Hardware Definition and Module Interface
 
-Date: 2026-10-03  
-Implementation area: Controller / Board  
-Working branch: `main`  
+Date: 2026-10-03
+Implementation area: Controller / Board
+Working branch: `main`
+
 Last verified test result:
 
 ```text
 756 passed in 2.65s
+```
+
+## What we've done so far
+
+Built the reusable BIGTREETECH TMC5160T V1.0 hardware definition in
+src/machine_builder/hardware_catalog.py.
+
+The definition records documented manufacturer information including:
+
+driver chip: TMC5160-TA
+dimensions: 20.4 × 15.3 × 23.2 mm
+input voltage: 8 V to 24 V for the ordinary TMC5160T
+maximum RMS current: 3.1 A
+maximum peak current: 4.4 A
+base current capacity: 3 A
+maximum microstepping: 256
+operating mode: SPI
+module interface consisting of J1 and J2 with eight positions each
+
+The reusable HardwareDefinition also records the documented J1/J2 pin
+labels and module installation information.
+
+The Octopus mating fixture now installs a concrete TMC5160T
+MachineComponent linked to that reusable HardwareDefinition.
+
+The installed module has one interface-level SemanticPort representing
+the physical module mating interface. It intentionally uses:
+
+pin_id=None
+connector_id="tmc5160t-module-interface"
+interface-role metadata
+16-contact metadata
+manufacturer-document provenance
+
+The Octopus controller socket/interface and the TMC5160T module interface
+are connected using the existing mated_with relationship.
+
+## Semantic result
+
+The current model remains:
+
+HardwareDefinition
+        ↓
+installed MachineComponent
+        ↓
+module SemanticPort
+        ↑
+     mated_with
+        ↑
+Octopus receiving SemanticPort
+
+The TMC5160T J1/J2 contact information is catalog/interface metadata on the
+reusable HardwareDefinition. It has not been promoted into separate
+canonical contact or connector entities.
+
+This preserves the existing distinctions between:
+
+reusable hardware definition
+installed physical component
+physical interface
+controller resource
+physical mating
+individual contact/pin information
+
+No new DriverSocket, BoardConnector, MatingInterface, or contact-level
+canonical entity was introduced.
+
+## Files changed
+src/machine_builder/controller_board_fixtures.py
+src/machine_builder/hardware_catalog.py
+tests/test_octopus_driver_mating.py
+handoffs/CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md
+
+## Test result
+
+Focused validation:
+
+16 passed
+
+Full repository validation:
+
+756 passed in 2.65s
+
+During full-suite validation, an accidental working-tree replacement of
+hardware_component_fixtures.py was identified and restored. The final
+repository-wide test result was fully green.
+
+## Current state
+
+The TMC5160T is now represented as reusable catalog information plus an
+installed module instance in the Octopus mating experiment.
+
+The current evidence still supports using the existing:
+
+HardwareDefinition
+MachineComponent
+SemanticPort
+mated_with
+
+structure rather than introducing a new canonical entity for driver sockets,
+mating interfaces, or individual contacts.
+
+The remaining physical-interface question is how much of the Octopus
+receiving socket and the TMC5160T J1/J2 contact mapping should be represented
+using the existing interface objects and properties when the actual board
+and module are modeled in greater detail.
 
 ## Next action
 
-Use the validated Octopus model to determine how replaceable driver modules
-and their physical contacts should be cataloged, beginning with the
-TMC5160T module's reusable Hardware Definition and interface information.
-Preserve `mated_with` at the interface level and avoid introducing contact-
-or socket-specific ontology until concrete evidence requires it.
+Determine the cleanest existing-object representation for the Octopus
+driver socket's documented receiving interface and the TMC5160T J1/J2
+contact mapping.
 
-## Next action
+Use the existing HardwareDefinition, installed MachineComponent, and
+SemanticPort structures first.
 
-Implement the smallest concrete Octopus experiment using an installed
-TMC5160T module and a controller-provided Z driver socket/interface.
+Do not introduce a new canonical entity unless concrete implementation or
+hardware evidence demonstrates that the current model is insufficient.
 
-Use interface-level SemanticPorts as the endpoints and test whether a
-single `mated_with` relationship cleanly represents the installed module
-mating without semantic shortcuts.
+Preserve the distinction between:
 
-## Next action
-
-Investigate the BTT Octopus driver-slot/module case as a separate architecture
-question, starting with the installed TMC5160T module and the controller
-driver socket. Preserve `exposed_through` as the resource-to-external-port
-relationship unless new evidence directly contradicts its current semantics.
-
-## Next action
-
-Investigate the Maestro Z probe interface next, using its five-position
-physical connector and verified electrical roles as the next connector-family
-stress test.
-
-
-## Next action
-
-Investigate the Maestro heater connector family next. It is a useful test
-because it combines a two-position physical interface with a power-output
-resource and should help determine whether `exposed_through`, connector
-specification data, and physical pin roles continue to generalize cleanly.
-
-## Next action
-
-Investigate and model the next verified Maestro connector family, using the
-heater or endstop interface as the next test case, and compare its physical
-and mating-interface characteristics against the motor-connector
-representation.
-
-## Next action
-
-Use this established resource-to-physical-interface pattern to investigate
-the next level of real Maestro board detail: verified connector identity,
-connector grouping, pin electrical purpose, and mating-interface information,
-while preserving the distinction between reusable connector information and
-installed physical interfaces.
-
-# Next action
+HardwareDefinition
+installed MachineComponent
+SemanticPort
+controller resource
+physical mating
+individual contact/pin information
 
 ## PROJECT CURRENT STATE UPDATE REQUEST
 
-Why: The first real Board implementation experiment provides project-level evidence that the existing `Controller → controller-owned SemanticPort → connector_id → pin position` structure can represent externally accessible controller interfaces without requiring a new canonical Connector entity. It also reinforces the distinction between Controller Resources and physical access points.
+Controller / Board workstream has completed Checkpoint 32.
 
-Proposed location: The Controller / Board or controller-resource portion of `PROJECT_CURRENT_STATE.md`.
+Repository-wide validation is green at:
 
-Proposed content:
+756 passed in 2.65s
 
-```markdown
-### Controller / Board physical-interface checkpoint — REINFORCE
+Project-level finding:
 
-The first real documented board implementation experiment, using the Duet 2 Maestro, demonstrated that the existing canonical structure can represent externally accessible controller interfaces without introducing a new canonical Connector entity.
+The replaceable TMC5160T driver-module experiment demonstrates that the
+current canonical model can represent a reusable driver-module definition,
+an installed module instance, its physical mating interface, and the
+Octopus receiving interface without introducing a new DriverSocket,
+BoardConnector, MatingInterface, or contact-level canonical entity.
 
-A Controller can own `SemanticPort` objects, with `connector_id` grouping the accessible positions belonging to a physical connector and `pin_id` identifying positions within that group.
+The reusable TMC5160T HardwareDefinition contains documented module
+specifications and J1/J2 interface information. The installed module uses an
+interface-level SemanticPort with pin_id=None, while the detailed J1/J2
+contact information remains reusable hardware/interface metadata.
 
-The Maestro `Z A` / `Z B` case also reinforces that Controller Resources and physical connectors are distinct concepts and that a single controller resource may ultimately correspond to multiple physical access points.
+The existing relationship:
 
-The experiment did not implement Resource → Physical Interface mapping; that relationship remains the next Board architecture question.
+Octopus receiving SemanticPort
+        --mated_with-->
+TMC5160T module SemanticPort
+
+is retained separately from controller-resource assignment and
+exposed_through.
+
+Requested project-state update:
+
+Reinforce that the existing
+HardwareDefinition + MachineComponent + SemanticPort + mated_with
+structure remains sufficient for the current replaceable-driver-module
+case.
+
+The next Board investigation is the documented Octopus receiving
+socket/interface and TMC5160T contact-mapping representation.
