@@ -4,18 +4,21 @@ from __future__ import annotations
 
 from .controller_resource import ControllerResource
 from .hardware_catalog import (
+    BTT_TMC5160T_HARDWARE_SOURCE,
     DUET2_MAESTRO_ENDSTOP_CONNECTOR_IDS,
     DUET2_MAESTRO_ENDSTOP_SIGNAL_LABELS,
     DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS,
     DUET2_MAESTRO_HEATER_RESOURCES,
     DUET2_MAESTRO_MOTOR_CONNECTOR_IDS,
     DUET2_MAESTRO_MOTOR_PIN_LABELS,
+    build_btt_tmc5160t,
     build_duet_2_maestro,
 )
 from .semantic_model import (
     CanonicalMachineModel,
     Controller,
     MachineComponent,
+    Provenance,
     SemanticPort,
 )
 from .semantic_relationship import SemanticRelationship
@@ -297,17 +300,17 @@ def add_octopus_tmc5160t_mating_experiment(
     SemanticPort,
     SemanticPort,
 ]:
-    """Add a minimal Octopus driver-socket/module mating experiment.
+    """Add a minimal Octopus driver-socket/TMC5160T experiment."""
+    tmc5160t_hardware = build_btt_tmc5160t()
 
-    The experiment intentionally uses existing canonical objects only:
+    if (
+        tmc5160t_hardware.id
+        not in model.hardware_definitions
+    ):
+        model.add_hardware_definition(
+            tmc5160t_hardware
+        )
 
-    - a Controller-owned SemanticPort for the receiving driver socket;
-    - an installed MachineComponent for the replaceable driver module;
-    - a component-owned SemanticPort for the module mating interface;
-    - one mated_with relationship between those two interfaces.
-
-    No DriverSocket, MatingInterface, or DriverModule entity is introduced.
-    """
     controller = Controller(
         id="btt-octopus-v1-1-controller",
         name="BTT Octopus V1.1",
@@ -349,6 +352,9 @@ def add_octopus_tmc5160t_mating_experiment(
         id="btt-tmc5160t-1",
         role="stepper_driver_module",
         label="BTT TMC5160T",
+        hardware_definition_id=(
+            tmc5160t_hardware.id
+        ),
     )
 
     model.add_component(
@@ -363,7 +369,7 @@ def add_octopus_tmc5160t_mating_experiment(
         ),
         component_id=module.id,
         purpose=(
-            "Driver module mating interface"
+            "TMC5160T driver module mating interface"
         ),
         direction="unknown",
         connector_id="tmc5160t-module-interface",
@@ -371,9 +377,24 @@ def add_octopus_tmc5160t_mating_experiment(
         properties={
             "interface_role": (
                 "driver_module_mating_interface"
-            )
+            ),
+            "contact_count": 16,
+            "interface_source": (
+                BTT_TMC5160T_HARDWARE_SOURCE
+            ),
         },
-        provenance=[],
+        provenance=[
+            Provenance(
+                source=BTT_TMC5160T_HARDWARE_SOURCE,
+                evidence_type="published",
+                method="manufacturer technical documentation",
+                context=(
+                    "The TMC5160T module exposes its J1 and J2 "
+                    "interfaces through the documented plug-in driver "
+                    "module interface."
+                ),
+            )
+        ],
     )
 
     model.add_port(

@@ -1630,6 +1630,16 @@ The exact physical/electrical contact mapping between the Octopus socket and
 a specific TMC5160T module remains a separate level of detail from the
 interface-level `mated_with` relationship.
 
+## Checkpoint 32 — Reusable TMC5160T Hardware Definition and Module Interface
+
+Date: 2026-10-03  
+Implementation area: Controller / Board  
+Working branch: `main`  
+Last verified test result:
+
+```text
+756 passed in 2.65s
+
 ## Next action
 
 Use the validated Octopus model to determine how replaceable driver modules

@@ -3,6 +3,10 @@
 from machine_builder.controller_board_fixtures import (
     add_octopus_tmc5160t_mating_experiment,
 )
+from machine_builder.hardware_catalog import (
+    BTT_TMC5160T_HARDWARE_SOURCE,
+    build_btt_tmc5160t,
+)
 from machine_builder.semantic_model import (
     CanonicalMachineModel,
     Machine,
@@ -22,6 +26,57 @@ def make_test_model() -> CanonicalMachineModel:
     return model
 
 
+def test_tmc5160t_hardware_definition_contains_verified_module_information() -> None:
+    hardware = build_btt_tmc5160t()
+
+    assert hardware.id == (
+        "btt-tmc5160t-v1-0"
+    )
+
+    assert hardware.family == "TMC5160T"
+    assert hardware.manufacturer == (
+        "BIGTREETECH"
+    )
+
+    assert hardware.variant == "V1.0"
+
+    assert hardware.properties[
+        "driver_chip"
+    ] == "TMC5160-TA"
+
+    assert hardware.properties[
+        "dimensions"
+    ] == "20.4 × 15.3 × 23.2 mm"
+
+    assert hardware.properties[
+        "input_voltage"
+    ] == "8 V to 24 V"
+
+    assert hardware.properties[
+        "maximum_current_rms"
+    ] == "3.1 A"
+
+    assert hardware.properties[
+        "maximum_current_peak"
+    ] == "4.4 A"
+
+    assert hardware.properties[
+        "maximum_microstepping"
+    ] == 256
+
+    assert hardware.properties[
+        "operating_mode"
+    ] == "SPI"
+
+    assert hardware.properties[
+        "module_interface"
+    ]["connector_count"] == 2
+
+    assert hardware.provenance[0].source == (
+        BTT_TMC5160T_HARDWARE_SOURCE
+    )
+
+
 def test_octopus_mating_uses_existing_semantic_port_endpoints() -> None:
     model = make_test_model()
 
@@ -35,14 +90,46 @@ def test_octopus_mating_uses_existing_semantic_port_endpoints() -> None:
         machine_id="machine-1",
     )
 
-    assert socket_port.controller_id == controller.id
+    assert module.hardware_definition_id == (
+        "btt-tmc5160t-v1-0"
+    )
+
+    assert socket_port.controller_id == (
+        controller.id
+    )
+
     assert socket_port.component_id is None
 
-    assert module_port.component_id == module.id
+    assert module_port.component_id == (
+        module.id
+    )
+
     assert module_port.controller_id is None
 
     assert socket_port.pin_id is None
     assert module_port.pin_id is None
+
+
+def test_tmc5160t_module_interface_is_interface_level() -> None:
+    model = make_test_model()
+
+    (
+        _,
+        _,
+        _,
+        module_port,
+    ) = add_octopus_tmc5160t_mating_experiment(
+        model,
+        machine_id="machine-1",
+    )
+
+    assert module_port.properties[
+        "interface_role"
+    ] == "driver_module_mating_interface"
+
+    assert module_port.properties[
+        "contact_count"
+    ] == 16
 
 
 def test_octopus_mating_relationship_is_interface_level() -> None:
@@ -70,28 +157,25 @@ def test_octopus_mating_relationship_is_interface_level() -> None:
 
     relationship = relationships[0]
 
-    assert relationship.source_id == socket_port.id
-    assert relationship.target_id == module_port.id
-
-    assert (
-        relationship.is_type(
-            "mated_with"
-        )
+    assert relationship.source_id == (
+        socket_port.id
     )
 
-    assert (
-        model.ports[
-            relationship.source_id
-        ].controller_id
-        == controller.id
+    assert relationship.target_id == (
+        module_port.id
     )
 
-    assert (
-        model.ports[
-            relationship.target_id
-        ].component_id
-        == module.id
+    assert relationship.is_type(
+        "mated_with"
     )
+
+    assert model.ports[
+        relationship.source_id
+    ].controller_id == controller.id
+
+    assert model.ports[
+        relationship.target_id
+    ].component_id == module.id
 
 
 def test_octopus_mating_is_not_exposed_through() -> None:

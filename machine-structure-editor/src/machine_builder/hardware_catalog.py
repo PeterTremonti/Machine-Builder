@@ -589,3 +589,78 @@ def build_duet_2_maestro() -> HardwareDefinition:
             ),
         ],
     )
+# ---------------------------------------------------------------------------
+# BIGTREETECH TMC5160T V1.0
+# ---------------------------------------------------------------------------
+
+BTT_TMC5160T_HARDWARE_SOURCE = (
+    "https://github.com/bigtreetech/docs/blob/master/docs/"
+    "TMC5160T%20Pro%20V1.0.md"
+)
+
+BTT_TMC5160T_PIN_LABELS = {
+    "J1": {
+        1: "EN",
+        2: "SDI/CFG1",
+        3: "SCK/CFG2",
+        4: "CSN/CFG3",
+        5: "SDO/CFG0",
+        6: "CLK",
+        7: "STEP",
+        8: "DIR",
+    },
+    "J2": {
+        1: "VM",
+        2: "GND",
+        3: "A2",
+        4: "A1",
+        5: "B2",
+        6: "B1",
+        7: "VIO",
+        8: "GND",
+    },
+}
+
+BTT_TMC5160T_MODULE_INTERFACE_SPEC = {
+    "interface_role": "16-contact plug-in driver module interface",
+    "connector_count": 2,
+    "connectors": {
+        "J1": {
+            "position_count": 8,
+            "pin_labels": BTT_TMC5160T_PIN_LABELS["J1"],
+        },
+        "J2": {
+            "position_count": 8,
+            "pin_labels": BTT_TMC5160T_PIN_LABELS["J2"],
+        },
+    },
+    "installation_note": (
+        "Power must be off during installation. Orient the module correctly "
+        "before insertion."
+    ),
+}
+
+
+def build_btt_tmc5160t() -> HardwareDefinition:
+    return HardwareDefinition(
+        id="btt-tmc5160t-v1-0",
+        family="TMC5160T",
+        manufacturer="BIGTREETECH",
+        variant="V1.0",
+        properties={
+            "driver_chip": "TMC5160-TA",
+            "dimensions": "20.4 × 15.3 × 23.2 mm",
+            "input_voltage": "8 V to 24 V",
+            "maximum_current_rms": "3.1 A",
+            "maximum_current_peak": "4.4 A",
+            "base_capacity_max_a": 3.0,
+            "maximum_microstepping": 256,
+            "operating_mode": "SPI",
+            "module_interface": BTT_TMC5160T_MODULE_INTERFACE_SPEC,
+        },
+        provenance=[
+            Provenance(
+                source=BTT_TMC5160T_HARDWARE_SOURCE,
+            )
+        ],
+    )
