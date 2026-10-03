@@ -748,6 +748,28 @@ Validation: the full repository suite passed `754 passed in 5.51s` at this imple
 
 A separate query-layer limitation remains: current SemanticPort query helpers are still component-oriented and do not yet provide equivalent convenience queries for controller-owned ports.
 
+## Verified TMC5160T hardware definition and module interface — IMPLEMENTED
+
+The BTT Octopus driver-module fixture now uses a reusable BIGTREETECH TMC5160T V1.0 `HardwareDefinition`.
+
+The Hardware Definition includes documented TMC5160T module specifications and the J1/J2 16-contact interface information.
+
+The installed TMC5160T is represented as a `MachineComponent` linked to that reusable Hardware Definition.
+
+Its module-side physical interface is represented by an interface-level `SemanticPort` with `pin_id=None` and 16-contact metadata. The existing `mated_with` relationship connects that module interface to the Octopus controller-owned receiving interface.
+
+No new `DriverSocket`, `BoardConnector`, `MatingInterface`, or contact entity was introduced.
+
+This provides additional implementation evidence that the existing:
+
+`HardwareDefinition → MachineComponent → SemanticPort → mated_with`
+
+model is sufficient for the current replaceable driver-module case.
+
+Validation: the full repository suite passed `756 passed in 2.65s` at this implementation checkpoint.
+
+The next Board investigation is to determine the cleanest existing-object representation for the Octopus driver socket's documented receiving interface and the TMC5160T J1/J2 contact mapping, without introducing a new canonical entity unless concrete evidence demonstrates insufficiency.
+
 ---
 
 # 13. What the board work has NOT justified
