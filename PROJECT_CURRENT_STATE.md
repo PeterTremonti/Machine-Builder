@@ -720,6 +720,34 @@ The exact mating housing part number for the Maestro heater Molex output remains
 
 Validation: the full repository suite passed `750 passed in 4.36s` at this implementation checkpoint.
 
+## Octopus driver-module mating — IMPLEMENTED
+
+The BTT Octopus driver-module mating experiment confirms that the existing canonical model can represent a receiving driver interface and an installed replaceable driver module without introducing a new canonical entity.
+
+The model uses:
+
+`controller-owned SemanticPort`
+→ `mated_with`
+→ `component-owned SemanticPort`
+
+Both endpoints are interface-level physical ports and may have `pin_id=None`.
+
+The relationship is distinct from:
+
+`ControllerResource --exposed_through--> SemanticPort`
+
+and from Controller Resource Assignment.
+
+The experiment uses an installed TMC5160T as a MachineComponent and the Octopus receiving driver socket as a controller-owned SemanticPort.
+
+Removal of the installed module also removes its mating relationship and module-side physical interface through the existing component-removal cleanup behavior.
+
+No new DriverSocket, MatingInterface, or DriverModule canonical entity was required.
+
+Validation: the full repository suite passed `754 passed in 5.51s` at this implementation checkpoint.
+
+A separate query-layer limitation remains: current SemanticPort query helpers are still component-oriented and do not yet provide equivalent convenience queries for controller-owned ports.
+
 ---
 
 # 13. What the board work has NOT justified
