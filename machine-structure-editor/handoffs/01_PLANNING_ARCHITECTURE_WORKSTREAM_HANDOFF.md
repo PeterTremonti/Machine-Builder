@@ -2,11 +2,11 @@
 
 ## Purpose
 
-This is the living continuity document for Chat 01 — Planning / Architecture.
+This is the living continuity document for Planning / Architecture (#1).
 
-It exists so a replacement Planning chat can recover the current architectural thinking, decisions, unresolved questions, future ideas, and workstream coordination without relying on conversation history.
+Its purpose is to allow a replacement Planning chat to recover project-level architecture, planning decisions, documentation governance, cross-workstream coordination, and unresolved questions without depending on conversation history.
 
-The repository and current `main` state remain authoritative for implementation facts.
+The repository and verified tests remain authoritative for actual implementation behavior.
 
 ---
 
@@ -14,391 +14,681 @@ The repository and current `main` state remain authoritative for implementation 
 
 A replacement Planning chat should:
 
-1. Read this handoff completely.
-2. Read `MASTER_PLAN.md`.
+1. Read this handoff.
+2. Read `DOCUMENTATION_AUTHORITY.md`.
 3. Read `PROJECT_CURRENT_STATE.md`.
-4. Inspect the current repository state when implementation details matter.
-5. Treat newer repository/test evidence as authoritative over stale remembered conversation.
-6. Preserve settled architecture unless concrete evidence requires reconsideration.
-7. Maintain the distinction between current decisions, candidates, experiments, and future ideas.
-
-The handoff is continuity, not a substitute for the repository.
-
----
-
-# Current Role of Chat 01
-
-Chat 01 is the main Planning / Architecture / coordination space.
-
-Primary responsibilities:
-
-* overall architecture
-* semantic model
-* long-term direction
-* feature planning
-* milestone boundaries
-* cross-workstream coordination
-* deciding whether implementation discoveries justify architecture changes
-* deciding what belongs in `PROJECT_CURRENT_STATE.md`
-* preserving future ideas that should not be lost
-* coordinating questions between Research and Implementation
-
-Chat 01 should avoid unnecessary implementation work.
+4. Read `MASTER_PLAN.md`.
+5. Read `CHAT_WORKFLOW.md`.
+6. Inspect current `main`, current files, and current tests when implementation facts matter.
+7. Continue from `NEXT PLANNING CHAT — START HERE`.
+8. Do not reconstruct settled architecture from old conversations unless current evidence requires reconsideration.
 
 ---
 
-# Current Planning Position
+# Current Role
 
-The current architecture is machine-model-first.
+Planning / Architecture (#1) owns:
 
-The physical machine is the machine.
+* long-term architecture;
+* `MASTER_PLAN.md`;
+* `PROJECT_CURRENT_STATE.md`;
+* cross-workstream coordination;
+* project-level documentation governance;
+* durable architectural decisions;
+* milestone boundaries;
+* future ideas;
+* deferred problems;
+* deciding whether implementation/research discoveries justify architecture changes.
 
-Firmware is a versioned implementation of the machine.
+Planning should not silently rewrite another workstream's handoff or implementation.
 
-The canonical semantic model is authoritative.
+The intended flow remains:
 
-The visual editor is presentation and authoring state over the canonical model.
+```text
+Planning decision
+        ↓
+targeted instruction to owning workstream
+        ↓
+owning workstream implementation / research
+        ↓
+owning handoff checkpoint
+        ↓
+report back to Planning
+        ↓
+Planning reconciles project-level state
+```
 
-The current working chain remains:
+---
+
+# Current Repository Model
+
+## Repository strategy
+
+```text
+main-only
+one shared working checkout
+```
+
+Workstream chat instances are organizational labels only.
+
+They are not branches, architecture versions, or separate projects.
+
+---
+
+# Current Project Milestone
+
+The active implementation milestone is:
+
+```text
+V0.2
+```
+
+V0.2 is the semantic/machine-structure expansion milestone.
+
+The current research baseline is O0.1 / R0.1, with the Research documentation treating V0.2 as development over that established foundation.
+
+---
+
+# Current Architecture
+
+The machine-model-first direction remains established.
 
 ```text
 Physical Machine
-→ Machine Component
-→ Hardware Definition
-→ Controller
-→ Controller Resource
-→ Port / Connector / Pin
-→ Connection
-→ Function / Capability
+        ↓
+Canonical Machine Model
+        ↓
+Firmware Requirements / Mapping
+        ↓
+Target Firmware + Version
+        ↓
+Generated Configuration / Representation
 ```
 
-This remains a working architecture rather than a command to create every named concept as a class.
+The visual editor is a bidirectional authoring and inspection environment over the canonical model.
 
-Concrete implementation evidence should drive reconsideration.
+```text
+Canonical Machine Model
+        ↕
+Semantic / Model Boundary
+        ↕
+Visual Machine Editor
+```
 
----
-
-# Current Architectural Principles
-
-Important distinctions currently preserved:
+Important distinctions remain:
 
 ```text
 Hardware Definition
-    ≠
-installed hardware instance
+    ≠ installed hardware instance
 
 Controller
-    ≠
-Controller Resource
+    ≠ Controller Resource
 
 Controller Resource
-    ≠
-physical interface
+    ≠ physical interface
 
 physical Connection
-    ≠
-Controller Resource Assignment
+    ≠ Controller Resource Assignment
 
 Function
-    ≠
-Capability
+    ≠ Capability
 
 canonical semantic state
-    ≠
-visual/editor state
+    ≠ visual/editor state
 ```
 
-The system should not invent unknown information.
-
-New canonical entities should not be introduced merely because they would make an implementation concept easier to name.
+New canonical concepts should be introduced only when concrete evidence demonstrates that existing concepts cannot represent the requirement coherently.
 
 ---
 
-# Current Board Architecture Position
+# Current Board Position
 
-Recent Board work provides implementation evidence that the current model can represent:
+Recent Maestro and Octopus implementation work has demonstrated that the existing model can represent:
 
-* documented reusable hardware definitions
-* installed controllers and machine components
-* controller-owned physical SemanticPorts
-* component-owned physical SemanticPorts
-* connector grouping
-* physical interface metadata
-* resource exposure through SemanticPorts
-* physical interface mating through semantic relationships
-* replaceable driver-module cases
+* reusable hardware definitions;
+* installed controller instances;
+* controller-owned physical SemanticPorts;
+* component-owned physical SemanticPorts;
+* connector grouping;
+* physical interface metadata;
+* controller-resource exposure through SemanticPorts;
+* physical interface mating;
+* replaceable driver-module cases.
 
-Recent Maestro and Octopus experiments have not, so far, justified new canonical entities such as:
+No new canonical Connector, MatingInterface, DriverSocket, DriverModule, Contact, or similar entity has been justified by current evidence.
 
-* Connector
-* BoardConnector
-* MatingInterface
-* DriverSocket
-* DriverModule
-* Contact
+The major remaining Board architecture question is how an installed Controller should relate to its reusable Hardware Definition.
 
-This remains subject to future concrete evidence.
+Board discoveries belong to Workstream 03 and should be reported to Planning when they have project-level implications.
 
 ---
 
-# Current Routing Architecture Position
+# Current Routing Position
 
 Routing is a presentation/implementation concern over canonical connection semantics.
 
-The current important distinction is:
+The useful distinction remains:
 
 ```text
-Route topology
+route topology
     ≠
-Route geometry
+route geometry
 ```
 
-Topology concerns structural choices.
+Current routing implementation distinguishes topology selection, geometry, stability, diagnostics, endpoint escape behavior, and related routing concerns.
 
-Geometry concerns exact spatial placement.
+The recent Workstream 04 audit determined that `graphics/connection.py` is not an accidental duplicate pathfinder; it remains the active per-connection routing integration/stability layer.
 
-The active routing investigation has emphasized preserving topology where practical and repairing geometry without unnecessarily rerouting.
+No broad routing modularization is currently justified merely by file size.
 
-Implementation heuristics should not automatically become durable architecture.
+The current Routing next action remains the geometry-only repair experiment for the known spacing pathology.
 
 ---
 
-# Research Coordination
+# Current Test State
 
-Chat 01 sends concrete research questions to Chat 02.
-
-Research results should distinguish:
+Latest verified full repository test result:
 
 ```text
-IMPLEMENTATION ONLY
-WATCH
-REINFORCE
-NEW PRINCIPLE — candidate
-RECONSIDER
+756 passed
 ```
 
-Research findings should be incorporated into durable architecture only after architectural review.
+This was verified after:
 
-Chat 02 should preserve research continuity and source information in its own handoff.
+* SelectionInspector duplicate-definition cleanup;
+* removal of the obsolete `_segment_clear()` helper;
+* removal of tracked generated `egg-info` files.
+
+Exact current `main` HEAD should be re-verified locally when this handoff is reconciled before its next commit.
+
+Do not substitute an older remembered commit for the current one.
 
 ---
 
-# Workstream Coordination
+# Documentation Governance Decision
 
-Current workstreams:
+The project is moving to the principle:
 
-```text
-01 Planning / Architecture
-02 Research / Architecture
-03 Controller / Board
-04 Routing / Diagnostics
-05 Efficiency / Modularization
-```
+> **One primary question → one authoritative document.**
 
-Implementation workstreams report durable project-level implications to Chat 01 rather than independently rewriting `PROJECT_CURRENT_STATE.md`.
+The authority map is now intended to live in:
 
-Chat 05 reviews efficiency/modularity/code-health concerns and reports recommendations to the owning workstream.
+`DOCUMENTATION_AUTHORITY.md`
 
----
+The document answers:
 
-# Current Documentation Architecture
+> Which document is authoritative for this question?
+
+This is a governance/index document, not another architecture document.
+
+The authority structure established by Planning is:
 
 ```text
+README.md
+    = What is Machine Builder?
+
 MASTER_PLAN.md
-    ↓
-long-term direction / future ideas
+    = Where is the project going?
 
 PROJECT_CURRENT_STATE.md
-    ↓
-current project-wide status
+    = What is true across the project right now?
 
-01 Planning handoff
-02 Research handoff
-03 Board handoff
-04 Routing handoff
-05 Efficiency handoff
-    ↓
-workstream continuity
+CHAT_WORKFLOW.md
+    = How are the workstreams operated?
+
+DOCUMENTATION_AUTHORITY.md
+    = Which document answers which project question?
+
+Research START_HERE.md
+    = Where does Research start?
+
+ARCHITECTURE_OVERVIEW.md
+    = What is the settled architecture?
+
+ONTOLOGY_CURRENT.md
+    = What is the current canonical ontology?
+
+TERMINOLOGY_BASELINE.md
+    = What do the important terms mean?
+
+DECISION_LOG.md
+    = What decisions have been accepted?
+
+OPEN_QUESTIONS.md
+    = What remains unresolved?
+
+V0.2_RESEARCH_CHECKPOINT.md
+    = What is the current research milestone/checkpoint?
+
+workstream handoffs
+    = What is happening in each implementation/research workstream?
+
+HISTORICAL_DOCUMENT_ARCHIVE.md
+    = What documentation was retired and why?
 ```
-
-Chat-instance numbers such as `1.2`, `2.3`, and `3.2` are human organizational labels only.
 
 ---
 
-# Future Problems / Good Ideas
+# Documentation Authority Decisions
 
-This is a durable holding area for ideas that should not be forgotten simply because they are not currently being implemented.
+## MASTER_PLAN.md
 
-Examples currently worth preserving:
+**Decision:** AUTHORITATIVE project plan.
 
-* richer reusable connector-definition modeling
-* compatibility/intermateability modeling
-* richer board visualization
-* connector-aware and harness-aware wiring
-* wire-level engineering detail
-* broader mechanical representation
-* reusable assemblies and tool modules
-* richer diagnostics
-* firmware reverse reconstruction
-* multiple manufacturing processes
-* Function vs Process vs Operation vs Task distinctions
-* shared resources in hybrid manufacturing
-* sequencing and process relationships
-* future machine stress tests such as modular hybrid manufacturing systems
+It owns long-term direction, major architecture direction, future scope, deferred ideas, and durable planning principles.
 
-Each idea should eventually record:
+It is not a detailed implementation schedule.
+
+---
+
+## ARCHITECTURE_OVERVIEW.md
+
+**Decision:** AUTHORITATIVE current architecture baseline.
+
+`DATA_FLOW.md`, `SYSTEM_BOUNDARIES.md`, and similar documents are supporting architecture references.
+
+They must not silently become competing architecture authorities.
+
+When accepted decisions change architecture, the architecture baseline should be reconciled.
+
+---
+
+## PROJECT_CONTEXT.md
+
+**Decision:** CURRENT SUPPORTING / UNDER REVIEW.
+
+It remains useful research/project context, but it is not authoritative for current architecture, ontology, or cross-project current state.
+
+Its current contents should eventually be compared against Research's newer structure to determine what should be preserved, migrated, or retired.
+
+---
+
+## PROJECT_CURRENT_STATE.md
+
+**Decision:** AUTHORITATIVE current cross-project snapshot.
+
+It should not become a second implementation-history archive.
+
+Detailed workstream history belongs in the appropriate handoff.
+
+The current document is already approaching the useful size/review threshold and should be reduced deliberately only after its detailed material has been mapped.
+
+---
+
+## V0.2_IMPLEMENTATION_PLAN.md
+
+**Decision:** WORKING / PROVISIONAL while V0.2 is active.
+
+It remains the scoped implementation plan for V0.2.
+
+It should eventually become a historical V0.2 milestone record after completion.
+
+It is not project-wide architecture authority.
+
+Do not rewrite it solely because its old status wording is stale. Compare its contents against the current architecture/current state first.
+
+---
+
+## IMPLEMENTATION_ROADMAP.md
+
+**Decision:** UNDER REVIEW.
+
+Do not reactivate it simply because its status wording is old.
+
+First compare its contents against:
+
+* `MASTER_PLAN.md`
+* `PROJECT_CURRENT_STATE.md`
+* `V0.2_IMPLEMENTATION_PLAN.md`
+* current research milestones
+* current implementation direction
+
+Then decide whether it remains useful, becomes historical, is superseded, or is retired.
+
+---
+
+## CODER_CHAT_WORKFLOW.md
+
+**Decision:** not an active competing workflow authority.
+
+Its unique useful material should be compared against `CHAT_WORKFLOW.md`.
+
+Useful current rules may be migrated into the authoritative workflow document.
+
+The old document should then become historical/superseded or be retired.
+
+---
+
+## Older visual-builder documents
+
+**Decision:** preservation-first review.
+
+Do not delete or rename them merely because their structure is old.
+
+Map:
 
 ```text
-Idea
-Why it matters
-Current status
-Evidence
-Reason deferred
-Condition for revisiting
+current
+historical
+superseded
+unique information
+migration destination
+retirement candidate
+```
+
+before any retirement.
+
+---
+
+# Historical Documentation Decision
+
+A dedicated historical archive index should exist:
+
+`HISTORICAL_DOCUMENT_ARCHIVE.md`
+
+It should be an index/provenance record, not a full concatenation of every retired document.
+
+Git already preserves exact historical file contents.
+
+The archive should explain:
+
+* what the document was;
+* when it mattered;
+* what replaced it;
+* what useful information was preserved;
+* why it was retired.
+
+The archive should be created after the repository-wide historical inventory and content mapping are complete.
+
+---
+
+# Official Documentation Status Vocabulary
+
+Use:
+
+```text
+AUTHORITATIVE
+CURRENT SUPPORTING
+WORKING / PROVISIONAL
+HISTORICAL
+SUPERSEDED
+RETIRED / ARCHIVED
+UNDER REVIEW
+```
+
+Do not use `OBSOLETE` as the final durable classification.
+
+A file can be old without being obsolete.
+
+---
+
+# Workstream Status
+
+## Research / Architecture (#2)
+
+Research owns:
+
+* external evidence;
+* standards;
+* terminology;
+* ontology;
+* research architecture;
+* source provenance;
+* research questions;
+* research conclusions.
+
+Chat 02 has completed a repository-wide documentation audit for the documentation-authority effort.
+
+Planning's decision was required before the Research workstream could reconcile its documentation hierarchy.
+
+The next Research instruction should be to reconcile its actual documents against `DOCUMENTATION_AUTHORITY.md`, especially:
+
+* `PROJECT_CONTEXT.md`
+* `START_HERE.md`
+* architecture documents
+* ontology documents
+* terminology baseline
+* decision log
+* open questions
+* research checkpoint
+
+Chat 02 should update its own handoff rather than Planning editing it.
+
+---
+
+## Controller / Board (#3)
+
+Board implementation continues independently on shared `main`.
+
+No documentation cleanup work is currently delegated to Chat 03.
+
+Board discoveries with architectural implications should still be reported to Planning.
+
+---
+
+## Routing / Diagnostics (#4)
+
+Chat 04 has already:
+
+* removed the duplicate SelectionInspector definitions;
+* removed the unused `_segment_clear()` helper;
+* validated the full 756-test suite;
+* completed the `connection.py` routing-responsibility investigation.
+
+The routing architecture is currently considered healthy enough to leave alone.
+
+Its next normal implementation task remains the geometry-only route-repair experiment.
+
+No further documentation cleanup is delegated to Chat 04 at this time.
+
+---
+
+## Efficiency / Modularization (#5)
+
+Chat 05 has completed the initial repository audit.
+
+It identified:
+
+* confirmed duplicate SelectionInspector methods;
+* tracked generated `egg-info`;
+* unused `_segment_clear()`;
+* documentation candidates;
+* modularity review targets;
+* historical artifacts.
+
+Those concrete cleanup items have now been addressed where appropriate.
+
+Chat 05 should remain available for future code-health audits but should **not continue broad repository archaeology** unless a new question requires it.
+
+The next historical-document inventory may be requested from Chat 05 after Planning establishes the authority model.
+
+---
+
+# What Has Already Been Completed
+
+The project has recently established:
+
+* `MASTER_PLAN.md`;
+* `PROJECT_CURRENT_STATE.md`;
+* `CHAT_WORKFLOW.md`;
+* numbered Planning / Research / Board / Routing / Efficiency handoffs;
+* main-only development;
+* the current documentation ownership model;
+* a generated repository tree;
+* the initial Efficiency / Modularization audit;
+* the first concrete code-health cleanup milestone.
+
+Recent cleanup results:
+
+```text
+SelectionInspector duplicate definitions
+    removed and validated
+
+_unused _segment_clear()
+    removed and validated
+
+tracked generated egg-info
+    removed from version control
+
+Full suite
+    756 passed
 ```
 
 ---
 
-# Important Active Questions
+# Current Documentation Contradictions / Risks
 
-Current Planning should monitor:
+The remaining documentation problem is not simply "old files."
+
+The real risk is multiple documents expressing different answers to the same question.
+
+Known examples include:
+
+* old implementation roadmaps using historical planning gates;
+* old V0.2 documents describing their original planning state;
+* older chat workflow guidance that overlaps newer workflow rules;
+* older visual-builder material whose current/historical status is unclear;
+* `PROJECT_CURRENT_STATE.md` containing more detailed implementation history than its role ideally requires;
+* Research onboarding/context documents whose useful content overlaps newer research authorities.
+
+No bulk deletion should occur until these are mapped.
+
+---
+
+# Current Documentation Strategy
+
+The desired structure is:
+
+```text
+CURRENT AUTHORITATIVE DOCUMENTS
+        ↓
+CURRENT SUPPORTING DOCUMENTS
+        ↓
+WORKING / PROVISIONAL DOCUMENTS
+        ↓
+HISTORICAL / SUPERSEDED DOCUMENTS
+        ↓
+RETIRED / ARCHIVED
+```
+
+The repository should become easier to recover from without losing the reasoning that produced the current architecture.
+
+---
+
+# Decisions Not Yet Delegated
+
+The following have deliberately not yet been delegated:
+
+* migration of unique information from old documentation;
+* final retirement of `CODER_CHAT_WORKFLOW.md`;
+* final disposition of `IMPLEMENTATION_ROADMAP.md`;
+* final disposition of `V0.2_IMPLEMENTATION_PLAN.md`;
+* final disposition of older visual-builder documents;
+* creation of `HISTORICAL_DOCUMENT_ARCHIVE.md`;
+* reduction/reorganization of `PROJECT_CURRENT_STATE.md`.
+
+Planning must establish the sequence before assigning those tasks.
+
+---
+
+# Important "Do Not Repeat" Items
+
+Do not reopen merely because a new chat starts:
+
+* the machine-model-first principle;
+* physical machine vs firmware identity;
+* canonical model vs visual state;
+* Hardware Definition vs installed hardware;
+* Controller vs Controller Resource;
+* Function vs Capability;
+* the basic Board semantic boundary;
+* broad connector terminology research already completed;
+* broad routing topology-vs-geometry research already completed.
+
+Reopen these only when concrete implementation, research, testing, or real-machine evidence creates a new question.
+
+---
+
+# Open Planning Questions
+
+### Documentation
+
+* Has every major documentation question now been assigned one primary authority?
+* Which older implementation documents contain unique information that must be migrated?
+* How much detail should remain in `PROJECT_CURRENT_STATE.md`?
+* Which historical documents should remain as individual files even after the archive index exists?
 
 ### Architecture
 
-* Is the current semantic model continuing to hold under real hardware cases?
-* Are any implementation shortcuts starting to become unwanted architecture?
-* Are new named concepts actually entities, relationships, definitions, or merely implementation structures?
-
-### Board
-
-* How should detailed reusable connector/interface information evolve if current representations become insufficient?
-* What additional cases does Octopus reveal?
-* When does contact-level information require richer modeling?
-
-### Routing
-
-* Where should topology selection stop and geometry repair/nudging begin?
-* Which routing behaviors are architecture and which are heuristics?
-
-### General Machine Model
-
-* What additional abstractions are needed for machines beyond conventional printers?
-* When should future manufacturing-process concepts enter the canonical model?
+* Does current real-hardware work continue to fit the semantic model?
+* Are any implementation structures beginning to become unwanted canonical architecture?
+* Does the Board work eventually require richer reusable interface/compatibility concepts?
+* Does Routing eventually need persisted topology/presentation semantics?
+* When do broader Process / Operation / Task concepts become necessary?
 
 ---
 
-# Development / Repository Edit Rule
+# Latest Planning State
 
-When Planning requests a repository change, it must provide:
+**Workstream:** Planning / Architecture
+
+**Chat instance:** current Chat 01
+
+**Date:** 2026-10-04
+
+**Repository branch:** `main`
+
+**Latest verified full test state:** `756 passed`
+
+**Exact current HEAD:** verify locally at the next handoff reconciliation because the last recorded commit hash predates subsequent cleanup commits.
+
+**Primary current effort:** establish and implement a predictable documentation authority model before retiring or consolidating older documentation.
+
+---
+
+# NEXT PLANNING CHAT — START HERE
+
+1. Read this handoff.
+2. Read `DOCUMENTATION_AUTHORITY.md`.
+3. Read `PROJECT_CURRENT_STATE.md`.
+4. Read `MASTER_PLAN.md`.
+5. Read `CHAT_WORKFLOW.md`.
+6. Verify current `main`, exact HEAD, working-tree state, and latest tests.
+7. Review the existing documentation authority map against the actual repository.
+8. Compare the old planning/implementation documents against the current authorities before changing any of them.
+9. Obtain/verify Chat 02's complete documentation-audit findings if they are not already captured in its handoff.
+10. Create the historical document mapping.
+11. Create `HISTORICAL_DOCUMENT_ARCHIVE.md` once that mapping is sufficiently complete.
+12. Update `CHAT_WORKFLOW.md` so its documentation-governance section points cleanly to the authority index without duplicating it.
+13. Reconcile `README.md` only where its orientation is actually stale.
+14. Decide what belongs in `PROJECT_CURRENT_STATE.md` versus the workstream handoffs.
+15. Send targeted instructions to the owning workstreams rather than editing their handoffs directly.
+16. Update this Planning handoff with the next verified checkpoint.
+
+The immediate next decision is:
+
+> **Compare the existing implementation/planning documents against the newly established authority model and determine what is active, supporting, historical, superseded, or retired.**
+
+Do not start by rewriting old documents.
+
+---
+
+# Recovery Principle
+
+The Planning chat should not need the old conversation to understand the project's current documentation governance.
+
+The intended system is:
 
 ```text
-REPOSITORY CHANGE REQUIRED
-
-File:
-exact repository path
-
-Action:
-CREATE / EDIT EXISTING / FULL FILE REPLACEMENT
-
-Repository state inspected:
-branch
-commit
-
-Location:
-exact section, class, function, or line range
-
-Anchor:
-exact nearby text
-
-Change:
-complete paste-ready text
+question
+    ↓
+DOCUMENTATION_AUTHORITY.md
+    ↓
+authoritative document
+    ↓
+supporting detail where necessary
+    ↓
+historical record when retired
 ```
 
-Full-file replacement is preferred when practical.
-
-For multiple surgical edits:
-
-* provide edits in descending line-number order when possible;
-* explain that earlier edits may shift the line numbers of later edits;
-* use exact anchors in addition to line numbers;
-* do not rely on phrases such as "the port loop" without identifying the actual function/block.
-
-If the cited line or anchor does not exist in the user's checkout, the edit should stop and the file should be re-inspected rather than guessed.
-
----
-
-# Checkpoint Format
-
-Every meaningful Planning checkpoint should record:
-
-```text
-Checkpoint N
-Date/time:
-Current commit:
-Repository state:
-Current test state if relevant:
-
-What changed:
-Why it matters:
-Architectural interpretation:
-Decisions:
-Open questions:
-Next action:
-```
-
-The `Next action` belongs to the current-state section, not inside the chronological checkpoint history.
-
-New checkpoints should normally be appended to history rather than inserted around `Next action`.
-
----
-
-# Current State
-
-Updated:
-2026-10-03
-
-Current repository model:
-main-only shared checkout
-
-Current major coordination concern:
-preserve durable architectural continuity across chat-length boundaries.
-
-Current documentation improvement:
-dedicated living handoffs for Planning, Research, Board, Routing, and Efficiency.
-
-Current next Planning action:
-
-1. Establish the Master Plan as the long-term project plan.
-2. Establish the Research handoff as the durable research/source record.
-3. Continue coordinating Board and Routing discoveries against the project-wide architecture.
-4. Preserve good future ideas without promoting them prematurely.
-
----
-
-# What Has Been Established Recently
-
-Recent Board work has demonstrated with real documented hardware that the existing model can represent multiple physical interface forms, resource exposure, replaceable driver-module mating, and module-specific hardware definitions without immediately requiring new canonical entities.
-
-Recent Routing work has produced implementation evidence around topology preservation, geometric stability, deterministic routing behavior, spacing, and the distinction between route topology and route geometry.
-
-These are implementation-informed architectural observations and should continue to be tested rather than treated as immutable doctrine.
-
----
-
-# Recovery Rule
-
-When a future Chat 01 reaches the conversation limit:
-
-```text
-Read this handoff
-    ↓
-Read MASTER_PLAN.md
-    ↓
-Read PROJECT_CURRENT_STATE.md
-    ↓
-Inspect current main/repository when needed
-    ↓
-Continue from Current State / Next action
-```
-
-Do not reconstruct Planning history from memory when the handoff contains the needed information.
+A chat can end without the project's knowledge ending.
