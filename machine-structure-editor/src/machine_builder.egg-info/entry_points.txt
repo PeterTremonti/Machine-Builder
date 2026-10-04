@@ -1,2 +1,0 @@
-[console_scripts]
-machine-builder = machine_builder.app:main
