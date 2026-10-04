@@ -43,31 +43,6 @@ def _segment_points(
     ]
 
 
-def _segment_clear(
-    start: QPointF,
-    end: QPointF,
-    obstacles: list[QRectF],
-) -> bool:
-    """Return whether an orthogonal segment avoids the obstacles."""
-    return all(
-        not (
-            (
-                abs(start.y() - end.y()) < 0.001
-                and rect.top() < start.y() < rect.bottom()
-                and max(start.x(), end.x()) > rect.left()
-                and min(start.x(), end.x()) < rect.right()
-            )
-            or (
-                abs(start.x() - end.x()) < 0.001
-                and rect.left() < start.x() < rect.right()
-                and max(start.y(), end.y()) > rect.top()
-                and min(start.y(), end.y()) < rect.bottom()
-            )
-        )
-        for rect in obstacles
-    )
-
-
 def test_right_port_stub_moves_outward() -> None:
     point = QPointF(
         100.0,
