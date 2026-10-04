@@ -448,3 +448,180 @@ State the next concrete step.
 **Explore first, prove second, recommend third, modify last.**
 
 The purpose of Workstream 05 is to make the repository easier to understand, maintain, and evolve without destroying useful history or causing architecture churn merely for the sake of tidiness.
+# Chronological Checkpoint — 2026-10-04 — Completed Local-Verification Audit
+
+## Scope and disposition
+
+The Workstream 05 read-only repository audit is complete. No cleanup, refactoring, deletion, renaming, or source/test changes were performed as part of this checkpoint.
+
+This checkpoint records the locally verified state and separates confirmed defects/cleanup items from recommended documentation cleanup, future refactor candidates, and material that should remain untouched.
+
+## Verified repository state
+
+- Current branch: `main`
+- Current HEAD / local `main` / `origin/main` at audit time: `122de4a92a0ba26e21c624bf38dae7449235de29`
+- Working tree: clean at audit time
+- Test baseline: `756 passed in 3.15s`
+- Local checkout and current source/tests remain authoritative for implementation and test claims.
+
+## Documentation findings
+
+### Active / Keep
+
+- `MASTER_PLAN.md` — active project-level long-term plan. It explicitly identifies V0.2 as the current implementation milestone and defines the project modularity/code-health rule.
+- `PROJECT_CURRENT_STATE.md` — active current-state synchronization document. It records the established V0.2 architecture and current routing/controller-board state.
+- `CHAT_WORKFLOW.md` — active project-wide workflow and documentation-ownership framework.
+- `README.md` — active repository orientation and recovery document.
+
+### Current but Under Review
+
+- `CODER_CHAT_WORKFLOW.md` — still contains unique implementation-specific guidance, including pytest authority, Windows test-warning handling, routing investigation guidance, and coder-chat recovery. It overlaps substantially with `CHAT_WORKFLOW.md` and should be reconciled rather than deleted without review.
+- `docs/implementation/V0.2_IMPLEMENTATION_PLAN.md` — contains substantial unique V0.2 architecture, semantic-boundary, persistence, provenance, compatibility, and decision-history material. Its current status still says `Initial planning`, and its final-state sections remain unfinished. Preserve it; reconcile its status/content with the established V0.2 state rather than deleting it.
+
+### Recommended documentation cleanup
+
+- `IMPLEMENTATION_ROADMAP.md` contains stale V0.2 language stating that planning has not started and that implementation should not begin until a plan exists. This should be corrected to reflect the existing V0.2 plan and implementation state.
+- `handoffs/V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md` is misnamed: its current contents are routing diagnostics / route-stability material even though the filename identifies it as a V0.2 Visual Editor handoff. Preserve its historical information, but correct/archive the naming and provenance at a deliberate documentation checkpoint.
+- `handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md` and `handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md` are historical routing investigations and should remain available as historical reference.
+- `Read me to continue 4.1 chat.txt` is a historical chat-transcript/provenance artifact rather than current project documentation. Preserve for now; do not treat it as current architecture.
+
+### Documentation structure finding
+
+The top-level documentation hierarchy is fundamentally sound. The main issues are stale status text, historical/misnamed material, and overlap between the project-wide `CHAT_WORKFLOW.md` and specialized `CODER_CHAT_WORKFLOW.md`. There is no justification for a wholesale documentation reorganization from this audit.
+
+## Artifact findings
+
+### Confirmed cleanup candidate
+
+`src/machine_builder.egg-info/` contains six tracked generated packaging files:
+
+- `PKG-INFO`
+- `SOURCES.txt`
+- `dependency_links.txt`
+- `entry_points.txt`
+- `requires.txt`
+- `top_level.txt`
+
+`*.egg-info/` is already covered by `.gitignore`. No external repository references were found. Classification: **Artifact / Temporary; strong cleanup candidate**. No change was made during this audit.
+
+### Keep / historical source evidence
+
+- `IdeaFormer Facebook Files/Unconfirmed 429420.crdownload` contains a unique 563-line Klipper/CoreXY machine configuration and was committed with other IdeaFormer reference files. No exact duplicate was found. It should be treated as historical machine-source evidence rather than ordinary disposable browser state. No change was made.
+- `recursive_git_tree.txt` is a generated structural reference. It should be regenerated after meaningful structural changes rather than hand-maintained.
+
+## Source modularity findings
+
+### Confirmed defect / cleanup item
+
+`src/machine_builder/selection_inspector.py` defines these methods twice within `SelectionInspector`:
+
+- `_routing_debug_toggled` at lines 285 and 350
+- `set_routing_debug_mode` at lines 294 and 359
+- `set_last_click_position` at lines 340 and 405
+
+The duplicate definitions are identical. Git history shows the first copy was introduced by `437b9ff` and the later copy was added again by `cfb116f`. A repository-wide AST scan found no other duplicate function definitions within the same module/class scope.
+
+Classification: **Confirmed duplicate-definition defect / cleanup candidate.**
+
+No change was made during this audit.
+
+### Obsolete candidate
+
+`tests/test_connection_routing.py` contains `_segment_clear()` only at its definition on line 46 and has no call sites. Git history traces its introduction to `3ac1a74`.
+
+Classification: **Obsolete test-helper candidate.**
+
+No change was made during this audit.
+
+### Minor duplication / leave local for now
+
+`_remove_duplicate_points()` is implemented identically in:
+
+- `connection_routing_relevance.py`
+- `connection_routing_pathfinder.py`
+
+This is genuine duplication, but it is a very small utility. Extracting it now would add structure without clear current value.
+
+Classification: **Minor duplication / leave local unless a shared routing-geometry utility later becomes justified.**
+
+## Future refactor candidates
+
+- `src/machine_builder/graphics/connection.py` — 1,339 lines. A substantial internal routing-stability/diagnostics region exists, but its methods are tightly coupled to `ConnectionGraphicsItem` runtime state. Extraction would therefore be an architectural refactor rather than simple cleanup. **Future modularization candidate; do not refactor now.**
+- `src/machine_builder/canvas_interaction.py` — 907 lines. There is a repeated compatibility-resolution policy that could eventually become a helper returning the resolved semantic source/target, but the whole module does not presently show a compelling split boundary. **Future small modularization candidate.**
+- `src/machine_builder/graphics/connection_routing_pathfinder.py` — 1,535 lines. It remains cohesive around grid search, corridor handling, fallback, and route geometry. Size is a review trigger, not evidence that it should be split now.
+- `src/machine_builder/semantic_model.py` — 1,136 lines. It remains cohesive around the canonical semantic model and its collections/relationships. Keep intact.
+- `src/machine_builder/hardware_catalog.py` — 666 lines with four hardware-definition builders sharing the same catalog/provenance construction model. Keep intact for now.
+- `src/machine_builder/graphics/connection_routing_relevance.py` — 439 lines and cohesive around relevance probes, obstacle-chain expansion, nearby-wire detection, and geometry predicates. No justified split.
+
+## Test organization findings
+
+- `tests/test_semantic_model.py` is large but cohesive around canonical-model entities, validation, relationships, and cleanup semantics.
+- `tests/test_persistence.py` is cohesive around serialization, round-trip fidelity, file I/O, and malformed-data rejection.
+- The store test family is appropriately specialized:
+  - `test_store.py`
+  - `test_store_document_state.py`
+  - `test_store_new_document.py`
+  - `test_store_persistence.py`
+- `tests/test_connection_routing.py` is large but cohesive around routing behavior, relevance, geometry, and stability. Any future reorganization belongs primarily to Workstream 04.
+- A repository-wide duplicate-definition scan found no duplicate function definitions in tests.
+
+## Dependency findings
+
+- `pyproject.toml` is the centralized build/dependency configuration.
+- Runtime third-party dependency surface: `PySide6`.
+- Development dependency: `pytest`.
+- `python -m pip check` reported: `No broken requirements found.`
+- No competing requirements, Poetry, Pipenv, uv, build, dist, cache, or other generated packaging files were found tracked beyond the six `egg-info` files identified above.
+
+## Confirmed defects / cleanup items
+
+1. Duplicate `SelectionInspector` method definitions.
+2. Six tracked generated `egg-info` files despite the existing ignore rule.
+3. Unused `_segment_clear()` test helper.
+
+## Recommended documentation cleanup
+
+1. Refresh stale V0.2 status text in `IMPLEMENTATION_ROADMAP.md`.
+2. Reconcile `V0.2_IMPLEMENTATION_PLAN.md` status/final sections with the established V0.2 state while preserving unique historical material.
+3. Decide whether `CODER_CHAT_WORKFLOW.md` remains a specialized supplement or has its unique material consolidated into `CHAT_WORKFLOW.md`.
+4. Correct/archive the misleading `V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md` filename/provenance.
+
+## Future refactor candidates
+
+1. `connection.py` routing-stability seam.
+2. `canvas_interaction.py` compatibility-resolution helper.
+3. Possible shared routing-geometry utility only if further duplication develops.
+
+## Things that should remain untouched
+
+- `semantic_model.py` structure.
+- `hardware_catalog.py` structure.
+- `connection_routing_relevance.py` structure.
+- `connection_routing_pathfinder.py` structure unless Workstream 04 later identifies a justified boundary.
+- Existing store-test specialization.
+- Historical routing handoffs.
+- IdeaFormer machine-source files, including the unique `.crdownload` configuration file.
+- `recursive_git_tree.txt` as a generated artifact.
+
+## Unresolved items
+
+- Cleanup sequencing and scope have not been approved for implementation.
+- The long-term relationship between `CHAT_WORKFLOW.md` and `CODER_CHAT_WORKFLOW.md` remains to be decided.
+- The V0.2 implementation plan needs documentation/status reconciliation, but its unique historical material should be preserved.
+- The `SelectionInspector` duplicate definitions need cleanup, but no behavior change or test modification was performed during this audit.
+- Routing modularization candidates remain under Workstream 04 ownership and should not be reopened merely because the files are large.
+
+## Recommended next actions and ownership
+
+- **Project-level planning / Chat 1:** use this completed audit checkpoint to decide cleanup order and scope.
+- **Documentation cleanup:** coordinate through the project documentation framework, with Workstream 05 supplying the audit findings and preserving historical material.
+- **SelectionInspector duplicate cleanup:** Implementation / Visual Editor owner when cleanup work is authorized.
+- **`_segment_clear()` cleanup:** Workstream 04 / routing test owner when routing test maintenance is authorized.
+- **`egg-info` cleanup:** Workstream 05 / implementation owner after cleanup scope is approved; untrack generated metadata while retaining the existing ignore rule.
+- **`connection.py` and `canvas_interaction.py` refactor candidates:** defer until a natural implementation milestone or concrete maintainability problem justifies extraction; preserve current ownership boundaries.
+
+## Audit completion
+
+The repository audit is sufficient for planning purposes. Further Workstream 05 exploration should stop unless a later cleanup/refactor task specifically requires additional evidence.
+
+No cleanup work was begun in this checkpoint.
