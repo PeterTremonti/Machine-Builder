@@ -1000,6 +1000,220 @@ The 730/730 full-suite and 52/52 focused-routing results recorded in the Routing
 
 The newer 756/756 result is the latest complete repository test result and includes the routing tests, but the focused routing suite was not separately re-run as part of this SelectionInspector cleanup.
 
+# Checkpoint 12 — 2026-10-04 10:53 AM — _segment_clear() obsolete-helper cleanup
+
+Purpose
+
+Record the separate routing-test cleanup identified during the repository audit.
+
+What was found
+
+The helper _segment_clear() in:
+
+machine-structure-editor/tests/test_connection_routing.py
+
+was confirmed to be unused.
+
+A repository-wide search across the Python source and test trees found exactly one _segment_clear( reference, and that occurrence was the helper's own definition. No callers or indirect uses were found.
+
+The routing-test baseline before removal was:
+
+52/52 passed
+
+The full repository baseline before removal was:
+
+756/756 passed
+
+What changed
+
+Only the unused _segment_clear() helper was removed from:
+
+machine-structure-editor/tests/test_connection_routing.py
+
+No routing implementation, other test helper, test case, or routing behavior was changed.
+
+Validation after removal
+
+Focused routing tests:
+
+52/52 passed
+
+Full repository suite:
+
+756/756 passed
+
+The resulting implementation diff contained only the removal of the 25-line unused helper.
+
+Commit
+
+467933875ca0547a5a6885017d3b10c77efbafb2
+
+What was learned
+
+The helper was genuinely obsolete rather than an indirectly referenced testing utility. Removing it produced no change in routing-test behavior or repository-wide test behavior.
+
+Decisions / classifications
+
+DECIDED
+
+- _segment_clear() was obsolete and safe to remove.
+- The cleanup is separate from routing implementation work.
+- No routing architecture or behavior was changed.
+
+IMPLEMENTATION
+
+- Removed only the unused _segment_clear() helper.
+- Verified 52/52 routing tests and 756/756 full-suite tests after removal.
+
+WATCH
+
+- No new routing behavior was introduced.
+- The connection.py routing-responsibility audit is recorded separately in Checkpoint 13.
+
+NEW PRINCIPLE
+
+None.
+
+RECONSIDER
+
+None.
+
+Current routing investigation remains unchanged.
+
+The next routing implementation action remains the geometry-only repair experiment for the known single-connection spacing pathology.
+
+# Checkpoint 13 — 2026-10-04 11:06 AM — connection.py routing-responsibility audit
+
+Purpose
+
+Determine whether the routing and stability logic remaining inside:
+
+machine-structure-editor/src/machine_builder/graphics/connection.py
+
+is active route-generation logic, fallback behavior, an adapter/presentation layer around the dedicated routing modules, or duplicated/legacy routing logic.
+
+Investigation result
+
+The evidence shows that connection.py is an active per-connection orchestration and presentation/state layer, not a second independent route generator.
+
+The production route-generation flow is:
+
+Canvas / connection preview
+        ↓
+ConnectionGraphicsItem.setLine()
+        ↓
+endpoint escape preparation
+        ↓
+ConnectionRoutingEngine.build_route()
+        ↓
+stable-route selection in ConnectionGraphicsItem
+        ↓
+final QPainterPath construction
+
+ConnectionRoutingEngine is an active façade/coordinator. It delegates:
+
+- endpoint stub/escape construction to connection_routing_endpoint.py
+- relevance detection to connection_routing_relevance.py
+- orthogonal pathfinding to connection_routing_pathfinder.py
+
+The only source-level production caller of ConnectionRoutingEngine.build_route() is connection.py.
+
+No duplicate implementations of the connection-level stability methods were found in the other graphics routing modules.
+
+Active responsibilities owned by ConnectionGraphicsItem
+
+The class currently owns connection-instance runtime/presentation state including:
+
+- _stable_route
+- _overlap_escape_state
+- routing-debug state
+- previous/candidate/selected route diagnostics
+- route transition history
+- route stability tolerance
+- route continuity selection
+- topology-preserving geometry repair
+- route-cost comparison
+- endpoint escape integration
+- scene obstacle collection
+- final QPainterPath construction
+
+The route-selection logic in connection.py is active behavior rather than legacy fallback code.
+
+Tests provide direct coverage for this boundary.
+
+The routing tests directly exercise:
+
+- _route_cost()
+- _select_stable_route()
+-
+outing_diagnostics()
+
+The routing tests also directly exercise the ConnectionRoutingEngine APIs.
+
+Production callers of setLine() include:
+
+- canvas_scene.py for committed visual connections
+- canvas_interaction.py for connection previews
+
+The selection inspector also consumes
+outing_diagnostics().
+
+Recommendation
+
+Leave connection.py alone for now.
+
+No surgical routing cleanup is justified by this audit.
+
+No route-generation duplication was established.
+
+Do not begin a larger routing modularization project solely because connection.py is large.
+
+A future extraction of the route-stability/policy layer could be considered as a deliberate modularization project if that logic grows substantially, becomes independently reusable, or develops a separate testing/ownership boundary.
+
+This investigation does not change the current routing architecture.
+
+No implementation source files were changed for Part 2.
+
+Decisions / classifications
+
+DECIDED
+
+- connection.py contains active routing orchestration, connection-level stability policy, runtime state, diagnostics, and final visual path construction.
+- ConnectionRoutingEngine remains the reusable routing façade for endpoint, relevance, and pathfinding operations.
+- No duplicated independent route generator was found in connection.py.
+- No routing refactor is justified by the audit findings.
+
+IMPLEMENTATION
+
+- None.
+
+WATCH
+
+- Whether the connection-level stability/policy logic grows enough to justify a dedicated module in a future deliberate modularization effort.
+- _build_endpoint_stub() remains a compatibility helper in connection.py; no removal is justified by this investigation.
+
+NEW PRINCIPLE
+
+None.
+
+RECONSIDER
+
+- Revisit modular extraction only if the stability layer develops an independent ownership boundary or meaningful reuse requirement.
+
+Tests
+
+No new implementation test run was required for this investigation because no implementation source was changed.
+
+The latest complete repository result remains:
+
+756/756 passed
+
+The latest dedicated routing checkpoint remains:
+
+52/52 focused routing tests passed
+
+No implementation commit was created for Part 2.
+
 Recovery rule
 
 This handoff is a living recovery document.
