@@ -866,6 +866,140 @@ Do not rewrite the routing architecture.
 
 Do not change the canonical semantic Connection model.
 
+# Checkpoint 11 — 2026-10-04 10:11 AM — SelectionInspector duplicate-definition cleanup
+
+Purpose
+
+Record a verified repository-maintenance cleanup discovered during the broader modularization/audit work, without changing the routing implementation or routing conclusions.
+
+What was found
+
+The file:
+
+machine-structure-editor/src/machine_builder/selection_inspector.py
+
+contained duplicate definitions of three methods:
+
+_routing_debug_toggled
+set_routing_debug_mode
+set_last_click_position
+
+Inspection established that both copies of each method were byte-for-byte identical.
+
+The later copies were technically the active Python definitions because they appeared later in the class, but they provided exactly the same behavior as the earlier copies.
+
+What changed
+
+Only the redundant second block was removed.
+
+The retained definitions are the first copies of:
+
+_routing_debug_toggled
+set_routing_debug_mode
+set_last_click_position
+
+The removed block ended immediately before:
+
+def clear(self) -> None:
+
+No routing logic, route-generation behavior, canonical semantic model, or routing-test implementation was changed.
+
+The source file also received the normal terminating newline while being rewritten.
+
+Validation
+
+Focused visual/editor tests were run before the cleanup:
+
+tests/test_selection_inspector.py
+tests/test_canvas_interaction.py
+tests/test_canvas_ui.py
+
+Result:
+
+20/20 passed
+
+The same focused tests were run again after the cleanup:
+
+20/20 passed
+
+The complete repository test suite was then run:
+
+756/756 passed
+
+This confirms that the duplicate-method cleanup produced no observed behavioral regression.
+
+Files touched
+
+Implementation:
+
+machine-structure-editor/src/machine_builder/selection_inspector.py
+
+Documentation:
+
+machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
+
+Commit status
+
+The implementation and handoff changes are currently uncommitted at this checkpoint.
+
+What was learned
+
+The duplicate definitions were accidental redundancy rather than two competing implementations.
+
+Because the retained and removed definitions were identical, removing the later block was a safe structural cleanup rather than a behavioral change.
+
+This also reinforces the need to distinguish audit cleanup from routing experimentation: this checkpoint does not alter the current routing strategy, hard-8 px baseline, preferred-spacing investigation, or geometry-only repair plan.
+
+Decisions / classifications
+
+DECIDED
+
+- Retain the first definitions of the three duplicated SelectionInspector methods.
+- Remove only the later identical definitions.
+- Treat this as a behavior-preserving cleanup.
+- Keep all routing investigation decisions and experiments unchanged.
+
+IMPLEMENTATION
+
+- Removed the redundant SelectionInspector method block.
+- Preserved existing visual-editor behavior.
+- Verified 20/20 focused tests and 756/756 full-suite tests.
+
+WATCH
+
+- No new routing behavior is introduced by this cleanup.
+- The broader audit findings concerning _segment_clear() and routing responsibilities in connection.py remain separate and unresolved.
+
+NEW PRINCIPLE
+
+None.
+
+RECONSIDER
+
+None.
+
+Current routing state remains unchanged
+
+This maintenance checkpoint does not replace the current Routing workstream conclusions.
+
+The active routing investigation remains the geometry-only repair experiment described above:
+
+existing legal route
+        ↓
+identify nearby parallel same-connection segments/stubs
+        ↓
+detect insufficient preferred separation
+        ↓
+attempt geometry-only adjustment
+        ↓
+preserve existing segment/bend topology
+        ↓
+relax preferred spacing when necessary
+
+The 730/730 full-suite and 52/52 focused-routing results recorded in the Routing checkpoint remain the latest dedicated routing-focused test results until the routing experiment is re-run.
+
+The newer 756/756 result is the latest complete repository test result and includes the routing tests, but the focused routing suite was not separately re-run as part of this SelectionInspector cleanup.
+
 Recovery rule
 
 This handoff is a living recovery document.
