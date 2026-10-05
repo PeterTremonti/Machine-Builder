@@ -625,3 +625,46 @@ Classification: **Minor duplication / leave local unless a shared routing-geomet
 The repository audit is sufficient for planning purposes. Further Workstream 05 exploration should stop unless a later cleanup/refactor task specifically requires additional evidence.
 
 No cleanup work was begun in this checkpoint.
+
+## Encoding and Line-Ending Audit Checkpoint - 2026-10-05
+
+**Updated:** 2026-10-05 18:23:21 -04:00
+
+**Scope:** Read-only repository formatting and encoding audit requested by Research / Architecture (#2).
+
+**Repository state audited:** `main` at `7e9b3b7`.
+
+### Findings
+
+- The repository has a tracked `.gitattributes` containing `* text=auto`.
+- Git configuration has `core.autocrlf=true`; `core.eol` and `core.safecrlf` are unset.
+- The Git index reports LF-normalized text across the repository.
+- The Windows working tree is predominantly CRLF, which is expected under `core.autocrlf=true` and is not itself a repository defect.
+- Six working-tree files contain genuinely mixed line endings: `CHAT_WORKFLOW.md`, the 01/03/05 workstream handoffs, `hardware_catalog.py`, and `tests/test_connection_authoring.py`.
+- The audited text-like files contained no invalid UTF-8.
+- The observed encoding population was predominantly ASCII-compatible or UTF-8 without BOM, with two UTF-8 BOM files.
+- `hardware_catalog.py` currently contains valid UTF-8 Unicode text such as `40 × 40 × 10 mm` and `6200 ±10% RPM`; no current mojibake was confirmed by the audit.
+
+### Interpretation
+
+The recurring `LF will be replaced by CRLF` Git warnings are explained by normal Windows checkout behavior under `core.autocrlf=true`. They should not be treated as evidence of repository-wide line-ending corruption.
+
+The higher-risk issue is unsafe PowerShell text rewriting of tracked UTF-8 files, which can cause encoding corruption even when Git normalization remains healthy.
+
+### Recommended editing standard
+
+- Store tracked text as UTF-8-compatible text with Git LF normalization.
+- UTF-8 without BOM is the preferred convention for newly created or actively edited source/document files.
+- CRLF in the Windows working tree is acceptable under the current Git configuration.
+- For small tracked-file changes, prefer `git apply` or a guarded surgical edit with explicit UTF-8 handling.
+- Avoid uncontrolled PowerShell `Get-Content` / `Set-Content` read-write round trips on tracked UTF-8 files.
+
+### Cleanup assessment
+
+A separate controlled cleanup checkpoint is warranted for the six mixed-line-ending working-tree files and for any deliberate review of the two UTF-8 BOM files. No normalization or cleanup was performed in this audit.
+
+### Risk
+
+No encoding or line-ending issue was identified that requires blocking continued development. The immediate preventative action is to use UTF-8-preserving, surgical editing methods for future Windows/PowerShell repository changes.
+
+This checkpoint records evidence and recommendations only. No implementation, test, catalog, workflow, project-state, or other repository files were intentionally modified by the audit.
