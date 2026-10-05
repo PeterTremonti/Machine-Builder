@@ -10,6 +10,7 @@ from machine_builder.editor_state import EditorState
 from machine_builder.semantic_model import (
     CanonicalMachineModel,
     Machine,
+    SemanticPort,
 )
 from machine_builder.store import ModelStore
 from machine_builder.visual_model import (
@@ -36,6 +37,16 @@ def make_state() -> EditorState:
             controller_type="motion_controller",
             version="V1.1",
         ),
+    )
+
+    model.add_port(
+        SemanticPort(
+            id="controller-1-power",
+            component_id=None,
+            controller_id="controller-1",
+            purpose="Power",
+            direction="output",
+        )
     )
 
     return EditorState(
@@ -258,6 +269,40 @@ def test_create_controller_visual_node_links_existing_controller() -> None:
         is node
     )
 
+
+def test_create_controller_visual_node_projects_controller_ports() -> None:
+    state = make_state()
+    node = make_node()
+
+    CreateControllerVisualNode(
+        controller_id="controller-1",
+        node=node,
+    ).apply(state)
+
+    assert set(
+        port.semantic_reference
+        for port in node.ports.values()
+    ) == {
+        "controller-1-power",
+    }
+
+    visual_port = next(
+        port
+        for port in node.ports.values()
+        if port.semantic_reference
+        == "controller-1-power"
+    )
+
+    assert visual_port.label == "Power"
+    assert visual_port.direction == "output"
+
+    canonical_port = state.semantic_model.get_port(
+        visual_port.semantic_reference
+    )
+
+    assert canonical_port.id == "controller-1-power"
+    assert canonical_port.controller_id == "controller-1"
+    assert canonical_port.component_id is None
 
 def test_create_controller_visual_node_does_not_create_controller() -> None:
     state = make_state()

@@ -11,6 +11,9 @@ from .controller_queries import (
 )
 from .editor_state import EditorState
 from .semantic_model import Machine
+from .semantic_projection import (
+    project_controller_ports,
+)
 from .visual_model import VisualNode
 
 
@@ -78,6 +81,11 @@ class CreateControllerNode:
         )
         self.node.label = self.controller.name
 
+        project_controller_ports(
+            self.controller,
+            state.semantic_model,
+            self.node,
+        )
         state.visual_model.add_node(
             self.node
         )
@@ -138,6 +146,11 @@ class CreateControllerVisualNode:
         )
         self.node.label = controller.name
 
+        project_controller_ports(
+            controller,
+            state.semantic_model,
+            self.node,
+        )
         state.visual_model.add_node(
             self.node
         )

@@ -1,5 +1,6 @@
 """Tests for canonical-to-visual semantic projection."""
 
+from machine_builder.controller import Controller
 from machine_builder.semantic_model import (
     CanonicalMachineModel,
     Machine,
@@ -8,6 +9,7 @@ from machine_builder.semantic_model import (
 )
 from machine_builder.semantic_projection import (
     project_component_ports,
+    project_controller_ports,
 )
 from machine_builder.visual_model import (
     VisualNode,
@@ -243,3 +245,84 @@ def test_projection_removes_visual_ports_without_canonical_counterpart() -> None
         "Power",
         "Ground",
     }
+def test_controller_projection_creates_visual_ports_with_semantic_references() -> None:
+    model = CanonicalMachineModel()
+
+    model.add_machine(
+        Machine(
+            id="machine-1",
+            name="Test Machine",
+        )
+    )
+
+    controller = Controller(
+        id="controller-1",
+        name="Duet 2 Maestro",
+        controller_type="motion_controller",
+    )
+
+    model.add_controller(
+        "machine-1",
+        controller,
+    )
+
+    model.add_port(
+        SemanticPort(
+            id="controller-1-power",
+            component_id=None,
+            controller_id=controller.id,
+            purpose="Power",
+            direction="output",
+        )
+    )
+
+    model.add_port(
+        SemanticPort(
+            id="controller-1-ground",
+            component_id=None,
+            controller_id=controller.id,
+            purpose="Ground",
+            direction="unknown",
+        )
+    )
+
+    node = VisualNode(
+        id="controller-node-1",
+        node_type="controller",
+        label="Duet 2 Maestro",
+    )
+
+    project_controller_ports(
+        controller,
+        model,
+        node,
+    )
+
+    assert {
+        port.semantic_reference
+        for port in node.ports.values()
+    } == {
+        "controller-1-power",
+        "controller-1-ground",
+    }
+
+    by_reference = {
+        port.semantic_reference: port
+        for port in node.ports.values()
+    }
+
+    assert by_reference[
+        "controller-1-power"
+    ].label == "Power"
+
+    assert by_reference[
+        "controller-1-power"
+    ].direction == "output"
+
+    assert by_reference[
+        "controller-1-ground"
+    ].label == "Ground"
+
+    assert by_reference[
+        "controller-1-ground"
+    ].direction == "unknown"

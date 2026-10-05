@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from .semantic_model import (
     CanonicalMachineModel,
+    Controller,
     MachineComponent,
     SemanticPort,
 )
@@ -23,17 +24,33 @@ def project_component_ports(
     semantic_model: CanonicalMachineModel,
     visual_node: VisualNode,
 ) -> None:
-    """Project canonical component ports onto a visual node.
+    """Project canonical component ports onto a visual node."""
+    _project_canonical_ports(
+        component.port_ids,
+        semantic_model,
+        visual_node,
+    )
 
-    Existing visual port placement information is preserved when a visual
-    port can be matched by semantic reference or purpose. A visual port that
-    has already been matched is not reused for another canonical port.
 
-    The canonical port remains authoritative for identity, purpose,
-    direction, and other semantic information.
+def project_controller_ports(
+    controller: Controller,
+    semantic_model: CanonicalMachineModel,
+    visual_node: VisualNode,
+) -> None:
+    """Project canonical controller-owned ports onto a visual node."""
+    _project_canonical_ports(
+        controller.port_ids,
+        semantic_model,
+        visual_node,
+    )
 
-    This function changes only the visual node.
-    """
+
+def _project_canonical_ports(
+    port_ids: list[str],
+    semantic_model: CanonicalMachineModel,
+    visual_node: VisualNode,
+) -> None:
+    """Project one canonical owner's ports onto a visual node."""
     existing_ports = tuple(
         visual_node.ports.values()
     )
@@ -45,7 +62,7 @@ def project_component_ports(
 
     used_visual_port_ids: set[str] = set()
 
-    for port_id in component.port_ids:
+    for port_id in port_ids:
         canonical_port = semantic_model.get_port(
             port_id
         )
@@ -100,7 +117,6 @@ def project_component_ports(
         ] = visual_port
 
     visual_node.ports = projected_ports
-
 
 def _find_matching_visual_port(
     existing_ports: tuple[VisualPort, ...],

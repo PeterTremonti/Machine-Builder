@@ -1,4 +1,6 @@
 """Tests for authoring connections across the visual and semantic models."""
+from machine_builder.controller import Controller
+from machine_builder.controller_visual_mutations import CreateControllerVisualNode
 
 import pytest
 
@@ -7,6 +9,7 @@ from machine_builder.mutations import (
     CreateNode,
     DeleteConnection,
 )
+from machine_builder.semantic_model import SemanticPort
 from machine_builder.store import ModelStore
 from machine_builder.visual_model import (
     VisualNode,
@@ -394,3 +397,75 @@ def test_deleting_connection_undo_restores_both_connections() -> None:
         "connection-1"
         not in store.semantic_model.connections
     )
+
+
+def create_controller_and_fan() -> ModelStore:
+    store = create_two_fans()
+
+    controller = Controller(
+        id="controller-1",
+        name="Duet 2 Maestro",
+        controller_type="motion_controller",
+    )
+
+    store.semantic_model.add_controller(
+        "machine-1",
+        controller,
+    )
+
+    store.semantic_model.add_port(
+        SemanticPort(
+            id="controller-1-output",
+            component_id=None,
+            controller_id=controller.id,
+            purpose="Power",
+            direction="output",
+        )
+    )
+
+    store.commit(
+        CreateControllerVisualNode(
+            controller_id=controller.id,
+            node=VisualNode(
+                id="controller-node-1",
+                node_type="controller",
+                label="Controller",
+            ),
+        )
+    )
+
+    return store
+
+
+def test_connection_resolves_controller_visual_port_to_canonical_port() -> None:
+    store = create_controller_and_fan()
+
+    store.commit(
+        CreateConnection(
+            connection_id="controller-connection-1",
+            endpoint_a_id="controller-node-1-power",
+            endpoint_b_id="fan-a-power",
+            connection_type="electrical",
+        )
+    )
+
+    semantic_connection = (
+        store.semantic_model.connections[
+            "controller-connection-1"
+        ]
+    )
+
+    assert {
+        semantic_connection.endpoint_a_id,
+        semantic_connection.endpoint_b_id,
+    } == {
+        "controller-1-output",
+        "component-fan-a-power",
+    }
+
+    controller_port = store.semantic_model.get_port(
+        "controller-1-output"
+    )
+
+    assert controller_port.controller_id == "controller-1"
+    assert controller_port.component_id is None

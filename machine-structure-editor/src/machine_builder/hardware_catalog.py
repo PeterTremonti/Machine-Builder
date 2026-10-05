@@ -254,6 +254,10 @@ DUET2_MAESTRO_WIRING_SOURCE = (
     "Wiring_your_Duet_2"
 )
 
+DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE = (
+    "Direct physical inspection of a Duet 2 Maestro V1.0 PCB."
+)
+
 DUET2_MAESTRO_MOTOR_PIN_LABELS = (
     "B1",
     "B2",
@@ -474,6 +478,205 @@ DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS = {
 }
 
 
+DUET2_MAESTRO_ADDITIONAL_INTERFACE_SPECIFICATIONS = {
+    "fan0": {
+        "board_label": "FAN0",
+        "position_count": 2,
+        "interface_type": "2-position PWM-controlled fan output",
+        "interface_role": "controlled_fan_output",
+        "usage_classification": "machine_io",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+    },
+    "fan1": {
+        "board_label": "FAN1",
+        "position_count": 2,
+        "interface_type": "2-position PWM-controlled fan output",
+        "interface_role": "controlled_fan_output",
+        "usage_classification": "machine_io",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+    },
+    "fan2": {
+        "board_label": "FAN2",
+        "position_count": 2,
+        "interface_type": "2-position PWM-controlled fan output",
+        "interface_role": "controlled_fan_output",
+        "usage_classification": "machine_io",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+    },
+    "always-on-fan": {
+        "board_label": "Always on FAN 0",
+        "position_count": 2,
+        "interface_type": "2-position always-on fan connection",
+        "interface_role": "always_on_fan_output",
+        "usage_classification": "machine_io",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+    },
+    "bed-temp": {
+        "board_label": "BED TEMP",
+        "position_count": 2,
+        "interface_type": "2-position thermistor/PT1000 temperature input",
+        "interface_role": "temperature_sensor_input",
+        "usage_classification": "machine_io",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+    },
+    "e0-temp": {
+        "board_label": "E0 TEMP",
+        "position_count": 2,
+        "interface_type": "2-position thermistor/PT1000 temperature input",
+        "interface_role": "temperature_sensor_input",
+        "usage_classification": "machine_io",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+    },
+    "e1-temp": {
+        "board_label": "E1 TEMP",
+        "position_count": 2,
+        "interface_type": "2-position thermistor/PT1000 temperature input",
+        "interface_role": "temperature_sensor_input",
+        "usage_classification": "machine_io",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+    },
+    "c-temp": {
+        "board_label": "C Temp",
+        "position_count": 2,
+        "interface_type": "2-position thermistor/PT1000 temperature input",
+        "interface_role": "temperature_sensor_input",
+        "usage_classification": "machine_io",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+        "evidence_status": "Manufacturer schematic identifies C TEMP as THERMISTOR3.",
+    },
+    "z-probe": {
+        "board_label": "Probe",
+        "position_count": 5,
+        "interface_type": "5-position probe interface",
+        "interface_role": "z_probe_interface",
+        "usage_classification": "machine_io",
+        "unused_position_numbers": [3, 5],
+        "used_position_count": 3,
+        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+    },
+    "e2-driver": {
+        "board_label": "E2",
+        "position_count": 8,
+        "interface_type": "8-position external stepper-driver module interface",
+        "interface_role": "external_stepper_driver_module_interface",
+        "usage_classification": "expansion_io",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+    },
+    "e3-driver": {
+        "board_label": "E3",
+        "position_count": 8,
+        "interface_type": "8-position external stepper-driver module interface",
+        "interface_role": "external_stepper_driver_module_interface",
+        "usage_classification": "expansion_io",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+    },
+    "paneldue": {
+        "board_label": "PanelDUE",
+        "position_count": 4,
+        "interface_type": "4-position display/serial interface",
+        "interface_role": "panel_display_interface",
+        "usage_classification": "user_interface",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+    },
+    "paneldue-sd": {
+        "board_label": "PanelDue_SD",
+        "position_count": 10,
+        "interface_type": "10-position PanelDue SD interface",
+        "interface_role": "panel_display_storage_interface",
+        "usage_classification": "user_interface",
+        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+    },
+    "12864-exp1": {
+        "board_label": "12864 EXP1",
+        "position_count": 10,
+        "interface_type": "10-position IDC display expansion interface",
+        "interface_role": "12864_display_expansion_interface",
+        "usage_classification": "user_interface",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+    },
+    "12864-exp2": {
+        "board_label": "12864 EXP2",
+        "position_count": 10,
+        "interface_type": "10-position IDC display expansion interface",
+        "interface_role": "12864_display_expansion_interface",
+        "usage_classification": "user_interface",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+    },
+    "usb": {
+        "board_label": "USB",
+        "interface_type": "USB device/service connection",
+        "interface_role": "usb_communication_interface",
+        "usage_classification": "communication_service",
+        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+    },
+    "ethernet": {
+        "board_label": "Ethernet",
+        "interface_type": "Ethernet network connection",
+        "interface_role": "ethernet_network_interface",
+        "usage_classification": "communication_service",
+        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+    },
+    "c-gnd": {
+        "board_label": "C_GND",
+        "position_count": 1,
+        "interface_type": "single-point ground connection",
+        "interface_role": "ground_reference_connection",
+        "usage_classification": "power_reference",
+        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+    },
+    "j21": {
+        "board_label": "J21",
+        "position_count": 13,
+        "interface_type": "13-position auxiliary header",
+        "interface_role": "auxiliary_header",
+        "usage_classification": "expansion_or_service",
+        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+        "evidence_status": "Physical header identity and position count observed; exact functional role is not yet fully reconciled with manufacturer documentation.",
+    },
+    "temp-ob": {
+        "board_label": "TEMP_OB",
+        "position_count": 10,
+        "interface_type": "10-position temperature-related header",
+        "interface_role": "unresolved_temperature_related_interface",
+        "usage_classification": "unresolved",
+        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+        "evidence_status": "Physical label and position count observed. Manufacturer source terminology requires reconciliation before assigning a more specific role.",
+    },
+    "erase": {
+        "board_label": "ERASE",
+        "position_count": 2,
+        "interface_type": "2-position firmware erase service jumper",
+        "interface_role": "firmware_erase_service_interface",
+        "usage_classification": "service_configuration",
+        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+    },
+    "a-vin": {
+        "board_label": "A VIN",
+        "position_count": 3,
+        "interface_type": "3-position fan supply selection jumper",
+        "interface_role": "fan_supply_selection",
+        "usage_classification": "power_configuration",
+        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+    },
+    "e-5v-en": {
+        "board_label": "E 5V EN",
+        "position_count": 2,
+        "interface_type": "2-position 5V enable jumper",
+        "interface_role": "five_volt_supply_enable",
+        "usage_classification": "power_configuration",
+        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+    },
+    "5v-ps": {
+        "board_label": "5V PS",
+        "position_count": 3,
+        "interface_type": "3-position 5V power selection/header",
+        "interface_role": "five_volt_power_connection",
+        "usage_classification": "power_configuration",
+        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+    },
+}
+
+
 def build_duet_2_maestro() -> HardwareDefinition:
     """Build the documented Duet 2 Maestro v1.0 hardware definition."""
     motor_connector_specifications = {
@@ -509,6 +712,33 @@ def build_duet_2_maestro() -> HardwareDefinition:
             connector_id
         ] = specification
 
+    connector_specifications = (
+        motor_connector_specifications
+        | endstop_connector_specifications
+        | {
+            connector_id: dict(
+                specification
+            )
+            for (
+                connector_id,
+                specification,
+            ) in (
+                DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS.items()
+            )
+        }
+        | {
+            interface_id: dict(
+                specification
+            )
+            for (
+                interface_id,
+                specification,
+            ) in (
+                DUET2_MAESTRO_ADDITIONAL_INTERFACE_SPECIFICATIONS.items()
+            )
+        }
+    )
+
     return HardwareDefinition(
         id="duet-2-maestro-v1-0",
         family="Duet 2 Maestro",
@@ -520,21 +750,7 @@ def build_duet_2_maestro() -> HardwareDefinition:
             "onboard_stepper_driver_type": "TMC2224",
             "heater_output_count": 3,
             "controlled_fan_output_count": 3,
-            "connector_specifications": (
-                motor_connector_specifications
-                | endstop_connector_specifications
-                | {
-                    connector_id: dict(
-                        specification
-                    )
-                    for (
-                        connector_id,
-                        specification,
-                    ) in (
-                        DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS.items()
-                    )
-                }
-            ),
+            "connector_specifications": connector_specifications,
         },
         provenance=[
             Provenance(
