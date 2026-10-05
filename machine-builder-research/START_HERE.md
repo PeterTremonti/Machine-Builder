@@ -1,4 +1,4 @@
-Last modified by Research chat 09/15/26 11:44pm
+Last reconciled by Research / Architecture 2026-10-04
 
 # Machine Builder Research & Architecture
 ## O0.1 Checkpoint — Minimum 3D-Printer Machine Model
@@ -10,7 +10,7 @@ This directory is the durable research, architecture, terminology, ontology, sta
 
 **Ontology:** O0.1 — minimum 3D-printer machine/firmware model validated
 
-**Implementation:** v0.2 development; the visual editor is currently being used as a connection-engine test harness and is intended to become a bidirectional authoring and inspection environment for the canonical machine model.
+**Implementation:** V0.2 development. The visual editor is operating as a bidirectional authoring and inspection environment over the canonical machine model. Connection and routing behavior are implementation concerns being validated against that semantic boundary.
 The O0.1 scope is intentionally narrow. The first working Machine Builder is primarily intended to describe a 3D printer physically and semantically well enough to derive firmware representations for supported firmware families and versions.
 
 ### V0.2 implementation checkpoint
@@ -267,7 +267,7 @@ For a new Research / Architecture chat, use this order:
 6. `decisions/DECISION_LOG.md`
 7. `questions/OPEN_QUESTIONS.md`
 8. `checkpoints/V0.2_RESEARCH_CHECKPOINT.md`
-9. `handoffs/V0.2_IMPLEMENTATION_HANDOFF.md`
+9. `../machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
 
 The O0.1 implementation handoff remains available as historical/reference context:
 

@@ -1,5 +1,9 @@
 # Machine Builder Data Flow
 
+> **Status:** CURRENT SUPPORTING REFERENCE
+> **Authority:** `ARCHITECTURE_OVERVIEW.md` is the settled architecture baseline; this document elaborates information flow.
+> **Owner:** Research / Architecture (#2)
+
 ## 1. Purpose
 
 This document describes how information moves through Machine Builder.

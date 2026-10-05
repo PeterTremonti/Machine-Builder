@@ -1,4 +1,9 @@
 # Machine Builder Relationship Matrix
+
+> **Status:** CURRENT SUPPORTING REFERENCE
+> **Authority:** `ONTOLOGY_CURRENT.md` is the current canonical ontology; this matrix is a compact reference view.
+> **Owner:** Research / Architecture (#2)
+
 ## O0.1 Minimum Scope
 
 The relationship vocabulary is semantic. Visual lines are views of relationships and are not themselves canonical relationships.

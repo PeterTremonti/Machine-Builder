@@ -1,5 +1,9 @@
 # Machine Builder System Boundaries
 
+> **Status:** CURRENT SUPPORTING REFERENCE
+> **Authority:** `ARCHITECTURE_OVERVIEW.md` is the settled architecture baseline; this document elaborates system boundaries.
+> **Owner:** Research / Architecture (#2)
+
 ## 1. Purpose
 
 This document defines what belongs inside the Machine Builder system, what belongs outside it, and where important interfaces occur.

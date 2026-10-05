@@ -9,7 +9,7 @@ Foundational research is sufficiently complete for the first implementation-orie
 The minimum 3D-printer machine/firmware ontology has been consolidated and stress-tested against representative printer topologies.
 
 ### Implementation
-The Machine Structure Editor is continuing development. Its current visual connection engine is deliberately smaller than the final machine editor and is being used to validate nodes, ports, semantic connections, compatibility, selection, mutation, and related logic before richer machine semantics are layered in.
+V0.2 remains the active implementation milestone. The visual editor is operating as a bidirectional authoring and inspection environment over the canonical machine model. Connection and routing behavior continue to provide implementation evidence against that semantic boundary; they do not replace the canonical architecture or ontology.
 
 ---
 

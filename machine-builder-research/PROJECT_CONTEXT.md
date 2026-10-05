@@ -1,4 +1,8 @@
 # Machine Builder — Project Context
+> **Status:** CURRENT SUPPORTING / BACKGROUND
+> **Authority:** Supporting context only; not authoritative for current project state, architecture, ontology, or terminology.
+> **Owner:** Research / Architecture (#2)
+> **Authority map:** `../DOCUMENTATION_AUTHORITY.md`
 
 ## Project
 
@@ -52,63 +56,53 @@ The machine-builder-research/ directory is the durable research and architecture
 
 Existing root-level documentation may contain useful historical material, but it is not automatically authoritative over the current research documents.
 
-Chat Responsibilities
-Research / Architecture
+## Current Workstream Context
 
-This workstream is responsible for:
+Project-wide workflow and documentation ownership are governed by `CHAT_WORKFLOW.md` and `DOCUMENTATION_AUTHORITY.md`.
 
-terminology
-nomenclature
-ontology
-semantic relationships
-architecture
-subsystem boundaries
-standards research
-machine-model concepts
-research findings
-architectural tradeoffs
-unresolved conceptual questions
-decisions affecting future implementation
-Implementation / Coder
+The current workstream split is:
 
-This workstream is responsible for:
+**Planning / Architecture (#1)**
+- project-level planning
+- durable architecture decisions
+- milestone direction
+- cross-workstream coordination
+- deciding whether research or implementation findings justify architectural changes
 
-application code
-UI
-visual builder implementation
-tests
-implementation architecture
-implementation debugging
-serialization
-software versioning
+**Research / Architecture (#2)**
+- terminology and nomenclature
+- ontology and semantic relationships
+- standards, manufacturer, and CAD precedent research
+- research findings and provenance
+- architectural tradeoff research
+- unresolved conceptual questions
+- reporting evidence and architectural implications back to Planning
 
-The two workstreams exchange decisions and implementation feedback through explicit handoffs.
+**Controller / Board (#3)**
+- controller-board implementation and its workstream documentation
 
-Current Implementation Status
+**Routing / Diagnostics (#4)**
+- routing and diagnostics implementation and its workstream documentation
 
-The Machine Structure Editor has reached:
+**Efficiency / Modularization / Audit (#5)**
+- repository auditing
+- duplicate and overlap detection
+- stale or unnecessary file identification
+- modularization opportunities and structural-health recommendations
 
-v0.1.0
+Each workstream owns its own files. Planning decides project-level changes; the owning workstream executes approved changes within its scope.
 
-This is an implementation milestone, independent of the research and ontology version streams.
+## Current Implementation Context
 
-The current implementation has established a working foundation around:
+V0.2 remains the active implementation milestone.
 
-visual nodes
-explicit ports
-port-to-port connections
-connection compatibility feedback
-connection selection/deletion
-undo/redo
-multi-selection
-component palette
-automated testing
+The Machine Structure Editor is now operating against the broader canonical-machine architecture rather than the earlier prototype-only documentation model. The visual editor is intended to function as a bidirectional authoring and inspection environment over the canonical machine model.
 
-The next implementation work is continuing from the visual-builder architecture and requirements documents.
+This document does not own detailed implementation state. For current code, test, and workstream-specific implementation details, use `PROJECT_CURRENT_STATE.md` and the appropriate living workstream handoff.
 
 Research / Architecture Status
 
-The research side is consolidating the first formal semantic ontology.
+R0.1 foundational research is consolidated, and O0.1 is the established canonical semantic baseline used by the active V0.2 implementation milestone.
 
 The current work has already established high-confidence distinctions among:
 
@@ -151,7 +145,7 @@ Path
 Coordinate Frame
 Transform
 
-The first formal ontology checkpoint is being prepared as:
+The formal ontology checkpoint is established as:
 
 O0.1
 

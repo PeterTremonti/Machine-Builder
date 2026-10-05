@@ -353,6 +353,42 @@ Preserve source provenance and research conclusions so that replacement chats do
 
 ---
 
+# Documentation Reconciliation Checkpoint
+
+Updated: 2026-10-04
+
+Planning has established the project documentation authority model:
+
+> **One primary question → one authoritative document.**
+
+Research-side documentation reconciliation was completed against that model without modifying root Planning-owned documents.
+
+Research authority state:
+- machine-builder-research/START_HERE.md — authoritative Research navigation/recovery entry point.
+- machine-builder-research/architecture/ARCHITECTURE_OVERVIEW.md — authoritative settled architecture baseline.
+- machine-builder-research/ontology/ONTOLOGY_CURRENT.md — authoritative current canonical ontology.
+- machine-builder-research/ontology/TERMINOLOGY_BASELINE.md — authoritative terminology baseline.
+- machine-builder-research/decisions/DECISION_LOG.md — authoritative accepted-decision history.
+- machine-builder-research/questions/OPEN_QUESTIONS.md — authoritative unresolved-question register.
+- machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md — current Research / Architecture checkpoint.
+- machine-builder-research/PROJECT_CONTEXT.md — current supporting/background context, not authority for project state, architecture, ontology, or terminology.
+- machine-builder-research/RESEARCH_ROADMAP.md — current supporting Research roadmap.
+- machine-builder-research/architecture/DATA_FLOW.md and SYSTEM_BOUNDARIES.md — supporting architecture references.
+- machine-builder-research/ontology/CONCEPT_MATRIX.md and RELATIONSHIP_MATRIX.md — supporting ontology reference views.
+- machine-builder-research/future/DEFERRED_RESEARCH.md — deferred-research record subordinate to the active Research queue.
+
+Reconciliation performed:
+- START_HERE.md now reflects the current V0.2 editor role and points Research recovery to the live Research handoff.
+- PROJECT_CONTEXT.md now reflects the current five-workstream organization, established O0.1 state, and its supporting/background role.
+- RESEARCH_ROADMAP.md now reflects the active V0.2 implementation and the bidirectional canonical-model/editor boundary.
+- Supporting architecture and ontology reference documents now identify their authoritative parent documents.
+- DEFERRED_RESEARCH.md was reviewed during the audit but was not modified in this reconciliation checkpoint.
+
+No new canonical entity, ontology rule, or durable architecture principle was promoted by this documentation reconciliation.
+No historical Research material was intentionally deleted.
+
+Planning-sensitive future topics remain unchanged: Board interface compatibility, Routing topology/geometry boundaries, Function / Capability / Process / Operation / Task relationships, and broader hybrid-manufacturing stress cases.
+
 # Repository Change Rule
 
 Chat 02 should not independently rewrite `PROJECT_CURRENT_STATE.md`.

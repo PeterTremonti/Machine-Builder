@@ -1,4 +1,9 @@
 # Machine Builder Concept Matrix
+
+> **Status:** CURRENT SUPPORTING REFERENCE
+> **Authority:** `ONTOLOGY_CURRENT.md` is the current canonical ontology; this matrix is a compact reference view.
+> **Owner:** Research / Architecture (#2)
+
 ## O0.1 Minimum Scope
 
 | Concept | O0.1 | Purpose in O0.1 | Notes / Deferral |
