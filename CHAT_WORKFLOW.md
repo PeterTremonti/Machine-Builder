@@ -756,11 +756,13 @@ Workstream-specific implementation files have one owning workstream.
 
 Shared implementation, infrastructure, and canonical-model files also have one explicit owner, even when multiple workstreams depend on them.
 
+Ownership is determined by responsibility, not by the number of workstreams that consume a file.
+
 Workstreams should interact through agreed canonical model types, interfaces, identifiers, and other stable contracts rather than sharing implementation ownership.
 
 When a workstream needs a change to a file outside its ownership:
 
-1. report the requirement to Planning / Architecture;
+1. Report the requirement to Planning / Architecture;
 2. Planning determines whether the change is warranted;
 3. Planning delegates the implementation to the owning workstream;
 4. the owning workstream performs and tests the change;
@@ -770,10 +772,82 @@ Changes affecting a shared canonical contract or semantic boundary require Plann
 
 The preferred default pattern is:
 
-```text
-Board-owned implementation
-        |
-shared canonical contract
-        |
-Routing-owned implementation
+    Board-owned implementation
+            |
+    shared canonical contract
+            |
+    Routing-owned implementation
+
 This is the project's default shared contract, separate implementation ownership model.
+
+---
+
+# 33. Machine Builder Tooling and Repository Editing Safety
+
+The following are hard operating constraints for all Machine Builder workstreams, including Planning itself.
+
+## Repository inspection and implementation tooling
+
+For ordinary repository inspection, source mining, implementation, testing, visual-editor work, routing work, and architecture/audit work, do not use:
+
+- Python
+- Jupyter
+- pandas
+- dataframes
+- data-analysis workflows
+- generated notebooks
+- temporary analysis scripts
+- temporary analysis files or artifacts
+- spreadsheet-style data-analysis workflows
+
+Use instead:
+
+- PowerShell / terminal
+- git
+- direct repository/source inspection
+- existing project tooling
+- project tests
+
+The presence of JSON, configuration files, firmware sources, hardware inventories, or large source trees does not by itself make a task a data-analysis task.
+
+Do not create analysis artifacts merely to inspect or transform repository content.
+
+If an exceptional task genuinely requires another tool, identify the concrete reason first and keep that work isolated from the implementation repository.
+
+## Safe tracked-file editing
+
+For small edits to tracked repository text files:
+
+1. Prefer a small git apply patch when practical.
+2. When PowerShell string editing is appropriate, explicitly decode and encode UTF-8.
+3. Do not rely on PowerShell's implicit/default text encoding for repository files.
+4. Guard replacements so they fail when the expected source block is missing.
+5. Also fail when a supposedly unique source block occurs more than once.
+6. Preserve existing line endings rather than normalizing the entire file unnecessarily.
+7. After editing, run git diff --check.
+8. Inspect the relevant git diff.
+9. Run focused tests before broader testing at the appropriate checkpoint.
+
+The repository currently uses Git text normalization with * text=auto and Windows core.autocrlf=true. CRLF in the Windows working tree is acceptable; accidental transcoding of UTF-8 source text is not.
+
+New or deliberately rewritten text files should use UTF-8 without BOM unless an existing historical file has a documented reason to retain another encoding.
+
+## Copy/Paste Command Formatting Safety
+
+Runnable PowerShell commands intended for the user must be delivered as one continuous copy/paste block.
+
+Do not place Markdown fences inside a PowerShell copy/paste block.
+
+Do not place explanatory prose such as Then, Next, or Run this inside the executable command block.
+
+Do not place a language marker such as powershell inside the executable command block.
+
+When a command must contain multi-line Markdown or other literal text, use a PowerShell here-string or another representation that does not introduce nested Markdown fences into the outer response formatting.
+
+The entire executable sequence should begin with the first command and end with the final reporting command. Any explanation belongs outside that block.
+
+Before giving a path-sensitive command, either state the required starting directory or resolve the repository root inside the command itself.
+
+After a command block is supplied, the user should be able to copy the block verbatim without having to remove Markdown, prose, or formatting markers.
+
+This requirement applies to all workstreams and all repository operations, including read-only inspection commands.
