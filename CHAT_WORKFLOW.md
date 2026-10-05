@@ -370,6 +370,22 @@ Next action
 
 Test counts from different dates should not be compared as though they were simultaneous.
 
+Checkpoint timestamps are part of the project's timeline integrity.
+
+A meaningful checkpoint should record the local project/user date and time, including timezone, at the time the checkpoint is established or verified.
+
+When a checkpoint records a repository commit, the checkpoint timestamp describes when that repository state was verified for the checkpoint. It is not merely the date on which the handoff text was later copied or edited.
+
+Use the timestamp to interpret repository chronology:
+
+- a commit that predates the checkpoint timestamp may legitimately lack changes described by that checkpoint;
+- a later commit may include the checkpoint changes or supersede them;
+- an apparently older commit should not be treated as evidence against a newer timestamped checkpoint without checking repository history;
+- when chronology is ambiguous, inspect Git history and the actual current checkout rather than guessing.
+
+Git commit dates and handoff checkpoint timestamps should therefore be treated as related evidence, not interchangeable fields.
+
+
 The later checkpoint supersedes the earlier test count as the newer state, unless the repository history shows otherwise.
 
 ---
@@ -714,6 +730,15 @@ If a chat discovers that its remembered or retrieved repository state is older t
 5. Continue only from the current state.
 
 A raw GitHub link or cached repository result must not override the actual current checkout.
+
+
+When comparing a handoff or checkpoint with the current repository, consider the recorded checkpoint date/time and recorded commit together.
+
+If the current or referenced commit predates the checkpoint timestamp, do not assume that commit contains the checkpoint's changes. Verify the relevant Git history or inspect the current checkout.
+
+If a handoff contains a newer checkpoint timestamp but an older recorded HEAD, treat the timestamped checkpoint as the temporal record and re-resolve the actual repository state before making a decision.
+
+When chronology is uncertain, report the uncertainty rather than silently choosing the older or newer value.
 
 ---
 
