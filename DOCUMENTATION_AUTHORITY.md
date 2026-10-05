@@ -336,18 +336,17 @@ It does not become permanent architecture authority.
 
 ## IMPLEMENTATION_ROADMAP.md
 
-**Status:** UNDER REVIEW
+**Status:** AUTHORITATIVE
 
-This document must be compared against the current Master Plan, Current State, V0.2 implementation plan, and research milestones before any status or content is changed.
+Primary question:
 
-Do not update an old document merely because its wording is stale.
+> What is the overall implementation roadmap for the Machine Structure Editor?
 
-First determine whether it is:
+It owns the high-level implementation path, implementation milestones, version workflow, and future implementation direction.
 
-* still useful as a scoped implementation roadmap;
-* historical;
-* superseded;
-* or better retired.
+It is a scoped implementation authority, not the authority for overall Machine Builder direction, canonical ontology, or current project-wide state.
+
+The version-specific implementation plan remains the detailed plan and implementation record for an individual active milestone.
 
 ---
 
@@ -401,7 +400,7 @@ The exact historical file contents remain recoverable through Git history.
 
 # 8. Historical Document Archive
 
-The planned historical index is:
+The historical-disposition index is:
 
 `HISTORICAL_DOCUMENT_ARCHIVE.md`
 
@@ -419,7 +418,7 @@ It will record:
 
 It is an index/provenance record, not a duplicate copy of every historical document.
 
-It should be created after the repository-wide historical inventory and content mapping are complete.
+It is populated as historical inventory and content mapping are finalized; Git remains the source for the exact historical document contents.
 
 ---
 
@@ -589,22 +588,25 @@ V0.2_IMPLEMENTATION_PLAN.md
     WORKING / PROVISIONAL
 
 IMPLEMENTATION_ROADMAP.md
-    UNDER REVIEW
+    AUTHORITATIVE
 
 CODER_CHAT_WORKFLOW.md
-    UNDER REVIEW
+    SUPERSEDED
 
 Older visual-builder documentation
-    UNDER REVIEW
+    HISTORICAL
 
 Historical routing handoffs
     HISTORICAL
+
+HISTORICAL_DOCUMENT_ARCHIVE.md
+    AUTHORITATIVE FOR HISTORICAL DOCUMENT DISPOSITION
 
 Workstream handoffs
     CURRENT SUPPORTING / WORKSTREAM CONTINUITY
 ```
 
-These classifications are starting decisions. Individual documents still require content comparison before retirement or migration.
+These classifications are the Planning-adjudicated dispositions for the current documentation checkpoint. Future disposition changes must follow the documented Change Protocol.
 
 ---
 

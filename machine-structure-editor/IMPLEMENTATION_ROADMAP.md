@@ -106,11 +106,11 @@ v0.1.0
 
 ## Status
 
-Planning not started
+**Active**
 
-V0.2 should be defined after reviewing V0.1 results.
+V0.2 is the active implementation milestone following the V0.1 visual editor foundation.
 
-The primary purpose of V0.2 will likely be moving the prototype from generic visual relationships toward richer machine-structure semantics.
+The primary purpose of V0.2 is moving from generic visual relationships toward richer machine-structure semantics over the canonical machine model.
 
 Potential areas include:
 

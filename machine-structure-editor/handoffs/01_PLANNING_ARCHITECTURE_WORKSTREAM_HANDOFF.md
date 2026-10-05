@@ -575,19 +575,16 @@ The repository should become easier to recover from without losing the reasoning
 
 ---
 
-# Decisions Not Yet Delegated
-
-The following have deliberately not yet been delegated:
-
-* migration of unique information from old documentation;
-* final retirement of `CODER_CHAT_WORKFLOW.md`;
-* final disposition of `IMPLEMENTATION_ROADMAP.md`;
-* final disposition of `V0.2_IMPLEMENTATION_PLAN.md`;
-* final disposition of older visual-builder documents;
-* creation of `HISTORICAL_DOCUMENT_ARCHIVE.md`;
-* reduction/reorganization of `PROJECT_CURRENT_STATE.md`.
-
-Planning must establish the sequence before assigning those tasks.
+# Documentation Reorganization Checkpoint
+Planning has now adjudicated the current documentation dispositions and completed the Research/Routing documentation delegations from the previous checkpoint.
+* Research and Routing documentation reconciliation is complete.
+* `CODER_CHAT_WORKFLOW.md` is superseded by `CHAT_WORKFLOW.md`.
+* `IMPLEMENTATION_ROADMAP.md` remains the authoritative scoped implementation roadmap.
+* `V0.2_IMPLEMENTATION_PLAN.md` is the active V0.2 working plan and will become the milestone record after completion.
+* Older visual-builder documents are historical/reference material.
+* `HISTORICAL_DOCUMENT_ARCHIVE.md` exists as the designated historical-disposition index; its population remains a Planning task after historical mapping is finalized.
+* `PROJECT_CURRENT_STATE.md` remains authoritative; its future reduction is still an open Planning decision.
+No further workstream documentation migration is delegated by this checkpoint.
 
 ---
 
@@ -613,8 +610,8 @@ Reopen these only when concrete implementation, research, testing, or real-machi
 
 ### Documentation
 
-* Has every major documentation question now been assigned one primary authority?
-* Which older implementation documents contain unique information that must be migrated?
+* Major documentation questions now have an assigned primary authority.
+* Historical/legacy document mapping remains to be finalized in HISTORICAL_DOCUMENT_ARCHIVE.md.
 * How much detail should remain in `PROJECT_CURRENT_STATE.md`?
 * Which historical documents should remain as individual files even after the archive index exists?
 
@@ -640,9 +637,9 @@ Reopen these only when concrete implementation, research, testing, or real-machi
 
 **Latest verified full test state:** `756 passed`
 
-**Exact current HEAD:** verify locally at the next handoff reconciliation because the last recorded commit hash predates subsequent cleanup commits.
+**Exact current HEAD:** `102176a3625436bcf0ffe76d333ebf337efd35b7`
 
-**Primary current effort:** establish and implement a predictable documentation authority model before retiring or consolidating older documentation.
+**Primary current effort:** complete the Planning-owned documentation reconciliation while preserving clear authority, supporting, working, and historical roles.
 
 ---
 
