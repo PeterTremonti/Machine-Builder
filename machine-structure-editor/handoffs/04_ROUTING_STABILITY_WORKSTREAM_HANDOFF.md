@@ -1228,6 +1228,65 @@ Current Routing continuity belongs to  4_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
 
 No routing implementation, routing behavior, or topology-versus-geometry architectural investigation was changed.
 
+# Checkpoint 15 — 2026-10-05 1:55 PM — Real-data Duet 2 Maestro integration review
+
+The Routing / Diagnostics workstream completed its focused review for the first real-data integration using the Duet 2 Maestro.
+
+The current Routing implementation boundary remains healthy:
+
+visual/presentation geometry → ConnectionGraphicsItem → ConnectionRoutingEngine → endpoint/relevance/pathfinder.
+
+Routing has no direct dependency on Board/controller implementation internals, and Board/controller implementation has no direct dependency on Routing implementation internals. The existing synthetic/example Routing work is not considered defective merely because real Board data is now being introduced, and no Routing refactor is warranted on that basis.
+
+The canonical model already provides the relevant real-data identity chain:
+
+HardwareDefinition → Controller/MachineComponent → SemanticPort → SemanticConnection.
+
+SemanticPort supports both component-owned and controller-owned ports and carries canonical identity, connector/pin identity where known, semantic properties, and provenance.
+
+The existing component-owned projection path is:
+
+MachineComponent → project_component_ports() → VisualPort.semantic_reference.
+
+The clearest first real-data visual integration seam is the missing generic controller-owned projection:
+
+Controller → controller.port_ids → SemanticPort → VisualPort.semantic_reference → PortGraphicsItem.
+
+Existing connection editing already resolves visual endpoint references through VisualPort.semantic_reference before creating the canonical SemanticConnection. Therefore controller-owned port projection can reuse the existing connection architecture.
+
+The intended real-data path is:
+
+Controller → controller-owned SemanticPorts → VisualPorts → connection editing → canonical SemanticConnection → existing Routing geometry.
+
+Real Maestro visualization should remain generic rather than hard-coded to Maestro.
+
+Documented physical board dimensions, outline, connector locations, and connector orientation are Hardware Definition information when they describe the manufactured hardware and trustworthy evidence exists. User-controlled node placement, visual rotation, zoom/detail level, filters, layers, selection, and highlighting remain visual/document state.
+
+Routing continues to own route geometry, endpoint escape geometry, obstacle handling, pathfinding, route legality, route stability, geometry repair, routing costs, routing state/caches, and diagnostics.
+
+Current Maestro data does not yet provide trustworthy structured physical connector positions/orientations. The first generic board visualization may therefore legitimately use a simple board rectangle with real sorted/grouped interface labels rather than inventing physical locations.
+
+Recovered editor constraint: basic/intermediate/extreme detail levels are presentation modes over the same underlying canonical + visual dataset. Filters and layers are independent view-state controls. Changing detail or zoom must never create or mutate a second semantic model.
+
+No new Protocol, adapter, or Board → Routing contract is currently justified.
+
+Potential future semantic query boundaries remain WATCH items only:
+- visual endpoint → canonical SemanticPort resolution;
+- semantic compatibility evaluation;
+- canonical connection-invariant queries.
+
+These should be introduced only when a concrete consumer need demonstrates that direct canonical-model access is no longer appropriate.
+
+Recommended first #4 implementation slice:
+- use the real canonical Maestro controller;
+- project controller-owned SemanticPorts into VisualPorts;
+- display them using the existing visual-port mechanism;
+- support basic grouping/filtering as view state;
+- verify semantic endpoint resolution;
+- then exercise candidate connections against a real reusable external component.
+
+No implementation files, tests, Routing behavior, visual-editor code, or other workstream files were changed as part of this documentation checkpoint.
+
 Recovery rule
 
 This handoff is a living recovery document.

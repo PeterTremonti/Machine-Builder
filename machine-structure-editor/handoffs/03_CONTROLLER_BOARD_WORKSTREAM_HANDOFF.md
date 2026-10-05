@@ -1807,3 +1807,54 @@ case.
 
 The next Board investigation is the documented Octopus receiving
 socket/interface and TMC5160T contact-mapping representation.
+## 2026-10-05 — Completed Duet 2 Maestro Investigation Checkpoint
+
+This is a documentation-only checkpoint recording the completed Duet 2 Maestro v1.0 investigation.
+
+### Completed Investigation
+
+- The Duet 2 Maestro v1.0 HardwareDefinition is a legitimate reusable canonical hardware definition with manufacturer provenance.
+- The current specimen contains 17 physical connector/interface specifications:
+  - 6 motor interfaces: X, Y, Z-A, Z-B, E0, E1.
+  - 5 endstop interfaces: X, Y, Z, E0, E1.
+  - 6 heater interfaces: three Molex interfaces and three screw-terminal interfaces.
+- The broader documented and physically inspected Maestro interface inventory remains relevant for future classification: USB, Ethernet, PanelDue, PanelDue_SD, 12864 EXP1/EXP2, Probe, E2, E3, C_GND, J21, TEMP_OB, ERASE, Always On Fan, Fan1, A VIN, E 5V EN, and 5V PS.
+
+### Semantic Conclusions
+
+The real Maestro specimen reinforces these distinctions:
+
+- Physical interface != SemanticPort != ControllerResource.
+- One ControllerResource may be exposed through multiple physical SemanticPorts.
+- A physical header is not the same thing as a driver module, controller resource, or machine axis.
+- Machine-specific configuration, including a possible three-Z arrangement, must not be baked into the reusable Maestro HardwareDefinition.
+
+The current Board implementation constructs canonical objects directly and does not maintain a parallel Board semantic model.
+
+### Cross-Workstream / Ontology Review
+
+- No Board -> Routing dependency, adapter, Protocol, or other cross-workstream contract was found to be necessary.
+- No new canonical Connector, MatingInterface, Contact, DriverSocket, or Board-specific semantic entity is currently justified.
+- hardware_catalog.py remains a mixed-ownership/governance question because it contains generic reusable definitions alongside Board-specific Maestro/TMC5160T material. It is intentionally not being reorganized as part of this checkpoint.
+
+### Remaining Hardware-Data Gaps
+
+The major remaining gaps are:
+
+- broader connector/interface coverage;
+- structured physical board geometry where trustworthy source evidence exists;
+- documented connector locations and orientations.
+
+Physical board geometry that describes the manufactured hardware itself should be treated as reusable HardwareDefinition data. Editor placement, rotation, routing, and other document/view state remain visual/document state.
+
+### Next Board Checkpoint
+
+The recommended next Board implementation step is:
+
+**Complete the real Duet 2 Maestro hardware specimen using the existing representation, without introducing a new ontology layer.**
+
+The later firmware task remains separate: build an RRF 3.5.4 / Promega implementation specimen and do not conflate firmware representation or machine-specific configuration with the reusable physical Board model.
+
+### Scope / Ownership
+
+This checkpoint changes documentation only. No Board implementation code, tests, catalog structure, or files owned by another workstream are intentionally modified.
