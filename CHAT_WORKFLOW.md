@@ -406,6 +406,26 @@ Unresolved Issues
 Latest Test State
 ```
 
+Handoff Formatting Integrity
+
+Living handoffs must remain valid, readable Markdown.
+
+Use normal Markdown structure for durable documents:
+
+- headings use Markdown heading markers such as `#`, `##`, or `###`;
+- do not simulate headings by wrapping the heading itself in bold text;
+- horizontal rules use a standalone `---` line;
+- fenced code blocks must have matching opening and closing fences;
+- do not leave a code fence open across unrelated prose or the rest of the document;
+- executable PowerShell must not be mixed into surrounding explanatory prose;
+- runnable commands intended for the user must follow the Copy/Paste Command Formatting Safety rules in `CHAT_WORKFLOW.md`;
+- checkpoint sections should use a clear heading, local date/time with timezone, and structured checkpoint content;
+- preserve the established handoff section order and do not move historical checkpoints into the current `Next Action` section.
+
+When creating or editing a handoff, inspect the rendered structure or the raw Markdown as appropriate and verify that headings, separators, lists, quotations, and code blocks remain syntactically complete.
+
+A formatting problem in one part of a handoff must not be allowed to turn the remainder of the document into accidental code, ordinary chat text, or other unintended Markdown structure.
+
 Chronological checkpoints belong in the history section.
 
 Do not insert new checkpoints around a separate `Next Action` section.
