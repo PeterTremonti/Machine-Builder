@@ -1214,6 +1214,20 @@ The latest dedicated routing checkpoint remains:
 
 No implementation commit was created for Part 2.
 
+# Checkpoint 14 — 2026-10-04 9:05 PM — Legacy Routing handoff reconciliation
+
+The former V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md was compared with the current Routing continuity handoff and the historical 4.3/4.4 Routing records.
+
+The old document contains historical Routing / Diagnostics material rather than a current Visual Editor implementation handoff. It has been renamed to ROUTING_DIAGNOSTICS_HISTORICAL_HANDOFF.md so its historical provenance is preserved while its misleading current-authority identity is removed.
+
+Most substantive Routing investigation from the old document is already preserved in the current Routing handoff and the historical 4.3/4.4 records.
+
+Useful historical Routing details additionally retained in the renamed file include the Routing Debug Mode viewport repaint fix (FullViewportUpdate while Debug Mode is active, restored to MinimalViewportUpdate when disabled) and the historical Debug Mode overlay inventory covering physical component bounds, routing-clearance envelopes, fixed endpoint stubs, endpoint escape geometry, the main routed path, unroutable endpoint markers, and the last canvas click.
+
+Current Routing continuity belongs to  4_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md. Historical Routing material remains preserved in ROUTING_DIAGNOSTICS_HISTORICAL_HANDOFF.md, ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md, and ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md.
+
+No routing implementation, routing behavior, or topology-versus-geometry architectural investigation was changed.
+
 Recovery rule
 
 This handoff is a living recovery document.
