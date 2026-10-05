@@ -631,13 +631,13 @@ Reopen these only when concrete implementation, research, testing, or real-machi
 
 **Chat instance:** current Chat 01
 
-**Date:** 2026-10-04
+**Date/time:** 2026-10-05 18:05:45 -04:00
 
 **Repository branch:** `main`
 
 **Latest verified full test state:** `756 passed`
 
-**Exact current HEAD:** `102176a3625436bcf0ffe76d333ebf337efd35b7`
+**Exact current HEAD:** `b772f24e8216aea5d9ee14df1e539aab7f290cc2`
 
 **Primary current effort:** complete the Planning-owned documentation reconciliation while preserving clear authority, supporting, working, and historical roles.
 
@@ -651,25 +651,16 @@ Reopen these only when concrete implementation, research, testing, or real-machi
 4. Read `MASTER_PLAN.md`.
 5. Read `CHAT_WORKFLOW.md`.
 6. Verify current `main`, exact HEAD, working-tree state, and latest tests.
-7. Review the existing documentation authority map against the actual repository.
-8. Compare the old planning/implementation documents against the current authorities before changing any of them.
-9. Obtain/verify Chat 02's complete documentation-audit findings if they are not already captured in its handoff.
-10. Create the historical document mapping.
-11. Create `HISTORICAL_DOCUMENT_ARCHIVE.md` once that mapping is sufficiently complete.
-12. Update `CHAT_WORKFLOW.md` so its documentation-governance section points cleanly to the authority index without duplicating it.
-13. Reconcile `README.md` only where its orientation is actually stale.
-14. Decide what belongs in `PROJECT_CURRENT_STATE.md` versus the workstream handoffs.
-15. Send targeted instructions to the owning workstreams rather than editing their handoffs directly.
-16. Update this Planning handoff with the next verified checkpoint.
+7. Treat completed Research, Board, and Routing reconciliation checkpoints as completed; do not repeat them without a new question.
+8. Treat shared-contract/separate-implementation-ownership as the default cross-workstream governance rule.
+9. Obey the hard Machine Builder tooling, repository-editing, and copy/paste command-formatting constraints in `CHAT_WORKFLOW.md`.
+10. Continue current Planning questions from the durable handoffs and repository state.
+11. When a change is needed outside Planning ownership, delegate it to the owning workstream rather than modifying its implementation directly.
+12. Keep this handoff current as the Planning continuity record.
 
-The immediate next decision is:
+The current Planning principle is:
 
-> **Compare the existing implementation/planning documents against the newly established authority model and determine what is active, supporting, historical, superseded, or retired.**
-
-Do not start by rewriting old documents.
-
----
-
+> **One primary question → one authoritative document, with explicit ownership of implementation files and stable shared contracts between workstreams.**
 # Recovery Principle
 
 The Planning chat should not need the old conversation to understand the project's current documentation governance.
@@ -690,48 +681,62 @@ historical record when retired
 
 A chat can end without the project's knowledge ending.
 
-Planning Decision - Cross-Workstream File Ownership
+# Planning Decision - Cross-Workstream File Ownership
 
 Status: DECIDED
+
 Date: 2026-10-05
 
 The project adopts shared contract, separate implementation ownership as the default cross-workstream pattern.
 
 Workstream-specific implementation files have one owning workstream.
+
 Shared implementation, infrastructure, and canonical-model files also have one explicit owner.
+
 A file does not become jointly owned because multiple workstreams depend on it.
+
 Workstreams should interact through established canonical model types, interfaces, identifiers, and other agreed contracts.
+
 A workstream needing a change outside its ownership reports the requirement to Planning / Architecture.
+
 Planning decides whether the change is warranted and delegates implementation to the owning workstream.
-Changes affecting shared canonical contracts or semantic boundaries require Planning / Architecture review before implementation.
+
+Changes affecting shared canonical contracts or semantic boundaries require Planning / Architecture review.
+
 The owning workstream performs and tests the approved change.
+
 Chat 05 remains read-only outside its own handoff.
-Board Physical Evidence Update - 2026-10-05
+
+---
+
+# Board Physical Evidence Update - 2026-10-05
 
 Chat 03 reported additional physical inspection evidence from the Duet 2 Maestro V1.0.
 
 The evidence reinforces, rather than changes, the current architecture:
 
-physical controller interfaces are not synonymous with Controller Resources;
-the E2/E3 external driver headers are physical interfaces for additional driver modules while the logical resources remain separate controller resources;
-meaningful PCB connector labels and manufacturer documentation may identify physical interfaces even when individual contact numbers are not printed on the PCB;
-an unreadable/unidentified endstop connector must remain unidentified until documentation establishes its identity rather than being inferred;
-the possible PanelDue_SD label remains pending documentation verification;
-the heater multi-access-point interpretation should be treated as pending evidence until the documentation is verified.
+- physical controller interfaces are not synonymous with Controller Resources;
+- the E2/E3 external driver headers are physical interfaces for additional driver modules while the logical resources remain separate controller resources;
+- meaningful PCB connector labels and manufacturer documentation may identify physical interfaces even when individual contact numbers are not printed on the PCB;
+- an unreadable/unidentified endstop connector must remain unidentified until documentation establishes its identity rather than being inferred;
+- the possible `PanelDue_SD` label remains pending documentation verification;
+- the heater multi-access-point interpretation should be treated as pending evidence until the documentation is verified.
 
 Planning decision:
 
-No new canonical interface entity is justified by this evidence.
+> **No new canonical interface entity is justified by this evidence.**
 
 The Board work should continue testing the existing Controller, Controller Resource, SemanticPort, connector grouping, and related relationships against the documented physical inventory.
 
-Documentation Reference Reconciliation - 2026-10-05
+---
+
+# Documentation Reference Reconciliation - 2026-10-05
 
 Chat 05 identified a remaining documentation inconsistency:
 
-machine-builder-research/handoffs/IMPLEMENTATION_HANDOFF_INDEX.md
+`machine-builder-research/handoffs/IMPLEMENTATION_HANDOFF_INDEX.md`
 
-still presents the docs/visual-builder/ files as the Current Visual Builder Handoff Set, while HISTORICAL_DOCUMENT_ARCHIVE.md now classifies those same files as HISTORICAL.
+still presents the `docs/visual-builder/` files as the **Current Visual Builder Handoff Set**, while `HISTORICAL_DOCUMENT_ARCHIVE.md` now classifies those same files as HISTORICAL.
 
 Planning delegates reconciliation of that Research-owned index to Research / Architecture (#2).
 
