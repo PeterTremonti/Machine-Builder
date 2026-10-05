@@ -933,6 +933,138 @@ The primary remaining work is **real-data coverage, generic visual projection, a
 
 **---**
 
+**# Repository Encoding / Line-Ending Audit Checkpoint**
+
+Updated: 2026-10-05 18:17:02 -04:00
+
+Chat 05 — Efficiency / Modularization / Audit completed a read-only repository encoding and line-ending audit following a real Unicode corruption incident during a PowerShell edit of hardware_catalog.py.
+
+**## Findings**
+
+The repository's stored/index representation is consistent.
+
+The repository contains .gitattributes with * text=auto, and the applicable Git configuration has core.autocrlf=true.
+
+The observed convention is:
+
+\\\	ext
+
+Git repository/index
+    LF-normalized text
+
+Windows working tree
+    CRLF normally produced by Git
+\\\
+
+The widespread CRLF working-tree representation is therefore expected Windows Git checkout behavior, not evidence of repository-wide line-ending corruption.
+
+The audit reported:
+
+\\\	ext
+
+870  index LF / worktree CRLF
+3    index LF / worktree LF
+6    index LF / worktree MIXED
+13   binary/-text handling
+5    no line endings
+\\\
+
+The six files with genuinely mixed working-tree line endings were:
+
+\\\	ext
+
+CHAT_WORKFLOW.md
+machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_WORKSTREAM_HANDOFF.md
+machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md
+machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_WORKSTREAM_HANDOFF.md
+machine-structure-editor/src/machine_builder/hardware_catalog.py
+machine-structure-editor/tests/test_connection_authoring.py
+\\\
+
+The audit also found two UTF-8-with-BOM files:
+
+\\\	ext
+
+CODER_CHAT_WORKFLOW.md
+machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md
+\\\
+
+No invalid UTF-8 files were found among the audited text-like files.
+
+**## hardware_catalog.py incident**
+
+The current file contains valid UTF-8 and correct Unicode, including:
+
+\\\	ext
+
+40 × 40 × 10 mm
+6200 ±10% RPM
+20.4 × 15.3 × 23.2 mm
+\\\
+
+No current mojibake was found.
+
+The earlier Unicode corruption was a real transient editing incident, but the current repository no longer contains that corrupted state.
+
+**## Repository editing standard**
+
+For new or deliberately rewritten text files, use UTF-8 without BOM unless an existing historical file has a documented reason to retain another encoding.
+
+For small tracked-file edits:
+
+1. Prefer a small git apply patch when practical.
+2. When PowerShell string editing is appropriate, explicitly decode and encode UTF-8.
+3. Do not rely on PowerShell's implicit/default text encoding for repository files.
+4. Guard replacements so they fail when the expected source block is missing.
+5. Also fail when a supposedly unique source block occurs more than once.
+6. Preserve existing line endings rather than normalizing the entire file unnecessarily.
+7. Run git diff --check after editing.
+8. Inspect the relevant git diff.
+9. Run the focused tests before broader testing at the appropriate checkpoint.
+
+Byte-based UTF-8 read/write remains appropriate when exact byte-level or BOM preservation is specifically required, but it is not the default mechanism for every ordinary replacement.
+
+The important distinction is:
+
+> **CRLF in the Windows working tree is acceptable. Accidental transcoding of UTF-8 source text is not.**
+
+Uncontrolled PowerShell text round-trips that rely on implicit encoding should not be used for tracked repository edits.
+
+**## Cleanup assessment**
+
+A separate controlled cleanup checkpoint may eventually be warranted for the six mixed working-tree files, deliberate review of the two historical BOM files, and any future confirmed mojibake.
+
+No repository-wide mass conversion is warranted from this audit.
+
+No cleanup or normalization was performed by Chat 05 during the audit.
+
+**## Research classification**
+
+Primary classification:
+
+\\\	ext
+
+REINFORCE
+\\\
+
+Secondary classification:
+
+\\\	ext
+
+IMPLEMENTATION ONLY
+\\\
+
+WATCH remains appropriate for the localized mixed-line-ending files and historical BOM cases until a deliberate cleanup decision is made.
+
+**## Workflow implication**
+
+This finding does not change the canonical machine architecture.
+
+It reinforces the project-wide requirement that ordinary Machine Builder repository inspection, source mining, implementation, testing, and audit work use the normal repository tooling rather than Python/Jupyter/data-analysis workflows.
+
+The authoritative project-wide tooling, timeline-integrity, and copy/paste command-formatting rules now live in CHAT_WORKFLOW.md.
+
+**---
 **# Repository Change Rule**
 
 Chat 02 should not independently rewrite `PROJECT_CURRENT_STATE.md`.
