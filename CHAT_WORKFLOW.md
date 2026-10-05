@@ -886,6 +886,7 @@ Do not place Markdown fences inside a PowerShell copy/paste block.
 Do not place explanatory prose such as Then, Next, or Run this inside the executable command block.
 
 Do not place a language marker such as powershell inside the executable command block.
+The opening Markdown fence for an executable PowerShell block must use the plain powershell language-marker fence with no id= attribute, HTML attribute, title, or other metadata. Do not add metadata to executable command fences.
 
 When a command must contain multi-line Markdown or other literal text, use a PowerShell here-string or another representation that does not introduce nested Markdown fences into the outer response formatting.
 
@@ -896,3 +897,23 @@ Before giving a path-sensitive command, either state the required starting direc
 After a command block is supplied, the user should be able to copy the block verbatim without having to remove Markdown, prose, or formatting markers.
 
 This requirement applies to all workstreams and all repository operations, including read-only inspection commands.
+
+## Repository Edit Safety
+
+When a command is intended to modify a tracked file, the operation must fail closed.
+
+If the expected file, anchor text, occurrence count, or other stated precondition is not exactly what was expected, make no change and report the mismatch.
+
+Prefer `git apply` for small tracked-file edits.
+
+For other surgical text edits, use explicit UTF-8 handling and preserve the existing file's line-ending behavior where practical.
+
+Do not perform uncontrolled `Get-Content` / `Set-Content` or equivalent read/write round-trips on tracked text files.
+
+After every tracked-file edit, run `git diff --check`, inspect the resulting diff, and verify `git status` before proceeding.
+
+Do not combine unrelated workstream changes in the same edit or commit.
+
+Path-sensitive commands must resolve the repository root or explicitly establish their required starting directory.
+
+Executable commands should avoid unnecessary non-ASCII or invisible characters unless those characters are deliberately required by the task.
