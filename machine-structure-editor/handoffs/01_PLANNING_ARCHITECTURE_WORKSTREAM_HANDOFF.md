@@ -689,3 +689,52 @@ historical record when retired
 ```
 
 A chat can end without the project's knowledge ending.
+
+Planning Decision - Cross-Workstream File Ownership
+
+Status: DECIDED
+Date: 2026-10-05
+
+The project adopts shared contract, separate implementation ownership as the default cross-workstream pattern.
+
+Workstream-specific implementation files have one owning workstream.
+Shared implementation, infrastructure, and canonical-model files also have one explicit owner.
+A file does not become jointly owned because multiple workstreams depend on it.
+Workstreams should interact through established canonical model types, interfaces, identifiers, and other agreed contracts.
+A workstream needing a change outside its ownership reports the requirement to Planning / Architecture.
+Planning decides whether the change is warranted and delegates implementation to the owning workstream.
+Changes affecting shared canonical contracts or semantic boundaries require Planning / Architecture review before implementation.
+The owning workstream performs and tests the approved change.
+Chat 05 remains read-only outside its own handoff.
+Board Physical Evidence Update - 2026-10-05
+
+Chat 03 reported additional physical inspection evidence from the Duet 2 Maestro V1.0.
+
+The evidence reinforces, rather than changes, the current architecture:
+
+physical controller interfaces are not synonymous with Controller Resources;
+the E2/E3 external driver headers are physical interfaces for additional driver modules while the logical resources remain separate controller resources;
+meaningful PCB connector labels and manufacturer documentation may identify physical interfaces even when individual contact numbers are not printed on the PCB;
+an unreadable/unidentified endstop connector must remain unidentified until documentation establishes its identity rather than being inferred;
+the possible PanelDue_SD label remains pending documentation verification;
+the heater multi-access-point interpretation should be treated as pending evidence until the documentation is verified.
+
+Planning decision:
+
+No new canonical interface entity is justified by this evidence.
+
+The Board work should continue testing the existing Controller, Controller Resource, SemanticPort, connector grouping, and related relationships against the documented physical inventory.
+
+Documentation Reference Reconciliation - 2026-10-05
+
+Chat 05 identified a remaining documentation inconsistency:
+
+machine-builder-research/handoffs/IMPLEMENTATION_HANDOFF_INDEX.md
+
+still presents the docs/visual-builder/ files as the Current Visual Builder Handoff Set, while HISTORICAL_DOCUMENT_ARCHIVE.md now classifies those same files as HISTORICAL.
+
+Planning delegates reconciliation of that Research-owned index to Research / Architecture (#2).
+
+No deletion of the historical Visual Builder documents is authorized by this finding.
+
+Any useful historical information must remain preserved, and the current authority hierarchy established by Planning remains unchanged.

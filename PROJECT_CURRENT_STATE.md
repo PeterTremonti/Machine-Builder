@@ -4,7 +4,7 @@
 
 **Status:** Living project snapshot; not a replacement for architecture/decision documents.
 
-**Last updated:** 2026-09-27
+**Last updated:** 2026-10-04
 
 ---
 
@@ -211,7 +211,7 @@ There is no separate routing worktree.
 The combined `main` branch currently reports:
 
 ```text
-717 passed in 2.46s
+756 passed in 2.65s
 ```
 
 The working tree is clean and `git diff --check` is clean.
@@ -222,7 +222,7 @@ Earlier routing-specific checkpoints remain useful as historical information:
 * **38** = earlier directly targeted `tests/test_connection_routing.py` result
 * **54 / 694** = earlier broader focused-routing checkpoint
 
-The current project-wide baseline is the combined `main` result of **706 passing tests**.
+The latest reported project-wide full-suite result is **756 passed in 2.65s**. This is the latest known result, not a new test run performed while editing this document.
 
 ---
 
@@ -1076,7 +1076,7 @@ As of this document:
 * Controller-board work is now part of the shared `main` branch.
 * The former `wip-controller-board-breakout` and `wip-routing-diagnostics` branches have been merged into `main` and retired.
 * There is now one normal local checkout and one active Git branch: `main`.
-* Existing controller, resource, assignment, hardware-definition, semantic-port, and controller-visual infrastructure provides a substantial foundation for board work.
-* The main unresolved board architecture question is how an installed Controller relates to its reusable Hardware Definition.
-* No new canonical Board ontology has yet been justified.
+* Existing controller, resource, assignment, hardware-definition, semantic-port, controller-visual, `exposed_through`, and `mated_with` infrastructure provides a substantial foundation for board work.
+* The Controller-to-Hardware Definition relationship is resolved and reinforced through typed `hardware_definition_id`, validation, and persistence tests.
+* The Maestro and Octopus experiments have not justified a new canonical Board ontology.
 * The project should continue using implementation evidence to reinforce or refine architecture rather than allowing implementation complexity alone to trigger redesign.

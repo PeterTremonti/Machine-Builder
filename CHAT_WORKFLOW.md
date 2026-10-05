@@ -747,3 +747,33 @@ The objective of this workflow is simple:
 Every important idea, decision, research result, implementation checkpoint, and future problem should have a durable home outside conversation memory.
 
 The repository and project documentation are the project's long-term memory.
+
+---
+
+# 32. Cross-Workstream File Ownership
+
+Workstream-specific implementation files have one owning workstream.
+
+Shared implementation, infrastructure, and canonical-model files also have one explicit owner, even when multiple workstreams depend on them.
+
+Workstreams should interact through agreed canonical model types, interfaces, identifiers, and other stable contracts rather than sharing implementation ownership.
+
+When a workstream needs a change to a file outside its ownership:
+
+1. report the requirement to Planning / Architecture;
+2. Planning determines whether the change is warranted;
+3. Planning delegates the implementation to the owning workstream;
+4. the owning workstream performs and tests the change;
+5. dependent workstreams consume the resulting shared contract or implementation.
+
+Changes affecting a shared canonical contract or semantic boundary require Planning / Architecture review before implementation.
+
+The preferred default pattern is:
+
+```text
+Board-owned implementation
+        |
+shared canonical contract
+        |
+Routing-owned implementation
+This is the project's default shared contract, separate implementation ownership model.
