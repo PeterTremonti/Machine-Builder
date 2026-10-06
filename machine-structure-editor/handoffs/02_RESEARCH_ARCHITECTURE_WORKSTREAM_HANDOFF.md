@@ -986,7 +986,7 @@ The audit also found two UTF-8-with-BOM files:
 \\\	ext
 
 CODER_CHAT_WORKFLOW.md
-machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md
+docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md
 \\\
 
 No invalid UTF-8 files were found among the audited text-like files.

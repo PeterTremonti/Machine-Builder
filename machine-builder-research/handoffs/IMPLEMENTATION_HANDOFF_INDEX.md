@@ -221,13 +221,13 @@ The implementation is intentionally progressing before the entire long-term onto
 
 8. Historical Visual Builder Documentation Reference
 
-The five documents under docs/visual-builder/ listed below are retained as historical/reference material from the original V0.1 Visual Builder work.
+The five documents under docs/historical/visual-builder/ listed below are retained as historical/reference material from the original V0.1 Visual Builder work.
 
 They are NOT the current authoritative Visual Builder implementation handoff set.
 
 The files remain useful for historical context and for understanding the evolution of the Visual Builder work:
 
-docs/visual-builder/
+docs/historical/visual-builder/
 ├── VISUAL_BUILDER_SCOPE.md
 ├── VISUAL_MODEL.md
 ├── VISUAL_BUILDER_REQUIREMENTS.md
