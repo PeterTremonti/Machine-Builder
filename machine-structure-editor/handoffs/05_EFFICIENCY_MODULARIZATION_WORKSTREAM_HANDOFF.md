@@ -88,9 +88,9 @@ Look for documentation that is:
 
 Known files/areas worth investigating include:
 
-* `CODER_CHAT_WORKFLOW.md`
+* `docs/historical/workflow/CODER_CHAT_WORKFLOW.md`
 * files under `docs/`
-* `V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md`
+* `docs/historical/routing/ROUTING_DIAGNOSTICS_HISTORICAL_HANDOFF.md`
 * older workstream/history documents
 * any other README, planning, architecture, or handoff files that overlap with the current documentation hierarchy
 
@@ -355,7 +355,7 @@ The repository should therefore be audited against this **new documentation stru
 
 **Current known cleanup candidates:**
 
-* `CODER_CHAT_WORKFLOW.md`
+* `docs/historical/workflow/CODER_CHAT_WORKFLOW.md`
 * older files under `docs/`
 * older/superseded handoff or implementation documentation
 * `IdeaFormer Facebook Files/Unconfirmed 429420.crdownload`
@@ -475,19 +475,19 @@ This checkpoint records the locally verified state and separates confirmed defec
 
 ### Current but Under Review
 
-- `CODER_CHAT_WORKFLOW.md` — still contains unique implementation-specific guidance, including pytest authority, Windows test-warning handling, routing investigation guidance, and coder-chat recovery. It overlaps substantially with `CHAT_WORKFLOW.md` and should be reconciled rather than deleted without review.
+- `docs/historical/workflow/CODER_CHAT_WORKFLOW.md` — still contains unique implementation-specific guidance, including pytest authority, Windows test-warning handling, routing investigation guidance, and coder-chat recovery. It overlaps substantially with `CHAT_WORKFLOW.md` and should be reconciled rather than deleted without review.
 - `docs/implementation/V0.2_IMPLEMENTATION_PLAN.md` — contains substantial unique V0.2 architecture, semantic-boundary, persistence, provenance, compatibility, and decision-history material. Its current status still says `Initial planning`, and its final-state sections remain unfinished. Preserve it; reconcile its status/content with the established V0.2 state rather than deleting it.
 
 ### Recommended documentation cleanup
 
 - `IMPLEMENTATION_ROADMAP.md` contains stale V0.2 language stating that planning has not started and that implementation should not begin until a plan exists. This should be corrected to reflect the existing V0.2 plan and implementation state.
-- `handoffs/V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md` is misnamed: its current contents are routing diagnostics / route-stability material even though the filename identifies it as a V0.2 Visual Editor handoff. Preserve its historical information, but correct/archive the naming and provenance at a deliberate documentation checkpoint.
-- `handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md` and `handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md` are historical routing investigations and should remain available as historical reference.
+- `docs/historical/routing/ROUTING_DIAGNOSTICS_HISTORICAL_HANDOFF.md` is misnamed: its current contents are routing diagnostics / route-stability material even though the filename identifies it as a V0.2 Visual Editor handoff. Preserve its historical information, but correct/archive the naming and provenance at a deliberate documentation checkpoint.
+- `docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md` and `docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md` are historical routing investigations and should remain available as historical reference.
 - `Read me to continue 4.1 chat.txt` is a historical chat-transcript/provenance artifact rather than current project documentation. Preserve for now; do not treat it as current architecture.
 
 ### Documentation structure finding
 
-The top-level documentation hierarchy is fundamentally sound. The main issues are stale status text, historical/misnamed material, and overlap between the project-wide `CHAT_WORKFLOW.md` and specialized `CODER_CHAT_WORKFLOW.md`. There is no justification for a wholesale documentation reorganization from this audit.
+The top-level documentation hierarchy is fundamentally sound. The main issues are stale status text, historical/misnamed material, and overlap between the project-wide `CHAT_WORKFLOW.md` and specialized `docs/historical/workflow/CODER_CHAT_WORKFLOW.md`. There is no justification for a wholesale documentation reorganization from this audit.
 
 ## Artifact findings
 
@@ -583,8 +583,8 @@ Classification: **Minor duplication / leave local unless a shared routing-geomet
 
 1. Refresh stale V0.2 status text in `IMPLEMENTATION_ROADMAP.md`.
 2. Reconcile `V0.2_IMPLEMENTATION_PLAN.md` status/final sections with the established V0.2 state while preserving unique historical material.
-3. Decide whether `CODER_CHAT_WORKFLOW.md` remains a specialized supplement or has its unique material consolidated into `CHAT_WORKFLOW.md`.
-4. Correct/archive the misleading `V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md` filename/provenance.
+3. Decide whether `docs/historical/workflow/CODER_CHAT_WORKFLOW.md` remains a specialized supplement or has its unique material consolidated into `CHAT_WORKFLOW.md`.
+4. Correct/archive the misleading `docs/historical/routing/ROUTING_DIAGNOSTICS_HISTORICAL_HANDOFF.md` filename/provenance.
 
 ## Future refactor candidates
 
@@ -606,7 +606,7 @@ Classification: **Minor duplication / leave local unless a shared routing-geomet
 ## Unresolved items
 
 - Cleanup sequencing and scope have not been approved for implementation.
-- The long-term relationship between `CHAT_WORKFLOW.md` and `CODER_CHAT_WORKFLOW.md` remains to be decided.
+- The long-term relationship between `CHAT_WORKFLOW.md` and `docs/historical/workflow/CODER_CHAT_WORKFLOW.md` remains to be decided.
 - The V0.2 implementation plan needs documentation/status reconciliation, but its unique historical material should be preserved.
 - The `SelectionInspector` duplicate definitions need cleanup, but no behavior change or test modification was performed during this audit.
 - Routing modularization candidates remain under Workstream 04 ownership and should not be reopened merely because the files are large.
