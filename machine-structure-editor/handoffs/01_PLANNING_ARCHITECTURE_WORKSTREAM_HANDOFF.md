@@ -750,7 +750,7 @@ Planning delegated reconciliation of that Research-owned index to Research / Arc
 
 Research completed the reconciliation in commit `e2f12fd65a88a53f245717da3737d64c39a5f076` (**Reconcile historical Visual Builder handoff references**).
 
-The index now identifies the five `docs/visual-builder/` files as historical/reference material rather than the current authoritative Visual Builder implementation handoff set, and directs current project, architecture, implementation, and workstream questions to `DOCUMENTATION_AUTHORITY.md`.
+The index now identifies the five `docs/historical/visual-builder/` files as historical/reference material rather than the current authoritative Visual Builder implementation handoff set, and directs current project, architecture, implementation, and workstream questions to `DOCUMENTATION_AUTHORITY.md`.
 
 No historical Visual Builder documents were modified or deleted, and no new architecture or ontology requirement was introduced.
 

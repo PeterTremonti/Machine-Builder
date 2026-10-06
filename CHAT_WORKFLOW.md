@@ -764,6 +764,12 @@ When chronology is uncertain, report the uncertainty rather than silently choosi
 
 # 30. User Workflow Preference
 
+The standard PowerShell working directory for all Machine Builder chats is:
+
+`C:\Users\Peter\Documents\GitHub\Machine-Builder`
+
+Chats should assume the terminal starts at the repository root and should not unnecessarily change the current directory. When a command temporarily requires a subdirectory, it should leave the terminal at the repository root when the command sequence is complete.
+
 The user prefers:
 
 * exact PowerShell commands

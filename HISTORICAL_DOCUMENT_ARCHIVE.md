@@ -12,7 +12,7 @@ Git preserves the exact historical contents of the files themselves.
 
 # 1. Superseded workflow documentation
 
-## `CODER_CHAT_WORKFLOW.md`
+## `docs/historical/workflow/CODER_CHAT_WORKFLOW.md`
 
 **Classification:** SUPERSEDED
 
@@ -28,7 +28,7 @@ Its reusable workflow concepts are now represented by the project-wide `CHAT_WOR
 
 These documents describe the original V0.1 Visual Builder prototype and are retained as historical/reference material.
 
-## `docs/visual-builder/VISUAL_BUILDER_ARCHITECTURE.md`
+## `docs/historical/visual-builder/VISUAL_BUILDER_ARCHITECTURE.md`
 
 **Classification:** HISTORICAL
 
@@ -36,7 +36,7 @@ These documents describe the original V0.1 Visual Builder prototype and are reta
 
 **Historical value:** Records the original Visual Builder architectural framing used during V0.1.
 
-## `docs/visual-builder/VISUAL_BUILDER_CODER_HANDOFF.md`
+## `docs/historical/visual-builder/VISUAL_BUILDER_CODER_HANDOFF.md`
 
 **Classification:** HISTORICAL
 
@@ -44,7 +44,7 @@ These documents describe the original V0.1 Visual Builder prototype and are reta
 
 **Historical value:** Records the original V0.1 implementation handoff and coder-oriented execution context.
 
-## `docs/visual-builder/VISUAL_BUILDER_REQUIREMENTS.md`
+## `docs/historical/visual-builder/VISUAL_BUILDER_REQUIREMENTS.md`
 
 **Classification:** HISTORICAL
 
@@ -52,7 +52,7 @@ These documents describe the original V0.1 Visual Builder prototype and are reta
 
 **Historical value:** Records the original V0.1 Visual Builder requirements and prototype objectives.
 
-## `docs/visual-builder/VISUAL_BUILDER_SCOPE.md`
+## `docs/historical/visual-builder/VISUAL_BUILDER_SCOPE.md`
 
 **Classification:** HISTORICAL
 
@@ -60,7 +60,7 @@ These documents describe the original V0.1 Visual Builder prototype and are reta
 
 **Historical value:** Records the original V0.1 prototype scope and its boundaries.
 
-## `docs/visual-builder/VISUAL_MODEL.md`
+## `docs/historical/visual-builder/VISUAL_MODEL.md`
 
 **Classification:** HISTORICAL
 
@@ -78,7 +78,7 @@ These documents describe the original V0.1 Visual Builder prototype and are reta
 
 ## Current path
 
-`machine-structure-editor/handoffs/ROUTING_DIAGNOSTICS_HISTORICAL_HANDOFF.md`
+`docs/historical/routing/ROUTING_DIAGNOSTICS_HISTORICAL_HANDOFF.md`
 
 **Classification:** HISTORICAL
 
@@ -90,7 +90,7 @@ These documents describe the original V0.1 Visual Builder prototype and are reta
 
 # 4. Historical Routing investigation handoffs
 
-## `machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md`
+## `docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md`
 
 **Classification:** HISTORICAL
 
@@ -98,7 +98,7 @@ These documents describe the original V0.1 Visual Builder prototype and are reta
 
 **Historical value:** Preserves the 4.3 routing investigation checkpoint and its historical reasoning.
 
-## `machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md`
+## `docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md`
 
 **Classification:** HISTORICAL
 
