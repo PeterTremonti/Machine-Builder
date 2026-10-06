@@ -331,19 +331,17 @@ Do not rewrite it solely because its old status wording is stale. Compare its co
 
 ## IMPLEMENTATION_ROADMAP.md
 
-**Decision:** UNDER REVIEW.
+**Decision:** AUTHORITATIVE.
 
-Do not reactivate it simply because its status wording is old.
+Primary question:
 
-First compare its contents against:
+> What is the overall implementation roadmap for the Machine Structure Editor?
 
-* `MASTER_PLAN.md`
-* `PROJECT_CURRENT_STATE.md`
-* `V0.2_IMPLEMENTATION_PLAN.md`
-* current research milestones
-* current implementation direction
+The roadmap owns the high-level implementation path, implementation milestones, version strategy, and future implementation direction.
 
-Then decide whether it remains useful, becomes historical, is superseded, or is retired.
+It is a scoped implementation authority, not the authority for overall Machine Builder direction, canonical ontology, or current project-wide state.
+
+The version-specific implementation plan remains the detailed plan and implementation record for an individual active milestone.
 
 ---
 
