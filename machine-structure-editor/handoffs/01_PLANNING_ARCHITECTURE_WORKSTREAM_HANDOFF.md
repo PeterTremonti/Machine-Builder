@@ -744,10 +744,14 @@ Chat 05 identified a remaining documentation inconsistency:
 
 `machine-builder-research/handoffs/IMPLEMENTATION_HANDOFF_INDEX.md`
 
-still presents the `docs/visual-builder/` files as the **Current Visual Builder Handoff Set**, while `HISTORICAL_DOCUMENT_ARCHIVE.md` now classifies those same files as HISTORICAL.
+The Research-owned index previously presented the `docs/visual-builder/` files as the **Current Visual Builder Handoff Set**, while `HISTORICAL_DOCUMENT_ARCHIVE.md` classified those same files as HISTORICAL.
 
-Planning delegates reconciliation of that Research-owned index to Research / Architecture (#2).
+Planning delegated reconciliation of that Research-owned index to Research / Architecture (#2).
 
-No deletion of the historical Visual Builder documents is authorized by this finding.
+Research completed the reconciliation in commit `e2f12fd65a88a53f245717da3737d64c39a5f076` (**Reconcile historical Visual Builder handoff references**).
 
-Any useful historical information must remain preserved, and the current authority hierarchy established by Planning remains unchanged.
+The index now identifies the five `docs/visual-builder/` files as historical/reference material rather than the current authoritative Visual Builder implementation handoff set, and directs current project, architecture, implementation, and workstream questions to `DOCUMENTATION_AUTHORITY.md`.
+
+No historical Visual Builder documents were modified or deleted, and no new architecture or ontology requirement was introduced.
+
+Status: **Resolved**.
