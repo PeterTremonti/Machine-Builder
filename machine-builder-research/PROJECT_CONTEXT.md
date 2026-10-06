@@ -633,42 +633,16 @@ Historical versions must remain distinguishable from current editions.
 
 The project should never silently overwrite an old standard reference merely because a newer edition exists.
 
-Current Research Goal
+Current Research Focus
 
-The immediate research goal is to complete:
+O0.1 is the established foundational semantic baseline for the current V0.2 implementation milestone.
 
-Machine Builder Ontology O0.1
+Research is now focused on implementation-guided validation and targeted expansion only when implementation, real-machine, firmware, or external research evidence demonstrates that additional clarification is warranted.
 
-The current consolidation sequence is:
+The active Research queue and current next actions belong in the live numbered Research workstream handoff rather than in this background document.
 
-Core concepts
-    ↓
-Definitions and boundaries
-    ↓
-Object / Classification / Role / Aspect
-    ↓
-Relationships
-    ↓
-Constraints / cardinality
-    ↓
-Provenance
-    ↓
-Real-machine stress testing
-    ↓
-Ontology O0.1
+The goal remains a semantic foundation, not a database schema.
 
-The goal is a semantic foundation, not a database schema.
-
-Future Research Handoff
-
-When a new research conversation needs to recover this project:
-
-Read START_HERE.md.
-Read PROJECT_CONTEXT.md.
-Read RESEARCH_ROADMAP.md.
-Read the current architecture and ontology documents.
-Check DECISION_LOG.md.
-Check OPEN_QUESTIONS.md.
-Use standards, machine, and firmware indexes for detailed evidence.
+Research recovery is defined by `START_HERE.md`. This document provides background/context for that recovery process and should not become a second recovery checklist or workstream handoff.
 
 Do not treat historical notes as current decisions without checking the current authoritative documents.

@@ -3,7 +3,7 @@ Last reconciled by Research / Architecture 2026-10-04
 # Machine Builder Research & Architecture
 ## O0.1 Checkpoint — Minimum 3D-Printer Machine Model
 
-This directory is the durable research, architecture, terminology, ontology, standards, and machine-knowledge record for Machine Builder / Machine Development Environment (MDE).
+This document is the current Research / Architecture navigation and recovery entry point. It points to the durable research, architecture, terminology, ontology, standards, and machine-knowledge record for Machine Builder / Machine Development Environment (MDE) without duplicating those authorities.
 ## Current checkpoint
 
 **Research / Architecture:** R0.1 — foundational research consolidated
@@ -25,13 +25,13 @@ The V0.2 stopping point is recorded in:
 
 `checkpoints/V0.2_RESEARCH_CHECKPOINT.md`
 
-The implementation-facing handoff is:
+The current Research workstream continuity and recovery document is:
 
-`handoffs/V0.2_IMPLEMENTATION_HANDOFF.md`
+`../machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
 
 Future ideas may be recorded without automatically expanding V0.2. Promotion of future concepts should wait for implementation, machine, firmware, or research evidence.
 
-O0.1 remains the foundational semantic baseline for V0.2. The O0.1 implementation handoff is retained for historical/reference purposes; current implementation coordination should use the V0.2 checkpoint and V0.2 implementation handoff.
+O0.1 remains the foundational semantic baseline for V0.2. Historical implementation-phase handoffs are retained only for historical/reference purposes and are not part of current Research recovery or coordination.
 
 ## Core purpose
 
@@ -259,22 +259,19 @@ This is an architectural direction, not a requirement for the first V0.2 impleme
 
 For a new Research / Architecture chat, use this order:
 
-1. `PROJECT_CONTEXT.md`
-2. `RESEARCH_ROADMAP.md`
-3. `architecture/ARCHITECTURE_OVERVIEW.md`
-4. `ontology/TERMINOLOGY_BASELINE.md`
-5. `ontology/ONTOLOGY_CURRENT.md`
-6. `decisions/DECISION_LOG.md`
-7. `questions/OPEN_QUESTIONS.md`
-8. `checkpoints/V0.2_RESEARCH_CHECKPOINT.md`
-9. `../machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
+1. Read this `START_HERE.md` first.
+2. `../machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
+3. `RESEARCH_ROADMAP.md`
+4. `PROJECT_CONTEXT.md`
+5. `architecture/ARCHITECTURE_OVERVIEW.md`
+6. `ontology/TERMINOLOGY_BASELINE.md`
+7. `ontology/ONTOLOGY_CURRENT.md`
+8. `decisions/DECISION_LOG.md`
+9. `questions/OPEN_QUESTIONS.md`
+10. `checkpoints/V0.2_RESEARCH_CHECKPOINT.md`
 
-The O0.1 implementation handoff remains available as historical/reference context:
+The numbered Research workstream handoff is the current Research continuity and recovery document. The V0.2 checkpoint remains the current Research milestone checkpoint.
 
-`handoffs/O0.1_IMPLEMENTATION_HANDOFF.md`
+Historical implementation-phase handoffs are retained for historical/reference purposes only. They are not part of current Research recovery or coordination.
 
-The V0.2 research checkpoint is the current research/architecture stopping point. The V0.2 implementation handoff is the current implementation-facing bridge.
-
-Research/architecture authority remains with the research checkpoint, ontology, architecture, terminology, decisions, and related research documentation. Implementation-facing documents may describe current code state, file locations, tests, and implementation details, but should not silently redefine settled architecture or ontology.
-
-Use the standards, machines, and firmware research indexes when detailed evidence is required.
+Research/architecture authority remains with the checkpoint, ontology, architecture, terminology, decisions, questions, and related current Research documentation. Use the standards, machines, and firmware research indexes when detailed evidence is required.
