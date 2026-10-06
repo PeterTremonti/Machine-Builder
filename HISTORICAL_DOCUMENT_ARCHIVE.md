@@ -143,3 +143,98 @@ Git remains the source for the exact historical file contents.
 **Historical value:** Preserves the October 4, 2026 recovery/reconstruction record created after the original Chat 1 transcript was no longer available. It records recovery confidence levels, surviving architectural substance, terminology evolution, major semantic distinctions, and the boundary between verified surviving evidence and uncertain or lost conversation material.
 
 **Disposition:** Retain as historical provenance. It is not a current architectural authority and should not be used in preference to the current authority documents when they provide the same information.
+
+# 7. Historical Research implementation handoffs
+
+The following files were formerly stored under `machine-builder-research/handoffs/`. They are preserved as historical/version-transition records and are no longer part of the active Research recovery or workstream coordination path.
+
+## `docs/historical/research/IMPLEMENTATION_HANDOFF_INDEX.md`
+
+**Original path:** `machine-builder-research/handoffs/IMPLEMENTATION_HANDOFF_INDEX.md`
+
+**Classification:** HISTORICAL / SUPERSEDED
+
+**Current authority:** `DOCUMENTATION_AUTHORITY.md` and the applicable current numbered workstream handoff.
+
+**Historical value:** Preserves the earlier H-001 through H-017 implementation-handoff system and the research-to-implementation concerns tracked by that system.
+
+## `docs/historical/research/O0.1_IMPLEMENTATION_HANDOFF.md`
+
+**Original path:** `machine-builder-research/handoffs/O0.1_IMPLEMENTATION_HANDOFF.md`
+
+**Classification:** HISTORICAL
+
+**Current authority:** Current Research architecture, ontology, checkpoint, and implementation/workstream documents.
+
+**Historical value:** Preserves the O0.1-phase interpretation of the canonical model and its early implementation expectations.
+
+## `docs/historical/research/V0.2_IMPLEMENTATION_HANDOFF.md`
+
+**Original path:** `machine-builder-research/handoffs/V0.2_IMPLEMENTATION_HANDOFF.md`
+
+**Classification:** HISTORICAL / SUPERSEDED
+
+**Current authority:** Current implementation code, milestone documents, and numbered workstream handoffs.
+
+**Historical value:** Preserves the early V0.2 implementation checkpoint, assumptions, and implementation-state history.
+
+## `docs/historical/research/R0.1_TO_V0.2_HANDOFF.md`
+
+**Original path:** `machine-builder-research/handoffs/version-handoffs/R0.1_TO_V0.2_HANDOFF.md`
+
+**Classification:** HISTORICAL
+
+**Current authority:** Current Research and implementation/workstream authorities.
+
+**Historical value:** Preserves the R0.1/O0.1 to V0.2 transition reasoning and the historical Research-to-implementation boundary.
+
+# 8. Historical Visual Builder continuation artifact
+
+## `docs/historical/visual-builder/Read me to continue 4.1 chat.txt`
+
+**Original path:** `machine-structure-editor/Read me to continue 4.1 chat.txt`
+
+**Classification:** HISTORICAL / STALE BOOTSTRAP
+
+**Current authority:** `CHAT_WORKFLOW.md` and the current implementation workstream handoff.
+
+**Historical value:** Preserves an earlier Visual Editor chat-continuation/bootstrap record, including old implementation state, commands, debugging context, and historical reasoning.
+
+**Disposition:** Retain for provenance. It is not current implementation onboarding and should not be used to recover current project state.
+
+# 9. Historical wiring artifact
+
+## `docs/historical/wiring/Wiring_Map.ods`
+
+**Original path:** `docs/Wiring_Map.ods`
+
+**Classification:** HISTORICAL
+
+**Current authority:** Current machine/controller/routing evidence and current canonical semantic documentation.
+
+**Historical value:** Preserves a V7-era wiring map and connector mapping. The artifact contains incomplete and explicitly uncertain electrical details and is not authoritative current engineering data.
+
+**Disposition:** Retain as historical wiring evidence. Do not promote its legacy pin or electrical claims into current semantic authority without independent verification.
+
+# 10. Historical V7-era documentation
+
+The following documents were part of the older V7/V7.x documentation system. They are preserved together under `docs/historical/legacy/` because their architecture, UI, and bootstrap conventions have been superseded by the current project authority model.
+
+| Historical file | Classification | Historical value |
+| --- | --- | --- |
+| `docs/historical/legacy/MachineBuilder_Chat_Bootstrap.md` | HISTORICAL / STALE BOOTSTRAP | Preserves the old chat bootstrap and V7.9-era recovery guidance. |
+| `docs/historical/legacy/MachineBuilder_Master_Brain.md` | HISTORICAL / SUPERSEDED | Preserves the earlier overall Machine Builder concept and architecture framing. |
+| `docs/historical/legacy/MachineBuilder_Project_History.md` | HISTORICAL | Preserves the V7-era project/version history. |
+| `docs/historical/legacy/Machine_Builder_Dev_Architecture.md` | HISTORICAL | Preserves the former V7.x implementation architecture and version plan. |
+| `docs/historical/legacy/Version 7.8 Specs.md` | HISTORICAL | Preserves the V7.8 visual-builder specification. |
+| `docs/historical/legacy/architecture/device_visual_schema.md` | HISTORICAL | Preserves the former hardware-database-driven device visual schema. |
+| `docs/historical/legacy/architecture/firmware_generation.md` | HISTORICAL | Preserves the former firmware-generation architecture. |
+| `docs/historical/legacy/architecture/hardware_database_schema.md` | HISTORICAL | Preserves the former hardware-database schema and terminology. |
+| `docs/historical/legacy/architecture/machine_model.md` | HISTORICAL / SUPERSEDED | Preserves the former device/port-oriented machine-model architecture. |
+| `docs/historical/legacy/architecture/wiring_system.md` | HISTORICAL / SUPERSEDED | Preserves the former device/port/connector/wire/cable/harness model. |
+| `docs/historical/legacy/ui/builder_modes.md` | HISTORICAL | Preserves the former V7 UI builder-mode design. |
+| `docs/historical/legacy/ui/canvas_system.md` | HISTORICAL | Preserves the former V7 canvas and zoom design. |
+
+**Current authority:** `DOCUMENTATION_AUTHORITY.md` and the current project, Research, and implementation authorities it identifies.
+
+**Disposition:** Retain as historical/reference material. These files must not be treated as current architecture, UI, workflow, or project-state authority.

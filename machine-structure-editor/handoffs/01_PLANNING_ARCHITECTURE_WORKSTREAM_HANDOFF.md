@@ -742,7 +742,7 @@ The Board work should continue testing the existing Controller, Controller Resou
 
 Chat 05 identified a remaining documentation inconsistency:
 
-`machine-builder-research/handoffs/IMPLEMENTATION_HANDOFF_INDEX.md`
+`docs/historical/research/IMPLEMENTATION_HANDOFF_INDEX.md` (archived from `machine-builder-research/handoffs/IMPLEMENTATION_HANDOFF_INDEX.md`)
 
 The Research-owned index previously presented the `docs/visual-builder/` files as the **Current Visual Builder Handoff Set**, while `HISTORICAL_DOCUMENT_ARCHIVE.md` classified those same files as HISTORICAL.
 
