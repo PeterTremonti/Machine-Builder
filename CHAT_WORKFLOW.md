@@ -917,3 +917,23 @@ Do not combine unrelated workstream changes in the same edit or commit.
 Path-sensitive commands must resolve the repository root or explicitly establish their required starting directory.
 
 Executable commands should avoid unnecessary non-ASCII or invisible characters unless those characters are deliberately required by the task.
+
+# Action-Ready Work Rule
+
+When the next action is clear and ready to execute, provide the actual command or other paste-ready instruction in the same response as the explanation.
+
+Do not spend a response merely describing what is planned when the user is ready to run the work.
+
+The expected pattern is:
+
+```text
+What matters / why
+        ↓
+actual command or paste-ready action
+        ↓
+expected result / next checkpoint
+```
+
+This applies to repository inspection, testing, implementation, documentation changes, and other work where a concrete next action is already known.
+
+The user should not have to compose commands from a plan that the chat has already determined.
