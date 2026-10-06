@@ -41,7 +41,9 @@ DUET_2_MAESTRO_CONNECTOR_LAYOUT = (
     ("e0-stop", "E0 stop", 3),
     ("e1-stop", "E1 stop", 3),
     ("z-probe", "Z probe", 5),
-    ("fan", "Fan", 2),
+    ("fan0", "Fan 0", 2),
+    ("fan1", "Fan 1", 2),
+    ("fan2", "Fan 2", 2),
 )
 
 
@@ -193,6 +195,10 @@ def add_duet_2_maestro_physical_interfaces(
                 port_properties[
                     "electrical_role"
                 ] = "heater_output"
+
+            elif connector_id in {"fan0", "fan1", "fan2"}:
+                direction = "output"
+                port_properties["electrical_role"] = "controlled_fan_output"
 
             port = SemanticPort(
                 id=(

@@ -584,7 +584,7 @@ DUET2_MAESTRO_ADDITIONAL_INTERFACE_SPECIFICATIONS = {
         "interface_type": "10-position PanelDue SD interface",
         "interface_role": "panel_display_storage_interface",
         "usage_classification": "user_interface",
-        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
     },
     "12864-exp1": {
         "board_label": "12864 EXP1",
@@ -625,13 +625,13 @@ DUET2_MAESTRO_ADDITIONAL_INTERFACE_SPECIFICATIONS = {
         "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
     },
     "j21": {
-        "board_label": "J21",
+        "board_label": "Expansion",
         "position_count": 13,
-        "interface_type": "13-position auxiliary header",
+        "interface_type": "13-position expansion header",
         "interface_role": "auxiliary_header",
         "usage_classification": "expansion_or_service",
-        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
-        "evidence_status": "Physical header identity and position count observed; exact functional role is not yet fully reconciled with manufacturer documentation.",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+        "evidence_status": "Manufacturer schematic identifies J21 as Expansion.",
     },
     "temp-ob": {
         "board_label": "TEMP_OB",
