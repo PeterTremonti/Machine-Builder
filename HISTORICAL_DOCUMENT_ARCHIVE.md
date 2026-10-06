@@ -131,3 +131,15 @@ Before future retirement or deletion:
 This archive is an index/provenance record, not a replacement copy of the historical documents.
 
 Git remains the source for the exact historical file contents.
+
+# 6. Chat 1 recovery and reconstruction record
+
+## `MACHINE_BUILDER_CHAT_1_RECOVERY_AND_RECONSTRUCTION_2026-10-04.md`
+
+**Classification:** HISTORICAL
+
+**Current authority:** `CHAT_WORKFLOW.md`, `MASTER_PLAN.md`, `PROJECT_CURRENT_STATE.md`, and the current Research authority documents listed in `DOCUMENTATION_AUTHORITY.md`.
+
+**Historical value:** Preserves the October 4, 2026 recovery/reconstruction record created after the original Chat 1 transcript was no longer available. It records recovery confidence levels, surviving architectural substance, terminology evolution, major semantic distinctions, and the boundary between verified surviving evidence and uncertain or lost conversation material.
+
+**Disposition:** Retain as historical provenance. It is not a current architectural authority and should not be used in preference to the current authority documents when they provide the same information.
