@@ -208,21 +208,23 @@ There is no separate routing worktree.
 
 ## Current verified status
 
-The combined `main` branch currently reports:
+The latest verified full-suite result in the current working tree is:
 
 ```text
-756 passed in 2.65s
+765 passed in 2.69s
 ```
 
-The working tree is clean and `git diff --check` is clean.
+The test run was performed against `main` at committed HEAD `49de665`, with four uncommitted Board/Routing workstream changes present.
+
+Therefore, `765 passed in 2.69s` is the verified working-tree result and must not be attributed to committed HEAD `49de665`.
+
+The working tree was not clean at the time of verification.
 
 Earlier routing-specific checkpoints remain useful as historical information:
 
 * **695** = earlier routing workstream full-suite result
 * **38** = earlier directly targeted `tests/test_connection_routing.py` result
 * **54 / 694** = earlier broader focused-routing checkpoint
-
-The latest reported project-wide full-suite result is **756 passed in 2.65s**. This is the latest known result, not a new test run performed while editing this document.
 
 ---
 

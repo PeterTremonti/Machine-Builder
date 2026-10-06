@@ -631,13 +631,22 @@ Reopen these only when concrete implementation, research, testing, or real-machi
 
 **Chat instance:** current Chat 01
 
-**Date/time:** 2026-10-05 18:05:45 -04:00
+**Date/time:** 2026-10-05 21:48:52 -04:00
 
 **Repository branch:** `main`
 
-**Latest verified full test state:** `756 passed`
+**Exact current HEAD:** `49de6652269718178f66c0f170170e4fff8f0b68`
 
-**Exact current HEAD:** `b772f24e8216aea5d9ee14df1e539aab7f290cc2`
+**Latest verified full test state:** `765 passed in 2.69s`
+
+**Test-state qualification:** the 765-test result was verified against the current working tree. The working tree contains four uncommitted Board/Routing workstream changes, so the 765 result must not be attributed to committed HEAD `49de665`.
+
+**Uncommitted workstream files at this checkpoint:**
+
+- `machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`
+- `machine-structure-editor/src/machine_builder/controller_board_fixtures.py`
+- `machine-structure-editor/src/machine_builder/hardware_catalog.py`
+- `machine-structure-editor/tests/test_controller_board_fixtures.py`
 
 **Primary current effort:** complete the Planning-owned documentation reconciliation while preserving clear authority, supporting, working, and historical roles.
 
@@ -661,6 +670,7 @@ Reopen these only when concrete implementation, research, testing, or real-machi
 The current Planning principle is:
 
 > **One primary question → one authoritative document, with explicit ownership of implementation files and stable shared contracts between workstreams.**
+
 # Recovery Principle
 
 The Planning chat should not need the old conversation to understand the project's current documentation governance.
