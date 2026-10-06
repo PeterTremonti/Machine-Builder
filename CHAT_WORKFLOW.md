@@ -898,6 +898,20 @@ After a command block is supplied, the user should be able to copy the block ver
 
 This requirement applies to all workstreams and all repository operations, including read-only inspection commands.
 
+## Workstream Tooling Boundaries
+
+Machine Builder workstreams must use the simplest appropriate text and repository tooling for their assigned responsibility.
+
+Planning / Architecture, Research / Architecture, Controller / Board, Routing / Diagnostics, and Efficiency / Modularization / Audit workstreams must not invoke Data Analysis, Python, Jupyter, pandas, notebooks, generated analysis workflows, or temporary analysis artifacts for ordinary Machine Builder repository inspection, source inspection, planning, architecture work, documentation review, implementation review, testing, or audit.
+
+Repository inspection and project reasoning for these workstreams should use PowerShell / terminal commands, Git, direct source and documentation inspection, and the project's existing tests and tooling.
+
+Do not introduce Python, Jupyter, pandas, notebooks, generated analysis scripts, or analysis artifacts merely because they appear convenient for a repository task.
+
+The absence of an appropriate data-analysis need must not be treated as a reason to invoke a data-analysis workflow.
+
+A workstream may use another tool only when the task itself explicitly requires that tool's supported capability and the use is consistent with the workstream's ownership and project rules.
+
 ## Repository Edit Safety
 
 When a command is intended to modify a tracked file, the operation must fail closed.
