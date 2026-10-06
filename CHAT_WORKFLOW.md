@@ -934,19 +934,26 @@ Executable commands should avoid unnecessary non-ASCII or invisible characters u
 
 # Action-Ready Work Rule
 
-When the next action is clear and ready to execute, provide the actual command or other paste-ready instruction in the same response as the explanation.
+When the next action is clear and ready to execute, provide the actual command or other paste-ready instruction in the same user-visible response as the explanation.
 
 Do not spend a response merely describing what is planned when the user is ready to run the work.
 
+Executable PowerShell commands intended for the user must appear in the final user-visible response itself. Do not provide the only copy/pasteable version of a command through internal reasoning, tool output, commentary, hidden content, or any other channel the user may not see or may have to expand to retrieve.
+
+When a command is required, use the project's required command-formatting rules directly in that response:
+- one continuous copy/paste block;
+- use a plain Markdown powershell code fence;
+- do not add id=, HTML attributes, titles, or other metadata to the opening fence;
+- do not put explanatory prose inside the executable block;
+- do not put nested Markdown fences inside the executable block.
+
 The expected pattern is:
 
-```text
 What matters / why
-        ↓
+        |
 actual command or paste-ready action
-        ↓
+        |
 expected result / next checkpoint
-```
 
 This applies to repository inspection, testing, implementation, documentation changes, and other work where a concrete next action is already known.
 
