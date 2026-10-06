@@ -7,8 +7,8 @@ This file is the **living recovery handoff** for the Routing / Diagnostics works
 It is not a replacement for the older historical investigation records. The detailed historical records remain useful when a replacement chat needs deeper background:
 
 ```text
-machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md
-machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md
+docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md
+docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md
 
 A replacement Routing chat should read, in order:
 
@@ -474,44 +474,32 @@ geometry-epsilon handling around obstacle boundaries
 distinction between endpoint mismatch and previous-route-blocked transitions
 tested minimum parallel-segment separation geometry
 protected-segment routing support
-a hard 8 px protected-segment experiment
+a hard 8 px protected-segment experiment retained as a historical baseline
 generic controller-owned SemanticPort projection through project_controller_ports()
 VisualPort.semantic_reference resolution for controller visual ports
 controller visual ports participating in the existing connection-authoring path
-full automated test coverage through the latest reported checkpoint
-
-The latest verified full-suite result is:
-
-765/765 passed
-
-The latest reported focused routing result is:
-
-52/52 passed
-
-These are the latest results reported by the Routing workstream at this checkpoint. They are historical checkpoint results, not a claim that a new test run was just performed while writing this document.
-
+a tested topology-preserving preferred-spacing geometry-only repair experiment for the known single-connection pathology
+a 4.0 scene-unit experimental preferred-spacing target kept separate from pathfinding legality
 What is currently being investigated
 
-The current unresolved problem is how to handle preferred spacing without forcing undesirable topology changes.
+The narrow preferred-spacing geometry-only repair experiment is now implemented and focused-tested for the known single-connection pathology.
+
+The remaining investigation is how broadly this repair strategy should apply beyond the proven case.
 
 The working question is:
 
-When a legal route contains nearby parallel same-connection geometry,
-can existing geometry be repaired or nudged toward preferred spacing
-without creating unnecessary new bends or changing route topology?
+When a legal route contains nearby parallel same-connection geometry, how robustly can existing geometry be repaired toward a preferred visual spacing without creating unnecessary new bends or changing route topology?
 
-The immediate investigation should remain narrow and focused on the known single-connection pathology.
-
+The immediate follow-up should remain narrow and should emphasize visual validation plus constrained cases rather than global multi-wire optimization.
 What has not yet been solved
 
 The workstream has not yet established:
 
-whether preferred spacing should ultimately be a hard minimum, a soft preference, or both
-how geometry-only nudging should choose which existing segment moves
-how to preserve route topology while moving several related segments
-when insufficient room should cause spacing preference to be relaxed
-when a route should be repaired versus discarded and fully rerouted
-how same-connection segments and endpoint stubs should be treated consistently
+how preferred-spacing repair should generalize beyond the known single-connection case
+how preferred-spacing relaxation should behave across constrained channels beyond the current fallback behavior
+how geometry-only repair should coordinate movement of several related interior segments
+when a route should be repaired versus discarded and fully rerouted under broader conditions
+how same-connection geometry should eventually interact with nearby unrelated connections
 whether route topology should eventually become explicit persistent presentation state
 
 The current hard 8 px implementation should not be mistaken for the final answer to these questions.
@@ -577,8 +565,8 @@ Contains the focused routing regression and geometry tests.
 This is the primary automated test file for the workstream's current routing investigation.
 
 Historical routing records
-machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md
-machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md
+docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md
+docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md
 
 These contain deeper historical investigation detail.
 
@@ -806,69 +794,49 @@ That remains a project-level architectural question rather than a current implem
 
 Latest test state
 Current latest reported checkpoint
-Full suite:
-765/765 passed
+Full Routing suite:
 
-Focused routing suite:
-52/52 passed
+57/57 passed
 
-These results correspond to the hard protected-segment integration checkpoint.
+Preferred-spacing focused tests:
 
-The full-suite result was reported after integrating:
+4 passed, 53 deselected
 
-machine-structure-editor/src/machine_builder/graphics/connection.py
-machine-structure-editor/src/machine_builder/graphics/connection_routing.py
-machine-structure-editor/src/machine_builder/graphics/connection_routing_pathfinder.py
+Full repository suite:
 
-The focused routing result includes the routing separation predicate tests in:
+The last known green full repository result before the later unrelated Board-owned fixture corruption was 772/772 passed.
 
-machine-structure-editor/tests/test_connection_routing.py
+The current full repository run is blocked during collection by the unrelated literal `rn` error in src/machine_builder/controller_board_fixtures.py. That file is owned by Workstream 03 and was not modified by Routing.
 
-These are the latest reported results and should be re-run after subsequent implementation changes.
-
+The Routing implementation itself is currently verified by the focused Routing suite, including the exact known preferred-spacing pathology.
 Earlier historical routing results
 
 The routing investigation passed through several earlier checkpoints with smaller focused routing suites and full-suite totals.
 
-Those historical numbers are useful when reading the older investigation records, but the current authoritative checkpoint is:
+Those historical numbers remain useful when reading the older investigation records.
 
-765/765
-52/52 focused routing
+The current authoritative Routing-focused result is:
 
-Do not use an older test count as the current project baseline.
+57/57 focused Routing tests passed
 
+The last known green complete repository result is 772/772 passed, recorded before the unrelated Board-owned fixture import error appeared.
+
+Do not use the older 765/765 or 52/52 values as the current Routing test state.
 Next action
 
-Implement and test a small geometry-only repair experiment for the known single-connection spacing pathology.
+Perform visual/manual validation of the known single-connection preferred-spacing pathology with Routing diagnostics enabled.
 
-The experiment should begin with the existing legal route and:
+Compare the repaired geometry against the earlier hard-8 scene-unit baseline and verify:
 
-1. identify nearby parallel same-connection segments/stubs
-2. detect insufficient preferred separation
-3. attempt to move existing route geometry
-4. preserve the existing ordered bend/segment topology
-5. do not create new bends merely to obtain preferred spacing
-6. allow the preferred spacing to relax when the topology cannot provide it cleanly
-7. leave full topology-changing rerouting available when the existing topology cannot remain legal
+1. endpoint escape geometry remains fixed
+2. the existing route topology remains unchanged
+3. the intended interior geometry moves rather than introducing new bends
+4. constrained cases fall back cleanly when the preferred target cannot be achieved
+5. no unwanted U-turn, jog, or loop behavior appears
 
-Compare the geometry-only experiment against the current hard-8 px baseline using:
+After Workstream 03 repairs the unrelated Board fixture collection error, rerun the full repository suite.
 
-minimum achieved separation
-bend count
-segment count
-route length
-topology identity
-amount of geometry movement
-visual presence of U-turns/jogs/loops
-
-Keep the experiment limited to the known pathology first.
-
-Do not begin global multi-wire optimization.
-
-Do not rewrite the routing architecture.
-
-Do not change the canonical semantic Connection model.
-
+Keep the investigation limited to this Routing behavior. Do not begin global multi-wire optimization or rewrite the Routing architecture.
 # Checkpoint 11 — 2026-10-04 10:11 AM — SelectionInspector duplicate-definition cleanup
 
 Purpose
@@ -1221,13 +1189,13 @@ No implementation commit was created for Part 2.
 
 The former V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md was compared with the current Routing continuity handoff and the historical 4.3/4.4 Routing records.
 
-The old document contains historical Routing / Diagnostics material rather than a current Visual Editor implementation handoff. It has been renamed to ROUTING_DIAGNOSTICS_HISTORICAL_HANDOFF.md so its historical provenance is preserved while its misleading current-authority identity is removed.
+The old document contains historical Routing / Diagnostics material rather than a current Visual Editor implementation handoff. It has been renamed to docs/historical/routing/ROUTING_DIAGNOSTICS_HISTORICAL_HANDOFF.md so its historical provenance is preserved while its misleading current-authority identity is removed.
 
 Most substantive Routing investigation from the old document is already preserved in the current Routing handoff and the historical 4.3/4.4 records.
 
 Useful historical Routing details additionally retained in the renamed file include the Routing Debug Mode viewport repaint fix (FullViewportUpdate while Debug Mode is active, restored to MinimalViewportUpdate when disabled) and the historical Debug Mode overlay inventory covering physical component bounds, routing-clearance envelopes, fixed endpoint stubs, endpoint escape geometry, the main routed path, unroutable endpoint markers, and the last canvas click.
 
-Current Routing continuity belongs to  4_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md. Historical Routing material remains preserved in ROUTING_DIAGNOSTICS_HISTORICAL_HANDOFF.md, ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md, and ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md.
+Current Routing continuity belongs to  4_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md. Historical Routing material remains preserved in docs/historical/routing/ROUTING_DIAGNOSTICS_HISTORICAL_HANDOFF.md, docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md, and docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md.
 
 No routing implementation, routing behavior, or topology-versus-geometry architectural investigation was changed.
 
@@ -1372,6 +1340,212 @@ Return to the existing Routing next action: implement and test the small geometr
 
 No change is made here to the existing Routing architecture or canonical Connection model.
 
+# Checkpoint 17 — 2026-10-06 12:43 AM EDT — Routing experiment recovery / replacement-chat handoff
+
+Purpose
+
+Record the verified Routing workstream state after Checkpoint 16 and before replacing the current Routing chat.
+
+This checkpoint does not represent a completed Routing implementation change.
+
+Repository/source inspection
+
+The following Routing files were directly inspected:
+
+src/machine_builder/graphics/connection.py
+src/machine_builder/graphics/connection_routing.py
+src/machine_builder/graphics/connection_routing_pathfinder.py
+tests/test_connection_routing.py
+
+The inspection confirmed the current route-stability behavior, existing topology-preserving blocked-route repair, current parallel-segment separation support, and relevant Routing test coverage.
+
+No Routing implementation was completed after Checkpoint 16.
+
+No Routing tests were changed.
+
+No tests were run after Checkpoint 16.
+
+A temporary nudging source file was created during an abandoned implementation attempt and was subsequently removed. It was not a completed implementation and is not part of the current Routing architecture.
+
+No alternate permanent Routing handoff was created.
+
+Current unresolved issue
+
+The known preferred-spacing pathology remained unresolved at this checkpoint.
+
+The existing 8.0 scene-unit protected-segment experiment remained a useful baseline, but 8.0 scene units was not a permanent Routing rule. The experiment demonstrated that hard spacing can eliminate near-coincident geometry while also producing undesirable U-turns, jogs, loops, or awkward local geometry.
+
+Current objective
+
+The next Routing experiment remained the small topology-preserving geometry-only repair experiment:
+
+existing route geometry
+
+↓
+
+detect insufficient preferred spacing
+
+↓
+
+move existing geometry rather than inventing new bends
+
+↓
+
+preserve existing bend/segment topology where possible
+
+↓
+
+relax preferred spacing when the available geometry cannot satisfy it cleanly
+
+↓
+
+fall back to existing routing when geometry-only repair is not legal or clean
+
+An initial preferred separation of approximately 4 scene units may be used as the experimental preference, but it is not a hard minimum.
+
+Next action
+
+The replacement Routing chat should continue from this existing handoff and implement/test the small geometry-only repair experiment for the known preferred-spacing pathology.
+
+Measure:
+
+minimum/legal separation
+preferred separation
+bend count
+route length
+topology identity
+geometry movement
+U-turn/jog/loop behavior
+fallback when geometry-only repair is insufficient
+
+Do not modify Board, Planning, Research, or other workstream files.
+
+Do not make documentation changes as part of the implementation experiment.
+
+Recovery state
+
+The authoritative live Routing handoff remains:
+
+machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
+
+There is exactly one live Routing workstream handoff.
+
+# Checkpoint 18 — 2026-10-06 12:59 PM EDT — Preferred-spacing geometry-only repair experiment
+
+Purpose
+
+Record the completed and tested first implementation of the narrow topology-preserving geometry-only repair experiment identified by the earlier Routing checkpoints.
+
+Files touched
+
+src/machine_builder/graphics/connection.py
+tests/test_connection_routing.py
+handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
+
+No Board, Planning, Research, or other workstream implementation files were changed by this Routing experiment.
+
+Commit status
+
+The Routing implementation and this handoff update are currently uncommitted.
+
+What changed
+
+The Routing connection graphics layer now has an experimental preferred-spacing repair step.
+
+A preferred target of 4.0 scene units is represented by PREFERRED_ROUTE_SEGMENT_SEPARATION. This is a visual-quality preference, not a new hard legality rule.
+
+The repair:
+
+- examines the existing legal route rather than immediately inventing a new topology
+- detects nearby parallel protected geometry
+- considers only movable interior route segments
+- preserves the existing ordered segment/bend topology
+- proposes moving existing horizontal or vertical geometry
+- rejects candidate positions that intersect obstacles
+- verifies the repaired route still has the same topology
+- verifies the preferred separation when the candidate can achieve it cleanly
+- leaves normal route selection available when geometry-only repair cannot be applied
+
+The first and last route segments remain tied to the endpoint escape geometry and are not moved by this repair.
+
+The preferred-spacing repair is attempted before normal continuity blending when the previously stable route is still clear.
+
+The stability diagnostic bookkeeping was also corrected so the reported previous-route cost remains the actual previous-route cost rather than the repaired candidate cost.
+
+Why it changed
+
+The hard protected-segment spacing experiment proved that a minimum-spacing rule can eliminate the original near-coincident geometry, but it could also force undesirable U-turns, jogs, loops, or awkward topology.
+
+The implementation therefore moves the preferred-spacing concern into a later geometry-quality stage. The goal is to improve visual spacing without turning the preference into a pathfinding legality constraint.
+
+What was learned
+
+The known historical endpoint-spacing pathology is repairable without changing topology.
+
+The problematic route segment is the penultimate interior horizontal segment, not the terminal endpoint segment itself. Moving that existing interior geometry away from the protected endpoint segment preserves the endpoint escape while removing the approximately 0.001-unit near-coincident parallel geometry.
+
+The exact historical pathology test passes with the route topology and total route cost preserved while the affected geometry moves to the preferred spacing.
+
+Verification
+
+Preferred-spacing tests:
+
+4 passed, 53 deselected
+
+Full Routing suite:
+
+57/57 passed
+
+The exact historical preferred-spacing pathology is covered and passes.
+
+git diff --check was clean for the Routing implementation/test changes before this handoff update.
+
+A later full repository suite is currently blocked during collection by an unrelated Board-owned import error in:
+
+src/machine_builder/controller_board_fixtures.py
+
+The reported problem is a stray literal `rn` immediately before an existing fixture tuple. Routing intentionally did not modify that file.
+
+The last known green full repository suite before that unrelated Board corruption was:
+
+772/772 passed
+
+Architectural classification
+
+IMPLEMENTATION ONLY
+
+- The 4.0 scene-unit value is an experimental preferred visual spacing target.
+- Preferred spacing is not promoted to a new hard Routing legality rule.
+- No canonical semantic Connection model change was introduced.
+- No new semantic entity was introduced.
+- Endpoint escape geometry remains distinct from movable interior route geometry.
+- Existing topology-changing route selection remains available as the fallback when geometry-only repair cannot produce a legal/clean result.
+
+Rejected / superseded
+
+- The earlier hard-8 scene-unit experiment remains a diagnostic/baseline result, not the final preferred-spacing policy.
+- The abandoned temporary standalone nudging source file is not part of the architecture.
+- No global multi-wire optimization was introduced.
+- No rule requiring every legal parallel segment to maintain 4.0 scene-unit spacing was introduced.
+
+Current unresolved issues
+
+- The current repair mechanism has only been established for the narrow known single-connection pathology.
+- More constrained geometries need visual validation.
+- Preference relaxation in narrow channels is currently handled by declining the geometry-only repair and allowing normal routing to remain in control; a more general soft-spacing optimization has not been established.
+- Coordinated movement of several related interior segments has not yet been generalized.
+- The interaction between repair, continuity hysteresis, and broader topology transitions needs real visual validation.
+
+Next action
+
+Perform visual/manual validation of the known pathology with routing diagnostics enabled and compare the result against the earlier hard-8 baseline.
+
+Then rerun the full repository suite after Workstream 03 repairs its unrelated Board fixture import error.
+
+Do not begin global multi-wire routing optimization from this checkpoint.
+
+No canonical semantic Connection model change is required.
+
 Recovery rule
 
 This handoff is a living recovery document.
@@ -1431,109 +1605,3 @@ current routing source
 current routing tests
 
 and resume the work without reconstructing the entire conversation or rereading the complete historical routing investigation records.
-
-
-
-------------------------------------
-
-This part was edited by Pedro and is probably in the wrong location. Please fix the formatting and put this latest checkpoint in the correct location:
-
-# Checkpoint 17 — 2026-10-06 12:43 AM EDT — Routing experiment recovery / replacement-chat handoff
-
-Purpose
-
-Record the verified Routing workstream state after Checkpoint 16 and before replacing the current Routing chat.
-
-This checkpoint does not represent a completed Routing implementation change.
-
-Repository/source inspection
-
-The following Routing files were directly inspected:
-
-machine-structure-editor/src/machine_builder/graphics/connection.py
-
-machine-structure-editor/src/machine_builder/graphics/connection_routing.py
-
-machine-structure-editor/src/machine_builder/graphics/connection_routing_pathfinder.py
-
-machine-structure-editor/tests/test_connection_routing.py
-
-The inspection confirmed the current route-stability behavior, existing topology-preserving blocked-route repair, current parallel-segment separation support, and relevant Routing test coverage.
-
-No Routing implementation was completed after Checkpoint 16.
-
-No Routing tests were changed.
-
-No tests were run after Checkpoint 16.
-
-A temporary nudging source file was created during an abandoned implementation attempt and was subsequently removed. It was not a completed implementation and is not part of the current Routing architecture.
-
-No alternate permanent Routing handoff was created.
-
-Current unresolved issue
-
-The known preferred-spacing pathology remains unresolved.
-
-The existing 8.0 scene-unit protected-segment experiment remains a useful baseline, but 8.0 scene units is not a permanent Routing rule. The experiment demonstrated that hard spacing can eliminate near-coincident geometry while also producing undesirable U-turns, jogs, loops, or awkward local geometry.
-
-Current objective
-
-The next Routing experiment remains the small topology-preserving geometry-only repair experiment:
-
-existing route geometry
-
-↓
-
-detect insufficient preferred spacing
-
-↓
-
-move existing geometry rather than inventing new bends
-
-↓
-
-preserve existing bend/segment topology where possible
-
-↓
-
-relax preferred spacing when the available geometry cannot satisfy it cleanly
-
-↓
-
-fall back to existing routing when geometry-only repair is not legal or clean
-
-An initial preferred separation of approximately 4 scene units may be used as the experimental preference, but it is not a hard minimum.
-
-Next action
-
-The replacement Routing chat should continue from this existing handoff and implement/test the small geometry-only repair experiment for the known preferred-spacing pathology.
-
-Measure:
-
-minimum/legal separation
-
-preferred separation
-
-bend count
-
-route length
-
-topology identity
-
-geometry movement
-
-U-turn/jog/loop behavior
-
-fallback when geometry-only repair is insufficient
-
-Do not modify Board, Planning, Research, or other workstream files.
-
-Do not make documentation changes as part of the implementation experiment.
-
-Recovery state
-
-The authoritative live Routing handoff remains:
-
-machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
-
-There is exactly one live Routing workstream handoff.

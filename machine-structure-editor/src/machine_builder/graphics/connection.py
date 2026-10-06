@@ -13,7 +13,10 @@ from PySide6.QtWidgets import (
 )
 
 from .connection_routing import ConnectionRoutingEngine
-
+from .connection_routing_pathfinder import (
+    parallel_segments_within_separation,
+    route_respects_segment_separation,
+)
 
 class ConnectionGraphicsItem(QGraphicsPathItem):
     """Rendered representation of one committed visual connection."""
@@ -23,6 +26,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
 
     ROUTING_MARGIN = ConnectionRoutingEngine.ROUTING_MARGIN
     STUB_LENGTH = ConnectionRoutingEngine.STUB_LENGTH
+    PREFERRED_ROUTE_SEGMENT_SEPARATION = 4.0
 
     def __init__(
         self,
@@ -218,6 +222,178 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             return None
 
         return tuple(blended)
+
+    def _repair_preferred_spacing_geometry(
+        self,
+        previous: tuple[QPointF, ...],
+        protected_segments: list[tuple[QPointF, QPointF]],
+        obstacles: list[Any],
+    ) -> tuple[QPointF, ...] | None:
+        """Try a topology-preserving preferred-spacing geometry repair."""
+        if len(previous) < 4 or not protected_segments:
+            return None
+
+        topology = self._route_topology_signature(
+            previous,
+        )
+
+        if any(
+            direction == "none"
+            for direction in topology
+        ):
+            return None
+
+        preferred_separation = (
+            self.PREFERRED_ROUTE_SEGMENT_SEPARATION
+        )
+
+        repairs: list[
+            tuple[
+                float,
+                int,
+                float,
+                tuple[QPointF, ...],
+            ]
+        ] = []
+
+        # The first and last route segments touch fixed endpoint escapes.
+        # Only interior segments may move during this geometry-only repair.
+        for index in range(
+            1,
+            len(previous) - 2,
+        ):
+            segment_start = previous[index]
+            segment_end = previous[index + 1]
+
+            direction = self._route_direction(
+                segment_start,
+                segment_end,
+            )
+
+            if direction not in {
+                "left",
+                "right",
+                "up",
+                "down",
+            }:
+                continue
+
+            horizontal = direction in {
+                "left",
+                "right",
+            }
+
+            current_coordinate = (
+                segment_start.y()
+                if horizontal
+                else segment_start.x()
+            )
+
+            for (
+                protected_start,
+                protected_end,
+            ) in protected_segments:
+                if not parallel_segments_within_separation(
+                    segment_start,
+                    segment_end,
+                    protected_start,
+                    protected_end,
+                    preferred_separation,
+                ):
+                    continue
+
+                protected_coordinate = (
+                    protected_start.y()
+                    if horizontal
+                    else protected_start.x()
+                )
+
+                candidate_coordinates = [
+                    protected_coordinate
+                    - preferred_separation,
+                    protected_coordinate
+                    + preferred_separation,
+                ]
+
+                for candidate_coordinate in candidate_coordinates:
+                    displacement = abs(
+                        candidate_coordinate
+                        - current_coordinate
+                    )
+
+                    if displacement <= 0.0:
+                        continue
+
+                    if displacement > self.ROUTING_MARGIN:
+                        continue
+
+                    repaired = [
+                        QPointF(point)
+                        for point in previous
+                    ]
+
+                    if horizontal:
+                        repaired[index] = QPointF(
+                            repaired[index].x(),
+                            candidate_coordinate,
+                        )
+                        repaired[index + 1] = QPointF(
+                            repaired[index + 1].x(),
+                            candidate_coordinate,
+                        )
+                    else:
+                        repaired[index] = QPointF(
+                            candidate_coordinate,
+                            repaired[index].y(),
+                        )
+                        repaired[index + 1] = QPointF(
+                            candidate_coordinate,
+                            repaired[index + 1].y(),
+                        )
+
+                    if (
+                        self._route_topology_signature(
+                            repaired,
+                        )
+                        != topology
+                    ):
+                        continue
+
+                    if not ConnectionRoutingEngine.route_is_clear(
+                        repaired,
+                        obstacles,
+                    ):
+                        continue
+
+                    if not route_respects_segment_separation(
+                        repaired,
+                        protected_segments,
+                        preferred_separation,
+                    ):
+                        continue
+
+                    repairs.append(
+                        (
+                            displacement,
+                            index,
+                            candidate_coordinate,
+                            tuple(repaired),
+                        )
+                    )
+
+        if not repairs:
+            return None
+
+        repairs.sort(
+            key=lambda item: (
+                item[0],
+                item[1],
+                item[2],
+            )
+        )
+
+        return repairs[0][3]
+
 
     def _repair_blocked_route_geometry(
         self,
@@ -456,8 +632,10 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         start_direction: str,
         end_direction: str,
         obstacles: list[Any],
+        protected_segments: list[tuple[QPointF, QPointF]] | None = None,
     ) -> list[QPointF] | None:
         previous = self._stable_route
+        protected_segments = protected_segments or []
 
         self._routing_previous_route = (
             tuple(
@@ -544,6 +722,50 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             )
         )
 
+        if previous_is_clear:
+            preferred_spacing_route = (
+                self._repair_preferred_spacing_geometry(
+                    previous,
+                    protected_segments,
+                    obstacles,
+                )
+            )
+
+            if preferred_spacing_route is not None:
+                preferred_spacing_cost = self._route_cost(
+                    preferred_spacing_route,
+                    start_direction,
+                    end_direction,
+                )
+
+                if (
+                    preferred_spacing_cost
+                    <= candidate_cost
+                    + self.ROUTE_STABILITY_COST_TOLERANCE
+                ):
+                    self._stable_route = (
+                        preferred_spacing_route
+                    )
+                    self._routing_selected_route = (
+                        preferred_spacing_route
+                    )
+                    self._routing_selected_cost = (
+                        preferred_spacing_cost
+                    )
+                    self._routing_previous_cost = (
+                        self._route_cost(
+                            previous,
+                            start_direction,
+                            end_direction,
+                        )
+                    )
+                    self._routing_stability_reason = (
+                        "previous stable route received "
+                        "preferred-spacing geometry repair"
+                    )
+                    return list(
+                        preferred_spacing_route,
+                    )
         if previous_is_clear:
             continuity_route = (
                 self._blend_route_geometry(
@@ -930,6 +1152,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             start_direction=start_direction,
             end_direction=end_direction,
             obstacles=obstacles,
+            protected_segments=protected_segments,
         )
 
         self._debug_start_escape = tuple(

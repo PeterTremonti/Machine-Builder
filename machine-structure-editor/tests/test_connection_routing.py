@@ -2401,3 +2401,282 @@ def test_parallel_segments_separation_matches_current_endpoint_pathology() -> No
         ),
         8.0,
     )
+
+def test_preferred_spacing_geometry_repair_moves_existing_interior_segment() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    previous = (
+        QPointF(0.0, 0.0),
+        QPointF(20.0, 0.0),
+        QPointF(20.0, 10.0),
+        QPointF(80.0, 10.0),
+        QPointF(80.0, 30.0),
+        QPointF(120.0, 30.0),
+    )
+    protected = [
+        (
+            QPointF(30.0, 11.0),
+            QPointF(70.0, 11.0),
+        ),
+    ]
+
+    repaired = connection._repair_preferred_spacing_geometry(
+        previous,
+        protected,
+        [],
+    )
+
+    assert repaired is not None
+    assert len(repaired) == len(previous)
+    assert (
+        _route_topology_for_test(repaired)
+        == _route_topology_for_test(list(previous))
+    )
+    assert sum(
+        1
+        for index in range(len(repaired) - 1)
+        if _route_topology_for_test(repaired)[index]
+        != "none"
+    ) == 5
+
+    repaired_segment = (
+        repaired[2],
+        repaired[3],
+    )
+    assert abs(
+        repaired_segment[0].y()
+        - protected[0][0].y()
+    ) >= 4.0 - 0.001
+    assert repaired_segment[0].y() < previous[2].y()
+
+    moved_points = sum(
+        1
+        for previous_point, repaired_point in zip(
+            previous,
+            repaired,
+        )
+        if previous_point != repaired_point
+    )
+    assert moved_points == 2
+def test_preferred_spacing_geometry_repair_returns_none_when_no_legal_position_exists() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    previous = (
+        QPointF(0.0, 0.0),
+        QPointF(20.0, 0.0),
+        QPointF(20.0, 10.0),
+        QPointF(80.0, 10.0),
+        QPointF(80.0, 30.0),
+        QPointF(120.0, 30.0),
+    )
+    protected = [
+        (
+            QPointF(30.0, 11.0),
+            QPointF(70.0, 11.0),
+        ),
+    ]
+    obstacles = [
+        QRectF(
+            30.0,
+            5.0,
+            40.0,
+            12.0,
+        ),
+    ]
+
+    repaired = connection._repair_preferred_spacing_geometry(
+        previous,
+        protected,
+        obstacles,
+    )
+
+    assert repaired is None
+
+
+def test_preferred_spacing_geometry_repair_does_not_move_endpoint_segment() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    previous = (
+        QPointF(0.0, 0.0),
+        QPointF(80.0, 0.0),
+        QPointF(80.0, 40.0),
+        QPointF(120.0, 40.0),
+    )
+    protected = [
+        (
+            QPointF(20.0, 1.0),
+            QPointF(60.0, 1.0),
+        ),
+    ]
+
+    repaired = connection._repair_preferred_spacing_geometry(
+        previous,
+        protected,
+        [],
+    )
+
+    assert repaired is None
+def test_route_stability_selects_preferred_spacing_geometry_repair() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    previous = (
+        QPointF(0.0, 0.0),
+        QPointF(20.0, 0.0),
+        QPointF(20.0, 10.0),
+        QPointF(80.0, 10.0),
+        QPointF(80.0, 30.0),
+        QPointF(120.0, 30.0),
+    )
+    protected = [
+        (
+            QPointF(30.0, 11.0),
+            QPointF(70.0, 11.0),
+        ),
+    ]
+
+    connection._stable_route = previous
+
+    selected = connection._select_stable_route(
+        candidate_route=list(previous),
+        start=previous[0],
+        end=previous[-1],
+        start_direction="right",
+        end_direction="right",
+        obstacles=[],
+        protected_segments=protected,
+    )
+
+    assert selected is not None
+    assert _route_topology_for_test(
+        selected,
+    ) == _route_topology_for_test(
+        list(previous),
+    )
+    assert selected[2].y() == 7.0
+    assert selected[3].y() == 7.0
+    assert selected[2].y() < previous[2].y()
+    assert connection._routing_stability_reason == (
+        "previous stable route received "
+        "preferred-spacing geometry repair"
+    )
+def test_route_stability_repairs_known_endpoint_parallel_spacing_pathology() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    previous = (
+        QPointF(-5.0, 240.0),
+        QPointF(-1.25, 240.0),
+        QPointF(-1.25, 141.51),
+        QPointF(-25.25, 141.51),
+        QPointF(-25.25, -24.999),
+        QPointF(-10.0, -24.999),
+        QPointF(-10.0, -25.0),
+    )
+
+    protected = [
+        (
+            QPointF(-50.0, -25.0),
+            QPointF(-10.0, -25.0),
+        ),
+    ]
+
+    connection._stable_route = previous
+
+    original_cost = connection._route_cost(
+        previous,
+        "right",
+        "up",
+    )
+
+    selected = connection._select_stable_route(
+        candidate_route=list(previous),
+        start=previous[0],
+        end=previous[-1],
+        start_direction="right",
+        end_direction="up",
+        obstacles=[],
+        protected_segments=protected,
+    )
+
+    assert selected is not None
+    assert _route_topology_for_test(
+        selected,
+    ) == _route_topology_for_test(
+        list(previous),
+    )
+
+    assert selected[4].y() == -21.0
+    assert selected[5].y() == -21.0
+
+    assert abs(
+        selected[5].y()
+        - protected[0][0].y()
+    ) >= 4.0 - 0.001
+
+    assert abs(
+        connection._route_cost(
+            selected,
+            "right",
+            "up",
+        )
+        - original_cost
+    ) < 0.001
+
+    moved_points = sum(
+        1
+        for previous_point, selected_point in zip(
+            previous,
+            selected,
+        )
+        if previous_point != selected_point
+    )
+    assert moved_points == 2
+
+    assert connection._routing_stability_reason == (
+        "previous stable route received "
+        "preferred-spacing geometry repair"
+    )
