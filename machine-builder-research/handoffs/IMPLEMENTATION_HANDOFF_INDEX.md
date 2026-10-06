@@ -219,9 +219,13 @@ early port/connection behavior.
 
 The implementation is intentionally progressing before the entire long-term ontology is finalized.
 
-8. Current Visual Builder Handoff Set
+8. Historical Visual Builder Documentation Reference
 
-The current visual-builder implementation is supported by five major documents:
+The five documents under docs/visual-builder/ listed below are retained as historical/reference material from the original V0.1 Visual Builder work.
+
+They are NOT the current authoritative Visual Builder implementation handoff set.
+
+The files remain useful for historical context and for understanding the evolution of the Visual Builder work:
 
 docs/visual-builder/
 ├── VISUAL_BUILDER_SCOPE.md
@@ -230,9 +234,9 @@ docs/visual-builder/
 ├── VISUAL_BUILDER_ARCHITECTURE.md
 └── VISUAL_BUILDER_CODER_HANDOFF.md
 
-These documents define the current implementation-facing visual-builder requirements.
+For current project, architecture, implementation, or workstream questions, readers should use DOCUMENTATION_AUTHORITY.md to identify the applicable current authority.
 
-They should be considered alongside the research ontology and architecture.
+The historical Visual Builder documents do not override current authority documents, the authoritative implementation roadmap, or current workstream handoffs.
 
 9. Handoff H-001 — Canonical Model / Visual Model Separation
 
