@@ -475,11 +475,14 @@ distinction between endpoint mismatch and previous-route-blocked transitions
 tested minimum parallel-segment separation geometry
 protected-segment routing support
 a hard 8 px protected-segment experiment
+generic controller-owned SemanticPort projection through project_controller_ports()
+VisualPort.semantic_reference resolution for controller visual ports
+controller visual ports participating in the existing connection-authoring path
 full automated test coverage through the latest reported checkpoint
 
-The latest reported full-suite result is:
+The latest verified full-suite result is:
 
-730/730 passed
+765/765 passed
 
 The latest reported focused routing result is:
 
@@ -804,7 +807,7 @@ That remains a project-level architectural question rather than a current implem
 Latest test state
 Current latest reported checkpoint
 Full suite:
-730/730 passed
+765/765 passed
 
 Focused routing suite:
 52/52 passed
@@ -829,7 +832,7 @@ The routing investigation passed through several earlier checkpoints with smalle
 
 Those historical numbers are useful when reading the older investigation records, but the current authoritative checkpoint is:
 
-730/730
+765/765
 52/52 focused routing
 
 Do not use an older test count as the current project baseline.
@@ -1287,6 +1290,88 @@ Recommended first #4 implementation slice:
 
 No implementation files, tests, Routing behavior, visual-editor code, or other workstream files were changed as part of this documentation checkpoint.
 
+# Checkpoint 16 — 2026-10-05 8:03 PM EDT — Controller-owned SemanticPort -> VisualPort implementation
+
+Purpose
+
+Record the completion and verification of the first approved real-data integration slice identified in Checkpoint 15.
+
+Repository state
+
+Commit:
+
+a1f9c6a — Expand Maestro interfaces and controller-owned port projection
+
+The commit is present on both local main and origin/main.
+
+The commit also includes Board-owned Maestro hardware/catalog changes from Workstream 03. Those changes are not Routing-owned.
+
+Implementation files relevant to this #4 integration slice:
+
+src/machine_builder/semantic_projection.py
+src/machine_builder/controller_visual_mutations.py
+tests/test_semantic_projection.py
+tests/test_controller_visual_mutations.py
+tests/test_connection_authoring.py
+
+What changed
+
+The existing component-port projection was generalized through a shared projection mechanism. Controller-owned ports now use the same canonical-to-visual path:
+
+Controller -> controller.port_ids -> canonical SemanticPort -> project_controller_ports() -> VisualPort.semantic_reference -> existing connection editing -> canonical SemanticConnection -> existing Routing
+
+Controller visual creation now projects its canonical ports into the existing VisualNode.
+
+No Maestro-specific visual or routing implementation was added.
+
+Why it matters
+
+Controller-owned and component-owned SemanticPorts now use the same visual-port projection and connection-authoring mechanism. Routing does not need to know which kind of canonical owner produced the endpoint.
+
+What was verified
+
+Focused controller/projection/connection/controller-port tests: 30 passed.
+Full repository test suite: 765 passed.
+
+The committed validation recorded in a1f9c6a reports 32 focused tests passed, 765 full-suite tests passed, and git diff --check clean.
+
+Architecture classification
+
+IMPLEMENTATION ONLY
+- Controller-owned SemanticPort -> VisualPort projection extends the existing canonical/visual boundary.
+- No new canonical ontology entity or semantic contract was introduced.
+
+REINFORCE
+- The canonical model remains the semantic authority.
+- The visual model remains presentation/authoring state.
+- Routing remains independent of Board/controller implementation details.
+- Basic/intermediate/extreme detail levels remain presentation modes over the same canonical + visual dataset.
+- Filters and layers remain independent view-state controls.
+- Zoom/detail/filter/layer changes must never create or mutate a second semantic model.
+
+WATCH
+- Visual endpoint -> canonical SemanticPort resolution may become a stronger query boundary only if concrete reuse needs arise.
+- Semantic compatibility evaluation and canonical connection-invariant queries remain WATCH items.
+- Physical connector positions/orientations remain unmodeled where trustworthy structured evidence is absent.
+
+Rejected / not required
+
+- No Routing refactor.
+- No Board -> Routing adapter.
+- No speculative Protocol or contract.
+- No second semantic model.
+- No Maestro-specific visual/routing implementation.
+
+Current unresolved issues
+
+The known single-connection preferred-spacing pathology remains unresolved. The hard-8 px experiment remains a baseline rather than a durable routing principle.
+
+Next action
+
+Return to the existing Routing next action: implement and test the small geometry-only repair experiment for the known spacing pathology. Preserve route topology where possible and do not begin global multi-wire optimization.
+
+No change is made here to the existing Routing architecture or canonical Connection model.
+
 Recovery rule
 
 This handoff is a living recovery document.
@@ -1346,3 +1431,109 @@ current routing source
 current routing tests
 
 and resume the work without reconstructing the entire conversation or rereading the complete historical routing investigation records.
+
+
+
+------------------------------------
+
+This part was edited by Pedro and is probably in the wrong location. Please fix the formatting and put this latest checkpoint in the correct location:
+
+# Checkpoint 17 — 2026-10-06 12:43 AM EDT — Routing experiment recovery / replacement-chat handoff
+
+Purpose
+
+Record the verified Routing workstream state after Checkpoint 16 and before replacing the current Routing chat.
+
+This checkpoint does not represent a completed Routing implementation change.
+
+Repository/source inspection
+
+The following Routing files were directly inspected:
+
+machine-structure-editor/src/machine_builder/graphics/connection.py
+
+machine-structure-editor/src/machine_builder/graphics/connection_routing.py
+
+machine-structure-editor/src/machine_builder/graphics/connection_routing_pathfinder.py
+
+machine-structure-editor/tests/test_connection_routing.py
+
+The inspection confirmed the current route-stability behavior, existing topology-preserving blocked-route repair, current parallel-segment separation support, and relevant Routing test coverage.
+
+No Routing implementation was completed after Checkpoint 16.
+
+No Routing tests were changed.
+
+No tests were run after Checkpoint 16.
+
+A temporary nudging source file was created during an abandoned implementation attempt and was subsequently removed. It was not a completed implementation and is not part of the current Routing architecture.
+
+No alternate permanent Routing handoff was created.
+
+Current unresolved issue
+
+The known preferred-spacing pathology remains unresolved.
+
+The existing 8.0 scene-unit protected-segment experiment remains a useful baseline, but 8.0 scene units is not a permanent Routing rule. The experiment demonstrated that hard spacing can eliminate near-coincident geometry while also producing undesirable U-turns, jogs, loops, or awkward local geometry.
+
+Current objective
+
+The next Routing experiment remains the small topology-preserving geometry-only repair experiment:
+
+existing route geometry
+
+↓
+
+detect insufficient preferred spacing
+
+↓
+
+move existing geometry rather than inventing new bends
+
+↓
+
+preserve existing bend/segment topology where possible
+
+↓
+
+relax preferred spacing when the available geometry cannot satisfy it cleanly
+
+↓
+
+fall back to existing routing when geometry-only repair is not legal or clean
+
+An initial preferred separation of approximately 4 scene units may be used as the experimental preference, but it is not a hard minimum.
+
+Next action
+
+The replacement Routing chat should continue from this existing handoff and implement/test the small geometry-only repair experiment for the known preferred-spacing pathology.
+
+Measure:
+
+minimum/legal separation
+
+preferred separation
+
+bend count
+
+route length
+
+topology identity
+
+geometry movement
+
+U-turn/jog/loop behavior
+
+fallback when geometry-only repair is insufficient
+
+Do not modify Board, Planning, Research, or other workstream files.
+
+Do not make documentation changes as part of the implementation experiment.
+
+Recovery state
+
+The authoritative live Routing handoff remains:
+
+machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
+
+There is exactly one live Routing workstream handoff.
