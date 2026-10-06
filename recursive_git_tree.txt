@@ -1,10 +1,6 @@
-Created 2026-09-16-11:02pm by Peter Tremonti from https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/main?recursive=1
-Updated 2026-09-25-05:01pm by Peter Tremonti
-Updated 2026-10-03-04:47pm by Peter Tremonti
-
 {
-  "sha": "5c4cdc9dc2e3f282378b2150641a0050b6fd4573",
-  "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/5c4cdc9dc2e3f282378b2150641a0050b6fd4573",
+  "sha": "326e47e6e772a5d46e3aeee50c12b0a092c515b0",
+  "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/326e47e6e772a5d46e3aeee50c12b0a092c515b0",
   "tree": [
     {
       "path": ".gitattributes",
@@ -18,17 +14,25 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "CHAT_WORKFLOW.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "0b5f8d42eedef097c3ee983ca1b188aeba48fa10",
-      "size": 16832,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/0b5f8d42eedef097c3ee983ca1b188aeba48fa10"
+      "sha": "8f47c2735785faad7663404c1ffe0d4123c5a077",
+      "size": 28808,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/8f47c2735785faad7663404c1ffe0d4123c5a077"
     },
     {
-      "path": "CODER_CHAT_WORKFLOW.md",
+      "path": "DOCUMENTATION_AUTHORITY.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "a57f61fa9e99004fab35fee488c7e61ef2f7e2d7",
-      "size": 11027,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/a57f61fa9e99004fab35fee488c7e61ef2f7e2d7"
+      "sha": "02a931e72a6ca8ebc3cb597e03b6eda493792582",
+      "size": 17020,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/02a931e72a6ca8ebc3cb597e03b6eda493792582"
+    },
+    {
+      "path": "HISTORICAL_DOCUMENT_ARCHIVE.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "da1fa8f96baf162d1c6a84132d9a97a5c4d3cb0f",
+      "size": 11283,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/da1fa8f96baf162d1c6a84132d9a97a5c4d3cb0f"
     },
     {
       "path": "IdeaFormer Facebook Files",
@@ -137,9 +141,9 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "PROJECT_CURRENT_STATE.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "93fa57f88c744ea7399d6bb687fd0895d6cb65c6",
-      "size": 34467,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/93fa57f88c744ea7399d6bb687fd0895d6cb65c6"
+      "sha": "bf89e62bea6707b778eb776f3576ef6eb2868818",
+      "size": 34756,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/bf89e62bea6707b778eb776f3576ef6eb2868818"
     },
     {
       "path": "README.md",
@@ -153,11 +157,25 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "docs",
       "mode": "040000",
       "type": "tree",
-      "sha": "d812822dfde351adecebf054f8f6e401db068fc3",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/d812822dfde351adecebf054f8f6e401db068fc3"
+      "sha": "4eac625b35d8528d2d4831f8442dcebd721daefe",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/4eac625b35d8528d2d4831f8442dcebd721daefe"
     },
     {
-      "path": "docs/MachineBuilder_Chat_Bootstrap.md",
+      "path": "docs/historical",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "be6ac9fb043a1f25b7f76ad528a6599b064184ce",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/be6ac9fb043a1f25b7f76ad528a6599b064184ce"
+    },
+    {
+      "path": "docs/historical/legacy",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "ea7423d871d085426acea166ae4a0a10a3496319",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/ea7423d871d085426acea166ae4a0a10a3496319"
+    },
+    {
+      "path": "docs/historical/legacy/MachineBuilder_Chat_Bootstrap.md",
       "mode": "100644",
       "type": "blob",
       "sha": "81933756c71eeb47d36485a24156711408ec522a",
@@ -165,7 +183,7 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/81933756c71eeb47d36485a24156711408ec522a"
     },
     {
-      "path": "docs/MachineBuilder_Master_Brain.md",
+      "path": "docs/historical/legacy/MachineBuilder_Master_Brain.md",
       "mode": "100644",
       "type": "blob",
       "sha": "3951f72eced3693f24eee0a177c56db5ae0a73ff",
@@ -173,7 +191,7 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/3951f72eced3693f24eee0a177c56db5ae0a73ff"
     },
     {
-      "path": "docs/MachineBuilder_Project_History.md",
+      "path": "docs/historical/legacy/MachineBuilder_Project_History.md",
       "mode": "100644",
       "type": "blob",
       "sha": "9ab2e39a7ab0b9e7294658e5064a3041da0d5801",
@@ -181,7 +199,7 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/9ab2e39a7ab0b9e7294658e5064a3041da0d5801"
     },
     {
-      "path": "docs/Machine_Builder_Dev_Architecture.md",
+      "path": "docs/historical/legacy/Machine_Builder_Dev_Architecture.md",
       "mode": "100644",
       "type": "blob",
       "sha": "d634853e4911d567aa954844d127788fbe3992a8",
@@ -189,7 +207,7 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/d634853e4911d567aa954844d127788fbe3992a8"
     },
     {
-      "path": "docs/Version 7.8 Specs.md",
+      "path": "docs/historical/legacy/Version 7.8 Specs.md",
       "mode": "100644",
       "type": "blob",
       "sha": "14d918811decf86fb2e34f4a6b1cc8ca17221395",
@@ -197,22 +215,14 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/14d918811decf86fb2e34f4a6b1cc8ca17221395"
     },
     {
-      "path": "docs/Wiring_Map.ods",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "22906a820840fb632be9276a43e6daebc2d1b669",
-      "size": 11947,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/22906a820840fb632be9276a43e6daebc2d1b669"
-    },
-    {
-      "path": "docs/architecture",
+      "path": "docs/historical/legacy/architecture",
       "mode": "040000",
       "type": "tree",
       "sha": "434f26687bffdeefc87157f43120e216eecd8dc0",
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/434f26687bffdeefc87157f43120e216eecd8dc0"
     },
     {
-      "path": "docs/architecture/device_visual_schema.md",
+      "path": "docs/historical/legacy/architecture/device_visual_schema.md",
       "mode": "100644",
       "type": "blob",
       "sha": "e93aed6422f363bb76185a5ab72101d69948e3eb",
@@ -220,7 +230,7 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/e93aed6422f363bb76185a5ab72101d69948e3eb"
     },
     {
-      "path": "docs/architecture/firmware_generation.md",
+      "path": "docs/historical/legacy/architecture/firmware_generation.md",
       "mode": "100644",
       "type": "blob",
       "sha": "d5c501e138d65e62c2477ba02c826456993af49c",
@@ -228,7 +238,7 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/d5c501e138d65e62c2477ba02c826456993af49c"
     },
     {
-      "path": "docs/architecture/hardware_database_schema.md",
+      "path": "docs/historical/legacy/architecture/hardware_database_schema.md",
       "mode": "100644",
       "type": "blob",
       "sha": "e5cf13375cafb8281c0526ddf4b4136a079e962b",
@@ -236,7 +246,7 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/e5cf13375cafb8281c0526ddf4b4136a079e962b"
     },
     {
-      "path": "docs/architecture/machine_model.md",
+      "path": "docs/historical/legacy/architecture/machine_model.md",
       "mode": "100644",
       "type": "blob",
       "sha": "20cdd45a573621697afe3e6577b65bcaaa1d80e8",
@@ -244,7 +254,7 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/20cdd45a573621697afe3e6577b65bcaaa1d80e8"
     },
     {
-      "path": "docs/architecture/wiring_system.md",
+      "path": "docs/historical/legacy/architecture/wiring_system.md",
       "mode": "100644",
       "type": "blob",
       "sha": "2d492897514afeb60f1940d6b2d887fb9a2f1f0c",
@@ -252,14 +262,14 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/2d492897514afeb60f1940d6b2d887fb9a2f1f0c"
     },
     {
-      "path": "docs/ui",
+      "path": "docs/historical/legacy/ui",
       "mode": "040000",
       "type": "tree",
       "sha": "d38df1db09124f621f0f6c6219ce0073ebdc2d57",
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/d38df1db09124f621f0f6c6219ce0073ebdc2d57"
     },
     {
-      "path": "docs/ui/builder_modes.md",
+      "path": "docs/historical/legacy/ui/builder_modes.md",
       "mode": "100644",
       "type": "blob",
       "sha": "5085e9798d9ce0ada4af3ed77ee952b45ad75d07",
@@ -267,7 +277,7 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/5085e9798d9ce0ada4af3ed77ee952b45ad75d07"
     },
     {
-      "path": "docs/ui/canvas_system.md",
+      "path": "docs/historical/legacy/ui/canvas_system.md",
       "mode": "100644",
       "type": "blob",
       "sha": "4c2505776a0e6dd7e11e5a9cab1951c2d7c33002",
@@ -275,14 +285,107 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/4c2505776a0e6dd7e11e5a9cab1951c2d7c33002"
     },
     {
-      "path": "docs/visual-builder",
+      "path": "docs/historical/recovery",
       "mode": "040000",
       "type": "tree",
-      "sha": "b9193656782dd0b91906ef43b2623dea8fb94583",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/b9193656782dd0b91906ef43b2623dea8fb94583"
+      "sha": "2dbe63e2578e3499f6fb6edd7ae3bf1c24848578",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/2dbe63e2578e3499f6fb6edd7ae3bf1c24848578"
     },
     {
-      "path": "docs/visual-builder/VISUAL_BUILDER_ARCHITECTURE.md",
+      "path": "docs/historical/recovery/MACHINE_BUILDER_CHAT_1_RECOVERY_AND_RECONSTRUCTION_2026-10-04.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "75d32cb622b54bd3af1872921d2537a428e6fecb",
+      "size": 38912,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/75d32cb622b54bd3af1872921d2537a428e6fecb"
+    },
+    {
+      "path": "docs/historical/research",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "98c3e17b2e2a5fc5f874e3bb3a1773970c2116a3",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/98c3e17b2e2a5fc5f874e3bb3a1773970c2116a3"
+    },
+    {
+      "path": "docs/historical/research/IMPLEMENTATION_HANDOFF_INDEX.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "554a7ff76b5d3d53c0cb65bf506ca0b9299bf1bc",
+      "size": 17778,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/554a7ff76b5d3d53c0cb65bf506ca0b9299bf1bc"
+    },
+    {
+      "path": "docs/historical/research/O0.1_IMPLEMENTATION_HANDOFF.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "cc1bfeb3459c0c28025351e8d1bec61900716908",
+      "size": 8585,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/cc1bfeb3459c0c28025351e8d1bec61900716908"
+    },
+    {
+      "path": "docs/historical/research/R0.1_TO_V0.2_HANDOFF.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dc872f271677717d4cff3e654447313fc6f39386",
+      "size": 15153,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/dc872f271677717d4cff3e654447313fc6f39386"
+    },
+    {
+      "path": "docs/historical/research/V0.2_IMPLEMENTATION_HANDOFF.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "81bbf90f44a93160e2480a847f64760ab547c282",
+      "size": 9689,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/81bbf90f44a93160e2480a847f64760ab547c282"
+    },
+    {
+      "path": "docs/historical/routing",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "dc815db8d1cab2b380ad205dfe414fba51d2fc12",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/dc815db8d1cab2b380ad205dfe414fba51d2fc12"
+    },
+    {
+      "path": "docs/historical/routing/ROUTING_DIAGNOSTICS_HISTORICAL_HANDOFF.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "dd6192fcd69ce3b66a4a595cd96ab253336f0a29",
+      "size": 14238,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/dd6192fcd69ce3b66a4a595cd96ab253336f0a29"
+    },
+    {
+      "path": "docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2849f4a92a03b02b734c5e19c5e0b4854ce152d1",
+      "size": 11949,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/2849f4a92a03b02b734c5e19c5e0b4854ce152d1"
+    },
+    {
+      "path": "docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3402b692fdd7b3f907411b828e32ffc4cc0c8dd9",
+      "size": 21650,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/3402b692fdd7b3f907411b828e32ffc4cc0c8dd9"
+    },
+    {
+      "path": "docs/historical/visual-builder",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "40b2a1bd8780070b9f58c141f8671f569b226fff",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/40b2a1bd8780070b9f58c141f8671f569b226fff"
+    },
+    {
+      "path": "docs/historical/visual-builder/Read me to continue 4.1 chat.txt",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6dda66fb83e1e0be3c28552d1560386c32a83d3a",
+      "size": 48080,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/6dda66fb83e1e0be3c28552d1560386c32a83d3a"
+    },
+    {
+      "path": "docs/historical/visual-builder/VISUAL_BUILDER_ARCHITECTURE.md",
       "mode": "100644",
       "type": "blob",
       "sha": "c1206054b3dc18be36b94612d69c734982eef01a",
@@ -290,7 +393,7 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/c1206054b3dc18be36b94612d69c734982eef01a"
     },
     {
-      "path": "docs/visual-builder/VISUAL_BUILDER_CODER_HANDOFF.md",
+      "path": "docs/historical/visual-builder/VISUAL_BUILDER_CODER_HANDOFF.md",
       "mode": "100644",
       "type": "blob",
       "sha": "56a7ccb68e5451ad60f7a9b1ebd150a52a6b96fc",
@@ -298,7 +401,7 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/56a7ccb68e5451ad60f7a9b1ebd150a52a6b96fc"
     },
     {
-      "path": "docs/visual-builder/VISUAL_BUILDER_REQUIREMENTS.md",
+      "path": "docs/historical/visual-builder/VISUAL_BUILDER_REQUIREMENTS.md",
       "mode": "100644",
       "type": "blob",
       "sha": "c7456680bfec74c9afe295a1cece062ec99f57a7",
@@ -306,7 +409,7 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/c7456680bfec74c9afe295a1cece062ec99f57a7"
     },
     {
-      "path": "docs/visual-builder/VISUAL_BUILDER_SCOPE.md",
+      "path": "docs/historical/visual-builder/VISUAL_BUILDER_SCOPE.md",
       "mode": "100644",
       "type": "blob",
       "sha": "a01af6fd5c7aed38a8503ceb93dd8da9d35efe95",
@@ -314,12 +417,42 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/a01af6fd5c7aed38a8503ceb93dd8da9d35efe95"
     },
     {
-      "path": "docs/visual-builder/VISUAL_MODEL.md",
+      "path": "docs/historical/visual-builder/VISUAL_MODEL.md",
       "mode": "100644",
       "type": "blob",
       "sha": "23ae2ac066a84e5d0a625ece098284f143224d42",
       "size": 24552,
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/23ae2ac066a84e5d0a625ece098284f143224d42"
+    },
+    {
+      "path": "docs/historical/wiring",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "25dbd4fa0faca2fd50a8f95185940b88c929dc37",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/25dbd4fa0faca2fd50a8f95185940b88c929dc37"
+    },
+    {
+      "path": "docs/historical/wiring/Wiring_Map.ods",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "22906a820840fb632be9276a43e6daebc2d1b669",
+      "size": 11947,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/22906a820840fb632be9276a43e6daebc2d1b669"
+    },
+    {
+      "path": "docs/historical/workflow",
+      "mode": "040000",
+      "type": "tree",
+      "sha": "b5914e0f4237eafb56ca96047a6d672087d57f29",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/b5914e0f4237eafb56ca96047a6d672087d57f29"
+    },
+    {
+      "path": "docs/historical/workflow/CODER_CHAT_WORKFLOW.md",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a57f61fa9e99004fab35fee488c7e61ef2f7e2d7",
+      "size": 11027,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/a57f61fa9e99004fab35fee488c7e61ef2f7e2d7"
     },
     {
       "path": "firmware_sources",
@@ -5841,39 +5974,39 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-builder-research",
       "mode": "040000",
       "type": "tree",
-      "sha": "1020edf4ab6694b60e6331348380424a32b28587",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/1020edf4ab6694b60e6331348380424a32b28587"
+      "sha": "84dca59c9465fd061bd4370fc646d218ba162d9c",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/84dca59c9465fd061bd4370fc646d218ba162d9c"
     },
     {
       "path": "machine-builder-research/PROJECT_CONTEXT.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "47273d11f2edc75ceda321d3ab1cfc54166a87f5",
-      "size": 13046,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/47273d11f2edc75ceda321d3ab1cfc54166a87f5"
+      "sha": "286e10905bf3387c7083a2e60d93dea9a6ef527a",
+      "size": 14091,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/286e10905bf3387c7083a2e60d93dea9a6ef527a"
     },
     {
       "path": "machine-builder-research/RESEARCH_ROADMAP.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "4077ba978430cc06dfc5c08564e60495ad9b18fb",
-      "size": 7108,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/4077ba978430cc06dfc5c08564e60495ad9b18fb"
+      "sha": "d1517d85f55082a6081f7b6b44dc441cd398abc2",
+      "size": 7132,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/d1517d85f55082a6081f7b6b44dc441cd398abc2"
     },
     {
       "path": "machine-builder-research/START_HERE.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "5f8739ade1075a3e7a32580e57e2ce628e632fe4",
-      "size": 9809,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/5f8739ade1075a3e7a32580e57e2ce628e632fe4"
+      "sha": "0ede12650469d8bdc9926f98e246f569e419cff2",
+      "size": 9979,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/0ede12650469d8bdc9926f98e246f569e419cff2"
     },
     {
       "path": "machine-builder-research/architecture",
       "mode": "040000",
       "type": "tree",
-      "sha": "cb23c9e95274ce5033f1167aad40188023287999",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/cb23c9e95274ce5033f1167aad40188023287999"
+      "sha": "b736b0b450359e6aa23333eb46bb26d5f5a52732",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/b736b0b450359e6aa23333eb46bb26d5f5a52732"
     },
     {
       "path": "machine-builder-research/architecture/ARCHITECTURE_OVERVIEW.md",
@@ -5887,17 +6020,17 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-builder-research/architecture/DATA_FLOW.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "4085334ce70c95d5d448415c14b9597d5d48011f",
-      "size": 22787,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/4085334ce70c95d5d448415c14b9597d5d48011f"
+      "sha": "4e591a410abcda8d4a38ed97cc6a91de32edc57c",
+      "size": 22998,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/4e591a410abcda8d4a38ed97cc6a91de32edc57c"
     },
     {
       "path": "machine-builder-research/architecture/SYSTEM_BOUNDARIES.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "669b10c35b2c7db8aebe90e9f3eb6b7c918a7be3",
-      "size": 19594,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/669b10c35b2c7db8aebe90e9f3eb6b7c918a7be3"
+      "sha": "668c6973a079a15bd31e3ef7d8b6e70d4826348b",
+      "size": 19806,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/668c6973a079a15bd31e3ef7d8b6e70d4826348b"
     },
     {
       "path": "machine-builder-research/checkpoints",
@@ -5968,52 +6101,6 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/e7bc541c580ab2164546d41806e370e896b563dc"
     },
     {
-      "path": "machine-builder-research/handoffs",
-      "mode": "040000",
-      "type": "tree",
-      "sha": "43ab600714d6d442bf7b815a7814ed4ac156cb70",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/43ab600714d6d442bf7b815a7814ed4ac156cb70"
-    },
-    {
-      "path": "machine-builder-research/handoffs/IMPLEMENTATION_HANDOFF_INDEX.md",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "9018cd44fe27870320b5d3e960f7166a89511b04",
-      "size": 17312,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/9018cd44fe27870320b5d3e960f7166a89511b04"
-    },
-    {
-      "path": "machine-builder-research/handoffs/O0.1_IMPLEMENTATION_HANDOFF.md",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "cc1bfeb3459c0c28025351e8d1bec61900716908",
-      "size": 8585,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/cc1bfeb3459c0c28025351e8d1bec61900716908"
-    },
-    {
-      "path": "machine-builder-research/handoffs/V0.2_IMPLEMENTATION_HANDOFF.md",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "81bbf90f44a93160e2480a847f64760ab547c282",
-      "size": 9689,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/81bbf90f44a93160e2480a847f64760ab547c282"
-    },
-    {
-      "path": "machine-builder-research/handoffs/version-handoffs",
-      "mode": "040000",
-      "type": "tree",
-      "sha": "17ca040b55c67e02681dc950fc28669d419dbfaf",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/17ca040b55c67e02681dc950fc28669d419dbfaf"
-    },
-    {
-      "path": "machine-builder-research/handoffs/version-handoffs/R0.1_TO_V0.2_HANDOFF.md",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "dc872f271677717d4cff3e654447313fc6f39386",
-      "size": 15153,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/dc872f271677717d4cff3e654447313fc6f39386"
-    },
-    {
       "path": "machine-builder-research/machines",
       "mode": "040000",
       "type": "tree",
@@ -6032,16 +6119,16 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-builder-research/ontology",
       "mode": "040000",
       "type": "tree",
-      "sha": "fc17fc5f20c83a925cc1b750f6a5455bec6b7c4e",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/fc17fc5f20c83a925cc1b750f6a5455bec6b7c4e"
+      "sha": "b0b9fb7530bba222abe512804ce9100b3d0dd0d5",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/b0b9fb7530bba222abe512804ce9100b3d0dd0d5"
     },
     {
       "path": "machine-builder-research/ontology/CONCEPT_MATRIX.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "43dd0143f45bd4025249344cb350d1d318837e98",
-      "size": 4310,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/43dd0143f45bd4025249344cb350d1d318837e98"
+      "sha": "137dcbc97aa171169fdc39672fbf3ce26f0c8dbe",
+      "size": 4512,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/137dcbc97aa171169fdc39672fbf3ce26f0c8dbe"
     },
     {
       "path": "machine-builder-research/ontology/ONTOLOGY_CURRENT.md",
@@ -6055,9 +6142,9 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-builder-research/ontology/RELATIONSHIP_MATRIX.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "e16e6bd68081fca3caa32f9b10a9118149389d40",
-      "size": 3148,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/e16e6bd68081fca3caa32f9b10a9118149389d40"
+      "sha": "0dc8d4f1fbcc119f12491b1a8f3ad3d005739a8a",
+      "size": 3350,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/0dc8d4f1fbcc119f12491b1a8f3ad3d005739a8a"
     },
     {
       "path": "machine-builder-research/ontology/TERMINOLOGY_BASELINE.md",
@@ -6138,8 +6225,8 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor",
       "mode": "040000",
       "type": "tree",
-      "sha": "f89e393d151e88ccf3c4d71882213bebb2043de7",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/f89e393d151e88ccf3c4d71882213bebb2043de7"
+      "sha": "d39d72c74ecab0504668b6ce045c509f93b1c662",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/d39d72c74ecab0504668b6ce045c509f93b1c662"
     },
     {
       "path": "machine-structure-editor/.gitignore",
@@ -6168,31 +6255,23 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/IMPLEMENTATION_ROADMAP.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "8b4e4dfdfb1281b0580ccac983b0a03dd01ee9ca",
-      "size": 8843,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/8b4e4dfdfb1281b0580ccac983b0a03dd01ee9ca"
-    },
-    {
-      "path": "machine-structure-editor/Read me to continue 4.1 chat.txt",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "6dda66fb83e1e0be3c28552d1560386c32a83d3a",
-      "size": 48080,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/6dda66fb83e1e0be3c28552d1560386c32a83d3a"
+      "sha": "e9a277c8b1865334c8628735d0a81d7cd1dcb9c7",
+      "size": 8876,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/e9a277c8b1865334c8628735d0a81d7cd1dcb9c7"
     },
     {
       "path": "machine-structure-editor/docs",
       "mode": "040000",
       "type": "tree",
-      "sha": "1f5a4b6f4e2515d26b472d98998f01499a79a344",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/1f5a4b6f4e2515d26b472d98998f01499a79a344"
+      "sha": "ac3032663ba8655f17a4b08932f1d48e38bdd852",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/ac3032663ba8655f17a4b08932f1d48e38bdd852"
     },
     {
       "path": "machine-structure-editor/docs/implementation",
       "mode": "040000",
       "type": "tree",
-      "sha": "bf5313b4d5336eabf80a4ccd7b9e10b741b8cc12",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/bf5313b4d5336eabf80a4ccd7b9e10b741b8cc12"
+      "sha": "4749cd03ce4284890fdfbf267a524745aed9f7b7",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/4749cd03ce4284890fdfbf267a524745aed9f7b7"
     },
     {
       "path": "machine-structure-editor/docs/implementation/V0.1_IMPLEMENTATION_PLAN.md",
@@ -6206,72 +6285,56 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/docs/implementation/V0.2_IMPLEMENTATION_PLAN.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "97ec13bfdcc1ed7363b2523fee887bd3fb690e50",
-      "size": 19419,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/97ec13bfdcc1ed7363b2523fee887bd3fb690e50"
+      "sha": "d63295cd5b5638680afe6c0fc77bd85b61621090",
+      "size": 19439,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/d63295cd5b5638680afe6c0fc77bd85b61621090"
     },
     {
       "path": "machine-structure-editor/handoffs",
       "mode": "040000",
       "type": "tree",
-      "sha": "d7edc1c04889c92ec707ac89e7675dd7e0561103",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/d7edc1c04889c92ec707ac89e7675dd7e0561103"
+      "sha": "0898096e79cfb7110aac690d0c1882dfa18d5a1d",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/0898096e79cfb7110aac690d0c1882dfa18d5a1d"
     },
     {
       "path": "machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_WORKSTREAM_HANDOFF.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "1cfd6410c30a9c43a853101b7d00f8d9e97ebf1c",
-      "size": 10292,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/1cfd6410c30a9c43a853101b7d00f8d9e97ebf1c"
+      "sha": "61143bf944120445260335dce75a85f016b4e2a9",
+      "size": 22873,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/61143bf944120445260335dce75a85f016b4e2a9"
     },
     {
       "path": "machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "7421e464702c9f31c14cb07b6eddd75f615ee10e",
-      "size": 10325,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/7421e464702c9f31c14cb07b6eddd75f615ee10e"
+      "sha": "9b7f6cb4b1da37fc2777a00f4f3c3dd071b08f8d",
+      "size": 28549,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/9b7f6cb4b1da37fc2777a00f4f3c3dd071b08f8d"
     },
     {
       "path": "machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "a09e59e9591a49051459f5129bb473b72fd07cb1",
-      "size": 55007,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/a09e59e9591a49051459f5129bb473b72fd07cb1"
+      "sha": "fdfc4eeda73fa5ebe6f169ce648d675a56b3175a",
+      "size": 58051,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/fdfc4eeda73fa5ebe6f169ce648d675a56b3175a"
     },
     {
       "path": "machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "53d437061042a04b5bbec5e6e38fa5dc0c08ad1f",
-      "size": 30965,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/53d437061042a04b5bbec5e6e38fa5dc0c08ad1f"
+      "sha": "5d5477bad1213c5ebe503eafc449afa43d327ef3",
+      "size": 59041,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/5d5477bad1213c5ebe503eafc449afa43d327ef3"
     },
     {
-      "path": "machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md",
+      "path": "machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_WORKSTREAM_HANDOFF.md",
       "mode": "100644",
       "type": "blob",
-      "sha": "2849f4a92a03b02b734c5e19c5e0b4854ce152d1",
-      "size": 11949,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/2849f4a92a03b02b734c5e19c5e0b4854ce152d1"
-    },
-    {
-      "path": "machine-structure-editor/handoffs/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "3402b692fdd7b3f907411b828e32ffc4cc0c8dd9",
-      "size": 21650,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/3402b692fdd7b3f907411b828e32ffc4cc0c8dd9"
-    },
-    {
-      "path": "machine-structure-editor/handoffs/V0.2_VISUAL_EDITOR_IMPLEMENTATION_HANDOFF.md",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "dd6192fcd69ce3b66a4a595cd96ab253336f0a29",
-      "size": 14238,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/dd6192fcd69ce3b66a4a595cd96ab253336f0a29"
+      "sha": "f5afaedb0bd032c6b1c9bf0f23591848d223a907",
+      "size": 29107,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/f5afaedb0bd032c6b1c9bf0f23591848d223a907"
     },
     {
       "path": "machine-structure-editor/pyproject.toml",
@@ -6324,70 +6387,15 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/src",
       "mode": "040000",
       "type": "tree",
-      "sha": "a46e5322e82bf3a7ac2f0f333cb3563be4fe5613",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/a46e5322e82bf3a7ac2f0f333cb3563be4fe5613"
-    },
-    {
-      "path": "machine-structure-editor/src/machine_builder.egg-info",
-      "mode": "040000",
-      "type": "tree",
-      "sha": "d19be53a7936f251cad85fccc30eb308f23fd5e1",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/d19be53a7936f251cad85fccc30eb308f23fd5e1"
-    },
-    {
-      "path": "machine-structure-editor/src/machine_builder.egg-info/PKG-INFO",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "4e6e44cbcb7d08c5be4585bbe6afca76c5119a02",
-      "size": 237,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/4e6e44cbcb7d08c5be4585bbe6afca76c5119a02"
-    },
-    {
-      "path": "machine-structure-editor/src/machine_builder.egg-info/SOURCES.txt",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "f7e93c0ffcdbdd21b9fee637bc820d4845370fb8",
-      "size": 520,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/f7e93c0ffcdbdd21b9fee637bc820d4845370fb8"
-    },
-    {
-      "path": "machine-structure-editor/src/machine_builder.egg-info/dependency_links.txt",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "8b137891791fe96927ad78e64b0aad7bded08bdc",
-      "size": 1,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/8b137891791fe96927ad78e64b0aad7bded08bdc"
-    },
-    {
-      "path": "machine-structure-editor/src/machine_builder.egg-info/entry_points.txt",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "3b4da44310d7be509fc29867b3bb4825e9762ab0",
-      "size": 61,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/3b4da44310d7be509fc29867b3bb4825e9762ab0"
-    },
-    {
-      "path": "machine-structure-editor/src/machine_builder.egg-info/requires.txt",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "2fb4d8c4609392ea7ec25d1261ba419cb696921c",
-      "size": 36,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/2fb4d8c4609392ea7ec25d1261ba419cb696921c"
-    },
-    {
-      "path": "machine-structure-editor/src/machine_builder.egg-info/top_level.txt",
-      "mode": "100644",
-      "type": "blob",
-      "sha": "0546be89e74ba0cfcbcac682d0b18e1c70a78b2d",
-      "size": 16,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/0546be89e74ba0cfcbcac682d0b18e1c70a78b2d"
+      "sha": "77c272119860789dc1bc759e3359ba3aafa2a231",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/77c272119860789dc1bc759e3359ba3aafa2a231"
     },
     {
       "path": "machine-structure-editor/src/machine_builder",
       "mode": "040000",
       "type": "tree",
-      "sha": "ad8c763ab2a4c65dfb56a9f420766bb75907d591",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/ad8c763ab2a4c65dfb56a9f420766bb75907d591"
+      "sha": "fd8068aa08c06fe109ebf30c783c5c2432e2cf75",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/fd8068aa08c06fe109ebf30c783c5c2432e2cf75"
     },
     {
       "path": "machine-structure-editor/src/machine_builder/__init__.py",
@@ -6521,9 +6529,9 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/src/machine_builder/controller_board_fixtures.py",
       "mode": "100644",
       "type": "blob",
-      "sha": "298abc8934cd9c87d5c29241e239ec01e3f781a3",
-      "size": 11176,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/298abc8934cd9c87d5c29241e239ec01e3f781a3"
+      "sha": "144a49c44c9457e0b31bf5dcfe022050dedb5794",
+      "size": 11405,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/144a49c44c9457e0b31bf5dcfe022050dedb5794"
     },
     {
       "path": "machine-structure-editor/src/machine_builder/controller_details.py",
@@ -6649,9 +6657,9 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/src/machine_builder/controller_visual_mutations.py",
       "mode": "100644",
       "type": "blob",
-      "sha": "a487a099d27503b075b61b301d5a1ae6d7bcbf9d",
-      "size": 3762,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/a487a099d27503b075b61b301d5a1ae6d7bcbf9d"
+      "sha": "8c27eddd7ff1b5a157b0c7ed03a3fc1f7efca046",
+      "size": 4085,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/8c27eddd7ff1b5a157b0c7ed03a3fc1f7efca046"
     },
     {
       "path": "machine-structure-editor/src/machine_builder/document_controller.py",
@@ -6673,8 +6681,8 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/src/machine_builder/graphics",
       "mode": "040000",
       "type": "tree",
-      "sha": "8c7e6f042477dc90d832b8583dd9453b5218e5e7",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/8c7e6f042477dc90d832b8583dd9453b5218e5e7"
+      "sha": "44c2346f3851c60eb9c602a8f109d703cddbc301",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/44c2346f3851c60eb9c602a8f109d703cddbc301"
     },
     {
       "path": "machine-structure-editor/src/machine_builder/graphics/__init__.py",
@@ -6688,9 +6696,9 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/src/machine_builder/graphics/connection.py",
       "mode": "100644",
       "type": "blob",
-      "sha": "1a35c0857ddf9ea018a38bc15e7aaae5578114c7",
-      "size": 37956,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/1a35c0857ddf9ea018a38bc15e7aaae5578114c7"
+      "sha": "2bf399aa54b8bf6cdc88f7046a13c28d5b069f8a",
+      "size": 44972,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/2bf399aa54b8bf6cdc88f7046a13c28d5b069f8a"
     },
     {
       "path": "machine-structure-editor/src/machine_builder/graphics/connection_routing.py",
@@ -6776,9 +6784,9 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/src/machine_builder/hardware_catalog.py",
       "mode": "100644",
       "type": "blob",
-      "sha": "9794b3f018da82af540adf96f6ada6cbc25a1675",
-      "size": 19259,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/9794b3f018da82af540adf96f6ada6cbc25a1675"
+      "sha": "634467b0f917ce42ddc768d1da8fe0b85b699044",
+      "size": 27743,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/634467b0f917ce42ddc768d1da8fe0b85b699044"
     },
     {
       "path": "machine-structure-editor/src/machine_builder/hardware_component_fixtures.py",
@@ -6840,9 +6848,9 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/src/machine_builder/selection_inspector.py",
       "mode": "100644",
       "type": "blob",
-      "sha": "093ce89a29a54a338a622a7974dfd4b7dcfa3086",
-      "size": 17999,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/093ce89a29a54a338a622a7974dfd4b7dcfa3086"
+      "sha": "4464aab22f867567b807babaafc0e87cffe9ed01",
+      "size": 16140,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/4464aab22f867567b807babaafc0e87cffe9ed01"
     },
     {
       "path": "machine-structure-editor/src/machine_builder/semantic_capability.py",
@@ -6912,9 +6920,9 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/src/machine_builder/semantic_projection.py",
       "mode": "100644",
       "type": "blob",
-      "sha": "c59fa6452afa773b75c5f2710126040bb75477c8",
-      "size": 4849,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/c59fa6452afa773b75c5f2710126040bb75477c8"
+      "sha": "52062099b2be2229bc386ec5686063407daf52a3",
+      "size": 5101,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/52062099b2be2229bc386ec5686063407daf52a3"
     },
     {
       "path": "machine-structure-editor/src/machine_builder/semantic_relationship.py",
@@ -6968,8 +6976,8 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/tests",
       "mode": "040000",
       "type": "tree",
-      "sha": "254237262e57aa0756306520822da53faf677258",
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/254237262e57aa0756306520822da53faf677258"
+      "sha": "f53486fc928b7bad1ee31a598baea30a0953ebdb",
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/f53486fc928b7bad1ee31a598baea30a0953ebdb"
     },
     {
       "path": "machine-structure-editor/tests/test_app_document_ui.py",
@@ -7047,17 +7055,17 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/tests/test_connection_authoring.py",
       "mode": "100644",
       "type": "blob",
-      "sha": "6711fe1863ead206c2becc0a2f9747685ca12132",
-      "size": 7835,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/6711fe1863ead206c2becc0a2f9747685ca12132"
+      "sha": "b776ef4bf9d499525bff3959ca0e5f62c464f1e7",
+      "size": 9744,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/b776ef4bf9d499525bff3959ca0e5f62c464f1e7"
     },
     {
       "path": "machine-structure-editor/tests/test_connection_routing.py",
       "mode": "100644",
       "type": "blob",
-      "sha": "f9922bfa2c81be9cc5b74a13475e39b21fbed3cf",
-      "size": 51420,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/f9922bfa2c81be9cc5b74a13475e39b21fbed3cf"
+      "sha": "6c50e7736083cbc5c1c477a9cb3ae36330dde0d7",
+      "size": 57132,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/6c50e7736083cbc5c1c477a9cb3ae36330dde0d7"
     },
     {
       "path": "machine-structure-editor/tests/test_controller_assignment_authoring.py",
@@ -7079,9 +7087,9 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/tests/test_controller_board_fixtures.py",
       "mode": "100644",
       "type": "blob",
-      "sha": "ff4370965606cae644446e85d537fa1b9bb03d2c",
-      "size": 8493,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/ff4370965606cae644446e85d537fa1b9bb03d2c"
+      "sha": "5eea00c10961d07827f47594c1fbd93251f7fd19",
+      "size": 9011,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/5eea00c10961d07827f47594c1fbd93251f7fd19"
     },
     {
       "path": "machine-structure-editor/tests/test_controller_details.py",
@@ -7279,9 +7287,9 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/tests/test_controller_visual_mutations.py",
       "mode": "100644",
       "type": "blob",
-      "sha": "0a7bc9ebe775cbc7c4ad66cbf5a76c66f31f57e4",
-      "size": 6421,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/0a7bc9ebe775cbc7c4ad66cbf5a76c66f31f57e4"
+      "sha": "86daf10f22f218d4b043962450f37ec101280cb4",
+      "size": 7534,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/86daf10f22f218d4b043962450f37ec101280cb4"
     },
     {
       "path": "machine-structure-editor/tests/test_document_controller.py",
@@ -7306,6 +7314,14 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "sha": "29f3523abfb9229f75f894d7147d1e5b7fd66537",
       "size": 3891,
       "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/29f3523abfb9229f75f894d7147d1e5b7fd66537"
+    },
+    {
+      "path": "machine-structure-editor/tests/test_duet_2_maestro_interface_specs.py",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "8e7bb51d50175f1876feead37155dd4f655b01a7",
+      "size": 5136,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/8e7bb51d50175f1876feead37155dd4f655b01a7"
     },
     {
       "path": "machine-structure-editor/tests/test_fan_fixture.py",
@@ -7567,9 +7583,9 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "machine-structure-editor/tests/test_semantic_projection.py",
       "mode": "100644",
       "type": "blob",
-      "sha": "5dcbe970b27c13f6c5f53fce9205f8a7a07bc44c",
-      "size": 4562,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/5dcbe970b27c13f6c5f53fce9205f8a7a07bc44c"
+      "sha": "07997a65f8d388a8df6e0e241bf4fca4638d42cd",
+      "size": 6367,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/07997a65f8d388a8df6e0e241bf4fca4638d42cd"
     },
     {
       "path": "machine-structure-editor/tests/test_semantic_projection_duplicates.py",
@@ -7670,10 +7686,13 @@ Updated 2026-10-03-04:47pm by Peter Tremonti
       "path": "recursive_git_tree.txt",
       "mode": "100644",
       "type": "blob",
-      "sha": "3dedc2b0fd4c80b8cddbce65ce7bef62c694c8f6",
-      "size": 318473,
-      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/3dedc2b0fd4c80b8cddbce65ce7bef62c694c8f6"
+      "sha": "97a1883079dd4ad1d8bd79ad500fd3a7dfcccaba",
+      "size": 324961,
+      "url": "https://api.github.com/repos/PeterTremonti/Machine-Builder/git/blobs/97a1883079dd4ad1d8bd79ad500fd3a7dfcccaba"
     }
   ],
   "truncated": false
 }
+
+Created 2026-09-16-11:02pm by Peter Tremonti from https://api.github.com/repos/PeterTremonti/Machine-Builder/git/trees/main?recursive=1
+Last updated on 2026-10-06-06:53pm 
