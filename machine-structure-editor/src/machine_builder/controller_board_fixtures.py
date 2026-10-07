@@ -47,6 +47,7 @@ DUET_2_MAESTRO_CONNECTOR_LAYOUT = (
     ("fan0", "Fan 0", 2),
     ("fan1", "Fan 1", 2),
     ("fan2", "Fan 2", 2),
+    ("always-on-fan", "Always-on fan", 2),
 )
 
 
@@ -242,6 +243,9 @@ def add_duet_2_maestro_physical_interfaces(
                 port_properties["pin_label"] = pin_label
                 port_properties["electrical_role"] = electrical_role
 
+            elif connector_id == "always-on-fan":
+                direction = "output"
+                port_properties["electrical_role"] = "always_on_fan_output"
             elif connector_id in {"fan0", "fan1", "fan2"}:
                 direction = "output"
                 port_properties["electrical_role"] = "controlled_fan_output"

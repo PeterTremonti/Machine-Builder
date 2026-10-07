@@ -56,7 +56,7 @@ def test_fixture_creates_installed_controller() -> None:
 def test_fixture_creates_controller_owned_physical_ports() -> None:
     _, controller, ports = get_fixture()
 
-    assert len(ports) == 58
+    assert len(ports) == 60
 
     assert all(
         port.component_id is None
@@ -100,6 +100,7 @@ def test_fixture_connector_group_sizes() -> None:
         "fan0": 2,
         "fan1": 2,
         "fan2": 2,
+        "always-on-fan": 2,
     }
 
     actual_counts: dict[str, int] = {}
@@ -144,6 +145,7 @@ def test_fixture_connector_positions_are_numbered() -> None:
         "fan0": 2,
         "fan1": 2,
         "fan2": 2,
+        "always-on-fan": 2,
     }
 
     for connector_id, expected_count in (
@@ -270,6 +272,26 @@ def test_maestro_fan_ports_have_controlled_output_roles() -> None:
     assert all(
         port.properties["electrical_role"] == "controlled_fan_output"
         for port in fan_ports
+    )
+
+def test_maestro_always_on_fan_ports_have_output_role() -> None:
+    _, _, ports = get_fixture()
+
+    always_on_fan_ports = [
+        port
+        for port in ports
+        if port.connector_id == "always-on-fan"
+    ]
+
+    assert len(always_on_fan_ports) == 2
+    assert {port.pin_id for port in always_on_fan_ports} == {"1", "2"}
+    assert all(
+        port.direction == "output"
+        for port in always_on_fan_ports
+    )
+    assert all(
+        port.properties["electrical_role"] == "always_on_fan_output"
+        for port in always_on_fan_ports
     )
 
 def test_z_a_and_z_b_are_separate_connector_groups() -> None:
