@@ -34,7 +34,9 @@ DUET_2_MAESTRO_CONNECTOR_LAYOUT = (
     ("e0-heat-screw", "E0 heat screw terminal", 2),
     ("e1-heat-molex", "E1 heat Molex", 2),
     ("e1-heat-screw", "E1 heat screw terminal", 2),
-    ("thermistor", "Thermistor", 2),
+    ("bed-temp", "Bed temp", 2),
+    ("e0-temp", "E0 temp", 2),
+    ("e1-temp", "E1 temp", 2),
     ("x-stop", "X stop", 3),
     ("y-stop", "Y stop", 3),
     ("z-stop", "Z stop", 3),
@@ -196,6 +198,17 @@ def add_duet_2_maestro_physical_interfaces(
                     "electrical_role"
                 ] = "heater_output"
 
+            elif connector_id == "bed-temp":
+                direction = "input"
+                port_properties["electrical_role"] = "temperature_sensor_input"
+
+            elif connector_id == "e0-temp":
+                direction = "input"
+                port_properties["electrical_role"] = "temperature_sensor_input"
+
+            elif connector_id == "e1-temp":
+                direction = "input"
+                port_properties["electrical_role"] = "temperature_sensor_input"
             elif connector_id in {"fan0", "fan1", "fan2"}:
                 direction = "output"
                 port_properties["electrical_role"] = "controlled_fan_output"

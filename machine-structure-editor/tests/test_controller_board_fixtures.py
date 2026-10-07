@@ -56,7 +56,7 @@ def test_fixture_creates_installed_controller() -> None:
 def test_fixture_creates_controller_owned_physical_ports() -> None:
     _, controller, ports = get_fixture()
 
-    assert len(ports) == 52
+    assert len(ports) == 56
 
     assert all(
         port.component_id is None
@@ -87,7 +87,9 @@ def test_fixture_connector_group_sizes() -> None:
         "e0-heat-screw": 2,
         "e1-heat-molex": 2,
         "e1-heat-screw": 2,
-        "thermistor": 2,
+        "bed-temp": 2,
+        "e0-temp": 2,
+        "e1-temp": 2,
         "x-stop": 3,
         "y-stop": 3,
         "z-stop": 3,
@@ -128,7 +130,9 @@ def test_fixture_connector_positions_are_numbered() -> None:
         "e0-heat-screw": 2,
         "e1-heat-molex": 2,
         "e1-heat-screw": 2,
-        "thermistor": 2,
+        "bed-temp": 2,
+        "e0-temp": 2,
+        "e1-temp": 2,
         "x-stop": 3,
         "y-stop": 3,
         "z-stop": 3,
@@ -156,6 +160,55 @@ def test_fixture_connector_positions_are_numbered() -> None:
                 expected_count + 1,
             )
         }
+
+
+def test_maestro_bed_temp_ports_have_temperature_input_role() -> None:
+    _, _, ports = get_fixture()
+
+    bed_temp_ports = [
+        port
+        for port in ports
+        if port.connector_id == "bed-temp"
+    ]
+
+    assert len(bed_temp_ports) == 2
+    assert all(port.direction == "input" for port in bed_temp_ports)
+    assert all(
+        port.properties["electrical_role"] == "temperature_sensor_input"
+        for port in bed_temp_ports
+    )
+
+def test_maestro_e0_temp_ports_have_temperature_input_role() -> None:
+    _, _, ports = get_fixture()
+
+    e0_temp_ports = [
+        port
+        for port in ports
+        if port.connector_id == "e0-temp"
+    ]
+
+    assert len(e0_temp_ports) == 2
+    assert all(port.direction == "input" for port in e0_temp_ports)
+    assert all(
+        port.properties["electrical_role"] == "temperature_sensor_input"
+        for port in e0_temp_ports
+    )
+
+def test_maestro_e1_temp_ports_have_temperature_input_role() -> None:
+    _, _, ports = get_fixture()
+
+    e1_temp_ports = [
+        port
+        for port in ports
+        if port.connector_id == "e1-temp"
+    ]
+
+    assert len(e1_temp_ports) == 2
+    assert all(port.direction == "input" for port in e1_temp_ports)
+    assert all(
+        port.properties["electrical_role"] == "temperature_sensor_input"
+        for port in e1_temp_ports
+    )
 
 
 def test_maestro_fan_ports_have_controlled_output_roles() -> None:
