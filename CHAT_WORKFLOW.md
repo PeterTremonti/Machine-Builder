@@ -904,6 +904,23 @@ After a command block is supplied, the user should be able to copy the block ver
 
 This requirement applies to all workstreams and all repository operations, including read-only inspection commands.
 
+## Paste-Ready PowerShell Safety Refinement
+
+For repository commands intended to be copied directly from chat into PowerShell:
+
+- Prefer simple statements and natural PowerShell line breaks over unnecessarily complex expression construction.
+- Multiline parenthesized expressions are valid PowerShell and are not prohibited, but do not use them when a simpler expression is clearer.
+- Do not use backtick line continuation unless there is no clearer alternative. A trailing space after a backtick breaks continuation and can be difficult to see.
+- Use single-quoted here-strings for substantial literal source text or multiline replacement text. Keep the here-string delimiters syntactically exact.
+- Keep discovery, validation, modification, and testing as distinct steps rather than embedding many operations inside one large expression.
+- Validate all anchors and expected counts before writing any repository file.
+- For unusually complex PowerShell, prefer a parse-only validation step before allowing the command to perform repository changes. PowerShell's parser APIs can report syntax errors without executing the script.
+- Do not infer the cause of a parser error solely from a later token named in a cascade of syntax diagnostics. Inspect earlier structural syntax first.
+- Embedded punctuation inside quoted literal text, such as parentheses in a Python string, should not be treated as PowerShell syntax. A diagnostic pointing at such text may be a cascade symptom.
+- Do not rely on implicit text encoding when modifying repository files. Preserve the existing file encoding/line endings or explicitly use the required encoding. Windows PowerShell 5.1 and PowerShell 7 have different default encoding behavior.
+
+Do not modify a repository source file merely to obtain diagnostic output when an existing test, direct inspection, or a non-mutating diagnostic path can provide the same evidence. Prefer the least invasive method that answers the question.
+
 ## Workstream Tooling Boundaries
 
 Machine Builder workstreams must use the simplest appropriate text and repository tooling for their assigned responsibility.
