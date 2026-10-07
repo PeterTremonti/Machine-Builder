@@ -678,6 +678,48 @@ Do not silently modify another workstream's code because a change appears conven
 
 ---
 
+# 25.1 Handoff Lifecycle / Rollover
+
+Each workstream should have one clearly identifiable live/current handoff.
+
+**Live handoff = recover current state and continue work.**
+
+The live handoff should stay focused on the information a new chat needs to recover the workstream's present state, including:
+
+* purpose and ownership;
+* established architecture and terminology still relevant to current work;
+* current verified implementation or representation;
+* active decisions and constraints;
+* unresolved questions or blockers;
+* important current files;
+* verified repository and test state;
+* current next action;
+* other concise current-state context needed for safe continuation.
+
+Completed work should normally appear in the live handoff as concise current-state facts and checkpoint references rather than as a detailed chronological narrative.
+
+Detailed completed history, superseded actions, investigative chronology, intermediate evidence, and prior-state material should be preserved in historical/versioned records when it is no longer needed for current-state recovery.
+
+**Historical handoff = preserve prior state, history, and provenance.**
+
+A handoff rollover should be considered when completed history begins to dominate current-state readability, when a major phase or milestone closes, or when a fresh chat would have to spend substantial effort distinguishing historical material from active work.
+
+When rolling over:
+
+* preserve the old handoff rather than deleting its information;
+* create a fresh live handoff;
+* rewrite the new live handoff from the current verified state rather than mechanically copying and trimming the old handoff;
+* carry forward all information still necessary for correct current work, including active constraints, unresolved blockers, important architecture, current verified state, and next action;
+* make clear which prior handoff was superseded and when, providing enough provenance without turning the new handoff into a transcript.
+
+Historical handoffs must not remain competing current documents. There should be one obvious live handoff for each workstream.
+
+Historical records may be corrected when an archival factual error is discovered, but they are no longer the normal working document for the active workstream.
+
+This rule does not impose a rigid line-count or arbitrary size threshold. Rollover is based on current-state readability and meaningful phase or milestone boundaries.
+
+Do not invent a new historical directory or naming convention when an established documentation-authority or historical-archive convention already exists. Follow the project's existing documentation organization.
+
 # 26. Commit and Push Workflow
 
 The user prefers **GitHub Desktop** for commits and pushes because it provides separate Summary and Description fields and is easier for the user's workflow.
