@@ -215,6 +215,33 @@ def add_duet_2_maestro_physical_interfaces(
                 direction = "input"
                 port_properties["electrical_role"] = "temperature_sensor_input"
 
+            elif connector_id == "z-probe":
+                if position == 1:
+                    pin_label = "Z_PROBE_IN"
+                    purpose = "Z probe signal input"
+                    direction = "input"
+                    electrical_role = "z_probe_signal_input"
+                elif position == 2:
+                    pin_label = "GND"
+                    purpose = "Ground reference"
+                    electrical_role = "ground_reference"
+                elif position == 3:
+                    pin_label = "Z_PROBE_MOD"
+                    purpose = "Z probe MOD control output"
+                    direction = "output"
+                    electrical_role = "z_probe_mod_output"
+                elif position == 4:
+                    pin_label = "+3.3V"
+                    purpose = "3.3 V supply"
+                    electrical_role = "power_supply_3v3"
+                else:
+                    pin_label = "+5V"
+                    purpose = "5 V supply"
+                    electrical_role = "power_supply_5v"
+
+                port_properties["pin_label"] = pin_label
+                port_properties["electrical_role"] = electrical_role
+
             elif connector_id in {"fan0", "fan1", "fan2"}:
                 direction = "output"
                 port_properties["electrical_role"] = "controlled_fan_output"

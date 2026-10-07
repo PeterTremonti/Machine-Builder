@@ -230,6 +230,32 @@ def test_maestro_c_temp_ports_have_temperature_input_role() -> None:
     )
 
 
+def test_maestro_z_probe_ports_have_position_specific_roles() -> None:
+    _, _, ports = get_fixture()
+
+    z_probe_ports = {
+        port.pin_id: port
+        for port in ports
+        if port.connector_id == "z-probe"
+    }
+
+    assert set(z_probe_ports) == {"1", "2", "3", "4", "5"}
+
+    expected = {
+        "1": ("Z_PROBE_IN", "input", "z_probe_signal_input"),
+        "2": ("GND", "unknown", "ground_reference"),
+        "3": ("Z_PROBE_MOD", "output", "z_probe_mod_output"),
+        "4": ("+3.3V", "unknown", "power_supply_3v3"),
+        "5": ("+5V", "unknown", "power_supply_5v"),
+    }
+
+    for position, (pin_label, direction, electrical_role) in expected.items():
+        port = z_probe_ports[position]
+        assert port.properties["pin_label"] == pin_label
+        assert port.direction == direction
+        assert port.properties["electrical_role"] == electrical_role
+
+
 def test_maestro_fan_ports_have_controlled_output_roles() -> None:
     _, _, ports = get_fixture()
 
