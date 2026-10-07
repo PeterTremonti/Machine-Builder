@@ -134,6 +134,41 @@ When current contents matter, use the actual current checkout or have the user p
 
 ---
 
+## 5.1 Local Checkout Execution Boundary
+
+The Machine Builder workstream chats do not operate inside the user's local Windows repository checkout.
+
+The local checkout is maintained and controlled by the user.
+
+Chats must not assume they can execute PowerShell, Git, tests, or file-editing commands against the user's local checkout.
+
+Any command intended to inspect, modify, or test the local repository must be provided to the user as a paste-ready command.
+
+The user runs the command in the local checkout and returns the resulting output to the chat.
+
+Chat tool access, GitHub retrieval, connected-repository content, pasted source, or Library copies must not be treated as equivalent to execution against the user's actual local checkout.
+
+When current repository state matters, the chat must clearly distinguish between information it can inspect remotely or from supplied material and information that must be verified by the user in the local checkout.
+
+This is a standing project workflow boundary, not a temporary tool limitation, and chats should not repeatedly describe it as such.
+
+The intended interaction is:
+
+```text
+Chat determines what must be inspected / changed / tested
+        ↓
+Chat provides exact paste-ready command(s)
+        ↓
+User runs the command in the local Windows checkout
+        ↓
+User returns output
+        ↓
+Chat interprets the actual result and continues
+```
+
+The user's local repository and locally executed tests remain the authoritative implementation state.
+
+---
 # 6. No Chat-Owned Repository Editing Through Artifacts
 
 For these workstreams, the user maintains the local repository.
