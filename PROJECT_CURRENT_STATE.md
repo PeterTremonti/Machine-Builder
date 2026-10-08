@@ -211,12 +211,12 @@ There is no separate routing worktree.
 The latest verified full-suite result in the current working tree is:
 
 ```text
-765 passed in 2.69s
+781 passed in 3.73s
 ```
 
-The test run was performed against `main` at committed HEAD `49de665`, with four uncommitted Board/Routing workstream changes present.
+The test run was performed in the active working tree containing the current Controller/Board Y-motor implementation. It was completed before the subsequent Research handoff commit `ef39acd` and is therefore best read as a verification of the active working tree, not as a commit-attributed test result.
 
-Therefore, `765 passed in 2.69s` is the verified working-tree result and must not be attributed to committed HEAD `49de665`.
+The working-tree result is not attributed to a single committed HEAD because the verification included active uncommitted Controller/Board work.
 
 The working tree was not clean at the time of verification.
 
@@ -230,7 +230,7 @@ Earlier routing-specific checkpoints remain useful as historical information:
 
 ## Current routing investigation
 
-The active problem is:
+The previously investigated problem was:
 
 > A very small movement of a component can cause a disproportionately large change in an orthogonal wire elbow or route shape.
 
@@ -269,6 +269,9 @@ route topology changes substantially
 ```
 
 This distinguishes the current problem from a simple "stability tolerance is too small" problem.
+
+Checkpoint 20 closed the demonstrated single-connection preferred-spacing repair case: preferred-spacing repair achieved 4.000 scene-unit separation while preserving topology and leaving route length/cost unchanged; two existing interior points moved, with no new bends.
+The historical hard-8 result remained geometrically undesirable because of the U-turn/jog/loop. No further production Routing change is justified from that single-connection evidence alone; broader behavior remains an evidence-bounded watch item.
 
 ---
 
@@ -393,9 +396,9 @@ In particular, numeric routing parameters must not become architecture merely be
 
 These remain under investigation:
 
-### Topology-preserving repair
+### Generalization of topology-preserving repair
 
-Can an existing route with a locally invalid segment be repaired by adjusting geometry while preserving its topology before a full reroute is attempted?
+Beyond the demonstrated single-connection case, under what conditions can topology-preserving repair be generalized before a full reroute is attempted?
 
 ### Repair vs reroute boundary
 
@@ -1050,7 +1053,7 @@ Record implementation discoveries in the appropriate board handoff documentation
 
 Work on the shared `main` branch.
 
-Continue investigating topology-preserving route repair rather than simply increasing stability tolerance.
+Routing Checkpoint 20 is complete. No current production Routing implementation task is assigned. Do not reopen or generalize the preferred-spacing repair without new evidence.
 
 Record implementation discoveries in the appropriate routing handoff documentation and report any project-level architectural implications back to Planning / Architecture.
 

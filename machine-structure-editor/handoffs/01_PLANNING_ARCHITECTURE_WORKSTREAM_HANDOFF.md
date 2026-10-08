@@ -181,7 +181,7 @@ The recent Workstream 04 audit determined that `graphics/connection.py` is not a
 
 No broad routing modularization is currently justified merely by file size.
 
-The current Routing next action remains the geometry-only repair experiment for the known spacing pathology.
+Routing Checkpoint 20 is complete. No current Routing implementation task is assigned; the geometry-only preferred-spacing experiment is closed, and no further production Routing change is justified from that single-connection evidence alone.
 
 ---
 
