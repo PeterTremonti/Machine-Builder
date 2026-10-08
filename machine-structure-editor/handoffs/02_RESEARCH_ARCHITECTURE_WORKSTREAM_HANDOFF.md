@@ -1064,6 +1064,88 @@ It reinforces the project-wide requirement that ordinary Machine Builder reposit
 
 The authoritative project-wide tooling, timeline-integrity, and copy/paste command-formatting rules now live in CHAT_WORKFLOW.md.
 
+# PowerShell / Parser Safety Research Checkpoint
+
+Updated:
+2026-10-07
+
+## Research conclusion
+
+The Machine Builder PowerShell incident was a parse-time failure in an over-complex composed repository command. The surviving cascade diagnostics do not establish the exact first malformed token, so no stronger certainty should be claimed.
+
+The following technical conclusions are established:
+
+- Multiline parenthesized PowerShell expressions are valid and must not be prohibited.
+- Avoid unnecessary backtick line continuation.
+- Use here-strings for substantial literal multiline text where appropriate, with exact delimiters.
+- `System.Management.Automation.Language.Parser.ParseInput()` is an optional parse-only preflight for unusually complex PowerShell.
+- The repository-safe workflow remains:
+  bounded inspection
+  → validation
+  → smallest practical edit
+  → `git diff --check`
+  → diff inspection
+  → focused tests
+  → broader tests as appropriate.
+- Do not modify repository source merely to obtain diagnostic output when a non-mutating inspection, test, or other diagnostic path can provide the same evidence.
+
+## Separate tooling incident
+
+The `Analysis errored` / Python incident is a separate Machine Builder tooling violation. It must not be conflated with the PowerShell parser failure.
+
+The existing Machine Builder tooling rule already prohibits Python, Jupyter, pandas, notebooks, generated analysis workflows, temporary analysis scripts/artifacts, and data-analysis workflows for ordinary repository work.
+
+## Workflow disposition
+
+No additional `CHAT_WORKFLOW.md` change is justified by this research result.
+
+Workstream #4's recorded PowerShell/parser research dependency is resolved. No special Routing workflow change is required.
+
+## External provenance
+
+Microsoft Learn — `about_Parsing`:
+https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_parsing
+
+Accessed:
+2026-10-07
+
+Establishes:
+PowerShell parsing behavior, valid natural multiline syntax, and the fragility of backtick continuation.
+
+Microsoft Learn — `about_Quoting_Rules`:
+https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_quoting_rules
+
+Accessed:
+2026-10-07
+
+Establishes:
+single-quoted strings and here-string syntax/behavior.
+
+Microsoft Learn — `Parser.ParseInput`:
+https://learn.microsoft.com/en-us/dotnet/api/system.management.automation.language.parser.parseinput
+
+Accessed:
+2026-10-07
+
+Establishes:
+parse-only processing of PowerShell input and returned parser errors without executing the script.
+
+Microsoft Learn — Windows PowerShell 5.1 `about_Character_Encoding`:
+https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_character_encoding?view=powershell-5.1
+
+Accessed:
+2026-10-07
+
+Establishes:
+important encoding/default-behavior considerations for Windows PowerShell 5.1.
+
+Machine Builder implication:
+Use explicit encoding/preserve existing file encoding and line endings when modifying repository text files.
+
+## Next action
+
+No material change to the Research workstream's next action results from this checkpoint. The PowerShell/parser item is closed and Workstream #4's dependency is resolved.
+
 **---
 **# Repository Change Rule**
 
