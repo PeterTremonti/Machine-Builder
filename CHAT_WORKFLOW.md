@@ -744,18 +744,29 @@ Chats should **not normally commit or push through console commands**.
 
 Console-based `git commit` / `git push` should only be used when the user explicitly requests that workflow.
 
-Every meaningful commit request should provide both:
+## Commit Metadata Output Format
+
+Every meaningful commit request must provide both Summary and Description using the following canonical format. This is the project's standard presentation format for GitHub Desktop, not merely an example.
+
+**Summary**
 
 ```text
-Summary:
-short commit title
-
-Description:
-clear explanation of what changed,
-why it changed,
-what was verified,
-and any important architectural constraint preserved
+<summary value only>
 ```
+
+**Description**
+
+```text
+<description value only>
+```
+
+The Summary and Description headings are explanatory labels and must remain outside their respective copy/paste blocks. Each block must contain only the value for that GitHub Desktop field.
+
+Do not put Summary: or Description: inside either copy/paste block. Do not present the metadata only as ordinary prose without a dedicated copy/paste block. Do not place explanatory prose, instructions, Markdown labels, or other metadata inside either block.
+
+The user should be able to copy each block verbatim into the corresponding GitHub Desktop field.
+
+This rule applies whenever a chat asks the user to enter or use Git commit Summary and/or Description text, including commit/push checkpoints.
 
 A chat must not omit the Description when a meaningful commit is being requested.
 
