@@ -26,6 +26,7 @@ from .semantic_relationship import SemanticRelationship
 
 DUET_2_MAESTRO_CONNECTOR_LAYOUT = (
     ("x-motor", "X motor", 4),
+    ("y-motor", "Y motor", 4),
     ("z-a-motor", "Z A motor", 4),
     ("z-b-motor", "Z B motor", 4),
     ("bed-heat-molex", "Bed heat Molex", 2),
