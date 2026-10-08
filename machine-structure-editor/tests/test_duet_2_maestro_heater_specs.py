@@ -73,6 +73,12 @@ def test_maestro_heater_interfaces_have_two_access_types() -> None:
             screw_connector_id,
         }
 
+        expected_exposed_connector_ids = (
+            expected_connector_ids | {"j4"}
+            if resource_suffix == "bed-heater"
+            else expected_connector_ids
+        )
+
         connector_ids = {
             port.connector_id
             for port in ports
@@ -108,9 +114,15 @@ def test_maestro_heater_interfaces_have_two_access_types() -> None:
             )
         ]
 
+        expected_relationship_count = (
+            5
+            if resource_suffix == "bed-heater"
+            else 4
+        )
+
         assert len(
             exposed_relationships
-        ) == 4
+        ) == expected_relationship_count
 
         assert {
             model.ports[
@@ -118,7 +130,7 @@ def test_maestro_heater_interfaces_have_two_access_types() -> None:
             ].connector_id
             for relationship
             in exposed_relationships
-        } == expected_connector_ids
+        } == expected_exposed_connector_ids
 
 
 def test_heater_ports_are_output_interfaces() -> None:

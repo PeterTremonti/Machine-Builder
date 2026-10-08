@@ -633,6 +633,15 @@ DUET2_MAESTRO_ADDITIONAL_INTERFACE_SPECIFICATIONS = {
         "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
         "evidence_status": "Manufacturer schematic identifies J21 as Expansion.",
     },
+    "j4": {
+        "board_label": "CONN4 / High Current Terminal",
+        "position_count": 4,
+        "interface_type": "4-position high-current power and bed-heater terminal",
+        "interface_role": "high_current_power_and_bed_heater_interface",
+        "usage_classification": "machine_io",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+        "evidence_status": "Manufacturer schematic identifies J4 as the high-current terminal with GND, V_IN, V_IN, and BED- contacts.",
+    },
     "temp-ob": {
         "board_label": "TEMP_OB",
         "position_count": 10,

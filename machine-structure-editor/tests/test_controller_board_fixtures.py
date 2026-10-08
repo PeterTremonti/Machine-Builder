@@ -56,7 +56,7 @@ def test_fixture_creates_installed_controller() -> None:
 def test_fixture_creates_controller_owned_physical_ports() -> None:
     _, controller, ports = get_fixture()
 
-    assert len(ports) == 101
+    assert len(ports) == 105
 
     assert all(
         port.component_id is None
@@ -84,6 +84,7 @@ def test_fixture_connector_group_sizes() -> None:
         "e1-motor": 4,
         "z-a-motor": 4,
         "z-b-motor": 4,
+        "j4": 4,
         "bed-heat-molex": 2,
         "bed-heat-screw": 2,
         "e0-heat-molex": 2,
@@ -134,6 +135,7 @@ def test_fixture_connector_positions_are_numbered() -> None:
         "e0-motor": 4,
         "e1-motor": 4,
         "z-a-motor": 4,
+        "j4": 4,
         "z-b-motor": 4,
         "bed-heat-molex": 2,
         "bed-heat-screw": 2,
@@ -559,6 +561,77 @@ def test_maestro_j21_expansion_ports_have_verified_pin_mappings() -> None:
         assert port.properties.get("electrical_role") == electrical_role
 
 
+def test_maestro_j4_high_current_ports_have_verified_pin_mappings() -> None:
+    _, _, ports = get_fixture()
+
+    j4_ports = {
+        port.pin_id: port
+        for port in ports
+        if port.connector_id == "j4"
+    }
+
+    expected = {
+        "1": ("GND", "Ground reference", "unknown", "ground_reference"),
+        "2": ("V_IN", "Board power input", "unknown", None),
+        "3": ("V_IN", "Board power input", "unknown", None),
+        "4": ("BED-", "Bed heater output return", "output", "heater_output"),
+    }
+
+    assert set(j4_ports) == set(expected)
+    assert j4_ports["2"].id != j4_ports["3"].id
+
+    for position, (pin_label, purpose, direction, electrical_role) in expected.items():
+        port = j4_ports[position]
+        assert port.properties["pin_label"] == pin_label
+        assert port.purpose == purpose
+        assert port.direction == direction
+
+        if electrical_role is None:
+            assert "electrical_role" not in port.properties
+        else:
+            assert port.properties["electrical_role"] == electrical_role
+
+
+def test_j4_bed_heater_resource_is_exposed_only_through_bed_pin() -> None:
+    model, controller, ports = get_fixture()
+
+    resource_id = f"{controller.id}-bed-heater"
+
+    relationships = [
+        relationship
+        for relationship in model.relationships.values()
+        if (
+            relationship.source_id == resource_id
+            and relationship.relationship_type == "exposed_through"
+        )
+    ]
+
+    bed_group_ports = {
+        port.id
+        for port in ports
+        if port.connector_id in {
+            "bed-heat-molex",
+            "bed-heat-screw",
+        }
+    }
+
+    j4_port_id = f"{controller.id}-j4-pin-4"
+
+    assert len(relationships) == 5
+    assert {relationship.target_id for relationship in relationships} == (
+        bed_group_ports | {j4_port_id}
+    )
+
+    assert f"{controller.id}-j4-pin-1" not in {
+        relationship.target_id for relationship in relationships
+    }
+    assert f"{controller.id}-j4-pin-2" not in {
+        relationship.target_id for relationship in relationships
+    }
+    assert f"{controller.id}-j4-pin-3" not in {
+        relationship.target_id for relationship in relationships
+    }
+
 def test_maestro_external_driver_ports_have_verified_pin_mappings() -> None:
     _, _, ports = get_fixture()
 
@@ -675,6 +748,7 @@ def test_heater_resources_are_exposed_through_molex_and_screw_interfaces() -> No
         "bed-heater": {
             "bed-heat-molex",
             "bed-heat-screw",
+            "j4",
         },
         "e0-heater": {
             "e0-heat-molex",
@@ -684,6 +758,12 @@ def test_heater_resources_are_exposed_through_molex_and_screw_interfaces() -> No
             "e1-heat-molex",
             "e1-heat-screw",
         },
+    }
+
+    expected_relationship_counts = {
+        "bed-heater": 5,
+        "e0-heater": 4,
+        "e1-heater": 4,
     }
 
     for resource_suffix, connector_ids in (
@@ -705,7 +785,9 @@ def test_heater_resources_are_exposed_through_molex_and_screw_interfaces() -> No
             )
         ]
 
-        assert len(relationships) == 4
+        assert len(relationships) == (
+            expected_relationship_counts[resource_suffix]
+        )
 
         assert {
             model.ports[

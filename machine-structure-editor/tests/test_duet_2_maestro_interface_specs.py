@@ -26,6 +26,7 @@ EXPECTED_ADDITIONAL_INTERFACE_IDS = {
     "ethernet",
     "c-gnd",
     "j21",
+    "j4",
     "temp-ob",
     "erase",
     "a-vin",

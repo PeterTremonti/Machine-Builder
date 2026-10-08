@@ -31,6 +31,7 @@ DUET_2_MAESTRO_CONNECTOR_LAYOUT = (
     ("e1-motor", "E1 motor", 4),
     ("z-a-motor", "Z A motor", 4),
     ("z-b-motor", "Z B motor", 4),
+    ("j4", "High Current Terminal", 4),
     ("bed-heat-molex", "Bed heat Molex", 2),
     ("bed-heat-screw", "Bed heat screw terminal", 2),
     ("e0-heat-molex", "E0 heat Molex", 2),
@@ -278,6 +279,26 @@ def add_duet_2_maestro_physical_interfaces(
                 if electrical_role is not None:
                     port_properties["electrical_role"] = electrical_role
 
+            elif connector_id == "j4":
+                j4_pins = {
+                    1: ("GND", "Ground reference", "unknown", "ground_reference"),
+                    2: ("V_IN", "Board power input", "unknown", None),
+                    3: ("V_IN", "Board power input", "unknown", None),
+                    4: ("BED-", "Bed heater output return", "output", "heater_output"),
+                }
+
+                (
+                    pin_label,
+                    purpose,
+                    direction,
+                    electrical_role,
+                ) = j4_pins[position]
+
+                port_properties["pin_label"] = pin_label
+
+                if electrical_role is not None:
+                    port_properties["electrical_role"] = electrical_role
+
             elif connector_id in {"e2-driver", "e3-driver"}:
                 driver_name = (
                     "E2"
@@ -393,6 +414,24 @@ def add_duet_2_maestro_physical_interfaces(
             model.add_relationship(
                 relationship
             )
+
+    bed_heater_resource = model.controller_resources[
+        f"{controller_id}-bed-heater"
+    ]
+
+    j4_bed_relationship = SemanticRelationship(
+        id=(
+            f"{bed_heater_resource.id}"
+            f"-exposed-through-{controller_id}-j4-pin-4"
+        ),
+        source_id=bed_heater_resource.id,
+        target_id=f"{controller_id}-j4-pin-4",
+        relationship_type="exposed_through",
+    )
+
+    model.add_relationship(
+        j4_bed_relationship
+    )
 
     z_stepper_resource = ControllerResource(
         id=f"{controller_id}-z-stepper",

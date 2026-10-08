@@ -207,7 +207,7 @@ Reusable HardwareDefinition:
 
 Current installed Maestro fixture contains:
 
-`101` controller-owned physical SemanticPorts.
+`105` controller-owned physical SemanticPorts.
 
 Current connector groups:
 
@@ -237,6 +237,7 @@ Current connector groups:
 * `fan1` — 2
 * `fan2` — 2
 * `always-on-fan` — 2
+* `j4` — 4
 * `j21` — 13
 * `e2-driver` — 8
 * `e3-driver` — 8
@@ -1049,6 +1050,30 @@ No new ControllerResource or Board-specific ontology entity was introduced.
 Evidence basis: Duet3D Maestro V1.0 manufacturer schematic, `Headers.sch`,
 including the individual J21 contact identities.
 
+
+### J4 / High Current Terminal implementation
+
+J4 is represented as a four-contact heterogeneous physical interface
+using the existing SemanticPort model.
+
+J4 contact mapping:
+
+1  GND
+2  V_IN
+3  V_IN
+4  BED-
+
+The two V_IN contacts remain distinct physical SemanticPorts even though
+they are electrically common. Pin 1 retains a ground-reference role.
+Pins 2 and 3 are evidenced V_IN power contacts but introduce no new
+electrical-role vocabulary. Pin 4 is the bed-heater output return and
+is the only J4 contact exposed through the existing Bed Heater
+ControllerResource.
+
+No new ControllerResource or Board-specific ontology entity was introduced.
+
+Evidence basis: Duet 2 Maestro V1.0 manufacturer schematic identifies
+J4 as the high-current terminal with GND, V_IN, V_IN, and BED- contacts.
 ## 27. Historical handoff disposition
 
 The previous 1,860-line handoff remains preserved at:
@@ -1065,7 +1090,7 @@ The archival migration is separate from the implementation checkpoints.
 
 The Maestro E0 / J10 and E1 / J6 motor interfaces are complete and verified.
 
-The next Board coverage target is J4 / High Current Terminal.
+The next Board coverage target is J24 / Always-On FAN.
 
 Continue using the completeness criterion:
 
