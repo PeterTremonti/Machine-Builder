@@ -1817,3 +1817,60 @@ The permanent GUI regression remains valuable for real application behavior, but
 Current next action
 
 No further production Routing change is justified by this single-connection experiment. Broader preferred-spacing behavior should remain observational and constrained until additional real geometries provide evidence for a generalized policy.
+# Checkpoint 21 - 2026-10-07 11:49 PM EDT - Preferred-spacing relaxation boundary regression
+
+Purpose
+
+Record the tested repair-versus-reroute boundary for preferred-spacing refinement.
+
+What changed
+
+Added one Routing regression test:
+
+tests/test_connection_routing.py
+test_route_stability_relaxes_preferred_spacing_when_repair_declines
+
+The test establishes that:
+
+- the previous stable route remains legal;
+- the preferred-spacing repair explicitly returns None because the available geometry cannot legally move the fixed endpoint-adjacent segment;
+- the previous route still has insufficient preferred spacing;
+- the candidate route has a different topology;
+- normal Routing mode retains the previous legal topology rather than forcing the preferred spacing;
+- the stability decision remains:
+  "previous stable route held within tolerance"
+
+This makes preference relaxation an explicit tested behavior rather than relying only on the lower-level repair-decline test.
+
+The opposite boundary is already covered by the existing blocked-route stability regression: when the previous route is no longer legal, normal topology-changing routing remains available.
+
+Verification
+
+Focused Routing suite:
+
+59 passed in 2.21s
+
+Full repository suite:
+
+782 passed in 4.11s
+
+No Routing production implementation was changed by this checkpoint.
+
+Conclusion
+
+The current evidence now supports the following narrow Routing policy:
+
+1. Prefer an existing legal route.
+2. Attempt topology-preserving geometry repair when preferred spacing is insufficient.
+3. If repair cannot produce a legal/clean result, relax the preferred spacing rather than forcing new local geometry.
+4. If the previous topology is no longer legal, allow normal topology-changing rerouting to take over.
+
+This is a behavioral boundary for the current Routing implementation, not a new canonical semantic rule and not a generalized soft-spacing optimizer.
+
+Scope boundary
+
+No global multi-wire optimization, topology persistence model, canonical Connection change, Board coupling, or Routing architecture rewrite was introduced.
+
+Current next action
+
+No additional production Routing change is justified by this boundary test alone. Broader repair behavior should remain observational until additional real machine geometries provide evidence for a concrete need.

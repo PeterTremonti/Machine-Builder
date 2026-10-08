@@ -2543,6 +2543,102 @@ def test_preferred_spacing_geometry_repair_does_not_move_endpoint_segment() -> N
     )
 
     assert repaired is None
+
+def test_route_stability_relaxes_preferred_spacing_when_repair_declines() -> None:
+    _application()
+
+    connection = ConnectionGraphicsItem(
+        SimpleNamespace(
+            id="connection-test",
+            endpoint_a_id="a",
+            endpoint_b_id="b",
+        ),
+        lambda *_args, **_kwargs: None,
+    )
+
+    previous = (
+        QPointF(0.0, 0.0),
+        QPointF(80.0, 0.0),
+        QPointF(80.0, 40.0),
+        QPointF(120.0, 40.0),
+    )
+
+    protected = [
+        (
+            QPointF(20.0, 1.0),
+            QPointF(60.0, 1.0),
+        ),
+    ]
+
+    candidate = (
+        QPointF(0.0, 0.0),
+        QPointF(40.0, 0.0),
+        QPointF(40.0, 80.0),
+        QPointF(80.0, 80.0),
+        QPointF(80.0, 40.0),
+        QPointF(120.0, 40.0),
+    )
+
+    connection._stable_route = previous
+
+    repaired = connection._repair_preferred_spacing_geometry(
+        previous,
+        protected,
+        [],
+    )
+
+    assert repaired is None
+
+    assert ConnectionRoutingEngine.route_is_clear(
+        list(previous),
+        [],
+    )
+
+    assert (
+        abs(
+            previous[0].y()
+            - protected[0][0].y()
+        )
+        < connection.PREFERRED_ROUTE_SEGMENT_SEPARATION
+    )
+
+    assert _route_topology_for_test(
+        list(previous),
+    ) != _route_topology_for_test(
+        list(candidate),
+    )
+
+    selected = connection._select_stable_route(
+        candidate_route=list(candidate),
+        start=previous[0],
+        end=previous[-1],
+        start_direction="right",
+        end_direction="right",
+        obstacles=[],
+        protected_segments=protected,
+    )
+
+    assert selected == list(previous)
+
+    assert _route_topology_for_test(
+        selected,
+    ) == _route_topology_for_test(
+        list(previous),
+    )
+
+    assert (
+        abs(
+            selected[0].y()
+            - protected[0][0].y()
+        )
+        < connection.PREFERRED_ROUTE_SEGMENT_SEPARATION
+    )
+
+    assert connection._routing_stability_reason == (
+        "previous stable route held within tolerance"
+    )
+
+
 def test_route_stability_selects_preferred_spacing_geometry_repair() -> None:
     _application()
 
