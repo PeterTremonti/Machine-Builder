@@ -56,7 +56,7 @@ def test_fixture_creates_installed_controller() -> None:
 def test_fixture_creates_controller_owned_physical_ports() -> None:
     _, controller, ports = get_fixture()
 
-    assert len(ports) == 60
+    assert len(ports) == 76
 
     assert all(
         port.component_id is None
@@ -101,6 +101,8 @@ def test_fixture_connector_group_sizes() -> None:
         "fan1": 2,
         "fan2": 2,
         "always-on-fan": 2,
+        "e2-driver": 8,
+        "e3-driver": 8,
     }
 
     actual_counts: dict[str, int] = {}
@@ -416,6 +418,78 @@ def test_heater_ports_have_verified_output_information() -> None:
     )
 
 
+def test_maestro_external_driver_ports_have_verified_pin_mappings() -> None:
+    _, _, ports = get_fixture()
+
+    expected = {
+        "e2-driver": {
+            "1": ("V_IN", "unknown", None),
+            "2": ("GND", "unknown", "ground_reference"),
+            "3": ("E2_UART", "unknown", None),
+            "4": ("E2_EN", "output", None),
+            "5": ("E2_STEP", "output", None),
+            "6": ("E2_DIR", "output", None),
+            "7": ("GND", "unknown", "ground_reference"),
+            "8": ("+3.3V", "unknown", "power_supply_3v3"),
+        },
+        "e3-driver": {
+            "1": ("V_IN", "unknown", None),
+            "2": ("GND", "unknown", "ground_reference"),
+            "3": ("E3_UART", "unknown", None),
+            "4": ("E3_EN", "output", None),
+            "5": ("E3_STEP", "output", None),
+            "6": ("E3_DIR", "output", None),
+            "7": ("GND", "unknown", "ground_reference"),
+            "8": ("+3.3V", "unknown", "power_supply_3v3"),
+        },
+    }
+
+    for connector_id, expected_pins in expected.items():
+        driver_ports = {
+            port.pin_id: port
+            for port in ports
+            if port.connector_id == connector_id
+        }
+
+        assert set(driver_ports) == set(expected_pins)
+        assert driver_ports["2"].id != driver_ports["7"].id
+
+        for position, (pin_label, direction, electrical_role) in expected_pins.items():
+            port = driver_ports[position]
+            assert port.properties["pin_label"] == pin_label
+            assert port.direction == direction
+            assert port.properties.get("electrical_role") == electrical_role
+
+def test_external_stepper_resources_are_exposed_through_e2_and_e3() -> None:
+    model, controller, ports = get_fixture()
+
+    expected = {
+        "e2-stepper": "e2-driver",
+        "e3-stepper": "e3-driver",
+    }
+
+    for resource_suffix, connector_id in expected.items():
+        resource_id = f"{controller.id}-{resource_suffix}"
+        resource = model.controller_resources[resource_id]
+
+        assert resource.resource_type == "stepper"
+
+        relationships = [
+            relationship
+            for relationship in model.relationships.values()
+            if relationship.source_id == resource_id
+            and relationship.relationship_type == "exposed_through"
+        ]
+
+        expected_ports = {
+            port.id
+            for port in ports
+            if port.connector_id == connector_id
+        }
+
+        assert len(relationships) == 8
+        assert {relationship.target_id for relationship in relationships} == expected_ports
+
 def test_z_stepper_resource_is_exposed_through_z_a_and_z_b() -> None:
     model, controller, ports = get_fixture()
 
@@ -511,7 +585,7 @@ def test_fixture_does_not_create_controller_resource_assignment() -> None:
 
     assert len(
         model.controller_resources
-    ) == 4
+    ) == 6
 
 
 def test_removing_z_stepper_resource_removes_exposure_relationships() -> None:

@@ -740,73 +740,131 @@ Z Probe
 Always-On Fan
     2f90c32593a635f28aad51385743389148a4c32f
     Complete Maestro Always-On Fan interface
+
+E2 / E3 External Stepper Drivers
+    2026-10-07 22:18:41 -04:00
+    Complete Maestro E2/E3 external stepper-driver interfaces
 ```
 
 Latest Board-specific fixture validation:
 
-`19 passed`
+`21 passed in 0.10s`
 
 Latest recorded full repository validation associated with the completed
-Always-On Fan checkpoint:
+E2/E3 implementation checkpoint:
 
-`778 passed`
+`780 passed in 3.56s`
 
 The current repository also contains later workflow-history commits, but the
 completed Board checkpoints above remain present in `main`.
 
-## 24. Immediate next Board action
+## 24. Verified E2 / E3 implementation checkpoint
 
-The current active Board task is the narrow Maestro-specific E2/E3 evidence
-verification.
+The Maestro-specific E2/E3 evidence verification is complete and the
+authorized implementation has been completed in the Board fixture.
 
-Do not implement E2/E3 until Planning authorizes it.
+Verified physical mapping:
 
-The evidence task must:
+E2 / J18:
+1 = V_IN
+2 = GND
+3 = E2_UART
+4 = E2_EN
+5 = E2_STEP
+6 = E2_DIR
+7 = GND
+8 = +3.3V
 
-1. inspect the actual Maestro-specific `Headers.sch` / manufacturer source;
-2. map E2 positions 1–8;
-3. map E3 positions 1–8;
-4. identify the exact SemanticPort targets for E2 resource exposure;
-5. identify the exact SemanticPort targets for E3 resource exposure;
-6. classify power/reference/support contacts separately;
-7. leave unsupported roles unknown.
+E3 / J26:
+1 = V_IN
+2 = GND
+3 = E3_UART
+4 = E3_EN
+5 = E3_STEP
+6 = E3_DIR
+7 = GND
+8 = +3.3V
 
-No Board source/test modification is required for the evidence step.
+STEP, DIR, and EN are represented as controller-to-driver output signals.
+UART is represented as a separate driver configuration/communication
+contact.
+
+V_IN, GND, and +3.3V are represented as physical support/power contacts.
+The two GND positions remain distinct physical SemanticPorts even though
+they share the same electrical net.
+
+Unsupported semantic roles remain unknown rather than being inferred.
+
+The implementation adds:
+
+* `e2-driver` with 8 controller-owned physical ports;
+* `e3-driver` with 8 controller-owned physical ports;
+* `e2-stepper` ControllerResource;
+* `e3-stepper` ControllerResource;
+* eight `exposed_through` relationships from `e2-stepper` to the E2 ports;
+* eight `exposed_through` relationships from `e3-stepper` to the E3 ports.
+
+The implementation preserves the existing architecture:
+
+HardwareDefinition -> installed Controller -> controller-owned SemanticPort
+
+ControllerResource -> exposed_through -> SemanticPort
+
+No new canonical Connector, DriverSocket, DriverModule, MatingInterface,
+or Contact entity was introduced.
+
+No Routing source or test files were modified.
+
+### Verified test state
+
+Focused Board fixture suite:
+
+`21 passed in 0.10s`
+
+Full repository suite:
+
+`780 passed in 3.56s`
+
+`git diff --check`:
+
+`clean`
+
+Current uncommitted changes remain limited to:
+
+* `machine-structure-editor/src/machine_builder/controller_board_fixtures.py`
+* `machine-structure-editor/tests/test_controller_board_fixtures.py`
+* `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
+
+The fixture now produces 76 controller-owned physical ports and 6 controller
+resources.
 
 ## 25. Historical handoff disposition
 
-The previous 1,860-line handoff is not deleted by this rollover.
-
-It remains at:
-
-`machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
-
-until this new live version replaces it in the same path.
-
-Proposed historical destination for the superseded historical-heavy version:
+The previous 1,860-line handoff remains preserved at:
 
 `docs/historical/implementation/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF_2026-10-07.md`
 
-The archival move is not part of this rollover.
+The live handoff remains:
 
-Planning must separately authorize the archival operation.
+`machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
 
-## 26. Scope of this rollover
+The archival migration is separate from this implementation checkpoint.
 
-This live-handoff refresh is limited to the Controller / Board workstream.
+## 26. Immediate next Board action
 
-It does not:
+The Maestro E2/E3 external stepper-driver implementation is complete and
+verified.
 
-* implement E2/E3;
-* modify Board source code;
-* modify Board tests;
-* modify Routing;
-* modify Research;
-* modify Planning documentation;
-* modify `recursive_git_tree.txt`;
-* move or delete historical material;
-* introduce any new canonical entity;
-* change the semantic ontology.
+Before starting another Board implementation:
 
-The purpose of this file is to make the current Board state recoverable and
-to allow the next Board chat to continue safely from verified state.
+1. verify current `git status`;
+2. verify current HEAD and `origin/main`;
+3. read this live handoff;
+4. identify the next authorized Controller / Board task;
+5. inspect the existing Board implementation and tests before changing source.
+
+Do not modify Routing files unless a future task explicitly requires a
+cross-workstream contract change and that change is separately authorized.
+
+The E2/E3 implementation is currently uncommitted. Commit and push remain
+separate actions after final review.

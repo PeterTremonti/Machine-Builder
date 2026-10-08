@@ -48,6 +48,8 @@ DUET_2_MAESTRO_CONNECTOR_LAYOUT = (
     ("fan1", "Fan 1", 2),
     ("fan2", "Fan 2", 2),
     ("always-on-fan", "Always-on fan", 2),
+    ("e2-driver", "E2 external stepper driver", 8),
+    ("e3-driver", "E3 external stepper driver", 8),
 )
 
 
@@ -243,6 +245,54 @@ def add_duet_2_maestro_physical_interfaces(
                 port_properties["pin_label"] = pin_label
                 port_properties["electrical_role"] = electrical_role
 
+            elif connector_id in {"e2-driver", "e3-driver"}:
+                driver_name = (
+                    "E2"
+                    if connector_id == "e2-driver"
+                    else "E3"
+                )
+
+                if position == 1:
+                    pin_label = "V_IN"
+                    purpose = "External driver input supply"
+                elif position == 2:
+                    pin_label = "GND"
+                    purpose = "Ground reference"
+                    port_properties["electrical_role"] = (
+                        "ground_reference"
+                    )
+                elif position == 3:
+                    pin_label = f"{driver_name}_UART"
+                    purpose = (
+                        f"{driver_name} driver UART "
+                        "configuration/communication"
+                    )
+                elif position == 4:
+                    pin_label = f"{driver_name}_EN"
+                    purpose = f"{driver_name} driver enable signal"
+                    direction = "output"
+                elif position == 5:
+                    pin_label = f"{driver_name}_STEP"
+                    purpose = f"{driver_name} step signal output"
+                    direction = "output"
+                elif position == 6:
+                    pin_label = f"{driver_name}_DIR"
+                    purpose = f"{driver_name} direction signal output"
+                    direction = "output"
+                elif position == 7:
+                    pin_label = "GND"
+                    purpose = "Ground reference"
+                    port_properties["electrical_role"] = (
+                        "ground_reference"
+                    )
+                else:
+                    pin_label = "+3.3V"
+                    purpose = "3.3 V supply"
+                    port_properties["electrical_role"] = (
+                        "power_supply_3v3"
+                    )
+
+                port_properties["pin_label"] = pin_label
             elif connector_id == "always-on-fan":
                 direction = "output"
                 port_properties["electrical_role"] = "always_on_fan_output"
@@ -343,6 +393,52 @@ def add_duet_2_maestro_physical_interfaces(
         model.add_relationship(
             relationship
         )
+
+    for (
+        resource_suffix,
+        resource_name,
+        connector_id,
+    ) in (
+        (
+            "e2-stepper",
+            "E2 stepper driver",
+            "e2-driver",
+        ),
+        (
+            "e3-stepper",
+            "E3 stepper driver",
+            "e3-driver",
+        ),
+    ):
+        resource = ControllerResource(
+            id=f"{controller_id}-{resource_suffix}",
+            name=resource_name,
+            resource_type="stepper",
+            controller_id=controller_id,
+        )
+
+        model.add_controller_resource(
+            machine_id,
+            resource,
+        )
+
+        for port in ports:
+            if port.connector_id != connector_id:
+                continue
+
+            relationship = SemanticRelationship(
+                id=(
+                    f"{resource.id}"
+                    f"-exposed-through-{port.id}"
+                ),
+                source_id=resource.id,
+                target_id=port.id,
+                relationship_type="exposed_through",
+            )
+
+            model.add_relationship(
+                relationship
+            )
 
     return controller, tuple(ports)
 
