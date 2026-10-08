@@ -728,14 +728,14 @@ Workflow authority:
 
 ## 23. Completed implementation checkpoint summary
 
-The live handoff has been refreshed after the completed Maestro Y motor /
-J8 implementation checkpoint.
+The live handoff has been refreshed after the completed Maestro E0 motor /
+J10 implementation checkpoint.
 
 Current verified repository state at this checkpoint:
 
-`HEAD = 4609066eaa33e51476256dc322fb434195647e87`
+`HEAD = 9ffd9c4adf5a013b0a5d045fe96b8e87df072d77`
 
-`origin/main = 4609066eaa33e51476256dc322fb434195647e87`
+`origin/main = 9ffd9c4adf5a013b0a5d045fe96b8e87df072d77`
 
 `HEAD == origin/main`
 
@@ -746,16 +746,20 @@ E2 / E3 External Stepper Drivers
     Complete Maestro E2/E3 external stepper-driver interfaces
 
 Y Motor / J8
-    `2026-10-07`
+    `9ffd9c4adf5a013b0a5d045fe96b8e87df072d77`
     Complete Maestro Y motor / J8 installed-fixture representation
+
+E0 Motor / J10
+    `2026-10-08`
+    Complete Maestro E0 motor / J10 installed-fixture representation
 
 Latest Board-specific fixture validation:
 
-`25 passed in 0.09s`
+`26 passed in 0.14s`
 
 Latest full repository validation:
 
-`781 passed in 3.73s`
+`783 passed in 3.92s`
 
 `git diff --check`:
 
@@ -763,7 +767,7 @@ Latest full repository validation:
 
 The current Maestro fixture produces:
 
-* 80 controller-owned physical ports;
+* 84 controller-owned physical ports;
 * 6 ControllerResources.
 
 The current Board-specific uncommitted changes are:
@@ -772,8 +776,8 @@ The current Board-specific uncommitted changes are:
 * `machine-structure-editor/tests/test_controller_board_fixtures.py`
 * `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
 
-An unrelated `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
-change is also present in the working tree and is preserved without modification.
+No Routing files are modified.
+
 
 ## 24. Verified E2 / E3 implementation checkpoint
 
@@ -909,22 +913,17 @@ No Routing source or test files were modified.
 
 Focused Board fixture and Maestro connector-specification tests:
 
-`25 passed in 0.09s`
+`26 passed in 0.14s`
 
 Full repository suite:
 
-`781 passed in 3.73s`
+`783 passed in 3.92s`
 
 Board source/test `git diff --check` validation:
 
 `clean`
 
-Repository-wide `git diff --check` currently emits an unrelated LF/CRLF
-warning for:
-
-`machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
-
-That #2 handoff change is outside this workstream and was not modified.
+The E0 implementation did not modify Routing or any other workstream files.
 
 Current Board-specific uncommitted changes are:
 
@@ -932,7 +931,83 @@ Current Board-specific uncommitted changes are:
 * `machine-structure-editor/tests/test_controller_board_fixtures.py`
 * `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
 
-## 26. Historical handoff disposition
+## 26. Verified E0 Motor / J10 implementation checkpoint
+
+The authorized next Board target, Duet 2 Maestro v1.0 E0 motor / J10, has
+been implemented and locally verified.
+
+### Maestro-specific evidence
+
+The manufacturer-maintained Maestro `Headers.sch` identifies:
+
+* `J10` as `E0 MOT`;
+* the connector as `CONN_01X04`;
+* the footprint as `PIN_ARRAY_4x1`.
+
+Source:
+
+`https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/master/Duet2/Duet2Maestro_v1.0/Headers.sch`
+
+The Maestro schematic associates the four J10 positions with the E0 motor
+nets `E0_MOT_A1`, `E0_MOT_A2`, `E0_MOT_B1`, and `E0_MOT_B2`.
+
+The reusable Maestro catalog already defines `e0-motor` as part of the
+board's motor connector family with:
+
+* `position_count = 4`;
+* established contact labels `B1`, `B2`, `A1`, `A2`;
+* stepper motor coil-terminal semantics.
+
+### Implemented semantic scope
+
+The implementation adds:
+
+* `e0-motor` connector grouping to `DUET_2_MAESTRO_CONNECTOR_LAYOUT`;
+* four controller-owned physical SemanticPorts;
+* physical positions `1`, `2`, `3`, and `4`;
+* `pin_label` values `B1`, `B2`, `A1`, `A2`;
+* corresponding stepper motor coil-terminal purposes;
+* `direction = "unknown"` consistent with the established Maestro motor
+  representation.
+
+No E0 ControllerResource was added.
+
+The existing E2/E3 and Y-motor implementations were preserved.
+
+No reusable Maestro HardwareDefinition was modified.
+
+No machine-specific firmware or configuration was added.
+
+No new canonical Connector, MatingInterface, DriverSocket, DriverModule,
+or Contact entity was introduced.
+
+No Routing source or test files were modified.
+
+### Verified test state
+
+Focused Board fixture and Maestro connector-specification tests:
+
+`26 passed in 0.14s`
+
+Full repository suite:
+
+`783 passed in 3.92s`
+
+`git diff --check`:
+
+`clean`
+
+The fixture now produces:
+
+* 84 controller-owned physical ports;
+* 6 ControllerResources.
+
+E1 / J6 was not implemented in this checkpoint.
+
+The E0 implementation is complete and awaits Planning acceptance before
+commit.
+
+## 27. Historical handoff disposition
 
 The previous 1,860-line handoff remains preserved at:
 
@@ -944,15 +1019,16 @@ The live handoff remains:
 
 The archival migration is separate from the implementation checkpoints.
 
-## 27. Immediate next Board action
+## 28. Immediate next Board action
 
-The Maestro Y motor / J8 implementation is complete and verified.
+The Maestro E0 motor / J10 implementation is complete and verified.
 
 Before another Board implementation:
 
-1. review the Y-motor source/test diff and the updated live handoff;
+1. review the E0 source/test diff and the updated live handoff;
 2. send the verified checkpoint to Planning for acceptance;
-3. keep E0/E1 motor implementation out of this checkpoint.
+3. keep E1 / J6 and all other remaining Board targets out of this
+   checkpoint.
 
 No further Board implementation should begin until the next target is
 separately authorized.

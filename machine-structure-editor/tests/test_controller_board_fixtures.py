@@ -56,7 +56,7 @@ def test_fixture_creates_installed_controller() -> None:
 def test_fixture_creates_controller_owned_physical_ports() -> None:
     _, controller, ports = get_fixture()
 
-    assert len(ports) == 80
+    assert len(ports) == 84
 
     assert all(
         port.component_id is None
@@ -80,6 +80,7 @@ def test_fixture_connector_group_sizes() -> None:
     expected_counts = {
         "x-motor": 4,
         "y-motor": 4,
+        "e0-motor": 4,
         "z-a-motor": 4,
         "z-b-motor": 4,
         "bed-heat-molex": 2,
@@ -128,6 +129,7 @@ def test_fixture_connector_positions_are_numbered() -> None:
     expected_counts = {
         "x-motor": 4,
         "y-motor": 4,
+        "e0-motor": 4,
         "z-a-motor": 4,
         "z-b-motor": 4,
         "bed-heat-molex": 2,
@@ -199,6 +201,39 @@ def test_y_motor_ports_have_maestro_motor_labels() -> None:
     ):
         assert (
             y_ports[str(position)].purpose
+            == f"Stepper motor coil {pin_label} terminal"
+        )
+
+
+def test_e0_motor_ports_have_maestro_motor_labels() -> None:
+    _, _, ports = get_fixture()
+
+    e0_ports = {
+        port.pin_id: port
+        for port in ports
+        if port.connector_id == "e0-motor"
+    }
+
+    assert set(e0_ports) == {"1", "2", "3", "4"}
+
+    expected_labels = ["B1", "B2", "A1", "A2"]
+
+    assert [
+        e0_ports[str(position)].properties["pin_label"]
+        for position in range(1, 5)
+    ] == expected_labels
+
+    assert all(
+        port.direction == "unknown"
+        for port in e0_ports.values()
+    )
+
+    for position, pin_label in zip(
+        range(1, 5),
+        expected_labels,
+    ):
+        assert (
+            e0_ports[str(position)].purpose
             == f"Stepper motor coil {pin_label} terminal"
         )
 
