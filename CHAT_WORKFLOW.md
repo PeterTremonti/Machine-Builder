@@ -187,19 +187,108 @@ The user will make the local repository change.
 
 ---
 
-# 7. Python / Tool Use
+# 7. Python / Tool Use and Hard Repository Tool-Routing Rule
 
 The user prefers to perform repository changes through VS Code / PowerShell rather than through Python-generated artifacts.
 
-Do not use Python when a normal command, source inspection, or paste-ready replacement is sufficient.
+For **Machine Builder repository work**, the following tooling/workflows are prohibited:
+
+* Python
+* Jupyter
+* pandas
+* dataframes
+* data-analysis workflows
+* generated notebooks
+* plotting/charting workflows
+* spreadsheet-style data-analysis workflows
+* temporary analysis scripts
+* temporary analysis files
+* temporary analysis artifacts
+* equivalent analysis-tool workflows used in place of direct repository inspection or project tooling
+
+This is a **hard tool-routing/workflow rule**, not merely a preference.
+
+Do not invoke a prohibited tool or workflow even when the intended use is only to:
+
+* inspect repository files
+* count lines, occurrences, or values
+* compare text
+* parse or transform source
+* calculate a value
+* validate an edit
+* generate a temporary artifact
+* test whether the tool is available
+* report that the tool is unavailable
+* generate a no-op
+* demonstrate that no artifact is being generated
+
+Do not invoke the prohibited tool first and then explain that it was unavailable or produced nothing.
+
+The prohibited tool must not be invoked at all.
+
+The prohibition applies to repository inspection, source inspection, planning, architecture work, documentation review, implementation review, testing, visual-editor work, routing work, and audit work.
+
+The prohibition is about the **tool/workflow**, not about reasoning.
+
+A workstream may reason about code, architecture, hardware, research, routing, tests, or repository structure normally.
+
+The intended repository tooling path is:
+
+```text
+PowerShell / terminal
+        ↓
+Git
+        ↓
+direct repository/source/documentation inspection
+        ↓
+existing project tooling
+        ↓
+project tests
+```
 
 Use the simplest practical inspection method.
 
 Do not introduce tool complexity merely for convenience.
 
+### Tool-Selection Preflight
+
+Before invoking any tool for a Machine Builder task, determine whether the requested action concerns the repository.
+
+If it does:
+
+1. Do not select Python, Jupyter, pandas, dataframe/data-analysis, notebook, plotting, spreadsheet-analysis, or equivalent analysis tooling.
+
+2. Use the approved PowerShell / terminal / Git / direct-source / project-test workflow.
+
+3. If the task can be completed by giving the user a paste-ready repository command, give the command instead of invoking another tool.
+
+4. If the task requires current local repository state, have the user run the required command in the authoritative local checkout.
+
+The absence of a legitimate data-analysis need must never be treated as a reason to invoke a data-analysis workflow.
+
+### Accidental Tool-Routing/Workflow Violation
+
+If a prohibited Python/data-analysis/Jupyter-style tool is accidentally invoked:
+
+1. Stop that tool workflow immediately.
+
+2. Do not retry the prohibited tool.
+
+3. Do not generate a no-op artifact or temporary analysis artifact.
+
+4. Do not continue using the prohibited tool merely to explain or inspect the failure.
+
+5. Briefly identify that a repository tool-routing/workflow violation occurred.
+
+6. Return immediately to the approved PowerShell / terminal / Git / direct-source / project-test workflow.
+
+7. Continue the repository task from the actual available evidence.
+
+An accidental prohibited-tool invocation does not make the repository task impossible and does not replace the required local verification workflow.
+
 ---
 
-# 8. Full-File Replacement Preference
+# 8. Full-File Replacement and Artifact Scope
 
 When modifying a reasonably sized file, prefer:
 
@@ -214,6 +303,68 @@ The goal is to minimize user error and avoid requiring the user to reconstruct a
 Surgical edits are acceptable when a full replacement is impractical or unnecessarily large.
 
 Repeated surgical editing of the same large file is a signal that its modularity should be reconsidered.
+
+### Whole-File Replacement Rule
+
+When the user explicitly requests a **whole file**, **complete file**, **entire file**, **full-file replacement**, **rewrite the file**, or equivalent wording, treat that as an exact artifact-scope instruction.
+
+For such a request:
+
+* The requested artifact is the **complete resulting file**, not an addition to the current file.
+
+* Do not append a new section to the existing file merely because the requested content is longer than expected.
+
+* Do not produce an incremental patch when the user explicitly requested the complete file.
+
+* Do not create a second competing "full" version unless the user explicitly asks for alternatives.
+
+* Preserve existing content that is still valid, but incorporate the requested changes into the complete replacement.
+
+* Do not invent additional content merely to make the replacement "more complete."
+
+* Do not silently change the requested scope from "whole file" to "add this to the current version."
+
+* If the complete file is needed from the repository, inspect/retrieve the authoritative current file first, then construct the complete replacement from that source.
+
+* For a reasonably sized file, prefer a complete-file replacement over repeated surgical insertions when the user explicitly requests a whole-file result.
+
+* Before applying the replacement, verify that the resulting artifact is actually the complete file and not merely the previous file plus an appended/generated section.
+
+### Artifact-Scope Preflight
+
+Before modifying or generating a repository artifact, determine the requested scope:
+
+```text
+whole file / complete replacement
+        →
+produce the complete resulting artifact
+
+targeted edit / patch
+        →
+modify only the requested area
+
+new file
+        →
+create only the requested new artifact
+```
+
+Do not switch between these scopes without the user's instruction.
+
+The requested artifact scope takes precedence over a convenience-based editing method.
+
+### Revision Integrity
+
+When revising a whole-file result after feedback:
+
+* Start from the complete current intended file.
+
+* Produce the complete revised file again.
+
+* Do not append the revision to the previous response or file.
+
+* Do not preserve a rejected intermediate version as competing current content unless explicitly requested.
+
+* When the user asks for another whole-file revision, the response must again contain the complete resulting file.
 
 ---
 
