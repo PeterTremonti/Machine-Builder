@@ -1726,3 +1726,94 @@ Next concrete action
 No canonical semantic Connection change is required.
 No Board -> Routing adapter is required.
 Do not begin global multi-wire routing optimization from this checkpoint.
+
+# Checkpoint 20 — 2026-10-07 10:53 PM EDT — Quantitative preferred-spacing repair comparison
+
+Purpose
+
+Record the tested comparison between the narrow topology-preserving preferred-spacing geometry repair and the earlier hard-8 scene-unit protected-segment experiment.
+
+Verification
+
+Current repository state at verification:
+
+b284c53 — Implement Maestro E2/E3 external driver interfaces
+
+Routing production files and Routing tests were clean before this documentation-only checkpoint.
+
+Focused Routing validation:
+
+57 passed in 0.24s
+
+Focused Routing plus the permanent real-machine GUI regression:
+
+58 passed in 2.82s
+
+Known pathology geometry-only repair result
+
+The exact historical preferred-spacing test uses the seven-point route:
+
+(-5.000, 240.000)
+-> (-1.250, 240.000)
+-> (-1.250, 141.510)
+-> (-25.250, 141.510)
+-> (-25.250, -24.999)
+-> (-10.000, -24.999)
+-> (-10.000, -25.000)
+
+The repair moves only the existing interior geometry at points 4 and 5 from y = -24.999 to y = -21.000.
+
+Measured result:
+
+- minimum achieved preferred separation: 4.000 scene units
+- route length before repair: 308.000 scene units
+- route length after repair: 308.000 scene units
+- route point count: 7
+- ordered segment topology: unchanged
+- endpoint escape geometry: unchanged
+- moved interior points: 2
+- movement per affected point: 3.999 scene units
+- total pointwise movement: 7.998 scene units
+- new bends introduced: none
+- topology identity: unchanged
+- route cost: unchanged within test tolerance
+- stability decision: "previous stable route received preferred-spacing geometry repair"
+
+The repair therefore improves the visual spacing of the known near-coincident geometry without creating a new route topology or adding local detour geometry.
+
+Historical hard-8 baseline
+
+The earlier protected-segment experiment is retained as the comparison baseline.
+
+Its documented result was approximately:
+
+- minimum achieved separation: 8.000 scene units
+- topology-changing pathfinder enforcement: yes, when necessary
+- unwanted geometry observed: visible U-turns, jogs, and loops
+- documented example: a horizontal route segment at y = 231.999 was approximately 8 scene units from the protected y = 240 endpoint escape
+- lower-side variants produced analogous U-turn/jog behavior and eventually a loop
+
+The archived material does not preserve a complete exact route for the hard-8 case, so a complete independently calculated hard-8 route length and full bend/segment count are not asserted here.
+
+Conclusion
+
+For the known single-connection pathology, the geometry-only repair experiment provides the better result demonstrated by current evidence:
+
+- the 4.000-unit preferred spacing is achieved;
+- existing route topology is preserved;
+- existing interior geometry moves instead of creating new bends;
+- route length and route cost remain unchanged;
+- endpoint escape geometry remains fixed;
+- the repair avoids the documented U-turn/jog/loop side effects of hard 8-unit pathfinding enforcement.
+
+The hard-8 mechanism therefore remains a historical diagnostic baseline rather than the preferred final mechanism.
+
+Scope boundary
+
+This checkpoint does not introduce a generalized soft-spacing optimizer, global multi-wire optimization, canonical Connection changes, or Board coupling.
+
+The permanent GUI regression remains valuable for real application behavior, but its saved four-node machine does not contain the exact historical near-coincident pathology, so the preferred-spacing repair itself continues to rely on the deterministic exact-pathology regression for direct coverage.
+
+Current next action
+
+No further production Routing change is justified by this single-connection experiment. Broader preferred-spacing behavior should remain observational and constrained until additional real geometries provide evidence for a generalized policy.
