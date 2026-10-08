@@ -28,6 +28,7 @@ DUET_2_MAESTRO_CONNECTOR_LAYOUT = (
     ("x-motor", "X motor", 4),
     ("y-motor", "Y motor", 4),
     ("e0-motor", "E0 motor", 4),
+    ("e1-motor", "E1 motor", 4),
     ("z-a-motor", "Z A motor", 4),
     ("z-b-motor", "Z B motor", 4),
     ("bed-heat-molex", "Bed heat Molex", 2),

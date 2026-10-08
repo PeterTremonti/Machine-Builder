@@ -999,13 +999,17 @@ Full repository suite:
 
 The fixture now produces:
 
-* 84 controller-owned physical ports;
+* 88 controller-owned physical ports;
 * 6 ControllerResources.
 
-E1 / J6 was not implemented in this checkpoint.
+E1 / J6 is now implemented as the sixth onboard Maestro motor interface.
 
-The E0 implementation is complete and awaits Planning acceptance before
-commit.
+Evidence basis: the Duet3D Maestro V1.0 `Headers.sch` identifies J6 as
+`E1 MOT`, a four-position motor interface. The established Maestro motor
+semantic mapping is preserved as positions `1..4` with `B1`, `B2`, `A1`,
+and `A2` coil-terminal labels and unknown direction.
+
+The E0 / J10 and E1 / J6 implementations are complete and verified.
 
 ## 27. Historical handoff disposition
 
@@ -1021,17 +1025,30 @@ The archival migration is separate from the implementation checkpoints.
 
 ## 28. Immediate next Board action
 
-The Maestro E0 motor / J10 implementation is complete and verified.
+The Maestro E0 / J10 and E1 / J6 motor interfaces are complete and verified.
 
-Before another Board implementation:
+The next Board coverage target is J21 / Expansion, the heterogeneous
+multi-function physical interface.
 
-1. review the E0 source/test diff and the updated live handoff;
-2. send the verified checkpoint to Planning for acceptance;
-3. keep E1 / J6 and all other remaining Board targets out of this
-   checkpoint.
+Continue using the completeness criterion:
 
-No further Board implementation should begin until the next target is
-separately authorized.
+* every relevant board feature is identified, evidenced, classified, and
+  represented at the appropriate semantic level;
+* ordinary machine interfaces remain distinguishable from service,
+  configuration, power, test/ATE, and board-observability features;
+* unresolved contact or net ordering is not guessed.
 
-Commit and push remain separate actions after review and Planning
-acceptance.
+Additional evidence now available for later coverage includes the resolved
+J24 Always-On FAN mapping, the complete J37 TEMP_DB contact mapping, and
+the conservative design-level classification of J16/J17 pending production
+population evidence.
+
+Promega-specific controller-side application evidence is also closed:
+standard single-Z uses J36 / Z A, and the standard Compound PT1000 uses
+J14 / E1 TEMP. These are machine-specific application facts and do not
+change the reusable Maestro board definition.
+
+Continue through the remaining Maestro coverage without requiring a
+separate authorization for each individual feature.
+
+Commit and push remain separate actions after review and verification.
