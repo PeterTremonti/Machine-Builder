@@ -56,7 +56,7 @@ def test_fixture_creates_installed_controller() -> None:
 def test_fixture_creates_controller_owned_physical_ports() -> None:
     _, controller, ports = get_fixture()
 
-    assert len(ports) == 105
+    assert len(ports) == 115
 
     assert all(
         port.component_id is None
@@ -85,6 +85,7 @@ def test_fixture_connector_group_sizes() -> None:
         "z-a-motor": 4,
         "z-b-motor": 4,
         "j4": 4,
+        "temp-ob": 10,
         "bed-heat-molex": 2,
         "bed-heat-screw": 2,
         "e0-heat-molex": 2,
@@ -136,6 +137,7 @@ def test_fixture_connector_positions_are_numbered() -> None:
         "e1-motor": 4,
         "z-a-motor": 4,
         "j4": 4,
+        "temp-ob": 10,
         "z-b-motor": 4,
         "bed-heat-molex": 2,
         "bed-heat-screw": 2,
@@ -571,6 +573,42 @@ def test_maestro_j21_expansion_ports_have_verified_pin_mappings() -> None:
         assert port.direction == direction
         assert port.properties.get("electrical_role") == electrical_role
 
+
+def test_maestro_j37_temp_db_ports_have_verified_pin_mappings() -> None:
+    _, _, ports = get_fixture()
+
+    j37_ports = {
+        port.pin_id: port
+        for port in ports
+        if port.connector_id == "temp-ob"
+    }
+
+    expected = {
+        "1": ("SPI0_CS2", "SPI chip-select signal", "unknown", None),
+        "2": ("GND", "Ground reference", "unknown", "ground_reference"),
+        "3": ("SPI0_CS1", "SPI chip-select signal", "unknown", None),
+        "4": ("SPI0_SCK", "SPI clock signal", "unknown", None),
+        "5": ("SPI0_MOSI", "SPI data output signal", "unknown", None),
+        "6": ("SPI0_MISO", "SPI data input signal", "unknown", None),
+        "7": ("TWCK0", "I2C clock signal", "unknown", None),
+        "8": ("+3.3V", "3.3 V supply", "unknown", "power_supply_3v3"),
+        "9": ("TWD0", "I2C data signal", "unknown", None),
+        "10": ("NC", "No connect", "unknown", None),
+    }
+
+    assert set(j37_ports) == set(expected)
+
+    for position, (pin_label, purpose, direction, electrical_role) in expected.items():
+        port = j37_ports[position]
+
+        assert port.properties["pin_label"] == pin_label
+        assert port.purpose == purpose
+        assert port.direction == direction
+
+        if electrical_role is None:
+            assert "electrical_role" not in port.properties
+        else:
+            assert port.properties["electrical_role"] == electrical_role
 
 def test_maestro_j4_high_current_ports_have_verified_pin_mappings() -> None:
     _, _, ports = get_fixture()

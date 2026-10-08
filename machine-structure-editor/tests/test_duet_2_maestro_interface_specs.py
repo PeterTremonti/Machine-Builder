@@ -185,7 +185,7 @@ def test_maestro_service_power_and_unresolved_interfaces_are_not_promoted_to_mac
         "ethernet": "communication_service",
         "c-gnd": "power_reference",
         "j21": "expansion_or_service",
-        "temp-ob": "unresolved",
+        "temp-ob": "expansion_or_service",
         "erase": "service_configuration",
         "a-vin": "power_configuration",
         "e-5v-en": "power_configuration",
@@ -202,5 +202,5 @@ def test_maestro_service_power_and_unresolved_interfaces_are_not_promoted_to_mac
 
     assert (
         specifications["temp-ob"]["evidence_status"]
-        .startswith("Physical label")
+        .startswith("Manufacturer schematic")
     )

@@ -32,6 +32,7 @@ DUET_2_MAESTRO_CONNECTOR_LAYOUT = (
     ("z-a-motor", "Z A motor", 4),
     ("z-b-motor", "Z B motor", 4),
     ("j4", "High Current Terminal", 4),
+    ("temp-ob", "TEMP_DB", 10),
     ("bed-heat-molex", "Bed heat Molex", 2),
     ("bed-heat-screw", "Bed heat screw terminal", 2),
     ("e0-heat-molex", "E0 heat Molex", 2),
@@ -273,6 +274,32 @@ def add_duet_2_maestro_physical_interfaces(
                     direction,
                     electrical_role,
                 ) = j21_pins[position]
+
+                port_properties["pin_label"] = pin_label
+
+                if electrical_role is not None:
+                    port_properties["electrical_role"] = electrical_role
+
+            elif connector_id == "temp-ob":
+                temp_ob_pins = {
+                    1: ("SPI0_CS2", "SPI chip-select signal", "unknown", None),
+                    2: ("GND", "Ground reference", "unknown", "ground_reference"),
+                    3: ("SPI0_CS1", "SPI chip-select signal", "unknown", None),
+                    4: ("SPI0_SCK", "SPI clock signal", "unknown", None),
+                    5: ("SPI0_MOSI", "SPI data output signal", "unknown", None),
+                    6: ("SPI0_MISO", "SPI data input signal", "unknown", None),
+                    7: ("TWCK0", "I2C clock signal", "unknown", None),
+                    8: ("+3.3V", "3.3 V supply", "unknown", "power_supply_3v3"),
+                    9: ("TWD0", "I2C data signal", "unknown", None),
+                    10: ("NC", "No connect", "unknown", None),
+                }
+
+                (
+                    pin_label,
+                    purpose,
+                    direction,
+                    electrical_role,
+                ) = temp_ob_pins[position]
 
                 port_properties["pin_label"] = pin_label
 

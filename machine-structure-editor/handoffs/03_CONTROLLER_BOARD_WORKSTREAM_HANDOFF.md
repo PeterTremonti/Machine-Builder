@@ -207,7 +207,7 @@ Reusable HardwareDefinition:
 
 Current installed Maestro fixture contains:
 
-`105` controller-owned physical SemanticPorts.
+`115` controller-owned physical SemanticPorts.
 
 Current connector groups:
 
@@ -238,6 +238,7 @@ Current connector groups:
 * `fan2` — 2
 * `always-on-fan` — 2
 * `j4` — 4
+* `temp-ob` / J37 — 10
 * `j21` — 13
 * `e2-driver` — 8
 * `e3-driver` — 8
@@ -511,7 +512,7 @@ Important documented/current catalog entries include:
 * Ethernet;
 * C_GND;
 * J21 Expansion;
-* TEMP_OB;
+* J37 / TEMP_DB;
 * ERASE;
 * A VIN;
 * E 5V EN;
@@ -1053,6 +1054,38 @@ Evidence basis: Duet3D Maestro V1.0 manufacturer schematic, `Headers.sch`,
 including the individual J21 contact identities.
 
 
+### J37 / TEMP_DB implementation
+
+J37 / TEMP_DB is represented as a ten-contact heterogeneous physical
+interface using the existing SemanticPort model.
+
+J37 contact mapping:
+
+1  SPI0_CS2
+2  GND
+3  SPI0_CS1
+4  SPI0_SCK
+5  SPI0_MOSI
+6  SPI0_MISO
+7  TWCK0
+8  +3.3V
+9  TWD0
+10 NC
+
+The SPI and I2C signal directions remain `unknown` because the evidence
+establishes the signal identities but does not justify controller-side
+direction claims. GND and +3.3V retain explicit electrical-role metadata.
+NC is retained as an identified non-connection rather than omitted.
+
+Catalog disposition:
+interface_role = auxiliary_header
+usage_classification = expansion_or_service
+evidence_source = DUET2_MAESTRO_HEADERS_SOURCE
+
+No ControllerResource or Board-specific ontology entity was introduced.
+
+Evidence basis: Duet 2 Maestro V1.0 manufacturer Headers.sch identifies
+J37 / TEMP_DB and the complete ten-contact signal map.
 ### J4 / High Current Terminal implementation
 
 J4 is represented as a four-contact heterogeneous physical interface
@@ -1092,7 +1125,7 @@ The archival migration is separate from the implementation checkpoints.
 
 The Maestro E0 / J10 and E1 / J6 motor interfaces are complete and verified.
 
-The next Board coverage target is J37 / TEMP_DB.
+The next Board coverage target is J16 / J17 alternate heater access.
 
 Continue using the completeness criterion:
 
