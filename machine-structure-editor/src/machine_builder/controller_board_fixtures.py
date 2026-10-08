@@ -348,8 +348,19 @@ def add_duet_2_maestro_physical_interfaces(
 
                 port_properties["pin_label"] = pin_label
             elif connector_id == "always-on-fan":
-                direction = "output"
-                port_properties["electrical_role"] = "always_on_fan_output"
+                if position == 1:
+                    pin_label = "GND"
+                    purpose = "Ground reference"
+                    direction = "unknown"
+                    electrical_role = "ground_reference"
+                else:
+                    pin_label = "V_FAN_A"
+                    purpose = "Always-on fan supply output"
+                    direction = "output"
+                    electrical_role = "always_on_fan_output"
+
+                port_properties["pin_label"] = pin_label
+                port_properties["electrical_role"] = electrical_role
             elif connector_id in {"fan0", "fan1", "fan2"}:
                 direction = "output"
                 port_properties["electrical_role"] = "controlled_fan_output"

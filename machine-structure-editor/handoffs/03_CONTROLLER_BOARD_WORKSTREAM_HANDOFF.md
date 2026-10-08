@@ -417,13 +417,15 @@ No separate fan ontology was introduced.
 
 ## 13. Verified Always-On Fan representation
 
-The documented Always-On Fan interface is represented as:
+The documented J24 / Always-On FAN interface is represented as:
 
 * connector group: `always-on-fan`;
 * two controller-owned SemanticPorts;
-* positions `1` and `2`;
-* `direction = output`;
-* `electrical_role = always_on_fan_output`.
+* position 1 = `GND`, `direction = unknown`, `electrical_role = ground_reference`;
+* position 2 = `V_FAN_A`, `direction = output`, `electrical_role = always_on_fan_output`.
+
+J24 is therefore represented as a heterogeneous physical interface rather
+than incorrectly labeling its ground contact as a fan output.
 
 No separate fan Controller Resource or new ontology was introduced.
 
@@ -1090,7 +1092,7 @@ The archival migration is separate from the implementation checkpoints.
 
 The Maestro E0 / J10 and E1 / J6 motor interfaces are complete and verified.
 
-The next Board coverage target is J24 / Always-On FAN.
+The next Board coverage target is J37 / TEMP_DB.
 
 Continue using the completeness criterion:
 

@@ -384,7 +384,7 @@ def test_maestro_fan_ports_have_controlled_output_roles() -> None:
         for port in fan_ports
     )
 
-def test_maestro_always_on_fan_ports_have_output_role() -> None:
+def test_maestro_always_on_fan_ports_have_verified_pin_mappings() -> None:
     _, _, ports = get_fixture()
 
     always_on_fan_ports = [
@@ -394,15 +394,26 @@ def test_maestro_always_on_fan_ports_have_output_role() -> None:
     ]
 
     assert len(always_on_fan_ports) == 2
-    assert {port.pin_id for port in always_on_fan_ports} == {"1", "2"}
-    assert all(
-        port.direction == "output"
-        for port in always_on_fan_ports
-    )
-    assert all(
-        port.properties["electrical_role"] == "always_on_fan_output"
-        for port in always_on_fan_ports
-    )
+
+    expected = {
+        "1": ("GND", "Ground reference", "unknown", "ground_reference"),
+        "2": (
+            "V_FAN_A",
+            "Always-on fan supply output",
+            "output",
+            "always_on_fan_output",
+        ),
+    }
+
+    assert {port.pin_id for port in always_on_fan_ports} == set(expected)
+
+    for port in always_on_fan_ports:
+        pin_label, purpose, direction, electrical_role = expected[port.pin_id]
+
+        assert port.properties["pin_label"] == pin_label
+        assert port.purpose == purpose
+        assert port.direction == direction
+        assert port.properties["electrical_role"] == electrical_role
 
 def test_z_a_and_z_b_are_separate_connector_groups() -> None:
     _, _, ports = get_fixture()
