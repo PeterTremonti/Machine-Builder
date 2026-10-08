@@ -238,3 +238,19 @@ The following documents were part of the older V7/V7.x documentation system. The
 **Current authority:** `DOCUMENTATION_AUTHORITY.md` and the current project, Research, and implementation authorities it identifies.
 
 **Disposition:** Retain as historical/reference material. These files must not be treated as current architecture, UI, workflow, or project-state authority.
+
+# 11. Historical Controller / Board workstream handoff
+
+## `docs/historical/implementation/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF_2026-10-07.md`
+
+**Original path:** `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
+
+**Superseded on:** 2026-10-07
+
+**Classification:** HISTORICAL / SUPERSEDED LIVE HANDOFF
+
+**Current authority:** `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
+
+**Historical value:** Preserves the previous Controller / Board workstream continuity record, including its detailed checkpoint history, implementation evidence, architectural context, and prior-state reasoning that preceded the current handoff rollover.
+
+**Disposition:** Retain as historical/versioned workstream provenance. It is no longer the live Board recovery document and must not compete with the current Board handoff.
