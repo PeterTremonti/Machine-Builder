@@ -56,7 +56,7 @@ def test_fixture_creates_installed_controller() -> None:
 def test_fixture_creates_controller_owned_physical_ports() -> None:
     _, controller, ports = get_fixture()
 
-    assert len(ports) == 88
+    assert len(ports) == 101
 
     assert all(
         port.component_id is None
@@ -104,6 +104,7 @@ def test_fixture_connector_group_sizes() -> None:
         "fan1": 2,
         "fan2": 2,
         "always-on-fan": 2,
+        "j21": 13,
         "e2-driver": 8,
         "e3-driver": 8,
     }
@@ -154,6 +155,7 @@ def test_fixture_connector_positions_are_numbered() -> None:
         "fan1": 2,
         "fan2": 2,
         "always-on-fan": 2,
+        "j21": 13,
     }
 
     for connector_id, expected_count in (
@@ -520,6 +522,41 @@ def test_heater_ports_have_verified_output_information() -> None:
         ] == "heater_output"
         for port in heater_ports
     )
+
+
+def test_maestro_j21_expansion_ports_have_verified_pin_mappings() -> None:
+    _, _, ports = get_fixture()
+
+    j21_ports = {
+        port.pin_id: port
+        for port in ports
+        if port.connector_id == "j21"
+    }
+
+    expected = {
+        "1": ("+5V", "5 V supply", "unknown", "power_supply_5v"),
+        "2": ("GND", "Ground reference", "unknown", "ground_reference"),
+        "3": ("RESET", "Board reset signal", "unknown", None),
+        "4": ("EXP_0", "Expansion general-purpose signal", "unknown", None),
+        "5": ("EXP_1", "Expansion general-purpose signal", "unknown", None),
+        "6": ("ADVREF", "Analog reference signal", "unknown", None),
+        "7": ("VSSA", "Analog ground reference", "unknown", "analog_ground_reference"),
+        "8": ("TWCK0", "I2C clock signal", "unknown", None),
+        "9": ("TWD0", "I2C data signal", "unknown", None),
+        "10": ("+3.3V", "3.3 V supply", "unknown", "power_supply_3v3"),
+        "11": ("SERVO", "Servo control output", "output", "servo_control_output"),
+        "12": ("+5V", "5 V supply", "unknown", "power_supply_5v"),
+        "13": ("GND", "Ground reference", "unknown", "ground_reference"),
+    }
+
+    assert set(j21_ports) == set(expected)
+
+    for position, (pin_label, purpose, direction, electrical_role) in expected.items():
+        port = j21_ports[position]
+        assert port.properties["pin_label"] == pin_label
+        assert port.purpose == purpose
+        assert port.direction == direction
+        assert port.properties.get("electrical_role") == electrical_role
 
 
 def test_maestro_external_driver_ports_have_verified_pin_mappings() -> None:

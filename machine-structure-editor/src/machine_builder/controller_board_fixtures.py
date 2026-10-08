@@ -51,6 +51,7 @@ DUET_2_MAESTRO_CONNECTOR_LAYOUT = (
     ("fan1", "Fan 1", 2),
     ("fan2", "Fan 2", 2),
     ("always-on-fan", "Always-on fan", 2),
+    ("j21", "Expansion", 13),
     ("e2-driver", "E2 external stepper driver", 8),
     ("e3-driver", "E3 external stepper driver", 8),
 )
@@ -247,6 +248,35 @@ def add_duet_2_maestro_physical_interfaces(
 
                 port_properties["pin_label"] = pin_label
                 port_properties["electrical_role"] = electrical_role
+
+            elif connector_id == "j21":
+                j21_pins = {
+                    1: ("+5V", "5 V supply", "unknown", "power_supply_5v"),
+                    2: ("GND", "Ground reference", "unknown", "ground_reference"),
+                    3: ("RESET", "Board reset signal", "unknown", None),
+                    4: ("EXP_0", "Expansion general-purpose signal", "unknown", None),
+                    5: ("EXP_1", "Expansion general-purpose signal", "unknown", None),
+                    6: ("ADVREF", "Analog reference signal", "unknown", None),
+                    7: ("VSSA", "Analog ground reference", "unknown", "analog_ground_reference"),
+                    8: ("TWCK0", "I2C clock signal", "unknown", None),
+                    9: ("TWD0", "I2C data signal", "unknown", None),
+                    10: ("+3.3V", "3.3 V supply", "unknown", "power_supply_3v3"),
+                    11: ("SERVO", "Servo control output", "output", "servo_control_output"),
+                    12: ("+5V", "5 V supply", "unknown", "power_supply_5v"),
+                    13: ("GND", "Ground reference", "unknown", "ground_reference"),
+                }
+
+                (
+                    pin_label,
+                    purpose,
+                    direction,
+                    electrical_role,
+                ) = j21_pins[position]
+
+                port_properties["pin_label"] = pin_label
+
+                if electrical_role is not None:
+                    port_properties["electrical_role"] = electrical_role
 
             elif connector_id in {"e2-driver", "e3-driver"}:
                 driver_name = (

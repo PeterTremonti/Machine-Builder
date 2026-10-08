@@ -207,11 +207,14 @@ Reusable HardwareDefinition:
 
 Current installed Maestro fixture contains:
 
-`60` controller-owned physical SemanticPorts.
+`101` controller-owned physical SemanticPorts.
 
 Current connector groups:
 
 * `x-motor` — 4
+* `y-motor` — 4
+* `e0-motor` — 4
+* `e1-motor` — 4
 * `z-a-motor` — 4
 * `z-b-motor` — 4
 * `bed-heat-molex` — 2
@@ -234,6 +237,9 @@ Current connector groups:
 * `fan1` — 2
 * `fan2` — 2
 * `always-on-fan` — 2
+* `j21` — 13
+* `e2-driver` — 8
+* `e3-driver` — 8
 
 The fixture does not yet instantiate every interface present in the
 hardware catalog.
@@ -1011,6 +1017,38 @@ and `A2` coil-terminal labels and unknown direction.
 
 The E0 / J10 and E1 / J6 implementations are complete and verified.
 
+### J21 / Expansion implementation
+
+J21 / Expansion is now represented as a thirteen-contact heterogeneous
+physical interface using the existing SemanticPort model.
+
+J21 contact mapping:
+
+1  +5V
+2  GND
+3  RESET
+4  EXP_0
+5  EXP_1
+6  ADVREF
+7  VSSA
+8  TWCK0
+9  TWD0
+10 +3.3V
+11 SERVO
+12 +5V
+13 GND
+
+Per-contact electrical roles are represented where established. The SERVO
+contact is represented as an output. Expansion, RESET, and I2C signal
+directions remain `unknown` where the evidence does not establish a
+controller-side direction. Power and reference contacts retain explicit
+electrical-role metadata.
+
+No new ControllerResource or Board-specific ontology entity was introduced.
+
+Evidence basis: Duet3D Maestro V1.0 manufacturer schematic, `Headers.sch`,
+including the individual J21 contact identities.
+
 ## 27. Historical handoff disposition
 
 The previous 1,860-line handoff remains preserved at:
@@ -1027,8 +1065,7 @@ The archival migration is separate from the implementation checkpoints.
 
 The Maestro E0 / J10 and E1 / J6 motor interfaces are complete and verified.
 
-The next Board coverage target is J21 / Expansion, the heterogeneous
-multi-function physical interface.
+The next Board coverage target is J4 / High Current Terminal.
 
 Continue using the completeness criterion:
 
