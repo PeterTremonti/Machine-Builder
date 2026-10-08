@@ -1571,37 +1571,158 @@ Maintain the cumulative:
 
 ## What we've done so far
 
-section.
+Checkpoint 1 established the core Routing distinction between route geometry and route topology and identified small-motion route instability as the primary investigation target.
 
-Do not erase earlier history because the current implementation has moved on.
+Checkpoints 2–6 established route-stability tolerance, precision-sensitive geometry handling, transition diagnostics, deterministic visibility-grid ordering, and the distinction between legal continuity and genuinely blocked previous routes.
 
-Maintain the current:
+The subsequent Routing work established topology-preserving geometry repair, fixed endpoint-escape behavior, blocked-route repair, route-segment separation predicates, and focused regression coverage for the observed stability pathologies.
 
-## Current state
+Checkpoint 11 cleaned up duplicate SelectionInspector definitions. Checkpoint 12 removed an obsolete routing helper. Checkpoint 13 confirmed the intended Routing responsibility boundary in connection.py. Checkpoint 14 reconciled older Routing documentation into the historical archive.
 
-section so that it describes the actual current implementation rather than only historical conclusions.
+Checkpoints 15–16 verified the Routing boundary against the first real Duet 2 Maestro data and the controller-owned SemanticPort -> VisualPort integration. No Board-specific Routing coupling was introduced.
 
-Keep:
+Checkpoint 17 captured the recovery state before the preferred-spacing experiment.
+
+Checkpoint 18 completed the narrow preferred-spacing geometry-only repair experiment. The known endpoint-parallel pathology is now repaired by moving existing movable interior geometry while preserving topology and route cost. The 4.0 scene-unit value remains an experimental visual-quality preference rather than a hard legality rule.
+
+Checkpoint 19 added and verified an end-to-end GUI regression test using the real saved "4 parts.machine.json" document. The test exercises the actual Precision Nudge path against node-2 and connection-1 and verifies repeated 0.001-unit X nudges preserve topology, interior route geometry, endpoint behavior, and route-stability decisions.
+
+# Checkpoint 19 — 2026-10-07 9:01 PM EDT — Real-machine precision-nudge GUI validation
+
+Purpose
+
+Record the completed end-to-end GUI validation of Routing stability after the preferred-spacing implementation and the committed GUI regression test.
+
+Files touched
+
+machine-structure-editor/tests/test_routing_gui_validation.py
+
+The preferred-spacing implementation and its deterministic Routing tests were already committed in:
+
+7ac7cfc — Add topology-preserving preferred-spacing routing repair
+
+The GUI validation regression test was committed in:
+
+db2538862bd0b4d3407df299ad6f779b35d73965 — Add GUI precision-nudge routing regression test
+
+No Routing production implementation was changed by this checkpoint.
+
+What changed
+
+Added a permanent GUI regression test that:
+
+- loads the real saved machine:
+  wiring test machines/4 parts.machine.json
+- selects the real visual node:
+  node-2 / Temperature Controller
+- exercises the same Precision Nudge callback used by the GUI
+- applies ten +X nudges of 0.001 scene units
+- processes Qt events after each move
+- captures the real ConnectionGraphicsItem routing state
+- writes the validation report outside the repository
+
+Validation result
+
+GUI regression test:
+
+1 passed
+
+Routing regression suite:
+
+57 passed
+
+Real-machine validation reported:
+
+Topology failures: 0
+Interior geometry failures: 0
+Endpoint motion failures: 0
+Stability decision failures: 0
+Final route points: 7
+
+The ten nudges moved node-2 from X = -225.000000 to X = -224.990000 exactly as expected.
+
+The selected route retained the same seven-point topology and unchanged interior geometry. Only the endpoint-adjacent geometry followed the 0.001-unit node movement. The route-stability decision remained:
+
+previous stable route held within tolerance
+
+The preferred-spacing repair did not trigger in this four-node saved machine. That is expected because this document does not contain the specific near-coincident protected-segment pathology.
+
+Important validation correction
+
+The initial temporary validation counted any exact route-coordinate difference as "Route changed". That was too literal because the endpoint-adjacent route point legitimately follows the nudged node.
+
+The permanent validation instead distinguishes:
+
+- topology change
+- interior geometry change
+- endpoint motion
+- stability-decision change
+
+This produces a meaningful regression signal.
+
+Debug-mode note
+
+Routing Debug Mode was deliberately not enabled for the permanent stability validation because the current implementation explicitly bypasses route stability while Debug Mode is active. The runtime diagnostics were therefore captured with debug mode false.
+
+No Routing production defect was identified by this validation.
+
+Current state
 
 DECIDED
+
+- Route geometry and route topology remain distinct concepts.
+- Canonical semantic Connection identity is separate from visual route geometry.
+- Route stability is a selection/stability policy, not a replacement for legal pathfinding.
+- Endpoint escape geometry remains fixed/tied to endpoint behavior; preferred-spacing repair moves only eligible interior route geometry.
+- The preferred 4.0 scene-unit spacing value is an experimental visual-quality preference, not a hard routing legality rule.
+- No global multi-wire optimization is part of the current scope.
+- No Routing dependency on Board/controller implementation internals is required.
+
 IMPLEMENTATION
+
+- ConnectionGraphicsItem owns visual connection integration, endpoint geometry acquisition, route stability, geometry repair, diagnostics, and painting.
+- connection_routing.py remains the routing coordination façade.
+- connection_routing_endpoint.py owns endpoint stubs, escapes, and endpoint hysteresis.
+- connection_routing_relevance.py owns relevant-scene reduction.
+- connection_routing_pathfinder.py owns orthogonal search, route legality, cleanup, fallback, and geometry predicates.
+- Preferred-spacing geometry repair is implemented as a later stability/geometry-quality operation.
+- Routing diagnostics expose previous, candidate, selected, endpoint-escape, obstacle, cost, and transition information.
+- Deterministic GUI regression coverage now exercises the actual saved-document and Precision Nudge path.
+
 WATCH
+
+- The preferred-spacing repair has been established only for the narrow known single-connection pathology.
+- More constrained geometries still need visual validation.
+- Preference relaxation in narrow channels remains intentionally conservative: geometry-only repair can decline and leave normal routing in control.
+- Coordinated movement of multiple related interior segments has not been generalized.
+- The interaction between preferred-spacing repair, continuity hysteresis, and broader topology transitions needs additional real visual evidence.
+- Broader real-machine routing validation should continue as trustworthy physical geometry and controller/component data become available.
+
 NEW PRINCIPLE
+
+None promoted by Checkpoint 19.
+
+The GUI validation confirms current behavior but does not justify a new architectural Routing principle.
+
 RECONSIDER
 
-distinct.
+- The historical hard-8 scene-unit experiment remains a baseline/rejected hard-spacing policy, not the current rule.
+- A general soft-spacing optimization should be reconsidered only if additional real geometries demonstrate a concrete need.
+- Global multi-wire optimization remains explicitly out of scope for the current work.
 
-Do not promote experimental constants or local routing heuristics into architectural decisions without evidence.
+Current unresolved issues
 
-When a new implementation problem exposes a technical question that may have an established solution elsewhere, formulate a specific research request for Planning / Research (#2) rather than silently inventing a new routing principle.
+- Visual/manual validation of the exact historical preferred-spacing pathology remains desirable, but must not enable Debug Mode when the objective is to observe route-stability repair because Debug Mode bypasses stability.
+- The broader full repository suite remains blocked by the unrelated Board-owned fixture import problem in:
+  src/machine_builder/controller_board_fixtures.py
+- The Board-owned changes must remain untouched by Routing.
 
-When a discovery affects the whole Machine Builder rather than only Routing, report it to Planning / Architecture so that PROJECT_CURRENT_STATE.md can be updated there.
+Next concrete action
 
-The goal is that a replacement Routing chat can read:
+1. Continue targeted visual validation of constrained preferred-spacing geometries using normal Routing mode and the existing runtime diagnostics.
+2. Rerun the full repository suite once Workstream 03 repairs its unrelated Board fixture import error.
+3. Incorporate the separate PowerShell parser research from Research / #2 into the shared workflow when that report is returned.
 
-PROJECT_CURRENT_STATE.md
-this handoff
-current routing source
-current routing tests
-
-and resume the work without reconstructing the entire conversation or rereading the complete historical routing investigation records.
+No canonical semantic Connection change is required.
+No Board -> Routing adapter is required.
+Do not begin global multi-wire routing optimization from this checkpoint.
