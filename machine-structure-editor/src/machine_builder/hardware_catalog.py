@@ -570,7 +570,22 @@ DUET2_MAESTRO_ADDITIONAL_INTERFACE_SPECIFICATIONS = {
         "usage_classification": "expansion_io",
         "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
     },
+    "usdhc": {
+        "board_reference": "J15",
+        "board_label": "uSDHC",
+        "position_count": 9,
+        "interface_type": "9-contact micro-SD storage interface",
+        "interface_role": "storage_service_interface",
+        "usage_classification": "expansion_or_service",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+        "evidence_status": (
+            "Manufacturer schematic identifies J15 / uSDHC and the "
+            "nine-contact SD interface including the SD_CD net; actual "
+            "firmware card-detect use is not established by current evidence."
+        ),
+    },
     "paneldue": {
+        "board_reference": "J30",
         "board_label": "PanelDUE",
         "position_count": 4,
         "interface_type": "4-position display/serial interface",
@@ -579,6 +594,7 @@ DUET2_MAESTRO_ADDITIONAL_INTERFACE_SPECIFICATIONS = {
         "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
     },
     "paneldue-sd": {
+        "board_reference": "P3",
         "board_label": "PanelDue_SD",
         "position_count": 10,
         "interface_type": "10-position PanelDue SD interface",
@@ -587,42 +603,100 @@ DUET2_MAESTRO_ADDITIONAL_INTERFACE_SPECIFICATIONS = {
         "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
     },
     "12864-exp1": {
+        "board_reference": "P2",
         "board_label": "12864 EXP1",
         "position_count": 10,
         "interface_type": "10-position IDC display expansion interface",
         "interface_role": "12864_display_expansion_interface",
         "usage_classification": "user_interface",
         "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+        "pin_positions": {
+            "1": "BEEP",
+            "2": "ENC_SW",
+            "3": "SPI0_MOSI_LCD_BUFF",
+            "4": "LCD_CS_BUFF",
+            "5": "SPI0_SCK_LCD_BUFF",
+            "6": "NC",
+            "7": "NC",
+            "8": "NC",
+            "9": "GND",
+            "10": "+5V",
+        },
+        "evidence_status": (
+            "Manufacturer schematic identifies all ten P2 / 12864_EXP1 "
+            "contact positions: 1 = BEEP, 2 = ENC_SW, "
+            "3 = SPI0_MOSI_LCD_BUFF, 4 = LCD_CS_BUFF, "
+            "5 = SPI0_SCK_LCD_BUFF, 6 = NC, 7 = NC, 8 = NC, "
+            "9 = GND, 10 = +5V."
+        ),
     },
     "12864-exp2": {
+        "board_reference": "P1",
         "board_label": "12864 EXP2",
         "position_count": 10,
         "interface_type": "10-position IDC display expansion interface",
         "interface_role": "12864_display_expansion_interface",
         "usage_classification": "user_interface",
         "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+        "pin_positions": {
+            "1": "SPI0_MISO_BUFF",
+            "2": "SPI0_SCK_BUFF",
+            "3": "ENC_B",
+            "4": "SPI0_CS0",
+            "5": "ENC_A",
+            "6": "SPI0_MOSI_BUFF",
+            "7": "NC",
+            "8": "RESET_EXT",
+            "9": "GND",
+            "10": "NC",
+        },
+        "evidence_status": (
+            "Manufacturer schematic identifies all ten P1 / 12864_EXP2 "
+            "contact positions: 1 = SPI0_MISO_BUFF, 2 = SPI0_SCK_BUFF, "
+            "3 = ENC_B, 4 = SPI0_CS0, 5 = ENC_A, 6 = SPI0_MOSI_BUFF, "
+            "7 = NC, 8 = RESET_EXT, 9 = GND, 10 = NC."
+        ),
     },
     "usb": {
+        "board_reference": "J22",
         "board_label": "USB",
+        "position_count": 5,
         "interface_type": "USB device/service connection",
         "interface_role": "usb_communication_interface",
         "usage_classification": "communication_service",
-        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+        "evidence_status": (
+            "Manufacturer schematic identifies J22 / USB Micro-B "
+            "with D+, D-, VBUS, GND, and a no-connect ID contact."
+        ),
     },
     "ethernet": {
+        "board_reference": "J38",
         "board_label": "Ethernet",
+        "position_count": 8,
         "interface_type": "Ethernet network connection",
         "interface_role": "ethernet_network_interface",
         "usage_classification": "communication_service",
-        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+        "evidence_status": (
+            "Manufacturer schematic identifies J38 as an RJ45 "
+            "connector with integrated magnetics and Ethernet "
+            "link/activity circuitry; physical contact-to-PHY "
+            "numbering remains unresolved."
+        ),
     },
     "c-gnd": {
+        "board_reference": "J27",
         "board_label": "C_GND",
         "position_count": 1,
         "interface_type": "single-point ground connection",
         "interface_role": "ground_reference_connection",
         "usage_classification": "power_reference",
-        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+        "evidence_status": (
+            "Manufacturer schematic identifies J27 / C_GND as a "
+            "single spade-terminal chassis/ground-bond feature."
+        ),
     },
     "j21": {
         "board_label": "Expansion",
@@ -651,6 +725,19 @@ DUET2_MAESTRO_ADDITIONAL_INTERFACE_SPECIFICATIONS = {
         "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
         "evidence_status": "Manufacturer schematic identifies J37 / TEMP_DB and the complete ten-contact signal map.",
     },
+    "j23": {
+        "board_reference": "J23",
+        "board_label": "5V V_FAN_B VIN",
+        "position_count": 3,
+        "interface_type": "3-position fan supply selection header",
+        "interface_role": "fan_supply_selection",
+        "usage_classification": "power_configuration",
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+        "evidence_status": (
+            "Manufacturer schematic identifies J23 and the three "
+            "positions as +5V, V_FAN_B, and V_IN."
+        ),
+    },
     "erase": {
         "board_label": "ERASE",
         "position_count": 2,
@@ -660,6 +747,7 @@ DUET2_MAESTRO_ADDITIONAL_INTERFACE_SPECIFICATIONS = {
         "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
     },
     "a-vin": {
+        "board_reference": "J3",
         "board_label": "A VIN",
         "position_count": 3,
         "interface_type": "3-position fan supply selection jumper",
@@ -676,15 +764,296 @@ DUET2_MAESTRO_ADDITIONAL_INTERFACE_SPECIFICATIONS = {
         "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
     },
     "5v-ps": {
+        "board_reference": "J20",
         "board_label": "5V PS",
         "position_count": 3,
-        "interface_type": "3-position 5V power selection/header",
+        "interface_type": "3-position 5 V supply / PSU-control header",
         "interface_role": "five_volt_power_connection",
         "usage_classification": "power_configuration",
-        "evidence_source": DUET2_MAESTRO_PHYSICAL_INSPECTION_SOURCE,
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+        "evidence_status": (
+            "Manufacturer schematic identifies J20 / 5V_PS with "
+            "position 1 = 5V_IN, position 2 = PS_ON_IN, and "
+            "position 3 = GND."
+        ),
     },
 }
 
+
+DUET2_MAESTRO_BOARD_FEATURES = {
+    "test_ate": {
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+        "evidence_status": (
+            "Manufacturer schematic identifies TP1-TP5 as 3-contact "
+            "Step/Dir/UART ATE test-point arrays and TP6-TP14 plus "
+            "TP16 as individual test points; all test points are DNP. "
+            "There is no TP15."
+        ),
+        "point_count": 15,
+        "physical_contact_count": 25,
+        "all_test_points_dnp": True,
+        "points": {
+            "TP1": {
+                "board_reference": "TP1",
+                "board_label": "Z_Stp_Tp",
+                "position_count": 3,
+                "purpose": "ATE/test only",
+                "pin_positions": {
+                    "1": "Z_STEP",
+                    "2": "Z_DIR",
+                    "3": "Z_UART",
+                },
+            },
+            "TP2": {
+                "board_reference": "TP2",
+                "board_label": "Y_Stp_Tp",
+                "position_count": 3,
+                "purpose": "ATE/test only",
+                "pin_positions": {
+                    "1": "Y_STEP",
+                    "2": "Y_DIR",
+                    "3": "Y_UART",
+                },
+            },
+            "TP3": {
+                "board_reference": "TP3",
+                "board_label": "X_Stp_Tp",
+                "position_count": 3,
+                "purpose": "ATE/test only",
+                "pin_positions": {
+                    "1": "X_STEP",
+                    "2": "X_DIR",
+                    "3": "X_UART",
+                },
+            },
+            "TP4": {
+                "board_reference": "TP4",
+                "board_label": "E0_Stp_Tp",
+                "position_count": 3,
+                "purpose": "ATE/test only",
+                "pin_positions": {
+                    "1": "E0_STEP",
+                    "2": "E0_DIR",
+                    "3": "E0_UART",
+                },
+            },
+            "TP5": {
+                "board_reference": "TP5",
+                "board_label": "E1_Stp_Tp",
+                "position_count": 3,
+                "purpose": "ATE/test only",
+                "pin_positions": {
+                    "1": "E1_STEP",
+                    "2": "E1_DIR",
+                    "3": "E1_UART",
+                },
+            },
+            "TP6": {
+                "board_reference": "TP6",
+                "purpose": "ATE/test point",
+                "net": "HEATER0",
+            },
+            "TP7": {
+                "board_reference": "TP7",
+                "purpose": "ATE/test point",
+                "net": "HEATER1",
+            },
+            "TP8": {
+                "board_reference": "TP8",
+                "purpose": "ATE/test point",
+                "net": "HEATER2",
+            },
+            "TP9": {
+                "board_reference": "TP9",
+                "purpose": "ATE/test point",
+                "net": "BED_PWM",
+            },
+            "TP10": {
+                "board_reference": "TP10",
+                "purpose": "ATE/test point",
+                "net": "E0_PWM",
+            },
+            "TP11": {
+                "board_reference": "TP11",
+                "purpose": "ATE/test point",
+                "net": "E1_PWM",
+            },
+            "TP12": {
+                "board_reference": "TP12",
+                "purpose": "ATE/test point",
+                "net": "FAN0",
+            },
+            "TP13": {
+                "board_reference": "TP13",
+                "purpose": "ATE/test point",
+                "net": "FAN1",
+            },
+            "TP14": {
+                "board_reference": "TP14",
+                "purpose": "ATE/test point",
+                "net": "FAN2",
+            },
+            "TP16": {
+                "board_reference": "TP16",
+                "purpose": "ATE/test point",
+                "net": "D6_TestPoint",
+            },
+        },
+    },
+    "board_indicators": {
+        "evidence_source": DUET2_MAESTRO_HARDWARE_SOURCE,
+        "evidence_status": (
+            "Board indicators include USB and diagnostic LEDs, power "
+            "rail LEDs, and heater LEDs identified by the board design "
+            "and BOM evidence. D20 is explicitly identified as E1 Heat."
+        ),
+        "items": {
+            "D3": {
+                "board_reference": "D3",
+                "board_label": "USB",
+                "net": "VBUS",
+                "classification": "board_status_observability",
+                "purpose": "USB power presence",
+            },
+            "D4": {
+                "board_reference": "D4",
+                "board_label": "Diag",
+                "classification": "board_status_observability",
+                "purpose": "board indicator labelled Diag",
+                "net": "SERVO",
+                "series_resistance": "2.2 kΩ",
+                "evidence_status": (
+                    "Maestro V1.0 Processor.sch shows D4 labelled Diag "
+                    "on the SERVO net, with R104 = 2.2 kΩ to GND; "
+                    "Maestro-specific firmware diagnostic/status semantics "
+                    "are not established."
+                ),
+            },
+            "D6": {
+                "board_reference": "D6",
+                "board_label": "Bed Heat",
+                "classification": "board_status_observability",
+                "purpose": "bed heater activity indication",
+            },
+            "D7": {
+                "board_reference": "D7",
+                "board_label": "E0 Heat",
+                "classification": "board_status_observability",
+                "purpose": "E0 heater activity indication",
+            },
+            "D20": {
+                "board_reference": "D20",
+                "board_label": "E1 Heat",
+                "classification": "board_status_observability",
+                "purpose": "E1 heater activity indication",
+            },
+            "D15": {
+                "board_reference": "D15",
+                "board_label": "VIN",
+                "net": "V_IN",
+                "color": "blue",
+                "classification": "board_status_observability",
+                "purpose": "input power presence",
+            },
+            "D16": {
+                "board_reference": "D16",
+                "board_label": "3.3V",
+                "net": "+3.3V",
+                "color": "green",
+                "classification": "board_status_observability",
+                "purpose": "3.3 V rail presence",
+            },
+            "D17": {
+                "board_reference": "D17",
+                "board_label": "5V+",
+                "net": "+5V",
+                "color": "red",
+                "classification": "board_status_observability",
+                "purpose": "5 V rail presence",
+            },
+        },
+        "integrated_interface_indicators": {
+            "ethernet-j38": {
+                "board_reference": "J38",
+                "signals": [
+                    "ACTLED",
+                    "LINKLED",
+                ],
+                "classification": "communication_observability",
+                "purpose": "Ethernet link/activity indication",
+                "evidence_status": (
+                    "Indicators are integrated into the Ethernet "
+                    "RJ45/magnetics interface and are not separate "
+                    "board connectors or ordinary SemanticPorts."
+                ),
+            },
+        },
+    },
+    "alternate_heater_access": {
+        "evidence_source": DUET2_MAESTRO_HEADERS_SOURCE,
+        "evidence_status": (
+            "Manufacturer schematic identifies J16 and J17 as "
+            "two-position alternate access points associated with "
+            "the E0 and E1 heater circuits. Production population "
+            "of these design-level points is not verified."
+        ),
+        "items": {
+            "J16": {
+                "board_reference": "J16",
+                "board_label": "E0 HEAT",
+                "position_count": 2,
+                "electrical_association": "E0 HEAT",
+                "population_status": (
+                    "Design-level; production population unverified."
+                ),
+            },
+            "J17": {
+                "board_reference": "J17",
+                "board_label": "E1 HEAT",
+                "position_count": 2,
+                "electrical_association": "E1 HEAT",
+                "population_status": (
+                    "Design-level; production population unverified."
+                ),
+            },
+        },
+    },
+    "service_controls": {
+        "evidence_source": DUET2_MAESTRO_HARDWARE_SOURCE,
+        "evidence_status": (
+            "These are board-level service/configuration controls "
+            "rather than ordinary machine-topology interfaces."
+        ),
+        "items": {
+            "S1": {
+                "board_reference": "S1",
+                "board_label": "RESET",
+                "classification": "service_control",
+                "purpose": "board reset",
+            },
+            "JP1": {
+                "board_reference": "JP1",
+                "board_label": "ERASE",
+                "classification": "service_configuration",
+                "purpose": "erase/service configuration",
+                "catalog_reference": "erase",
+            },
+            "JP9": {
+                "board_reference": "JP9",
+                "board_label": "I 5V EN",
+                "classification": "power_configuration",
+                "purpose": "5 V supply enable configuration",
+            },
+            "JP10": {
+                "board_reference": "JP10",
+                "board_label": "E 5V EN",
+                "classification": "power_configuration",
+                "purpose": "5 V supply enable configuration",
+                "catalog_reference": "e-5v-en",
+            },
+        },
+    },
+}
 
 def build_duet_2_maestro() -> HardwareDefinition:
     """Build the documented Duet 2 Maestro v1.0 hardware definition."""
@@ -760,6 +1129,7 @@ def build_duet_2_maestro() -> HardwareDefinition:
             "heater_output_count": 3,
             "controlled_fan_output_count": 3,
             "connector_specifications": connector_specifications,
+            "board_features": DUET2_MAESTRO_BOARD_FEATURES,
         },
         provenance=[
             Provenance(

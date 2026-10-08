@@ -505,18 +505,23 @@ Important documented/current catalog entries include:
 * `always-on-fan`;
 * `e2-driver`;
 * `e3-driver`;
-* PanelDue;
-* PanelDue SD;
-* 12864 expansion;
-* USB;
-* Ethernet;
-* C_GND;
+* PanelDue / J30;
+* PanelDue SD / P3;
+* 12864 EXP1 / P2;
+* 12864 EXP2 / P1;
+* USB / J22;
+* Ethernet / J38;
+* C_GND / J27;
 * J21 Expansion;
 * J37 / TEMP_DB;
+* J16 / E0 HEAT alternate access — design-level; production population unverified;
+* J17 / E1 HEAT alternate access — design-level; production population unverified;
+* uSDHC / J15;
+* fan-voltage selection / J23;
 * ERASE;
 * A VIN;
 * E 5V EN;
-* 5V PS.
+* 5V PS / J20.
 
 The broader inventory is catalog evidence, not a statement that all interfaces
 are already modeled in the installed fixture.
@@ -1086,6 +1091,72 @@ No ControllerResource or Board-specific ontology entity was introduced.
 
 Evidence basis: Duet 2 Maestro V1.0 manufacturer Headers.sch identifies
 J37 / TEMP_DB and the complete ten-contact signal map.
+### J16 / J17 alternate heater-access disposition
+
+J16 and J17 are identified in the Maestro V1.0 design as alternate access
+points electrically associated with the E0 and E1 heater circuits:
+
+* J16 — E0 HEAT alternate access;
+* J17 — E1 HEAT alternate access.
+
+The available evidence establishes their electrical association and physical
+two-position design representation, but does not establish that these
+alternate contacts are populated as production-accessible connectors across
+the Maestro V1.0 board population.
+
+They are now represented in the reusable Maestro HardwareDefinition under
+catalog-level `properties["board_features"]["alternate_heater_access"]`,
+with the design-level population status explicitly recorded as unverified.
+
+They are therefore still not projected into the installed Controller fixture
+as ordinary SemanticPorts, and they are not added as additional
+ControllerResource exposure targets.
+
+No new ontology entity or classification vocabulary was introduced.
+
+This is a deliberate distinction between:
+
+design-level interface evidence
+    and
+verified production physical interface evidence.
+
+Production-board population evidence may promote these later if justified.
+### Maestro service/storage/display interface evidence completion
+
+The remaining targeted external interfaces are now represented at the
+appropriate catalog/service level based on the available Maestro V1.0
+schematic evidence:
+
+* J15 / uSDHC — nine-contact micro-SD storage/service interface;
+* J20 / 5V_PS — three-position five-volt supply / PSU-control header;
+* J22 / USB — five-contact USB Micro-B service/communication interface;
+* J23 — three-position fan-voltage selection header;
+* J27 / C_GND — single-point chassis/ground-bond terminal;
+* J30 / PanelDue — four-contact display/serial interface;
+* J38 / Ethernet — RJ45 with integrated magnetics;
+* P1 / 12864_EXP2;
+* P2 / 12864_EXP1;
+* P3 / PanelDue_SD.
+
+These remain catalog/service/infrastructure features and are not projected
+into the installed Maestro fixture as ordinary machine-topology SemanticPorts.
+
+Evidence boundaries retained:
+
+* J15 contact 9 / SD_CD is physically present in the manufacturer schematic;
+  actual firmware card-detect use is not established by current evidence;
+* J38 Ethernet connector identity/function is verified, but no generic RJ45
+  contact-number mapping is inferred;
+* P1 / 12864_EXP2 now has a complete ten-contact mapping:
+  1 = SPI0_MISO_BUFF, 2 = SPI0_SCK_BUFF, 3 = ENC_B, 4 = SPI0_CS0,
+  5 = ENC_A, 6 = SPI0_MOSI_BUFF, 7 = NC, 8 = RESET_EXT,
+  9 = GND, 10 = NC;
+* P2 / 12864_EXP1 now has a complete ten-contact mapping:
+  1 = BEEP, 2 = ENC_SW, 3 = SPI0_MOSI_LCD_BUFF, 4 = LCD_CS_BUFF,
+  5 = SPI0_SCK_LCD_BUFF, 6 = NC, 7 = NC, 8 = NC, 9 = GND,
+  10 = +5V.
+
+No new canonical ontology entity was introduced.
 ### J4 / High Current Terminal implementation
 
 J4 is represented as a four-contact heterogeneous physical interface
@@ -1109,7 +1180,82 @@ No new ControllerResource or Board-specific ontology entity was introduced.
 
 Evidence basis: Duet 2 Maestro V1.0 manufacturer schematic identifies
 J4 as the high-current terminal with GND, V_IN, V_IN, and BED- contacts.
-## 27. Historical handoff disposition
+## 27. Verified Maestro test/ATE and board-status/observability checkpoint
+
+Verified 2026-10-08 after implementation and test-suite validation.
+
+The Maestro board-level completeness inventory now represents the remaining
+test/ATE, board-status/observability, and service-control features at the
+catalog level rather than promoting them into ordinary machine topology.
+
+### Test / ATE inventory
+
+`properties["board_features"]["test_ate"]` now records the complete
+manufacturer-schematic test-point inventory:
+
+* TP1-TP5 are three-contact Step/Dir/UART ATE test-point arrays for Z, Y, X,
+  E0, and E1 respectively;
+* TP6-TP14 and TP16 are individual ATE/test points for heater, PWM, fan, and
+  diagnostic/test nets;
+* 15 test-point features represent 25 physical test contacts in total;
+* the manufacturer schematic states that all test points are DNP;
+* TP15 is not present and is explicitly not modeled.
+
+These features are catalog metadata only. They are not installed
+`SemanticPort` objects and do not become ordinary machine-topology
+interfaces.
+
+### Board-status / observability inventory
+
+The catalog now records:
+
+* D3 USB power indicator;
+* D4 "Diag" board indicator on the SERVO net, through R104 = 2.2 kΩ to GND;
+  exact Maestro-specific firmware diagnostic/status semantics remain unresolved;
+* D6 Bed Heat indicator;
+* D7 E0 Heat indicator;
+* D20 E1 Heat indicator;
+* D15 VIN indicator;
+* D16 3.3V indicator;
+* D17 5V+ indicator;
+* J38 integrated Ethernet ACTLED and LINKLED indicators.
+
+D20 is explicitly identified as E1 Heat in the Maestro V1.0 board evidence.
+
+### Service-control inventory
+
+The catalog now records the identified board-level controls:
+
+* S1 RESET;
+* JP1 ERASE, already associated with catalog entry `erase`;
+* JP9 I 5V EN;
+* JP10 E 5V EN, already associated with catalog entry `e-5v-en`.
+
+These remain service/configuration or power-configuration features rather than
+ordinary machine-topology `SemanticPort`s.
+
+### Semantic boundary
+
+No new `SemanticPort`, `ControllerResource`, `Connector`, `MatingInterface`,
+`DriverSocket`, `DriverModule`, or `Contact` ontology entity was introduced.
+
+The board completeness criterion remains:
+
+* identify relevant board features;
+* preserve evidence and uncertainty;
+* classify each feature at the appropriate level;
+* do not infer unresolved physical or firmware semantics.
+
+### Verification
+
+Focused Maestro interface/specification tests: 11 passed.
+
+Full project test suite: 793 passed in 4.49s.
+
+`git diff --check` passes; the only reported messages are the existing
+LF-to-CRLF working-copy normalization warnings.
+
+## 28. Historical handoff disposition
 
 The previous 1,860-line handoff remains preserved at:
 
@@ -1121,11 +1267,25 @@ The live handoff remains:
 
 The archival migration is separate from the implementation checkpoints.
 
-## 28. Immediate next Board action
+## 29. Immediate next Board action
 
 The Maestro E0 / J10 and E1 / J6 motor interfaces are complete and verified.
+Maestro test/ATE, board-status/observability, and identified service-control
+inventory are also complete at the appropriate catalog level.
 
-The next Board coverage target is J16 / J17 alternate heater access.
+The Maestro V1.0 evidence/coverage boundary is complete at the currently
+supported evidence level.
+
+Intentionally retained Maestro evidence boundaries are:
+* J38 exact external RJ45 contact numbering;
+* J16/J17 universal production population;
+* D4 Maestro-specific firmware diagnostic/status semantics.
+
+These are documented evidence boundaries, not missing ontology or unsupported
+catalog gaps.
+
+The next Board investigation is the BTT Octopus V1.1 receiving driver
+interface and TMC5160T mating evidence.
 
 Continue using the completeness criterion:
 
