@@ -1870,3 +1870,61 @@ No global multi-wire optimization, topology persistence model, canonical Connect
 Current next action
 
 No additional production Routing change is justified by this boundary test alone. Broader repair behavior should remain observational until additional real machine geometries provide evidence for a concrete need.
+
+# Checkpoint 22 - 2026-10-09 - Generic palette canonical component checkpoint
+
+Purpose and disposition
+
+Planning accepted this bounded checkpoint for commit after the #5 audit was rated
+ACCEPTABLE FOR COMMIT REVIEW. The goal was to ensure generic non-controller palette
+entries have canonical installed MachineComponent identity and remain usable through
+component-owned port authoring and persistence.
+
+Implementation retained
+
+The existing production path already creates canonical components through `CreateNode` in
+src/machine_builder/mutations.py. It registers a `MachineComponent`, links the
+corresponding `VisualNode` through `semantic_reference`, and leaves generic
+`hardware_definition_id` unset. No production source files were changed.
+
+Changed test files
+
+- machine-structure-editor/tests/test_controller_palette_authoring.py
+- machine-structure-editor/tests/test_component_authoring_ui.py
+
+Regression coverage added
+
+- Generic Motor, Sensor, Temperature Sensor, Component, and Temperature Controller
+  palette templates register canonical components with distinct identities and machine
+  membership.
+- Generic creation leaves hardware identity unknown, does not fabricate a
+  HardwareDefinition, and does not create a Controller.
+- Generic palette creation is undoable and redoable.
+- A palette-created Motor supports component-owned Add Port authoring.
+- Canonical port projection preserves unmatched provisional visual ports.
+- Save/reopen coverage asserts canonical component and port identities, machine
+  membership, visual linkage, and provisional visual-port IDs.
+
+Verification against the final test files
+
+- Focused suite: 70 passed in 3.04 seconds.
+- Full suite: 805 passed in 7.42 seconds, exit code 0, no collection errors.
+- `git diff --check`: passed.
+
+Nonblocking coverage limitation from the #5 audit
+
+Save/reopen tests do not compare every field of every provisional `VisualPort` instance,
+and they do not directly assert preservation of wire endpoints attached to provisional
+ports. This remains a future coverage consideration; it was not expanded in this checkpoint.
+
+Scope boundary
+
+This checkpoint does not establish real Maestro instantiation, detailed physical
+connection authoring, or a complete persisted Promega machine. It adds no catalog/import
+work, ontology changes, or broader feature implementation.
+
+Planning-authorized commit scope
+
+The authorized commit contains these two test files and this living handoff only.
+Exclude unrelated Board/catalog changes, the root `.vscode/` directory, and all other
+files outside this checkpoint.

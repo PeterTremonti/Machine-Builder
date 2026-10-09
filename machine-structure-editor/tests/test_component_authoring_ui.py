@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QApplication, QDialog, QPushButton
 
 import machine_builder.canvas_editing as canvas_editing
 from machine_builder.canvas import MachineCanvas
+from machine_builder.persistence import load_editor_state
 from machine_builder.port_details import PortDetailsResult
 from machine_builder.semantic_component_mutations import (
     UpdateMachineComponent,
@@ -497,3 +498,129 @@ def test_add_port_button_commits_component_owned_semantic_port(
         visual_port.semantic_reference == created_port.id
         for visual_port in visual_node.ports.values()
     )
+
+
+def test_palette_created_component_can_add_port_and_round_trip(
+    monkeypatch,
+    tmp_path,
+) -> None:
+    _application()
+    canvas = MachineCanvas()
+
+    canvas.create_node_from_template(
+        node_type="motor",
+        scene_position=QPointF(
+            240.0,
+            340.0,
+        ),
+    )
+
+    component_id = "component-node-1"
+    node_id = "node-1"
+    original_node = canvas.store.model.nodes[node_id]
+    provisional_port_ids = set(original_node.ports)
+
+    assert len(provisional_port_ids) == 2
+    assert all(
+        original_node.ports[port_id].semantic_reference is None
+        for port_id in provisional_port_ids
+    )
+
+    node_item = canvas._node_items[node_id]
+    node_item.setSelected(True)
+
+    result = PortDetailsResult(
+        purpose="PT1000 Sensor",
+        direction="input",
+        connector_id=None,
+        pin_id=None,
+        properties={},
+    )
+
+    class AcceptedPortDetailsDialog:
+        DialogCode = QDialog.DialogCode
+
+        def __init__(
+            self,
+            port,
+            component_label,
+            parent=None,
+        ) -> None:
+            assert port.component_id == component_id
+            assert port.controller_id is None
+            assert component_label == "Motor"
+
+        def exec(self) -> int:
+            return self.DialogCode.Accepted
+
+        def result_data(self) -> PortDetailsResult:
+            return result
+
+    monkeypatch.setattr(
+        canvas_editing,
+        "PortDetailsDialog",
+        AcceptedPortDetailsDialog,
+    )
+
+    add_port_button = next(
+        button
+        for button in canvas.findChildren(QPushButton)
+        if button.text() == "Add Port..."
+    )
+    add_port_button.click()
+
+    component = canvas.store.semantic_model.components[component_id]
+    created_port = next(
+        port
+        for port in canvas.store.semantic_model.ports.values()
+        if port.purpose == "PT1000 Sensor"
+    )
+    visual_node = canvas.store.model.nodes[node_id]
+
+    assert created_port.component_id == component.id
+    assert created_port.controller_id is None
+    assert created_port.connector_id is None
+    assert created_port.pin_id is None
+    assert created_port.id in component.port_ids
+
+    assert provisional_port_ids.issubset(visual_node.ports)
+    assert all(
+        visual_node.ports[port_id].semantic_reference is None
+        for port_id in provisional_port_ids
+    )
+    assert sum(
+        port.semantic_reference == created_port.id
+        for port in visual_node.ports.values()
+    ) == 1
+
+    path = tmp_path / "palette-component-with-port.machine.json"
+    canvas.store.save(path)
+
+    restored = load_editor_state(path)
+    restored_component = restored.semantic_model.components[component_id]
+    restored_node = restored.visual_model.nodes[node_id]
+
+    assert restored_component.id == component.id
+    assert restored_component.hardware_definition_id is None
+    assert restored_component.properties == {
+        "visual_node_type": "motor",
+    }
+    assert restored_component.id in restored.semantic_model.machines[
+        "machine-1"
+    ].component_ids
+
+    restored_port = restored.semantic_model.ports[created_port.id]
+    assert restored_port.component_id == restored_component.id
+    assert restored_port.id in restored_component.port_ids
+    assert restored_node.semantic_reference == restored_component.id
+
+    assert provisional_port_ids.issubset(restored_node.ports)
+    assert all(
+        restored_node.ports[port_id].semantic_reference is None
+        for port_id in provisional_port_ids
+    )
+    assert sum(
+        port.semantic_reference == restored_port.id
+        for port in restored_node.ports.values()
+    ) == 1
+    assert restored.semantic_model.controllers == {}
