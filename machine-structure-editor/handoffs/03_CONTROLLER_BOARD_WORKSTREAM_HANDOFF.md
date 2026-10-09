@@ -1370,3 +1370,76 @@ The accepted evidence boundary remains unchanged:
 - Existing `SemanticPort` and interface-level `mated_with` semantics are retained. No new canonical ontology entity is required.
 
 Planning acceptance satisfies the review gate for this checkpoint. **Do not begin another Board-family or mating-case investigation without a new Planning assignment.**
+
+## 32. Octopus board-level silkscreen errata evidence checkpoint
+
+Date: 2026-10-09
+
+Classification: Evidence refinement of the accepted Octopus board checkpoint.
+This does not introduce another board family or mating case.
+
+Implementation commit: `57299aa` (`Record Octopus board silkscreen errata evidence`).
+
+### Board-level evidence added
+
+`hardware_catalog.py` now defines `BTT_OCTOPUS_BOARD_REVISION_EVIDENCE`
+separately from `BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC`.
+
+The board-level evidence is referenced from both the generic Octopus
+controller fixture and the Octopus/TMC5160T mating experiment controller.
+The controller properties retain `silkscreen_inspection_status` as
+`uninspected`. Nominal V1.1 identity does not prove that an individual
+board has corrected silkscreen.
+
+Manufacturer evidence recorded:
+
+* Fan polarity markings: the underside markings were incorrectly swapped
+  on some early boards. The manufacturer does not enumerate every affected
+  connector or establish a precise production boundary. Use the documented
+  pinout and schematic, not an affected printed polarity marking, to
+  determine electrical mapping.
+* SPI3 power labels: the underside 3.3V and GND markings were swapped on
+  early boards. The published pinout records contact 1 as GND, contact 2
+  as 3.3V, contact 3 as MISO/PB4, contact 4 as MOSI/PB5, contact 5 as
+  SCK/PB3, and contact 6 as CS/PA15. The silkscreen error does not establish
+  that the actual electrical nets were swapped.
+* Raspberry Pi UART: the manufacturer reports two mislabeled pins on the
+  underside interface in the very first production run. The corrected
+  signal mapping is RX2/PD6 and TX2/PD5. The original incorrect printed
+  labels are not individually specified by the reviewed written notice.
+
+### Explicit evidence limits
+
+* No precise serial-number, date, lot, or V1.0/V1.1 production boundary
+  is established for identifying an individual board's markings.
+* A complete, directly comparable, separately versioned non-Pro V1.0/V1.1
+  schematic pair was not established from the reviewed official artifacts.
+* The claimed regulator-package transition remains unconfirmed and is
+  not represented as an established revision difference.
+* Physical inspection is required before assigning an observed silkscreen
+  status to a particular installed board.
+
+Sources recorded in the implementation include the official BIGTREETECH
+Octopus documentation, the manufacturer's Octopus pinout SVG, and the
+official non-Pro hardware repository.
+
+### Semantic boundary and verification
+
+The evidence remains at controller/board level. No new ontology entity
+was introduced, and the motor-driver receiving-interface specification
+was kept separate.
+
+The accepted TMC5160T discrepancy is unchanged:
+
+* Octopus Driver 2 contact 6 remains SLEEP / DRIVER2_SLP.
+* TMC5160T Pro V1.0 J1-6 remains CLK / external clock input.
+* Equivalence and the exact SPI/jumper electrical state remain unresolved.
+
+Verification for implementation commit `57299aa`:
+
+* Focused Octopus and generic controller tests: 15 passed.
+* Full project test suite: 805 passed in 7.16 seconds.
+* `git diff --check`: passed.
+
+No additional board-family or mating-case investigation is authorized by
+this evidence refinement.
