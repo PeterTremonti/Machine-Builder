@@ -5,9 +5,11 @@ from __future__ import annotations
 import sys
 
 from PySide6.QtCore import QPointF
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QDialog, QPushButton
 
+import machine_builder.canvas_editing as canvas_editing
 from machine_builder.canvas import MachineCanvas
+from machine_builder.port_details import PortDetailsResult
 from machine_builder.semantic_component_mutations import (
     UpdateMachineComponent,
 )
@@ -416,3 +418,82 @@ def test_port_edit_is_undoable() -> None:
 
     assert port.purpose == "Signal"
     assert port.direction == "input"
+
+
+def test_add_port_button_commits_component_owned_semantic_port(
+    monkeypatch,
+) -> None:
+    canvas = make_canvas()
+
+    node_item = next(iter(canvas._node_items.values()))
+    node_item.setSelected(True)
+
+    assert node_item in canvas.scene.selectedItems()
+
+    result = PortDetailsResult(
+        purpose="PT1000 Sensor",
+        direction="input",
+        connector_id=None,
+        pin_id=None,
+        properties={},
+    )
+
+    class AcceptedPortDetailsDialog:
+        DialogCode = QDialog.DialogCode
+
+        def __init__(
+            self,
+            port,
+            component_label,
+            parent=None,
+        ) -> None:
+            assert port.component_id == "component-1"
+            assert port.controller_id is None
+            assert port.connector_id is None
+            assert port.pin_id is None
+            assert component_label == "Original Motor"
+
+        def exec(self) -> int:
+            return self.DialogCode.Accepted
+
+        def result_data(self) -> PortDetailsResult:
+            return result
+
+    monkeypatch.setattr(
+        canvas_editing,
+        "PortDetailsDialog",
+        AcceptedPortDetailsDialog,
+    )
+
+    add_port_button = next(
+        button
+        for button in canvas.findChildren(QPushButton)
+        if button.text() == "Add Port..."
+    )
+
+    add_port_button.click()
+
+    component = canvas.store.semantic_model.components[
+        "component-1"
+    ]
+    created_port = next(
+        port
+        for port in canvas.store.semantic_model.ports.values()
+        if port.purpose == "PT1000 Sensor"
+    )
+
+    assert created_port.component_id == component.id
+    assert created_port.controller_id is None
+    assert created_port.connector_id is None
+    assert created_port.pin_id is None
+    assert created_port.id in component.port_ids
+
+    visual_node = next(
+        node
+        for node in canvas.store.model.nodes.values()
+        if node.semantic_reference == component.id
+    )
+    assert any(
+        visual_port.semantic_reference == created_port.id
+        for visual_port in visual_node.ports.values()
+    )

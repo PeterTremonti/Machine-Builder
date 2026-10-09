@@ -6,7 +6,8 @@ from dataclasses import dataclass
 from typing import Any
 
 from .editor_state import EditorState
-from .semantic_model import Provenance
+from .semantic_model import Provenance, SemanticPort
+from .semantic_projection import project_component_ports
 
 
 def _find_visual_port(
@@ -24,6 +25,73 @@ def _find_visual_port(
 
     return None
 
+
+@dataclass(frozen=True)
+class CreateSemanticPort:
+    """Create a canonical component-owned port and project it visually."""
+
+    port: SemanticPort
+
+    def apply(
+        self,
+        state: EditorState,
+    ) -> None:
+        port = self.port
+
+        if (
+            port.component_id is None
+            or port.controller_id is not None
+        ):
+            raise ValueError(
+                "CreateSemanticPort requires exactly one "
+                "MachineComponent owner."
+            )
+
+        component = (
+            state.semantic_model.components.get(
+                port.component_id
+            )
+        )
+
+        if component is None:
+            raise KeyError(
+                "Unknown machine component: "
+                f"{port.component_id}"
+            )
+
+        state.semantic_model.add_port(port)
+
+        for visual_node in state.visual_model.nodes.values():
+            if visual_node.semantic_reference == component.id:
+                # Port authoring is incremental. Preserve unmatched
+                # provisional palette ports so existing visual wires
+                # do not lose their endpoints during projection.
+                provisional_ports = tuple(
+                    visual_node.ports.values()
+                )
+
+                project_component_ports(
+                    component,
+                    state.semantic_model,
+                    visual_node,
+                )
+
+                projected_port_ids = set(
+                    visual_node.ports
+                )
+
+                for provisional_port in provisional_ports:
+                    if (
+                        provisional_port.id
+                        not in projected_port_ids
+                        and provisional_port.semantic_reference
+                        is None
+                    ):
+                        visual_node.ports[
+                            provisional_port.id
+                        ] = provisional_port
+
+                break
 
 @dataclass(frozen=True)
 class UpdateSemanticPort:

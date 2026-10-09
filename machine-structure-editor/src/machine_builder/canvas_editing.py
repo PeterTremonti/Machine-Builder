@@ -7,6 +7,8 @@ construction, scene synchronization, or interactive connection behavior.
 
 from __future__ import annotations
 
+from uuid import uuid4
+
 from PySide6.QtWidgets import QMessageBox
 
 from .component_details import ComponentDetailsDialog
@@ -29,6 +31,7 @@ from .controller_resource_queries import (
     resources_for_controller,
 )
 from .port_details import PortDetailsDialog
+from .semantic_model import SemanticPort
 from .semantic_component_mutations import (
     UpdateMachineComponent,
 )
@@ -40,6 +43,7 @@ from .semantic_controller_queries import (
     controller_for_visual_node,
 )
 from .semantic_port_mutations import (
+    CreateSemanticPort,
     UpdateSemanticPort,
 )
 from .semantic_port_queries import (
@@ -132,6 +136,93 @@ class CanvasEditingMixin:
 
         self.statusBar().showMessage(
             f"Updated component: {result.label}"
+        )
+
+    def _add_port_to_selected_component(
+        self,
+    ) -> None:
+        """Author one canonical physical port for a selected component."""
+        selected_nodes = [
+            item
+            for item in self.scene.selectedItems()
+            if hasattr(item, "node_id")
+        ]
+
+        if not selected_nodes:
+            self.statusBar().showMessage(
+                "Select a component before adding a port."
+            )
+            return
+
+        if len(selected_nodes) > 1:
+            QMessageBox.information(
+                self,
+                "Add Port",
+                "Select one component at a time.",
+            )
+            return
+
+        component = component_for_visual_node(
+            self.store.state,
+            selected_nodes[0].node_id,
+        )
+
+        if component is None:
+            QMessageBox.information(
+                self,
+                "Add Port",
+                (
+                    "The selected visual node is not linked "
+                    "to a canonical machine component."
+                ),
+            )
+            return
+
+        port_id = f"{component.id}-port-{uuid4().hex}"
+
+        draft_port = SemanticPort(
+            id=port_id,
+            component_id=component.id,
+            controller_id=None,
+            purpose="New Port",
+            direction="unknown",
+            connector_id=None,
+            pin_id=None,
+            properties={},
+            provenance=[],
+        )
+
+        dialog = PortDetailsDialog(
+            port=draft_port,
+            component_label=component.label,
+            parent=self,
+        )
+
+        if dialog.exec() != dialog.DialogCode.Accepted:
+            return
+
+        result = dialog.result_data()
+
+        canonical_port = SemanticPort(
+            id=port_id,
+            component_id=component.id,
+            controller_id=None,
+            purpose=result.purpose,
+            direction=result.direction,
+            connector_id=result.connector_id,
+            pin_id=result.pin_id,
+            properties=result.properties,
+            provenance=[],
+        )
+
+        self.store.commit(
+            CreateSemanticPort(
+                port=canonical_port,
+            )
+        )
+
+        self.statusBar().showMessage(
+            f"Added port '{result.purpose}' to {component.label}."
         )
 
     def _edit_selected_controller(

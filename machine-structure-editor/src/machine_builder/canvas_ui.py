@@ -107,6 +107,17 @@ class CanvasUIMixin:
         palette_layout.addWidget(
             edit_button
         )
+        add_port_button = QPushButton(
+            "Add Port..."
+        )
+
+        add_port_button.clicked.connect(
+            self._add_port_to_selected_component
+        )
+
+        palette_layout.addWidget(
+            add_port_button
+        )
 
         palette_layout.addWidget(
             edit_controller_button
