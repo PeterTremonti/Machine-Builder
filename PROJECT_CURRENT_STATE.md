@@ -773,7 +773,7 @@ model is sufficient for the current replaceable driver-module case.
 
 Validation: the full repository suite passed `756 passed in 2.65s` at this implementation checkpoint.
 
-The next Board investigation is to determine the cleanest existing-object representation for the Octopus driver socket's documented receiving interface and the TMC5160T J1/J2 contact mapping, without introducing a new canonical entity unless concrete evidence demonstrates insufficiency.
+That Board investigation is complete. Commit `54ca8e356ffff32e26c8bd4e9be2b75175d042e1` records the Octopus V1.1 `MOTOR_DRIVER` receiving interface and TMC5160T Pro V1.0 module interface using the existing `SemanticPort` and `mated_with` structures. Contacts 1–16 are active, contact 17 is NC, and contact 18 is DIAG. Octopus contact 6 (`SLEEP` / `DRIVER2_SLP`) and TMC J1-6 (`CLK`) remain distinct; equivalence and SPI-jumper electrical state remain unresolved. The original checkpoint full-suite result was 795 passed; the later audit rerun reported 798 passed.
 
 ---
 
