@@ -626,29 +626,32 @@ Full-file replacement is preferred when updating a reasonably sized handoff.
 
 # 17. Workstream Recovery
 
-When a chat reaches its conversation-length limit:
+This section is the single authoritative project-wide procedure for replacing a chat after a conversation reaches its length limit. `README.md` and workstream handoffs must refer to it instead of maintaining competing universal recovery checklists.
 
-```text
-Replacement chat
-        ↓
-Read CHAT_WORKFLOW.md
-        ↓
-Read MASTER_PLAN.md
-        ↓
-Read PROJECT_CURRENT_STATE.md
-        ↓
-Read the workstream handoff
-        ↓
-Inspect current repository state
-        ↓
-Continue from current Next Action
-```
+## Required on every replacement chat
 
-Do not reconstruct the workstream from memory if the handoff contains the needed information.
+1. Read `CHAT_WORKFLOW.md`, including its current operating constraints and this recovery section.
+2. Read `MASTER_PLAN.md`.
+3. Read `PROJECT_CURRENT_STATE.md`.
+4. Read the current living handoff for the workstream being resumed.
+5. Inspect the user's actual current local checkout. Confirm the branch, `HEAD`, working-tree status, and relevant current source/test state before relying on implementation or verification claims.
+6. Resume from the current handoff's Next Action. Do not assume a remembered task, commit, test result, line number, or file state is still current.
 
-Do not assume the latest remembered test result is current.
+## Additional workstream-specific required reading
 
-Do not assume an old line number is still valid.
+A workstream may require a small number of additional documents on every replacement. Those requirements must be explicitly identified as required on every replacement in the workstream's current handoff or designated entry point. They supplement the universal list above and must not repeat it.
+
+A `START_HERE.md` or navigation document is not automatically mandatory merely because it exists or links to other documents. The workstream must explicitly designate it as required on every replacement.
+
+## Consult when relevant to the active Next Action
+
+Consult additional architecture, ontology, research, implementation, source, test, standards, machine, or other workstream documents when the current task needs them. Use `DOCUMENTATION_AUTHORITY.md` when document authority or ownership is unclear, when the task changes documentation authority, or when locating the primary document for a question. Inspect current source and tests whenever claims about current implementation or verification depend on them. Consult adjacent handoffs when work crosses ownership boundaries.
+
+## Historical and reference documents
+
+Do not routinely reread historical, superseded, archived, or old handoff documents. Consult them only when the active task needs historical evidence, the context of a past decision, or an explanation of a document's disposition or replacement. Use `HISTORICAL_DOCUMENT_ARCHIVE.md` when appropriate. Historical text and old test output do not override the current checkout and current verification.
+
+Do not reconstruct the workstream from conversation memory when durable documents contain the needed information.
 
 ---
 
@@ -1059,6 +1062,12 @@ When a workstream needs a change to a file outside its ownership:
 5. dependent workstreams consume the resulting shared contract or implementation.
 
 Changes affecting a shared canonical contract or semantic boundary require Planning / Architecture review before implementation.
+
+## Durable documentation authority and handoff maintenance
+
+When a change creates, renames, moves, retires, or materially changes the authority or status of a durable project document, review `DOCUMENTATION_AUTHORITY.md` and update it as part of the coordinated documentation change whenever the map would otherwise become inaccurate.
+
+Do not add every source file, test, or supporting artifact to the authority map. Update the relevant living workstream handoff when a change materially affects that workstream's ownership, continuity, decisions, or Next Action. For material repository-structure changes, also follow the generated repository-tree rule in Section 14.
 
 The preferred default pattern is:
 

@@ -12,16 +12,7 @@ The repository and verified tests remain authoritative for actual implementation
 
 # Recovery Instructions
 
-A replacement Planning chat should:
-
-1. Read this handoff.
-2. Read `DOCUMENTATION_AUTHORITY.md`.
-3. Read `PROJECT_CURRENT_STATE.md`.
-4. Read `MASTER_PLAN.md`.
-5. Read `CHAT_WORKFLOW.md`.
-6. Inspect current `main`, current files, and current tests when implementation facts matter.
-7. Continue from `NEXT PLANNING CHAT — START HERE`.
-8. Do not reconstruct settled architecture from old conversations unless current evidence requires reconsideration.
+Follow Section 17, Workstream Recovery, in `CHAT_WORKFLOW.md` for the universal replacement-chat procedure. Planning-specific startup requirements and the current Planning Next Action are recorded in `NEXT PLANNING CHAT — START HERE` below.
 
 ---
 
@@ -652,18 +643,13 @@ Reopen these only when concrete implementation, research, testing, or real-machi
 
 # NEXT PLANNING CHAT — START HERE
 
-1. Read this handoff.
-2. Read `DOCUMENTATION_AUTHORITY.md`.
-3. Read `PROJECT_CURRENT_STATE.md`.
-4. Read `MASTER_PLAN.md`.
-5. Read `CHAT_WORKFLOW.md`.
-6. Verify current `main`, exact HEAD, working-tree state, and latest tests.
-7. Treat completed Research, Board, and Routing reconciliation checkpoints as completed; do not repeat them without a new question.
-8. Treat shared-contract/separate-implementation-ownership as the default cross-workstream governance rule.
-9. Obey the hard Machine Builder tooling, repository-editing, and copy/paste command-formatting constraints in `CHAT_WORKFLOW.md`.
-10. Continue current Planning questions from the durable handoffs and repository state.
-11. When a change is needed outside Planning ownership, delegate it to the owning workstream rather than modifying its implementation directly.
-12. Keep this handoff current as the Planning continuity record.
+Follow Section 17 in `CHAT_WORKFLOW.md` first. Then complete these Planning-specific steps:
+
+1. Read `DOCUMENTATION_AUTHORITY.md`, which Planning uses for project-wide documentation authority and governance.
+2. Verify the current `main`, exact `HEAD`, working-tree state, and relevant current test results before making implementation claims.
+3. Treat completed Research, Board, and Routing reconciliation checkpoints as complete unless a new question or current evidence justifies reopening them.
+4. Apply the shared-contract/separate-implementation-ownership rule. Coordinate and delegate changes outside Planning ownership to the owning workstream.
+5. Continue current Planning questions from this handoff and repository state. Keep the handoff current as material decisions and Next Actions change.
 
 The current Planning principle is:
 

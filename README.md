@@ -426,25 +426,9 @@ Historical files are reference material unless explicitly promoted back into the
 
 # Recovery After a Chat Ends
 
-When a workstream reaches its ChatGPT conversation limit:
+When a workstream reaches its conversation-length limit, follow Section 17, Workstream Recovery, in `CHAT_WORKFLOW.md`. That section is the single authoritative replacement-chat procedure and distinguishes universal required reading, additional workstream-specific required reading, task-dependent references, and historical/reference material.
 
-```text
-Replacement chat
-        ↓
-Read CHAT_WORKFLOW.md
-        ↓
-Read MASTER_PLAN.md
-        ↓
-Read PROJECT_CURRENT_STATE.md
-        ↓
-Read the workstream handoff
-        ↓
-Inspect current repository state
-        ↓
-Continue from the handoff's current Next Action
-```
-
-The replacement chat should not reconstruct the workstream from conversation memory when the durable documentation already contains the needed information.
+This README does not maintain a separate recovery checklist. The current living handoff for each workstream is listed in the workstream sections above.
 
 ---
 
