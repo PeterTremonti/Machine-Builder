@@ -1,12 +1,17 @@
 """Tests for the Octopus driver-module mating experiment."""
 
+from machine_builder.controller_fixtures import (
+    add_generic_octopus_controller,
+)
 from machine_builder.controller_board_fixtures import (
     add_octopus_tmc5160t_mating_experiment,
 )
 from machine_builder.hardware_catalog import (
+    BTT_OCTOPUS_BOARD_REVISION_EVIDENCE,
     BTT_OCTOPUS_DOCUMENTATION_SOURCE,
     BTT_OCTOPUS_HARDWARE_SOURCE,
     BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC,
+    BTT_OCTOPUS_PINOUT_SOURCE,
     BTT_TMC5160T_HARDWARE_SOURCE,
     build_btt_tmc5160t,
 )
@@ -27,6 +32,89 @@ def make_test_model() -> CanonicalMachineModel:
     )
 
     return model
+
+
+def test_octopus_board_revision_evidence_stays_at_controller_level() -> None:
+    evidence = BTT_OCTOPUS_BOARD_REVISION_EVIDENCE
+
+    assert evidence["board_family"] == "Octopus (non-Pro)"
+    assert evidence["silkscreen_errata"]["fan_polarity_markings"][
+        "status"
+    ] == "manufacturer_confirmed"
+    assert evidence["silkscreen_errata"]["fan_polarity_markings"][
+        "affected_scope"
+    ] == "some early boards"
+
+    spi3 = evidence["silkscreen_errata"]["spi3_power_labels"]
+    assert spi3["incorrect_labels"] == ("3.3V", "GND")
+    assert spi3["correct_pin_mapping"] == {
+        1: "GND",
+        2: "3.3V",
+        3: "MISO (PB4)",
+        4: "MOSI (PB5)",
+        5: "SCK (PB3)",
+        6: "CS (PA15)",
+    }
+
+    uart = evidence["silkscreen_errata"]["raspberry_pi_uart_labels"]
+    assert uart["correct_signal_mapping"] == {
+        "RX2": "PD6",
+        "TX2": "PD5",
+    }
+    assert uart["original_incorrect_labels"] == (
+        "not_individually_specified"
+    )
+    assert evidence["production_boundary"]["status"] == (
+        "not_established"
+    )
+    assert evidence["schematic_revision_comparison"]["status"] == (
+        "not_established"
+    )
+    assert evidence["regulator_package_transition"]["status"] == (
+        "unconfirmed"
+    )
+    assert evidence["individual_board_inspection_required"] is True
+    assert evidence["evidence_sources"] == (
+        BTT_OCTOPUS_DOCUMENTATION_SOURCE,
+        BTT_OCTOPUS_PINOUT_SOURCE,
+        BTT_OCTOPUS_HARDWARE_SOURCE,
+    )
+
+    model = make_test_model()
+    generic_controller = add_generic_octopus_controller(
+        model,
+        machine_id="machine-1",
+        controller_id="generic-octopus-v1-1",
+    )
+    (
+        experiment_controller,
+        _,
+        socket_port,
+        _,
+    ) = add_octopus_tmc5160t_mating_experiment(
+        model,
+        machine_id="machine-1",
+    )
+
+    for controller in (generic_controller, experiment_controller):
+        assert controller.properties["board_revision_evidence"] == (
+            evidence
+        )
+        assert controller.properties["silkscreen_inspection_status"] == (
+            "uninspected"
+        )
+        provenance_sources = {
+            provenance.source for provenance in controller.provenance
+        }
+        assert BTT_OCTOPUS_DOCUMENTATION_SOURCE in provenance_sources
+        assert BTT_OCTOPUS_PINOUT_SOURCE in provenance_sources
+        assert BTT_OCTOPUS_HARDWARE_SOURCE in provenance_sources
+
+    assert "board_revision_evidence" not in socket_port.properties
+    assert "silkscreen_inspection_status" not in socket_port.properties
+    assert socket_port.properties["interface_spec"] == (
+        BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC
+    )
 
 
 def test_tmc5160t_hardware_definition_contains_verified_module_information() -> None:

@@ -1261,7 +1261,7 @@ def build_btt_tmc5160t() -> HardwareDefinition:
     )
 
 # ---------------------------------------------------------------------------
-# BIGTREETECH Octopus V1.1 MOTOR_DRIVER receiving-interface evidence
+# BIGTREETECH Octopus manufacturer evidence sources
 # ---------------------------------------------------------------------------
 
 BTT_OCTOPUS_HARDWARE_SOURCE = (
@@ -1271,6 +1271,102 @@ BTT_OCTOPUS_HARDWARE_SOURCE = (
 BTT_OCTOPUS_DOCUMENTATION_SOURCE = (
     "https://github.com/bigtreetech/docs/blob/master/docs/Octopus.md"
 )
+
+# ---------------------------------------------------------------------------
+# BIGTREETECH Octopus board-level revision and silkscreen evidence
+# ---------------------------------------------------------------------------
+
+BTT_OCTOPUS_PINOUT_SOURCE = (
+    "https://github.com/bigtreetech/docs/blob/master/docs/img/Octopus/Octopus_Pinout.svg"
+)
+
+BTT_OCTOPUS_BOARD_REVISION_EVIDENCE = {
+    "board_family": "Octopus (non-Pro)",
+    "scope": "board_revision_and_silkscreen_errata",
+    "silkscreen_errata": {
+        "fan_polarity_markings": {
+            "status": "manufacturer_confirmed",
+            "affected_scope": "some early boards",
+            "details": (
+                "The underside fan-port polarity markings were "
+                "erroneously swapped. The manufacturer does not identify "
+                "every affected connector or an exact production boundary. "
+                "Use the authoritative pinout and schematic for electrical "
+                "mapping rather than trusting affected printed markings."
+            ),
+        },
+        "spi3_power_labels": {
+            "status": "manufacturer_confirmed",
+            "affected_scope": (
+                "some early boards; SPI3 is also included in the "
+                "first-production-run interface-label correction notice"
+            ),
+            "incorrect_labels": ("3.3V", "GND"),
+            "correct_pin_mapping": {
+                1: "GND",
+                2: "3.3V",
+                3: "MISO (PB4)",
+                4: "MOSI (PB5)",
+                5: "SCK (PB3)",
+                6: "CS (PA15)",
+            },
+            "details": (
+                "The underside SPI3 3.3V and GND silkscreen labels were "
+                "swapped. This is a documented label error, not evidence "
+                "that the actual electrical nets were swapped."
+            ),
+        },
+        "raspberry_pi_uart_labels": {
+            "status": "manufacturer_confirmed",
+            "affected_scope": "very first production run",
+            "incorrect_pin_count": 2,
+            "correct_signal_mapping": {
+                "RX2": "PD6",
+                "TX2": "PD5",
+            },
+            "original_incorrect_labels": "not_individually_specified",
+            "details": (
+                "The manufacturer identifies two incorrectly labelled "
+                "pins on the underside Raspberry Pi UART interface, but "
+                "does not individually enumerate the original incorrect "
+                "label text."
+            ),
+        },
+    },
+    "production_boundary": {
+        "status": "not_established",
+        "details": (
+            "The reviewed manufacturer documentation does not establish "
+            "a serial-number, date, production-lot, or V1.0/V1.1 threshold "
+            "that reliably determines the silkscreen on an individual board."
+        ),
+    },
+    "schematic_revision_comparison": {
+        "status": "not_established",
+        "details": (
+            "The reviewed official artifacts did not establish a complete, "
+            "directly comparable, separately versioned non-Pro V1.0/V1.1 "
+            "schematic pair."
+        ),
+    },
+    "regulator_package_transition": {
+        "status": "unconfirmed",
+        "details": (
+            "The reviewed community report does not confirm a regulator "
+            "package change between V1.0 and V1.1."
+        ),
+    },
+    "individual_board_inspection_required": True,
+    "evidence_sources": (
+        BTT_OCTOPUS_DOCUMENTATION_SOURCE,
+        BTT_OCTOPUS_PINOUT_SOURCE,
+        BTT_OCTOPUS_HARDWARE_SOURCE,
+    ),
+}
+
+# ---------------------------------------------------------------------------
+# BIGTREETECH Octopus V1.1 MOTOR_DRIVER receiving-interface evidence
+# ---------------------------------------------------------------------------
 
 BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC = {
     "interface_type": "MOTOR_DRIVER",

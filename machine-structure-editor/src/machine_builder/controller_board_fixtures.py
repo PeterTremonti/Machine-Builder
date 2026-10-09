@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from .controller_resource import ControllerResource
 from .hardware_catalog import (
+    BTT_OCTOPUS_BOARD_REVISION_EVIDENCE,
     BTT_OCTOPUS_DOCUMENTATION_SOURCE,
     BTT_OCTOPUS_HARDWARE_SOURCE,
     BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC,
+    BTT_OCTOPUS_PINOUT_SOURCE,
     BTT_TMC5160T_HARDWARE_SOURCE,
     DUET2_MAESTRO_ENDSTOP_CONNECTOR_IDS,
     DUET2_MAESTRO_ENDSTOP_SIGNAL_LABELS,
@@ -581,6 +583,47 @@ def add_octopus_tmc5160t_mating_experiment(
         name="BTT Octopus V1.1",
         controller_type="motion_controller",
         version="V1.1",
+        properties={
+            "manufacturer": "BigTreeTech",
+            "family": "Octopus",
+            "board_revision_evidence": (
+                BTT_OCTOPUS_BOARD_REVISION_EVIDENCE
+            ),
+            "silkscreen_inspection_status": "uninspected",
+        },
+        provenance=[
+            Provenance(
+                source=BTT_OCTOPUS_DOCUMENTATION_SOURCE,
+                evidence_type="published",
+                method="manufacturer technical documentation",
+                context=(
+                    "Documents early-production fan polarity, SPI3 supply "
+                    "label, and Raspberry Pi UART silkscreen errors. The "
+                    "documentation does not establish a reliable production "
+                    "boundary for an individual board."
+                ),
+            ),
+            Provenance(
+                source=BTT_OCTOPUS_PINOUT_SOURCE,
+                evidence_type="published",
+                method="manufacturer board pinout",
+                context=(
+                    "Reference for corrected board signal assignments. "
+                    "The pinout does not establish the inspected silkscreen "
+                    "condition of a particular installed board."
+                ),
+            ),
+            Provenance(
+                source=BTT_OCTOPUS_HARDWARE_SOURCE,
+                evidence_type="published",
+                method="manufacturer hardware repository",
+                context=(
+                    "Repository reviewed for revision-specific schematic "
+                    "evidence. A complete directly comparable non-Pro "
+                    "V1.0/V1.1 schematic pair was not established."
+                ),
+            ),
+        ],
     )
 
     model.add_controller(
