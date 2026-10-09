@@ -1352,14 +1352,21 @@ Verification:
 * full project suite: 795 passed in 6.18s;
 * `git diff --check`: passes.
 
-## 31. Immediate next Board action
+## 31. Planning Acceptance — Octopus V1.1 / TMC5160T Pro V1.0 Evidence Checkpoint
 
-The authorized Octopus evidence refinement is complete.
+Planning has reviewed and accepted the Octopus V1.1 / TMC5160T Pro V1.0 evidence checkpoint documented in §30.
 
-Do not begin another Board family or mating case until this checkpoint has
-been reviewed by Planning.
+The accepted checkpoint is already committed as:
 
-The next Board action is therefore review/acceptance of this checkpoint,
-followed by the normal separate commit and push steps.
+`54ca8e356ffff32e26c8bd4e9be2b75175d042e1`
 
-Commit and push remain separate actions after review and verification.
+Do not create a duplicate commit or push.
+
+The accepted evidence boundary remains unchanged:
+
+- Octopus V1.1 Driver 2 contact 6 remains `SLEEP` / `DRIVER2_SLP`.
+- TMC5160T Pro V1.0 J1-6 remains `CLK` / external clock input.
+- Signal equivalence and the exact SPI/jumper electrical state remain unresolved.
+- Existing `SemanticPort` and interface-level `mated_with` semantics are retained. No new canonical ontology entity is required.
+
+Planning acceptance satisfies the review gate for this checkpoint. **Do not begin another Board-family or mating-case investigation without a new Planning assignment.**

@@ -12,19 +12,17 @@ The goal is evidence-driven guidance for Planning and Implementation.
 
 # Recovery Instructions
 
-A replacement Research chat should:
+Follow the universal replacement-chat recovery procedure in `CHAT_WORKFLOW.md` §17. It defines the shared startup sequence; do not duplicate or redefine that sequence here.
 
-1. Read this handoff completely.
-2. Read `MASTER_PLAN.md` and `PROJECT_CURRENT_STATE.md`.
-3. Review the current repository when a research question concerns implementation behavior.
-4. Treat authoritative external sources as evidence.
-5. Preserve source provenance for important findings.
-6. Distinguish documented facts from interpretation.
-7. Report uncertainty rather than filling gaps with assumptions.
-8. Re-check current sources when time-sensitive information may have changed.
-9. Classify findings appropriately before recommending architectural changes.
-10. Treat the local repository, current tests, and current handoffs as authoritative for implementation state.
-11. Do not assume an unverified repository commit, file state, or test result from conversation history.
+Research-specific recovery requirements:
+
+1. Read `machine-builder-research/START_HERE.md` on every Research / Architecture replacement. It is the authoritative Research navigation and recovery entry point.
+2. Resume from the current Next Action and active Research question in this handoff. Use `START_HERE.md` to locate the subject-matter authorities relevant to that action.
+3. When a research question depends on implementation behavior, verify the actual current checkout and relevant tests as required by §17; do not assume a remembered commit, file state, line number, or test result.
+4. Preserve source provenance for important findings, including the source version, date, URL, relevant section/page, and what the source does and does not establish where available.
+5. Distinguish documented facts, direct observations/measurements, inference, and interpretation. State limitations and preserve unresolved uncertainty rather than filling gaps with assumptions.
+6. Re-check primary sources when information may have changed or the source revision matters.
+7. Classify findings before recommending architectural implications. Report project-level implications to Planning rather than independently changing durable architecture.
 
 ---
 
@@ -1341,24 +1339,9 @@ If the expected line or anchor cannot be found, stop and re-inspect the current 
 
 ---
 
-# Recovery Rule
+# Continuation Rule
 
-When a future Chat 02 reaches the conversation limit:
-
-```text
-Read this handoff
-    ↓
-Read MASTER_PLAN.md
-    ↓
-Read PROJECT_CURRENT_STATE.md
-    ↓
-Review the Research source register / authoritative Research documents
-    ↓
-Verify the current repository state when implementation behavior matters
-    ↓
-Continue the current research queue
-```
-
+Continue from the current Next Action in this handoff. Treat dated chronological checkpoints as historical evidence, not as replacements for current work state; consult them when the active question needs their original evidence, rationale, or chronology.
 Do not redo completed research unless a new question requires it or the source has materially changed.
 
 ---

@@ -255,23 +255,35 @@ Hardware definition: unspecified
 ```
 
 This is an architectural direction, not a requirement for the first V0.2 implementation.
-## Recovery order
+## Recovery and Research-document navigation
 
-For a new Research / Architecture chat, use this order:
+### Universal recovery — every workstream
 
-1. Read this `START_HERE.md` first.
-2. `../machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
-3. `RESEARCH_ROADMAP.md`
-4. `PROJECT_CONTEXT.md`
-5. `architecture/ARCHITECTURE_OVERVIEW.md`
-6. `ontology/TERMINOLOGY_BASELINE.md`
-7. `ontology/ONTOLOGY_CURRENT.md`
-8. `decisions/DECISION_LOG.md`
-9. `questions/OPEN_QUESTIONS.md`
-10. `checkpoints/V0.2_RESEARCH_CHECKPOINT.md`
+Follow `../CHAT_WORKFLOW.md` §17 for the universal replacement-chat recovery procedure. That section is authoritative for the shared startup sequence; this file does not define a competing universal sequence.
 
-The numbered Research workstream handoff is the current Research continuity and recovery document. The V0.2 checkpoint remains the current Research milestone checkpoint.
+### Required Research-specific reading
 
-Historical implementation-phase handoffs are retained for historical/reference purposes only. They are not part of current Research recovery or coordination.
+Read this `START_HERE.md` on every Research / Architecture replacement, in addition to the universal reading defined by §17. This file remains the authoritative Research navigation and recovery entry point.
 
-Research/architecture authority remains with the checkpoint, ontology, architecture, terminology, decisions, questions, and related current Research documentation. Use the standards, machines, and firmware research indexes when detailed evidence is required.
+The current Research continuity record is `../machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`. The handoff is included in universal recovery under §17; use its current state and Next Action to resume work. Research-specific evidence and reporting requirements are retained in that handoff.
+
+### Consult according to the current Research Next Action
+
+The following documents remain authoritative for their respective subjects. They are task-dependent reading, not obsolete documents and not a mandatory full reread on every replacement.
+
+- `RESEARCH_ROADMAP.md` — consult for Research priorities, sequencing, and roadmap dependencies.
+- `PROJECT_CONTEXT.md` — consult for background and supporting project context; do not use it in place of authoritative project state or architecture records.
+- `architecture/ARCHITECTURE_OVERVIEW.md` — consult for established architecture and system-boundary questions.
+- `ontology/TERMINOLOGY_BASELINE.md` — consult when terminology definitions or naming distinctions matter.
+- `ontology/ONTOLOGY_CURRENT.md` — consult for the current canonical ontology, entities, and relationship semantics.
+- `decisions/DECISION_LOG.md` — consult before recommending changes to a settled decision or when decision rationale matters.
+- `questions/OPEN_QUESTIONS.md` — consult to identify existing unresolved questions and avoid duplicating work.
+- `checkpoints/V0.2_RESEARCH_CHECKPOINT.md` — consult for the current V0.2 Research milestone, its scope, and stopping point.
+
+Use each relevant document as authority for its own subject. If records appear to conflict, follow `DOCUMENTATION_AUTHORITY.md` and Planning's accepted project-level decisions; do not resolve conflicts by relying on this navigation list alone.
+
+### Historical and detailed reference material
+
+Historical implementation-phase handoffs and superseded checkpoints are for historical/reference purposes, not routine startup reading. Consult them when the current Next Action needs earlier chronology, rationale, or evidence. Likewise, consult standards, machine, firmware, and detailed source indexes when the research question requires those sources.
+
+Historical material preserves what was known and decided at its checkpoint; it does not automatically supersede newer current-state or subject-matter authorities.

@@ -1085,6 +1085,14 @@ This is the project's default shared contract, separate implementation ownership
 
 The following are hard operating constraints for all Machine Builder workstreams, including Planning itself.
 
+## User-facing execution instructions
+
+Assume the user understands that repository commands are run against their authoritative local checkout. Do not repeatedly explain this established workflow.
+
+Do not preface repository instructions with disclaimers that a chat cannot directly write to the user's local files, or remind the user that they must run the provided commands. Mention execution limitations only when the user asks about them or a concrete limitation materially changes the requested action.
+
+For repository work, provide the exact, action-ready command or edit, its scope and necessary prerequisites, and the verification output to return. Never imply that local files were changed, tests run, or Git actions completed unless the user reports that result or an authorized tool verifies it.
+
 ## Repository inspection and implementation tooling
 
 For ordinary repository inspection, source mining, implementation, testing, visual-editor work, routing work, and architecture/audit work, do not use:

@@ -10,13 +10,9 @@ It is not a replacement for the older historical investigation records. The deta
 docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.3.md
 docs/historical/routing/ROUTING_STABILITY_INVESTIGATION_HANDOFF_4.4.md
 
-A replacement Routing chat should read, in order:
+Follow `CHAT_WORKFLOW.md` §17 for the universal replacement-chat recovery procedure. This file is the living Routing / Diagnostics workstream handoff required by that procedure.
 
-PROJECT_CURRENT_STATE.md
-machine-structure-editor/handoffs/ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
-the current routing source and routing tests
-
-Current source code and actual reported test results are authoritative over historical checkpoint text.
+After completing that procedure, inspect the current Routing source and relevant Routing tests as needed for the active Next Action. Current source and actual reported test results are authoritative over historical checkpoint text.
 
 Do not assume that an old branch, worktree, commit description, or historical diagnosis still matches the current implementation.
 

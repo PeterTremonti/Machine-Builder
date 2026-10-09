@@ -12,15 +12,11 @@ The first major task is the repository audit described below.
 
 # Recovery Instructions
 
-When starting or recovering this workstream:
+Follow `CHAT_WORKFLOW.md` §17, Workstream Recovery, for the universal replacement-chat procedure.
 
-1. Read `CHAT_WORKFLOW.md`.
-2. Read `MASTER_PLAN.md`.
-3. Read `PROJECT_CURRENT_STATE.md`.
-4. Read this handoff.
-5. Inspect the current repository on `main`.
-6. Treat the actual current checkout and verified tests as authoritative over stale GitHub/raw-cache views and older handoffs.
-7. Do not assume that a file is obsolete simply because it looks old or duplicates another document. Trace references and preserve unique information before recommending removal.
+After completing that procedure, continue from this handoff's current state and Next Action. Work from the user's actual current local `main` checkout and verify relevant implementation/test facts before relying on remembered results.
+
+Preserve the #5 workstream-specific boundaries: remain primarily read-only, investigate before recommending edits, respect ownership of implementation files, and trace references and preserve unique information before recommending documentation retirement.
 
 This workstream is **main-only**. Old board/routing branches and worktrees are historical and should not be revived for current work.
 
