@@ -1284,8 +1284,8 @@ Intentionally retained Maestro evidence boundaries are:
 These are documented evidence boundaries, not missing ontology or unsupported
 catalog gaps.
 
-The next Board investigation is the BTT Octopus V1.1 receiving driver
-interface and TMC5160T mating evidence.
+The BTT Octopus V1.1 receiving driver-interface / TMC5160T mating
+investigation and its authorized evidence refinement are now complete.
 
 Continue using the completeness criterion:
 
@@ -1305,7 +1305,61 @@ standard single-Z uses J36 / Z A, and the standard Compound PT1000 uses
 J14 / E1 TEMP. These are machine-specific application facts and do not
 change the reusable Maestro board definition.
 
-Continue through the remaining Maestro coverage without requiring a
-separate authorization for each individual feature.
+## 30. Octopus V1.1 MOTOR_DRIVER receiving-interface evidence checkpoint
+
+Date: 2026-10-08
+
+The Board workstream recorded the verified Octopus V1.1 driver-receiving
+interface using the existing catalog/evidence structures.
+
+Established receiving-interface evidence:
+
+* generic interface type: `MOTOR_DRIVER`;
+* 18 physical contacts total;
+* contacts 1-16 are active driver contacts;
+* contact 17 is `NC`;
+* contact 18 is `DIAG`;
+* Driver 2 is module position M3;
+* Driver 2 motor outputs are `MOTOR2_1` and `MOTOR2_2`;
+* Octopus Driver 2 contact 6 is `SLEEP` on `DRIVER2_SLP`.
+
+The TMC5160T Pro V1.0 module evidence separately establishes J1-6 as
+`CLK` / external clock input.
+
+The cross-interface relationship is intentionally preserved as unresolved:
+
+* Octopus contact 6 remains `SLEEP`;
+* TMC5160T J1-6 remains `CLK`;
+* they are not represented as equivalent;
+* the exact SPI/jumper electrical state remains unresolved.
+
+No new canonical `DriverSocket`, `DriverModule`, `MatingInterface`,
+`Connector`, or `Contact` entity was introduced.
+
+The physical mating relationship remains the existing interface-level
+`mated_with` relationship between the controller-owned receiving
+`SemanticPort` and component-owned TMC5160T module-interface `SemanticPort`.
+
+Implementation files for this checkpoint:
+
+* `machine-structure-editor/src/machine_builder/hardware_catalog.py`
+* `machine-structure-editor/src/machine_builder/controller_board_fixtures.py`
+* `machine-structure-editor/tests/test_octopus_driver_mating.py`
+
+Verification:
+
+* focused Octopus mating/evidence tests: 8 passed in 0.24s;
+* full project suite: 795 passed in 6.18s;
+* `git diff --check`: passes.
+
+## 31. Immediate next Board action
+
+The authorized Octopus evidence refinement is complete.
+
+Do not begin another Board family or mating case until this checkpoint has
+been reviewed by Planning.
+
+The next Board action is therefore review/acceptance of this checkpoint,
+followed by the normal separate commit and push steps.
 
 Commit and push remain separate actions after review and verification.

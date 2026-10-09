@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from .controller_resource import ControllerResource
 from .hardware_catalog import (
+    BTT_OCTOPUS_DOCUMENTATION_SOURCE,
+    BTT_OCTOPUS_HARDWARE_SOURCE,
+    BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC,
     BTT_TMC5160T_HARDWARE_SOURCE,
     DUET2_MAESTRO_ENDSTOP_CONNECTOR_IDS,
     DUET2_MAESTRO_ENDSTOP_SIGNAL_LABELS,
@@ -600,9 +603,53 @@ def add_octopus_tmc5160t_mating_experiment(
         properties={
             "interface_role": (
                 "driver_module_receiving_interface"
-            )
+            ),
+            "interface_spec": (
+                BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC
+            ),
+            "driver_position": {
+                "driver_number": 2,
+                "module_position": "M3",
+                "motor_outputs": (
+                    "MOTOR2_1",
+                    "MOTOR2_2",
+                ),
+            },
+            "contact_6_net": "DRIVER2_SLP",
         },
-        provenance=[],
+        provenance=[
+            Provenance(
+                source=BTT_OCTOPUS_HARDWARE_SOURCE,
+                evidence_type="published",
+                method="manufacturer hardware repository schematic",
+                context=(
+                    "The generic MOTOR_DRIVER receiving interface is "
+                    "repeated across the Octopus driver positions. "
+                    "Driver 2 is module position M3 with MOTOR2_1 and "
+                    "MOTOR2_2 motor outputs."
+                ),
+            ),
+            Provenance(
+                source=BTT_OCTOPUS_DOCUMENTATION_SOURCE,
+                evidence_type="published",
+                method="manufacturer technical documentation",
+                context=(
+                    "The Octopus documentation identifies pluggable "
+                    "motor-driver sockets and documents the driver-mode "
+                    "jumper configurations."
+                ),
+            ),
+            Provenance(
+                source=BTT_TMC5160T_HARDWARE_SOURCE,
+                evidence_type="published",
+                method="manufacturer technical documentation",
+                context=(
+                    "The TMC5160T Pro V1.0 documentation identifies "
+                    "J1-6 as CLK. The evidence does not establish "
+                    "equivalence with Octopus contact 6 SLEEP."
+                ),
+            ),
+        ],
         controller_id=controller.id,
     )
 

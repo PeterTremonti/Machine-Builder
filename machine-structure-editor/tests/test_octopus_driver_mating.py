@@ -4,6 +4,9 @@ from machine_builder.controller_board_fixtures import (
     add_octopus_tmc5160t_mating_experiment,
 )
 from machine_builder.hardware_catalog import (
+    BTT_OCTOPUS_DOCUMENTATION_SOURCE,
+    BTT_OCTOPUS_HARDWARE_SOURCE,
+    BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC,
     BTT_TMC5160T_HARDWARE_SOURCE,
     build_btt_tmc5160t,
 )
@@ -109,6 +112,108 @@ def test_octopus_mating_uses_existing_semantic_port_endpoints() -> None:
     assert socket_port.pin_id is None
     assert module_port.pin_id is None
 
+
+def test_octopus_receiving_interface_evidence_is_explicit() -> None:
+    model = make_test_model()
+
+    (
+        _,
+        _,
+        socket_port,
+        _,
+    ) = add_octopus_tmc5160t_mating_experiment(
+        model,
+        machine_id="machine-1",
+    )
+
+    spec = socket_port.properties[
+        "interface_spec"
+    ]
+
+    assert spec == (
+        BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC
+    )
+    assert spec["interface_type"] == "MOTOR_DRIVER"
+    assert spec["interface_role"] == (
+        "driver_module_receiving_interface"
+    )
+    assert spec["board_revision"] == "V1.1"
+    assert spec["schematic_scope"] == "V1.0/V1.1"
+    assert spec["contact_count"] == 18
+    assert spec["active_contact_count"] == 16
+
+    for contact in range(1, 17):
+        assert spec["contacts"][contact][
+            "classification"
+        ] == "active"
+
+    assert spec["contacts"][17] == {
+        "label": "NC",
+        "classification": "not_connected",
+    }
+
+    assert spec["contacts"][18] == {
+        "label": "DIAG",
+        "classification": "diagnostic",
+    }
+
+    assert socket_port.properties[
+        "driver_position"
+    ] == {
+        "driver_number": 2,
+        "module_position": "M3",
+        "motor_outputs": (
+            "MOTOR2_1",
+            "MOTOR2_2",
+        ),
+    }
+
+    assert socket_port.properties[
+        "contact_6_net"
+    ] == "DRIVER2_SLP"
+
+    provenance_sources = {
+        provenance.source
+        for provenance
+        in socket_port.provenance
+    }
+
+    assert BTT_OCTOPUS_HARDWARE_SOURCE in (
+        provenance_sources
+    )
+    assert BTT_OCTOPUS_DOCUMENTATION_SOURCE in (
+        provenance_sources
+    )
+    assert BTT_TMC5160T_HARDWARE_SOURCE in (
+        provenance_sources
+    )
+
+
+def test_octopus_tmc5160t_pin_6_discrepancy_is_preserved() -> None:
+    spec = (
+        BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC
+    )
+
+    discrepancy = spec[
+        "pin_6_discrepancy"
+    ]
+
+    assert discrepancy["octopus_contact"] == 6
+    assert discrepancy["octopus_label"] == "SLEEP"
+    assert discrepancy["octopus_net_pattern"] == (
+        "DRIVERx_SLP"
+    )
+
+    assert discrepancy["tmc5160t_connector"] == "J1"
+    assert discrepancy["tmc5160t_contact"] == 6
+    assert discrepancy["tmc5160t_label"] == "CLK"
+    assert discrepancy["mapped_as_equivalent"] is False
+    assert discrepancy["equivalence_status"] == (
+        "unresolved"
+    )
+    assert discrepancy["spi_jumper_electrical_state"] == (
+        "unresolved"
+    )
 
 def test_tmc5160t_module_interface_is_interface_level() -> None:
     model = make_test_model()

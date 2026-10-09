@@ -1259,3 +1259,61 @@ def build_btt_tmc5160t() -> HardwareDefinition:
             )
         ],
     )
+
+# ---------------------------------------------------------------------------
+# BIGTREETECH Octopus V1.1 MOTOR_DRIVER receiving-interface evidence
+# ---------------------------------------------------------------------------
+
+BTT_OCTOPUS_HARDWARE_SOURCE = (
+    "https://github.com/bigtreetech/BIGTREETECH-OCTOPUS-V1.0"
+)
+
+BTT_OCTOPUS_DOCUMENTATION_SOURCE = (
+    "https://github.com/bigtreetech/docs/blob/master/docs/Octopus.md"
+)
+
+BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC = {
+    "interface_type": "MOTOR_DRIVER",
+    "interface_role": "driver_module_receiving_interface",
+    "board_revision": "V1.1",
+    "schematic_scope": "V1.0/V1.1",
+    "contact_count": 18,
+    "active_contact_count": 16,
+    "contacts": {
+        1: {"label": "EN", "classification": "active"},
+        2: {"label": "SDI/MS0", "classification": "active"},
+        3: {"label": "SCK/MS1", "classification": "active"},
+        4: {"label": "CS/MS2", "classification": "active"},
+        5: {"label": "SDO/RST", "classification": "active"},
+        6: {"label": "SLEEP", "classification": "active"},
+        7: {"label": "STEP", "classification": "active"},
+        8: {"label": "DIR", "classification": "active"},
+        9: {"label": "GND", "classification": "active"},
+        10: {"label": "VCC_IO", "classification": "active"},
+        11: {"label": "A1", "classification": "active"},
+        12: {"label": "A2", "classification": "active"},
+        13: {"label": "B2", "classification": "active"},
+        14: {"label": "B1", "classification": "active"},
+        15: {"label": "GND", "classification": "active"},
+        16: {"label": "VM", "classification": "active"},
+        17: {"label": "NC", "classification": "not_connected"},
+        18: {"label": "DIAG", "classification": "diagnostic"},
+    },
+    "pin_6_discrepancy": {
+        "octopus_contact": 6,
+        "octopus_label": "SLEEP",
+        "octopus_net_pattern": "DRIVERx_SLP",
+        "tmc5160t_connector": "J1",
+        "tmc5160t_contact": 6,
+        "tmc5160t_label": "CLK",
+        "tmc5160t_source": BTT_TMC5160T_HARDWARE_SOURCE,
+        "mapped_as_equivalent": False,
+        "equivalence_status": "unresolved",
+        "spi_jumper_electrical_state": "unresolved",
+    },
+    "evidence_sources": (
+        BTT_OCTOPUS_HARDWARE_SOURCE,
+        BTT_OCTOPUS_DOCUMENTATION_SOURCE,
+        BTT_TMC5160T_HARDWARE_SOURCE,
+    ),
+}
