@@ -2108,4 +2108,4 @@ Full command: .venv\Scripts\python.exe -m pytest -q
 
 Full result: 834 passed in 3.23s (exit 0).
 
-The diff check failed on whitespace in the prior version of this checkpoint. The follow-up repair removes those malformed lines. This checkpoint does not claim the current diff checks have passed; those must pass before the repair is committed.
+The initial checkpoint text failed git diff --check because of malformed whitespace on verification lines. Those lines were corrected. After the port mutation repair, the focused suite passed (98 passed in 1.27s, exit 0), the full suite passed (834 passed in 3.23s, exit 0), and both whole-worktree and staged git diff --check passed (exit 0) before follow-up commit 1b84f0f8e2451b31b8603fe7093cbf284ee6b62f.
