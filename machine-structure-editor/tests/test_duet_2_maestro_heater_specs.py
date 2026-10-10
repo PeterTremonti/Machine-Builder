@@ -34,22 +34,23 @@ def test_maestro_heater_connector_specifications_are_present() -> None:
         "connector_specifications"
     ]
 
-    assert set(
-        DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS
-    ) <= set(specifications)
+    assert set(DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS) == {
+        "e0-heat-molex",
+        "e0-heat-screw",
+        "e1-heat-molex",
+        "e1-heat-screw",
+    }
+    assert not {
+        "bed-heat-molex",
+        "bed-heat-screw",
+    }.intersection(specifications)
 
     for connector_id, expected in (
         DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS.items()
     ):
-        specification = specifications[
-            connector_id
-        ]
-
+        specification = specifications[connector_id]
         assert specification == expected
-        assert (
-            specification["position_count"]
-            == 2
-        )
+        assert specification["position_count"] == 2
 
 
 def test_maestro_heater_interfaces_have_two_access_types() -> None:
@@ -73,11 +74,7 @@ def test_maestro_heater_interfaces_have_two_access_types() -> None:
             screw_connector_id,
         }
 
-        expected_exposed_connector_ids = (
-            expected_connector_ids | {"j4"}
-            if resource_suffix == "bed-heater"
-            else expected_connector_ids
-        )
+        expected_exposed_connector_ids = expected_connector_ids
 
         connector_ids = {
             port.connector_id
@@ -114,11 +111,7 @@ def test_maestro_heater_interfaces_have_two_access_types() -> None:
             )
         ]
 
-        expected_relationship_count = (
-            5
-            if resource_suffix == "bed-heater"
-            else 4
-        )
+        expected_relationship_count = 4
 
         assert len(
             exposed_relationships
@@ -152,7 +145,7 @@ def test_heater_ports_are_output_interfaces() -> None:
 
     assert len(
         heater_ports
-    ) == 12
+    ) == 8
 
     assert all(
         port.direction == "output"
@@ -166,17 +159,41 @@ def test_heater_ports_are_output_interfaces() -> None:
     )
 
 
-def test_heater_molex_and_screw_outputs_have_different_ratings() -> None:
-    assert (
-        DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS[
-            "bed-heat-molex"
-        ]["maximum_current"]
-        == "2 A at 24 V"
-    )
+def test_heater_ratings_and_bed_capability_evidence_are_scoped_correctly() -> None:
+    hardware = build_duet_2_maestro()
+    specifications = hardware.properties["connector_specifications"]
 
-    assert (
-        DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS[
-            "bed-heat-screw"
-        ]["maximum_current"]
-        == "5 A at 24 V"
+    assert "bed-heat-molex" not in specifications
+    assert "bed-heat-screw" not in specifications
+    assert "maximum_current" not in specifications["j4"]
+
+    for connector_id in ("e0-heat-molex", "e1-heat-molex"):
+        assert specifications[connector_id]["maximum_current"] == "2 A at 24 V"
+
+    for connector_id in ("e0-heat-screw", "e1-heat-screw"):
+        assert specifications[connector_id]["maximum_current"] == "5 A at 24 V"
+
+    bed_capability_contexts = [
+        item.context
+        for item in hardware.provenance
+        if "Duet_2_Maestro.md" in item.source
+    ]
+    assert bed_capability_contexts
+    bed_context = "\n".join(bed_capability_contexts)
+    assert "up to 18 A" in bed_context
+    assert "subject to thermal testing" in bed_context
+    assert "25 A maximum" in bed_context
+    assert "not a J4" in bed_context
+    assert "thermal-test results" in bed_context
+
+    wiring_contexts = [
+        item.context
+        for item in hardware.provenance
+        if "Wiring_your_Duet_2" in item.source
+    ]
+    assert any(
+        "2 A at 24 V" in context
+        and "5 A at 24 V" in context
+        and "do not establish a verified current limit for J4" in context
+        for context in wiring_contexts
     )

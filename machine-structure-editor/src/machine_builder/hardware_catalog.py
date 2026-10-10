@@ -349,8 +349,6 @@ DUET2_MAESTRO_ENDSTOP_CONNECTOR_SPEC = {
 
 
 DUET2_MAESTRO_HEATER_CONNECTOR_IDS = (
-    "bed-heat-molex",
-    "bed-heat-screw",
     "e0-heat-molex",
     "e0-heat-screw",
     "e1-heat-molex",
@@ -358,12 +356,6 @@ DUET2_MAESTRO_HEATER_CONNECTOR_IDS = (
 )
 
 DUET2_MAESTRO_HEATER_RESOURCES = (
-    (
-        "bed-heater",
-        "Bed heater",
-        "bed-heat-molex",
-        "bed-heat-screw",
-    ),
     (
         "e0-heater",
         "E0 heater",
@@ -379,23 +371,6 @@ DUET2_MAESTRO_HEATER_RESOURCES = (
 )
 
 DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS = {
-    "bed-heat-molex": {
-        "position_count": 2,
-        "interface_type": "Molex-compatible heater output",
-        "output_voltage": "VIN",
-        "maximum_current": "2 A at 24 V",
-        "mating_interface_family": (
-            "Molex-compatible 2.54 mm"
-        ),
-        "mating_housing_part_number": None,
-        "mating_contact_part_number": (
-            "08-50-0114"
-        ),
-        "mating_part_number_status": (
-            "Exact heater-output housing not independently "
-            "verified; 2-way KK housing is a candidate."
-        ),
-    },
     "e0-heat-molex": {
         "position_count": 2,
         "interface_type": "Molex-compatible heater output",
@@ -428,21 +403,6 @@ DUET2_MAESTRO_HEATER_CONNECTOR_SPECIFICATIONS = {
         "mating_part_number_status": (
             "Exact heater-output housing not independently "
             "verified; 2-way KK housing is a candidate."
-        ),
-    },
-    "bed-heat-screw": {
-        "position_count": 2,
-        "interface_type": "2-position screw terminal",
-        "output_voltage": "VIN",
-        "maximum_current": "5 A at 24 V",
-        "mating_interface_family": (
-            "Direct wire-entry screw terminal"
-        ),
-        "mating_housing_part_number": None,
-        "mating_contact_part_number": None,
-        "mating_part_number_status": (
-            "No separate mating housing; conductor is "
-            "secured directly in the board terminal."
         ),
     },
     "e0-heat-screw": {
@@ -1154,7 +1114,29 @@ def build_duet_2_maestro() -> HardwareDefinition:
                 context=(
                     "The Maestro wiring diagram identifies Molex "
                     "heater outputs rated 2 A at 24 V and screw "
-                    "terminal heater outputs rated 5 A at 24 V."
+                    "terminal heater outputs rated 5 A at 24 V. "
+                    "These generic ratings do not establish a "
+                    "verified current limit for J4's complete "
+                    "bed-output path."
+                ),
+            ),
+            Provenance(
+                source=(
+                    "https://github.com/Duet3D/wiki-content/"
+                    "blob/master/Duet3D_hardware/Duet_2_family/"
+                    "Duet_2_Maestro.md"
+                ),
+                evidence_type="published",
+                method="manufacturer hardware reference",
+                context=(
+                    "Manufacturer-stated bed-heater capability is "
+                    "up to 18 A, subject to thermal testing. The "
+                    "reference separately lists a 25 A maximum "
+                    "for the input connector; that is not a J4 "
+                    "bed-output rating. No reviewed thermal-test "
+                    "results establish 18 A as a verified safe "
+                    "maximum for J4 contacts or the complete "
+                    "bed-output path."
                 ),
             ),
             Provenance(

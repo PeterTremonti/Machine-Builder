@@ -53,7 +53,7 @@ def test_maestro_additional_interface_inventory_is_complete() -> None:
     )
 
     assert len(specifications) == (
-        17 + len(EXPECTED_ADDITIONAL_INTERFACE_IDS)
+        15 + len(EXPECTED_ADDITIONAL_INTERFACE_IDS)
     )
 
 

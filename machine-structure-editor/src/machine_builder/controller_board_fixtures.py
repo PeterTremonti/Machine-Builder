@@ -38,8 +38,6 @@ DUET_2_MAESTRO_CONNECTOR_LAYOUT = (
     ("z-b-motor", "Z B motor", 4),
     ("j4", "High Current Terminal", 4),
     ("temp-ob", "TEMP_DB", 10),
-    ("bed-heat-molex", "Bed heat Molex", 2),
-    ("bed-heat-screw", "Bed heat screw terminal", 2),
     ("e0-heat-molex", "E0 heat Molex", 2),
     ("e0-heat-screw", "E0 heat screw terminal", 2),
     ("e1-heat-molex", "E1 heat Molex", 2),
@@ -315,7 +313,7 @@ def add_duet_2_maestro_physical_interfaces(
                 j4_pins = {
                     1: ("GND", "Ground reference", "unknown", "ground_reference"),
                     2: ("V_IN", "Board power input", "unknown", None),
-                    3: ("V_IN", "Board power input", "unknown", None),
+                    3: ("V_IN", "Bed heater supply", "unknown", None),
                     4: ("BED-", "Bed heater output return", "output", "heater_output"),
                 }
 
@@ -458,23 +456,30 @@ def add_duet_2_maestro_physical_interfaces(
                 relationship
             )
 
-    bed_heater_resource = model.controller_resources[
-        f"{controller_id}-bed-heater"
-    ]
-
-    j4_bed_relationship = SemanticRelationship(
-        id=(
-            f"{bed_heater_resource.id}"
-            f"-exposed-through-{controller_id}-j4-pin-4"
-        ),
-        source_id=bed_heater_resource.id,
-        target_id=f"{controller_id}-j4-pin-4",
-        relationship_type="exposed_through",
+    bed_heater_resource = ControllerResource(
+        id=f"{controller_id}-bed-heater",
+        name="Bed heater",
+        resource_type="heater",
+        controller_id=controller_id,
+    )
+    model.add_controller_resource(
+        machine_id,
+        bed_heater_resource,
     )
 
-    model.add_relationship(
-        j4_bed_relationship
-    )
+    for position in ("3", "4"):
+        j4_bed_relationship = SemanticRelationship(
+            id=(
+                f"{bed_heater_resource.id}"
+                f"-exposed-through-{controller_id}-j4-pin-{position}"
+            ),
+            source_id=bed_heater_resource.id,
+            target_id=f"{controller_id}-j4-pin-{position}",
+            relationship_type="exposed_through",
+        )
+        model.add_relationship(
+            j4_bed_relationship
+        )
 
     z_stepper_resource = ControllerResource(
         id=f"{controller_id}-z-stepper",
