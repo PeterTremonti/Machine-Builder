@@ -27,6 +27,7 @@ from PySide6.QtWidgets import QListWidgetItem
 from .controller import Controller
 from .controller_visual_mutations import (
     CreateControllerNode,
+    CreateDuet2MaestroControllerNode,
 )
 from .mutations import CreateNode
 from .visual_model import VisualNode, VisualPort
@@ -48,6 +49,10 @@ class CanvasPaletteMixin:
             (
                 "controller",
                 "Controller",
+            ),
+            (
+                "duet_2_maestro_v1_0",
+                "Duet 2 Maestro v1.0",
             ),
             (
                 "motor",
@@ -87,6 +92,13 @@ class CanvasPaletteMixin:
                 Qt.ItemDataRole.UserRole,
                 node_type,
             )
+
+            if node_type == "duet_2_maestro_v1_0":
+                item.setToolTip(
+                    "Adds the V1.0 reference-board model and its "
+                    "documented interfaces; it does not verify "
+                    "the physical board revision."
+                )
 
             self.palette.addItem(
                 item
@@ -152,6 +164,7 @@ class CanvasPaletteMixin:
         """Create a canonical or provisional visual node."""
         labels = {
             "controller": "Controller",
+            "duet_2_maestro_v1_0": "Duet 2 Maestro v1.0",
             "motor": "Motor",
             "sensor": "Sensor",
             "part_cooling_fan": "Part Cooling Fan",
@@ -174,7 +187,11 @@ class CanvasPaletteMixin:
 
         node = VisualNode(
             id=f"node-{self._node_counter}",
-            node_type=node_type,
+            node_type=(
+                "controller"
+                if node_type == "duet_2_maestro_v1_0"
+                else node_type
+            ),
             label=label,
             x=scene_position.x(),
             y=scene_position.y(),
@@ -190,6 +207,13 @@ class CanvasPaletteMixin:
             self.store.commit(
                 CreateControllerNode(
                     controller=controller,
+                    node=node,
+                )
+            )
+        elif node_type == "duet_2_maestro_v1_0":
+            self.store.commit(
+                CreateDuet2MaestroControllerNode(
+                    controller_id=f"controller-{self._node_counter}",
                     node=node,
                 )
             )

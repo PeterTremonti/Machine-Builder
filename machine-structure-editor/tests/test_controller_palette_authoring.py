@@ -1,10 +1,15 @@
 """Tests for controller palette authoring."""
 
-from PySide6.QtCore import QPointF
+from PySide6.QtCore import QPointF, Qt
+import machine_builder.canvas_palette as canvas_palette_module
 
 from machine_builder.canvas_palette import (
     CanvasPaletteMixin,
 )
+from machine_builder.controller_board_fixtures import (
+    DUET_2_MAESTRO_CONNECTOR_LAYOUT,
+)
+from machine_builder.hardware_catalog import build_duet_2_maestro
 from machine_builder.persistence import load_editor_state
 from machine_builder.store import ModelStore
 
@@ -341,3 +346,193 @@ def test_generic_palette_component_round_trips_with_identity_and_ports(
         for port_id in provisional_port_ids
     )
     assert restored.semantic_model.controllers == {}
+
+def test_maestro_palette_option_is_explicit_reference_board(
+    monkeypatch,
+) -> None:
+    class FakeSignal:
+        def connect(self, callback) -> None:
+            self.callback = callback
+
+    class FakePaletteItem:
+        def __init__(self, label: str) -> None:
+            self.label = label
+            self.data = {}
+            self.tooltip = ""
+
+        def setData(self, role, value) -> None:
+            self.data[role] = value
+
+        def setToolTip(self, value: str) -> None:
+            self.tooltip = value
+
+    class FakePalette:
+        def __init__(self) -> None:
+            self.items = []
+            self.itemDoubleClicked = FakeSignal()
+
+        def setMinimumWidth(self, value: int) -> None:
+            self.minimum_width = value
+
+        def setDragEnabled(self, value: bool) -> None:
+            self.drag_enabled = value
+
+        def addItem(self, item) -> None:
+            self.items.append(item)
+
+    monkeypatch.setattr(
+        canvas_palette_module,
+        "QListWidgetItem",
+        FakePaletteItem,
+    )
+
+    canvas = PaletteTestCanvas()
+    canvas.palette = FakePalette()
+    canvas._build_palette()
+
+    named_items = [
+        item
+        for item in canvas.palette.items
+        if item.data.get(Qt.ItemDataRole.UserRole)
+        == "duet_2_maestro_v1_0"
+    ]
+    generic_items = [
+        item
+        for item in canvas.palette.items
+        if item.data.get(Qt.ItemDataRole.UserRole)
+        == "controller"
+    ]
+
+    assert len(named_items) == 1
+    assert named_items[0].label == "Duet 2 Maestro v1.0"
+    assert "does not verify" in named_items[0].tooltip
+    assert "physical board revision" in named_items[0].tooltip
+
+    assert len(generic_items) == 1
+    assert generic_items[0].label == "Controller"
+
+
+def test_maestro_palette_creation_is_atomic_undoable_and_redoable() -> None:
+    canvas = PaletteTestCanvas()
+
+    canvas.create_node_from_template(
+        node_type="duet_2_maestro_v1_0",
+        scene_position=QPointF(
+            120.0,
+            240.0,
+        ),
+    )
+
+    semantic_model = canvas.store.semantic_model
+    controller = semantic_model.controllers["controller-1"]
+    definition = semantic_model.hardware_definitions[
+        "duet-2-maestro-v1-0"
+    ]
+    node = canvas.store.model.nodes["node-1"]
+
+    expected_definition = build_duet_2_maestro()
+    expected_port_count = sum(
+        position_count
+        for _connector_id, _connector_name, position_count
+        in DUET_2_MAESTRO_CONNECTOR_LAYOUT
+    )
+    installed_ports = [
+        semantic_model.ports[port_id]
+        for port_id in controller.port_ids
+    ]
+
+    assert definition.id == "duet-2-maestro-v1-0"
+    assert definition.provenance == expected_definition.provenance
+    assert controller.hardware_definition_id == definition.id
+    assert controller.name == "Duet 2 Maestro v1.0"
+    assert controller.controller_type == "motion_controller"
+    assert controller.version is None
+    assert controller.properties["physical_revision_status"] == (
+        "not_verified_as_built"
+    )
+
+    assert semantic_model.machines["machine-1"].name == (
+        "M3D Promega \u2014 Compound reference specimen "
+        "(not verified as-built)"
+    )
+    assert semantic_model.machines["machine-1"].controller_ids == [
+        controller.id
+    ]
+
+    assert len(controller.port_ids) == expected_port_count
+    assert len(installed_ports) == expected_port_count
+    assert len({port.id for port in installed_ports}) == expected_port_count
+    assert all(
+        port.controller_id == controller.id
+        and port.component_id is None
+        and port.pin_id is not None
+        for port in installed_ports
+    )
+    assert {
+        port.connector_id
+        for port in installed_ports
+    } == {
+        connector_id
+        for connector_id, _connector_name, _position_count
+        in DUET_2_MAESTRO_CONNECTOR_LAYOUT
+    }
+    assert definition.provenance
+
+    j4_ports = [
+        port
+        for port in installed_ports
+        if port.connector_id == "j4"
+    ]
+    assert len(j4_ports) == 4
+    assert {port.pin_id for port in j4_ports} == {
+        "1",
+        "2",
+        "3",
+        "4",
+    }
+
+    assert node.node_type == "controller"
+    assert node.label == "Duet 2 Maestro v1.0"
+    assert node.semantic_reference == controller.id
+    assert len(node.ports) == expected_port_count
+    assert {
+        port.semantic_reference
+        for port in node.ports.values()
+    } == set(controller.port_ids)
+    assert set(node.ports).isdisjoint(set(controller.port_ids))
+
+    created_controller_ids = set(semantic_model.controllers)
+    created_port_ids = set(semantic_model.ports)
+    created_definition_ids = set(semantic_model.hardware_definitions)
+    created_node_ids = set(canvas.store.model.nodes)
+
+    assert canvas.store.undo()
+    assert canvas.store.semantic_model.controllers == {}
+    assert canvas.store.semantic_model.ports == {}
+    assert canvas.store.semantic_model.hardware_definitions == {}
+    assert canvas.store.semantic_model.machines == {}
+    assert canvas.store.model.nodes == {}
+
+    for mapping_name in ("controller_resources", "relationships"):
+        mapping = getattr(canvas.store.semantic_model, mapping_name, None)
+        if mapping is not None:
+            assert mapping == {}
+
+    assert canvas.store.redo()
+    assert set(canvas.store.semantic_model.controllers) == created_controller_ids
+    assert set(canvas.store.semantic_model.ports) == created_port_ids
+    assert set(canvas.store.semantic_model.hardware_definitions) == created_definition_ids
+    assert set(canvas.store.model.nodes) == created_node_ids
+
+    restored_controller = canvas.store.semantic_model.controllers[
+        "controller-1"
+    ]
+    restored_node = canvas.store.model.nodes["node-1"]
+    assert restored_controller.hardware_definition_id == (
+        "duet-2-maestro-v1-0"
+    )
+    assert len(restored_controller.port_ids) == expected_port_count
+    assert {
+        port.semantic_reference
+        for port in restored_node.ports.values()
+    } == set(restored_controller.port_ids)

@@ -3,6 +3,13 @@
 from pathlib import Path
 
 from machine_builder.controller import Controller
+from machine_builder.controller_board_fixtures import (
+    DUET_2_MAESTRO_CONNECTOR_LAYOUT,
+)
+from machine_builder.controller_visual_mutations import (
+    CreateDuet2MaestroControllerNode,
+)
+from machine_builder.hardware_catalog import build_duet_2_maestro
 from machine_builder.mutations import CreateNode
 from machine_builder.persistence import load_editor_state
 from machine_builder.semantic_connection import SemanticConnection
@@ -487,3 +494,142 @@ def test_store_save_creates_parent_directory(
     store.save(path)
 
     assert path.exists()
+
+def test_maestro_controller_round_trips_with_definition_ports_and_visual_links(
+    tmp_path: Path,
+) -> None:
+    store = ModelStore()
+    controller_id = "promega-maestro-controller"
+    visual_node_id = "promega-maestro-visual-node"
+
+    node = VisualNode(
+        id=visual_node_id,
+        node_type="controller",
+        label="Duet 2 Maestro v1.0",
+        x=144.0,
+        y=288.0,
+    )
+    store.commit(
+        CreateDuet2MaestroControllerNode(
+            controller_id=controller_id,
+            node=node,
+        )
+    )
+
+    before_controller = store.semantic_model.controllers[controller_id]
+    before_definition = store.semantic_model.hardware_definitions[
+        "duet-2-maestro-v1-0"
+    ]
+    expected_definition = build_duet_2_maestro()
+    expected_port_provenance = {
+        port_id: store.semantic_model.ports[port_id].provenance.copy()
+        for port_id in before_controller.port_ids
+    }
+    expected_port_connector_pin = {
+        port_id: (
+            store.semantic_model.ports[port_id].connector_id,
+            store.semantic_model.ports[port_id].pin_id,
+        )
+        for port_id in before_controller.port_ids
+    }
+    expected_visual_references = {
+        visual_port.id: visual_port.semantic_reference
+        for visual_port in store.model.nodes[visual_node_id].ports.values()
+    }
+    expected_port_count = sum(
+        position_count
+        for _connector_id, _connector_name, position_count
+        in DUET_2_MAESTRO_CONNECTOR_LAYOUT
+    )
+
+    path = tmp_path / "promega-maestro-reference-specimen.machine.json"
+    store.save(path)
+
+    reopened = ModelStore()
+    reopened.load(path)
+    loaded = reopened.state
+    semantic_model = loaded.semantic_model
+
+    assert set(semantic_model.hardware_definitions) == {
+        "duet-2-maestro-v1-0"
+    }
+    definition = semantic_model.hardware_definitions[
+        "duet-2-maestro-v1-0"
+    ]
+    assert definition.id == before_definition.id
+    assert definition.family == expected_definition.family
+    assert definition.manufacturer == expected_definition.manufacturer
+    assert definition.variant == expected_definition.variant
+    assert definition.provenance
+    assert definition.provenance == expected_definition.provenance
+    assert definition.properties["processor"] == (
+        expected_definition.properties["processor"]
+    )
+    assert "connector_specifications" in definition.properties
+
+    machine = semantic_model.machines["machine-1"]
+    assert machine.name == (
+        "M3D Promega \u2014 Compound reference specimen "
+        "(not verified as-built)"
+    )
+    assert machine.controller_ids == [controller_id]
+
+    controller = semantic_model.controllers[controller_id]
+    assert controller.id == controller_id
+    assert controller.hardware_definition_id == definition.id
+    assert controller.name == "Duet 2 Maestro v1.0"
+    assert controller.controller_type == "motion_controller"
+    assert controller.version is None
+    assert controller.properties["physical_revision_status"] == (
+        "not_verified_as_built"
+    )
+    assert len(controller.port_ids) == expected_port_count
+    assert len(set(controller.port_ids)) == expected_port_count
+
+    restored_ports = [
+        semantic_model.ports[port_id]
+        for port_id in controller.port_ids
+    ]
+    assert {
+        port.id: (port.connector_id, port.pin_id)
+        for port in restored_ports
+    } == expected_port_connector_pin
+    assert all(
+        port.controller_id == controller_id
+        and port.component_id is None
+        for port in restored_ports
+    )
+    assert {
+        port_id: semantic_model.ports[port_id].provenance
+        for port_id in controller.port_ids
+    } == expected_port_provenance
+
+    j4_ports = [
+        port
+        for port in restored_ports
+        if port.connector_id == "j4"
+    ]
+    assert len(j4_ports) == 4
+    assert {port.pin_id for port in j4_ports} == {
+        "1",
+        "2",
+        "3",
+        "4",
+    }
+
+    visual_node = loaded.visual_model.nodes[visual_node_id]
+    assert visual_node.node_type == "controller"
+    assert visual_node.semantic_reference == controller_id
+    assert visual_node.label == "Duet 2 Maestro v1.0"
+    assert visual_node.x == 144.0
+    assert visual_node.y == 288.0
+    assert len(visual_node.ports) == expected_port_count
+    assert {
+        visual_port.id: visual_port.semantic_reference
+        for visual_port in visual_node.ports.values()
+    } == expected_visual_references
+    assert {
+        visual_port.semantic_reference
+        for visual_port in visual_node.ports.values()
+    } == set(controller.port_ids)
+    assert set(visual_node.ports).isdisjoint(set(controller.port_ids))

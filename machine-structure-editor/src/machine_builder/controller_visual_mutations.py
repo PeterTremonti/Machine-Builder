@@ -5,6 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .controller import Controller
+from .controller_board_fixtures import (
+    add_duet_2_maestro_physical_interfaces,
+)
 from .controller_queries import (
     get_controller,
     machine_id_for_controller,
@@ -144,6 +147,82 @@ class CreateControllerVisualNode:
         self.node.semantic_reference = (
             controller.id
         )
+        self.node.label = controller.name
+
+        project_controller_ports(
+            controller,
+            state.semantic_model,
+            self.node,
+        )
+        state.visual_model.add_node(
+            self.node
+        )
+
+@dataclass(frozen=True)
+class CreateDuet2MaestroControllerNode:
+    """Atomically create a V1.0 reference-board controller and visual node."""
+
+    controller_id: str
+    node: VisualNode
+    machine_id: str = "machine-1"
+
+    def apply(
+        self,
+        state: EditorState,
+    ) -> None:
+        if self.node.node_type != "controller":
+            raise ValueError(
+                "Controller visual nodes must use "
+                "node_type='controller'."
+            )
+
+        if self.node.semantic_reference is not None:
+            raise ValueError(
+                "New controller visual node already has "
+                "a canonical reference: "
+                f"{self.node.semantic_reference}"
+            )
+
+        if self.node.id in state.visual_model.nodes:
+            raise ValueError(
+                "Visual node already exists: "
+                f"{self.node.id}"
+            )
+
+        if self.controller_id in state.semantic_model.controllers:
+            raise ValueError(
+                "Controller already exists: "
+                f"{self.controller_id}"
+            )
+
+        if not state.semantic_model.machines:
+            state.semantic_model.add_machine(
+                Machine(
+                    id=self.machine_id,
+                    name="M3D Promega \u2014 Compound reference specimen (not verified as-built)",
+                )
+            )
+
+        if self.machine_id not in state.semantic_model.machines:
+            raise ValueError(
+                f"Unknown machine: {self.machine_id}"
+            )
+
+        controller, _ports = add_duet_2_maestro_physical_interfaces(
+            model=state.semantic_model,
+            machine_id=self.machine_id,
+            controller_id=self.controller_id,
+            label=self.node.label,
+        )
+
+        # The selected definition is the V1.0 reference model. The
+        # physical board revision has not been independently verified.
+        controller.version = None
+        controller.properties["physical_revision_status"] = (
+            "not_verified_as_built"
+        )
+
+        self.node.semantic_reference = controller.id
         self.node.label = controller.name
 
         project_controller_ports(

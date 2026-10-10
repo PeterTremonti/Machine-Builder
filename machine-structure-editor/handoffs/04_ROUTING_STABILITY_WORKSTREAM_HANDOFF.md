@@ -1991,3 +1991,92 @@ Current status and next action
 The accepted connection-authoring implementation is committed and published. Continue the existing Routing investigation according to Planning's direction; this checkpoint does not justify a new Routing production change. Address the two listed coverage follow-ups only when Planning assigns that work.
 
 The three Research/Board document changes and the root .vscode/ configuration remained outside the implementation commit and push. This checkpoint changes Routing handoff documentation only; it does not include those other files.
+
+# Checkpoint 24 — 2026-10-10 — Board-backed Maestro palette authoring
+
+Purpose and disposition
+
+Record the completion of the bounded user-facing path for creating a board-backed Duet 2 Maestro controller as the first controller in the M3D Promega compound reference specimen. This is an implementation checkpoint, not a commit checkpoint.
+
+Checkout metadata captured immediately before the handoff edit
+
+Branch: main
+
+HEAD: 8ce8102539f10a46d4d057934dfff7570cc92164
+
+Local handoff edit timestamp, captured immediately before writing this checkpoint: 2026-10-10 01:38:47 -04:00
+
+The working-tree status below was captured in the same pre-edit command sequence:
+
+ M machine-structure-editor/src/machine_builder/canvas_palette.py
+ M machine-structure-editor/src/machine_builder/controller_board_fixtures.py
+ M machine-structure-editor/src/machine_builder/controller_visual_mutations.py
+ M machine-structure-editor/src/machine_builder/hardware_catalog.py
+ M machine-structure-editor/tests/test_controller_board_fixtures.py
+ M machine-structure-editor/tests/test_controller_palette_authoring.py
+ M machine-structure-editor/tests/test_duet_2_maestro_heater_specs.py
+ M machine-structure-editor/tests/test_duet_2_maestro_interface_specs.py
+ M machine-structure-editor/tests/test_store_persistence.py
+?? .vscode/launch.json
+
+No files were staged. No commit or push was performed for this implementation or this documentation update.
+
+Implemented files
+
+- machine-structure-editor/src/machine_builder/canvas_palette.py
+- machine-structure-editor/src/machine_builder/controller_visual_mutations.py
+- machine-structure-editor/tests/test_controller_palette_authoring.py
+- machine-structure-editor/tests/test_store_persistence.py
+
+The five concurrent Board/catalog/Board-test modifications and root .vscode/launch.json were outside this implementation scope and were not edited by this workstream.
+
+What changed
+
+The component palette now includes a named "Duet 2 Maestro v1.0" option while preserving the generic Controller option. Its tooltip explicitly clarifies that choosing the V1.0 reference-board model does not verify the physical board revision.
+
+The new board-backed mutation reuses add_duet_2_maestro_physical_interfaces() and project_controller_ports() instead of duplicating the documented connector/contact map. Definition registration, installed controller and canonical physical ports, machine membership, controller resources and relationships created by the helper, visual node linkage, and port projection occur inside one ModelStore mutation.
+
+The installed controller references the reusable HardwareDefinition ID duet-2-maestro-v1-0. Its physical board revision remains marked as not verified as-built; the installed Controller version field is not used to assert that the physical board is V1.0. The new-machine default name is "M3D Promega — Compound reference specimen (not verified as-built)".
+
+The committed baseline's reusable definition carries its source provenance. The existing physical-interface helper initializes installed SemanticPort provenance lists as empty. This milestone preserves that behavior rather than inventing per-port evidence.
+
+The connector-position count is source-state dependent. At the pre-J4-correction audit baseline (HEAD 8ce8102539f10a46d4d057934dfff7570cc92164), the layout contained 115 positions, including two synthetic bed-connector groups. After the J4 correction published in commit e85a1e38af74622de3a1b62cf1641af4b707fd26, the corrected definition's layout contains 111 positions. The implementation and test results recorded in this checkpoint were validated in the shared working tree after that correction and correspond to the 111-position layout.
+
+Regression coverage added
+
+- Named palette entry and reference-board revision caveat.
+- Board-backed palette creation with definition identity, machine membership, physical port ownership/identity, and visual projection assertions.
+- One-step undo and redo of the board-backed creation.
+- Save/reopen of the selected HardwareDefinition and its provenance, installed controller identity/reference, specimen machine membership, canonical ports and their ownership, and visual node/port references.
+
+Verification reported from the shared checkout
+
+Focused palette/controller/persistence command:
+
+67 passed in 0.56s; exit code 0.
+
+Full repository suite:
+
+830 passed in 4.27s; exit code 0.
+
+Whole-working-tree git diff --check:
+
+Exit code 0.
+
+Scoped four-file git diff --check:
+
+Exit code 0.
+
+The whole-tree check printed Git line-ending notices for the concurrent Board-owned tests test_controller_board_fixtures.py and test_duet_2_maestro_heater_specs.py. They were notices that LF would be replaced by CRLF on a future Git touch, not whitespace-check failures. Those Board-owned files were not edited by this milestone.
+
+These tests ran at HEAD 8ce8102539f10a46d4d057934dfff7570cc92164 against the shared working tree, which also contained the listed uncommitted Board/catalog changes. The results are recorded as reported checkout validation, not as a claim that the implementation was independently tested on a pristine checkout.
+
+Scope boundary and disposition
+
+This checkpoint adds one named board-backed creation path. It does not add a general catalog browser, change the canonical ontology, duplicate the Maestro port map, claim verification of the user's physical board revision, or alter Routing algorithms.
+
+The four implementation/test files remain uncommitted pending Planning's separate commit-gate decision. No stage, commit, or push is authorized by this checkpoint.
+
+Next action
+
+Return the changed-file scope, baseline, edit metadata, full and focused test results, and whitespace-check outcomes to Planning for review. Do not stage or commit until Planning separately authorizes it.
