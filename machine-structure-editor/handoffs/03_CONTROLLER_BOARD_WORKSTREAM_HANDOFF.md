@@ -1495,3 +1495,192 @@ The previous J4 implementation description in §26 is retained as a record of th
 Planning has accepted the J4 physical-interface correction plan. **Implementation remains NOT AUTHORIZED.**
 
 The next action is to await separate explicit implementation authorization. Until then, do not change application source, fixtures, tests, or catalog definitions. Any authorized future implementation must retain the thermal-testing qualification on the 18 A manufacturer statement and leave the complete bed-output path's verified safe current limit unassigned unless adequate evidence establishes it.
+
+
+
+
+
+-------------------------------------
+
+This is most likely in the wrong place and will need to be fixed by the #3 chat at the next handoff update but it was provided by #3 as the chat limit was reached.
+
+## 34. Maestro V1.0 Controller-Side Endpoint Evidence for Promega Wiring
+
+**Date:** October 10, 2026
+**Classification:** Bounded, read-only board-side evidence investigation
+**Status:** Endpoint identities substantially documented; machine-side harness mappings remain separate evidence work
+**Implementation:** No source or fixture changes authorized or performed by this investigation.
+
+### Scope and source authority
+
+This report establishes the controller/board-side endpoints that can support the first actual Promega wiring graph. It does not infer machine-specific harness connections merely from the presence of a connector on the Duet 2 Maestro.
+
+Primary Duet3D sources:
+
+1. [Maestro V1.0 Headers.sch](https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/master/Duet2/Duet2Maestro_v1.0/Headers.sch) — schematic sheet 4 of 7, dated 2017-12-05, revision 1.0. This is the primary source for connector reference designators, labels, contact counts, and electrical net identities.
+2. [Maestro V1.0 Htr_Fan.sch](https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/master/Duet2/Duet2Maestro_v1.0/Htr_Fan.sch) — schematic sheet 6 of 7, dated 2017-12-05, revision 1.0. This establishes the bed/E0/E1 heater control paths and FAN0/FAN1/FAN2 output circuits.
+3. [Duet2Maestro_Wiring_V1.0_drawing_v1.3.svg](https://github.com/Duet3D/Duet-2-Hardware/blob/master/Duet2/Duet2Maestro_v1.0/Duet2Maestro_Wiring_V1.0_drawing_v1.3.svg) — manufacturer wiring drawing for the Maestro V1.0 board, drawing revision v1.3. Use this for the physical wiring/contact-label convention, rather than reordering physical contacts solely from net names.
+4. [Duet3D Duet 2 Maestro hardware reference](https://github.com/Duet3D/wiki-content/blob/master/Duet3D_hardware/Duet_2_family/Duet_2_Maestro.md) and [Wiring your Duet 2](https://docs.duet3d.com/en/How_to_guides/Wiring_your_Duet_2) — supplementary manufacturer documentation.
+5. [Promega Duet Maestro Wiring guide](https://promega.printm3d.com/documentation/electronics/duet-maestro-wiring) — machine-specific evidence for the Promega's documented Z-probe wiring and Z-motor jumper considerations.
+6. Current published Machine Builder sources: [controller_board_fixtures.py](https://github.com/PeterTremonti/Machine-Builder/blob/main/machine-structure-editor/src/machine_builder/controller_board_fixtures.py) and [hardware_catalog.py](https://github.com/PeterTremonti/Machine-Builder/blob/main/machine-structure-editor/src/machine_builder/hardware_catalog.py). These establish the currently published canonical identifiers and fixture behavior. They are not a fresh inspection of the local checkout.
+
+### Canonical controller and port identity
+
+The canonical reusable HardwareDefinition identifier is:
+
+`duet-2-maestro-v1-0`
+
+The fixture's default Controller identifier is:
+
+`duet-2-maestro-v1-0-controller`
+
+The physical connector groups use the existing SemanticPort model. Port IDs are generated as:
+
+`{controller_id}-{connector_id}-pin-{position}`
+
+These ports are controller-owned (`component_id = None`). A physical connector identity, its individual contact ports, and a logical ControllerResource are distinct concepts. A resource's `exposed_through` relationship identifies which physical ports expose that resource; it is not itself a machine harness connection.
+
+### Motor interfaces
+
+The Maestro hardware catalog identifies five onboard stepper-driver channels and six four-contact physical motor connector groups because the Z driver has two physical access connectors.
+
+| Function             | Board reference and label | Machine Builder canonical connector ID | Evidence and status                                                                 |
+| -------------------- | ------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------- |
+| X motor              | J9 — X MOT                | `x-motor`                              | Documented in Headers.sch and the V1.0 wiring drawing; four contacts.               |
+| Y motor              | J8 — Y MOT                | `y-motor`                              | Documented; four contacts.                                                          |
+| Z motor, connector A | J36 — Z A                 | `z-a-motor`                            | Documented; four contacts.                                                          |
+| Z motor, connector B | J7 — Z B                  | `z-b-motor`                            | Documented; four contacts. Shares the onboard Z driver, not a sixth onboard driver. |
+| E0 motor             | J10 — E0 MOT              | `e0-motor`                             | Documented; four contacts.                                                          |
+| E1 motor             | J6 — E1 MOT               | `e1-motor`                             | Documented; four contacts.                                                          |
+
+The published fixture labels the four contacts of these motor groups `B1`, `B2`, `A1`, and `A2` in the established physical contact convention. Schematic net names such as `X_MOT_A1` and `Y_MOT_B1` provide the electrical associations; physical pin ordering should follow the manufacturer wiring drawing.
+
+The existing controller resource `duet-2-maestro-v1-0-controller-z-stepper` is exposed through the Z A and Z B physical connector groups. The Promega guide notes that jumper configuration is required when only one Z motor is used. The two Z connectors should therefore not be represented as two independent onboard Z-driver resources.
+
+The published fixture contains physical motor endpoint groups for X, Y, Z A/B, E0, and E1. It does not currently create separate onboard X/Y/E0/E1 stepper ControllerResources. Their physical endpoints are available; do not invent resource IDs or change the ontology within this wiring task.
+
+### Heater outputs
+
+#### E0 and E1
+
+The primary Headers.sch source identifies:
+
+* J11 — E0 HEAT, two-position terminal, `complib:3.5MM_2X1`;
+* J13 — E1 HEAT, two-position terminal, `complib:3.5MM_2X1`.
+
+The Htr_Fan.sch sheet documents the E0 and E1 MOSFET-controlled heater circuits, with `E0_PWM` / `E1_PWM`, `E0-` / `E1-`, and `V_IN` connections. The manufacturer wiring drawing states generic heater-output ratings of 2 A at 24 V for Molex-compatible heater outputs and 5 A at 24 V for screw-terminal heater outputs. Those generic classes should not be reused as ratings for a different connector or complete circuit.
+
+The canonical logical resources are:
+
+* `duet-2-maestro-v1-0-controller-e0-heater`
+* `duet-2-maestro-v1-0-controller-e1-heater`
+
+The published fixture currently exposes each resource through the corresponding `e0-heat-screw` / `e0-heat-molex` and `e1-heat-screw` / `e1-heat-molex` groups.
+
+**Important catalog/fixture discrepancy:** The manufacturer schematic identifies J16 (E0 HEAT) and J17 (E1 HEAT) as two-position alternate heater-access points with `PIN_ARRAY_2X1` footprints. The catalog's `board_features["alternate_heater_access"]` explicitly says that production population of J16/J17 is unverified. However, the installed fixture currently instantiates `e0-heat-molex` and `e1-heat-molex` as physical endpoint groups and includes them in the heater resources' exposure relationships.
+
+These facts are not yet reconciled. Do not treat the E0/E1 Molex groups as confirmed populated Promega-board endpoints until population evidence for the actual board is available. Retain the existing catalog and fixture without editing under this report.
+
+#### Bed heater — J4
+
+J4 is the sole modeled physical bed-heater connector following the accepted and implemented correction.
+
+| J4 position | Manufacturer net label | Current fixture purpose  |
+| ----------- | ---------------------- | ------------------------ |
+| 1           | `GND`                  | Ground reference         |
+| 2           | `V_IN`                 | Board power input        |
+| 3           | `V_IN`                 | Bed heater supply        |
+| 4           | `BED-`                 | Bed heater output return |
+
+The two `V_IN` contacts are electrically common but are distinct physical contact endpoints. The existing resource `duet-2-maestro-v1-0-controller-bed-heater` is exposed through J4 pins 3 and 4 only.
+
+The manufacturer hardware reference states bed-heater capability up to 18 A, subject to thermal testing, and separately lists the input connector at 25 A maximum. The latter is not a J4 output rating. No reviewed thermal-test results establish 18 A as a verified safe maximum for J4 contacts or the complete bed-output path. The verified safe current limit of that complete path remains unassigned.
+
+### Temperature inputs and temperature-daughterboard interface
+
+The manufacturer Headers.sch identifies four direct two-position temperature inputs:
+
+| Function        | Board reference and label | Canonical connector ID | Manufacturer net pair    |
+| --------------- | ------------------------- | ---------------------- | ------------------------ |
+| Bed temperature | J5 — BED TEMP             | `bed-temp`             | `THERMISTOR0` and `VSSA` |
+| E0 temperature  | J12 — E0 TEMP             | `e0-temp`              | `THERMISTOR1` and `VSSA` |
+| E1 temperature  | J14 — E1 TEMP             | `e1-temp`              | `THERMISTOR2` and `VSSA` |
+| C temperature   | J1 — C TEMP               | `c-temp`               | `THERMISTOR3` and `VSSA` |
+
+These are documented two-position temperature inputs. The catalog classifies them as thermistor/PT1000 inputs and the installed fixture gives their contacts input direction. The precise physical net/contact ordering should be retained from the manufacturer schematic when building individual contact-level connections. The interpretation of `C` as a specific machine subsystem should not be used as a substitute for Promega machine-side evidence.
+
+J37 — TEMP_DB is a separate ten-contact temperature-daughterboard/service interface, canonically `temp-ob`. It is not a fifth direct thermistor input. Do not connect an ordinary thermistor endpoint to TEMP_DB as though it were one of J1/J5/J12/J14; a daughterboard or suitable interface model would be required for that case.
+
+A visualization-relevant limitation remains: the current fixture instantiates two ports per direct temperature input but does not give them explicit contact-level `pin_label` values for `THERMISTOR0`–`THERMISTOR3` and `VSSA`. Connector identities are documented, but individual net-labeled temperature contact endpoints are not fully reflected in the current fixture representation.
+
+### X endstop
+
+The manufacturer schematic identifies J33 as the three-position `X_STOP` connector. Its signal net is `X_STOP_CONN`, with the shared endstop +3.3 V supply and GND contacts.
+
+The canonical fixture connector ID is `x-stop`, with three contact ports. It assigns the first contact the functional/canonical pin label `xstop` and input role, followed by `+3.3V` and `GND`. This is a useful functional alias, but it is not the same string as the schematic's electrical net label `X_STOP_CONN`.
+
+The board-side endpoint is therefore documented; the X endstop switch, connector housing, wire-side pinout, and machine cable termination remain separate machine/harness facts.
+
+### Z-probe interface
+
+The manufacturer schematic identifies J28 — Probe as a five-position interface. The published fixture's canonical connector ID is `z-probe`.
+
+| J28 position | Board-side label | Board-side role          |
+| ------------ | ---------------- | ------------------------ |
+| 1            | `Z_PROBE_IN`     | Probe signal input       |
+| 2            | `GND`            | Ground reference         |
+| 3            | `Z_PROBE_MOD`    | Probe MOD control output |
+| 4            | `+3.3V`          | 3.3 V supply             |
+| 5            | `+5V`            | 5 V supply               |
+
+The Promega wiring guide specifically documents its J28 use: position 1 is the signal wire identified as S10, position 2 is GND/P5, position 3 (MOD) is left empty, position 4 supplies 3.3 V/S9, and position 5 (5 V) is left empty.
+
+This distinction matters: positions 3 and 5 remain physical contacts on the board connector even though the documented Promega harness leaves them unwired. The catalog field `unused_position_numbers: [3, 5]` should not be interpreted as physical contacts being absent. Machine-side unconnected contacts must be represented on the harness/component side, not deleted from the board's physical interface.
+
+### Fan outputs and Always-On FAN
+
+The manufacturer schematic identifies three two-position PWM-controlled fan interfaces:
+
+| Function         | Board reference | Canonical connector ID | Main electrical facts                                     |
+| ---------------- | --------------- | ---------------------- | --------------------------------------------------------- |
+| Controlled fan 0 | J25 — FAN0      | `fan0`                 | Switched `FAN0-`; positive supply from bank A, `V_FAN_A`. |
+| Controlled fan 1 | J29 — FAN1      | `fan1`                 | Switched `FAN1-`; positive supply from bank A, `V_FAN_A`. |
+| Controlled fan 2 | J2 — FAN2       | `fan2`                 | Switched `FAN2-`; positive supply from bank B, `V_FAN_B`. |
+
+The supply for bank A is selected via J3 (`+5V`, `V_FAN_A`, `V_IN`); bank B is selected via J23 (`+5V`, `V_FAN_B`, `V_IN`). These are power-configuration interfaces. The controller-side ports for `fan0`, `fan1`, and `fan2` are PWM-controlled outputs.
+
+J24 is the separate two-position Always-On fan connection. The schematic annotates it as “Always on FAN 0” and its connector symbol label says “GND V_IN”; its positive electrical net is `V_FAN_A`, fed from the selectable bank-A supply. The canonical fixture connector ID is `always-on-fan`, with position 1 `GND` and position 2 `V_FAN_A`.
+
+**Always-On discrepancy to preserve:** J24's manufacturer annotation includes “FAN 0,” but it is not the controlled `FAN0` connector J25. The current fixture correctly distinguishes `always-on-fan` from `fan0`. Keep that distinction in labels, visualization, and endpoint authoring. Do not treat J24 as another PWM output or assume the selected bank-A voltage without checking the machine's jumper configuration.
+
+Another visualization limitation is that the current fan output groups have two physical contacts each but do not assign individual port labels for `FANn-` and the corresponding `V_FAN_A` / `V_FAN_B` rail. The catalog identifies each group as a controlled fan output; an explicit per-contact visualization would need those documented contact roles.
+
+### Connector, controller-resource, and harness boundaries
+
+For wiring authoring, preserve these separate layers:
+
+1. **Board connector/interface:** The physical manufacturer identity and connector reference, e.g. J9/X MOT or J28/Probe.
+2. **Board contact:** A specific controller-owned SemanticPort such as `duet-2-maestro-v1-0-controller-x-motor-pin-1` or `duet-2-maestro-v1-0-controller-j4-pin-3`.
+3. **ControllerResource:** A logical controller facility, such as `...-bed-heater`, `...-e0-heater`, `...-e1-heater`, or `...-z-stepper`, with its `exposed_through` relationships to relevant board contacts.
+4. **Machine-side physical endpoint and harness:** The installed motor, heater, sensor, probe, fan, switch, harness connector, and any named cable termination. These require machine-specific evidence and must not be inferred just because an endpoint exists on the controller.
+
+A board's port labels and capabilities do not by themselves establish which Promega cable is connected to which contact, nor whether a design-level alternate connector is populated on the actual board.
+
+### Explicit Promega harness evidence boundary
+
+This report does not resolve the following machine-side mappings:
+
+* P4 / P2;
+* H2 / H4;
+* S8 / S6;
+* P9 / P11.
+
+Those mappings must remain unresolved until backed by the applicable machine-specific wiring evidence or physical inspection. Do not infer them from the board connector inventory or port adjacency. The J28 probe connections mentioned above are included because the Promega wiring guide explicitly describes those five connector positions and which positions are left empty.
+
+### Smallest concrete follow-up for #4
+
+Proceed with the confirmed board-side connector/contact IDs above, and author a physical machine connection only when both endpoints and the machine-side wire/harness evidence are established.
+
+Before using the E0/E1 Molex-compatible endpoints in the Promega connection graph, verify whether J16/J17 are populated on the applicable Promega Maestro board or keep those endpoints provisional. Preserve the known J11/J13 screw-terminal endpoints separately. For J4, use the existing committed bed-resource exposure through pins 3 and 4; do not add an independent safe-current limit.
+
+For unresolved P4/P2, H2/H4, S8/S6, and P9/P11, the immediate deliverable should be a machine-side evidence table containing the source page/figure, exact endpoint labels, confidence/status, and any still-unknown contact—not guessed connections or new ontology. No Board source edit is part of this follow-up.
