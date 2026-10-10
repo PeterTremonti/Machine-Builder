@@ -25,6 +25,7 @@ from .semantic_connection import SemanticConnection
 from .semantic_model import (
     Machine,
     MachineComponent,
+    Provenance,
     SemanticPort,
 )
 from .semantic_projection import (
@@ -408,6 +409,7 @@ class CreateConnection:
     endpoint_b_id: str
     connection_type: str = "unknown"
     connection_properties: dict[str, str | None] | None = None
+    provenance_entries: list[Provenance] | None = None
 
     def apply(
         self,
@@ -471,6 +473,13 @@ class CreateConnection:
                 "harness_id": None,
                 "notes": None,
             }
+            if (
+                self.connection_properties is not None
+                and "documented_cable_label"
+                in self.connection_properties
+            ):
+                connection_properties["documented_cable_label"] = None
+
             if self.connection_properties is not None:
                 for key in connection_properties:
                     value = self.connection_properties.get(key)
@@ -487,6 +496,7 @@ class CreateConnection:
                     endpoint_b_id=semantic_endpoint_b,
                     connection_type=self.connection_type,
                     properties=connection_properties,
+                    provenance=list(self.provenance_entries or []),
                 )
             )
 
