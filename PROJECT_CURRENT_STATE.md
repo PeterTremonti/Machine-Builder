@@ -1146,4 +1146,38 @@ The latest reported Git state was `main` at `c445bef287d736afd20807f29d2506aab24
 
 ### Next action
 
-Complete the Planning-owned recovery-rule and project-state updates, inspect the combined documentation diff, and commit only the intended documentation files. Keep the connection-authoring implementation commit separate. After the documentation closeout, Planning will coordinate the next narrowly scoped Promega integration authorization.
+The preceding documentation closeout was the active next action at that earlier checkpoint and is superseded by the Planning Milestone Update below. The current next action is local review of the connector/contact validation proposal, followed by source-qualified Promega graph completion; this documentation update does not establish a newly verified current test result.
+
+## Planning Milestone Update — 2026-10-10
+
+**Scope:** Cross-workstream milestones and active dependencies. This update records checkpoint-specific evidence; it does not substitute for current repository tests or as-built inspection.
+
+### Published implementation and documentation milestones
+
+- Evidence-aware component and port provenance authoring was reported through commits `8e763a0149e270121dce84fcb79b296deed0ed0a`, `1b84f0f8e2451b31b8603fe7093cbf284ee6b62f`, and `fbd8e12b236cb9bd21a9d1024b13b3076b3bd317`. The correction checkpoint addresses component-owned port provenance mutation and verification.
+- The board-backed Maestro palette creation was published as `c3200c1e61219443e0fcc7eba8d673d332954680`. A selected V1.0 reference definition does not establish the physical revision of an installed controller.
+- The Promega reference-specimen integration test was published as `4ea18dafa100b5b93d504f41229036b48854447f`. It exercises a Maestro reference controller and fourteen generic component roles, provenance, undo/redo, and persistence. It does **not** establish a complete wired specimen: the test does not provide the component-owned endpoint and physical-connection graph needed for that claim, nor verified as-built hardware identity.
+- Compound assembly cable-label endpoint documentation was published as `a1ef91a34dccf76102c05f1a245c20c0175b0aec`. These labels are reference endpoint evidence, not proof of the physical harness on the user's machine and not themselves electrical connections.
+- Three source-qualified reference IR-probe connections were published as `3ba0253dc5231b822c23aa2b0eb19065ca0880cb`: `S10` to J28 position 1 (`Z_PROBE_IN`), `P5` to J28 position 2 (`GND`), and `S9` to J28 position 4 (`+3.3V`). Their provenance identifies manufacturer-documented reference wiring, not verified as-built wiring. The Routing handoff checkpoint was published as `cd81c88f517bb0ab82c3cb0453713cf19d5ad9d2`.
+- The Maestro J4 bed-heater mapping correction was published as `e85a1e38af74622de3a1b62cf1641af4b707fd26`. The documented J4 contact mapping does not establish a safe current limit for the complete output circuit.
+- The common commit/push workflow and the distinct workstream versus Planning documentation cadence were published in `CHAT_WORKFLOW.md` as `783c3b56b9f549fbb443c3f7a9a905c413f6a36a`. Section 34's cross-workstream message format remains in place.
+
+Reported test results remain tied to their original checkpoints. The earlier reports include 835 full-suite passes for the reference-specimen checkpoint, 836 for the assembly-label checkpoint, and 837 for the IR-probe connection checkpoint. The later workflow-only documentation commit did not rerun the code suite; these counts must not be presented as a newly verified current-suite result.
+
+### Connector/contact representation research
+
+- Research conditionally accepted the connector-group/contact convention as a candidate representation, not yet as a fully persistence-validated production standard.
+- The proposed SKR Mini E3 V3.0 EXP1 sample must cover positions **1, 2, 3, 4, 8, 9, and 10**. The connector group uses `connector_id="exp1"` and `pin_id=None`; contact positions remain separate from MCU mappings and firmware aliases.
+- Board research reports that the V3.0-specific BTT Klipper sample, upstream Klipper, and Marlin mappings agree on `PD6` for EXP1 position 8. The manufacturer-PDF rendered-page inspection remains open; literal silkscreen labels, connector orientation, and PDF identity by blob/checksum are not fully verified.
+- The Octopus Driver 2 contact-6 `SLEEP` / `DRIVER2_SLP` versus TMC5160T Pro V1.0 J1-6 `CLK` discrepancy remains unresolved. It must not be normalized or represented as an electrical connection. The module-side contact should be independently represented for the bounded contact-level test.
+- The existing object-level provenance model does not by itself enforce source attribution to every property. A human-auditable context convention is not equivalent to typed, machine-enforced fact-level provenance.
+- The known integer-keyed maps in the current Octopus mating example remain a separate save/reopen limitation. An expected serialization failure is not a successful round-trip.
+
+### Current gates and next action
+
+1. #4 must verify #2's reissued, complete test proposal against the actual shared checkout and current APIs before authoring or executing it. The last #4 report said this review was blocked because the exact proposal was unavailable; #2 has since reported reissuing it directly to #4. No subsequent local test result has been reported here.
+2. #3's latest report reconciles the V3.0 firmware mapping to `PD6` but explicitly leaves direct manufacturer-PDF visual verification open.
+3. If the intact Octopus specimen still cannot be saved and reopened due to integer-keyed maps, scope a separate persistence-compatibility design. Do not silently rewrite existing catalog data to make the test pass.
+4. Continue the Promega physical endpoint and connection graph using supported reference evidence; keep firmware-version assignments, functional relationships, and user-specific as-built facts distinct.
+
+No new canonical ontology entity is justified by these bounded findings. Revisit that conclusion only if an actual tested case demonstrates that the existing semantic model cannot represent the required facts coherently.

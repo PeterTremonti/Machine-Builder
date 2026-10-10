@@ -458,10 +458,24 @@ The objective is a credible machine specimen that can represent documented insta
 
 Planning will coordinate the next bounded implementation steps to establish a real Promega specimen. The order should follow demonstrated dependencies: establish reviewed hardware instantiation and board-interface coverage, author available physical connections without fabricating missing mappings, express documented functional relationships separately from wiring, and verify save/reopen persistence.
 
-The accepted Maestro J4 bed-heater correction plan is **not yet authorized for implementation**. Before that implementation is started, preserve the finding that Duet3D publishes a bed-heater capability figure of up to 18 A subject to thermal testing. This is not a verified safe maximum for J4's contacts or the complete bed-output circuit.
+The Maestro J4 bed-heater interface correction was committed and published as e85a1e38af74622de3a1b62cf1641af4b707fd26 (Correct Maestro bed heater interface mapping). The correction maps the bed-heater interface through J4 contacts 3/4. Duet3D's published figure of up to 18 A subject to thermal testing is not a verified safe maximum for J4's contacts or the complete bed-output circuit.
 
 ### Preserve uncertainty and defer scope expansion
 
 Keep the user's actual machine variant, firmware configuration, harness arrangement, and undocumented pin or connector assignments unverified until evidence establishes them. Keep the unresolved P4/P2, H2/H4, S8/S6, and P9/P11 mappings explicit.
 
 Defer broad catalog importing, supplier integrations, a personal custom catalog, and further ontology expansion unless the real-machine workflow demonstrates a concrete need. Return to architecture only when a specific case shows that the existing semantics cannot represent the required relationship coherently.
+
+## Planning Checkpoint — Promega Vertical Slice and Connector/Contact Validation (2026-10-10)
+
+The vertical slice has progressed from general authoring infrastructure to a source-qualified Promega reference specimen and a small number of reference connection edges. It is not yet a complete or verified as-built machine model.
+
+### Current sequencing decision
+
+1. Review and run the bounded connector/contact validation only after #4 checks #2's reissued proposal against the actual code and current baseline.
+2. Keep the SKR Mini E3 V3.0 EXP1 round-trip acceptance separate from the Octopus in-memory structural assessment and its legacy integer-key persistence limitation.
+3. Preserve the Octopus `SLEEP` / `DRIVER2_SLP` versus TMC5160T Pro V1.0 `CLK` discrepancy. Do not infer contact-to-contact electrical compatibility from a group-level `mated_with` relationship.
+4. Complete the Promega endpoint/connection graph from source-supported evidence, then address documented functional relationships and version-qualified firmware mappings as separate modeling tasks.
+5. Reconcile the reference model against the user's actual machine only when physical variant, harness, active configuration, and wiring evidence are available.
+
+The SKR position-8 firmware mapping is consistently reported as `PD6`; direct rendered-manufacturer-PDF verification is still open. Connector/contact representation remains conditionally accepted, and no ontology expansion is authorized by the current evidence.

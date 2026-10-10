@@ -775,4 +775,35 @@ Before committing, verify the actual branch, HEAD, working-tree status, intended
 
 ### Current Planning Next Action
 
-Finish and verify the nine-file documentation closeout, then commit and publish it separately from the connection-authoring implementation. Preserve each workstream's own timestamp and verification baseline. After closeout, Planning will issue the next bounded Promega integration assignment; the accepted J4 correction plan remains awaiting explicit implementation authorization.
+Planning's active next action is to maintain the cross-workstream state and coordinate the next bounded Promega vertical-slice tasks. The Maestro J4 correction was published as e85a1e38af74622de3a1b62cf1641af4b707fd26; current-limit safety remains unestablished. Connector/contact validation must wait for local review of the reissued test proposal and source evidence.
+
+## Planning Coordination Update — 2026-10-10
+
+### Latest shared workflow checkpoint
+
+The latest reported shared-main publication is `783c3b56b9f549fbb443c3f7a9a905c413f6a36a` — `Standardize commit and handoff cadence`. The workstream report says `CHAT_WORKFLOW.md` was the only committed path, publication was verified, and the code suite was not rerun because this was a documentation-only change. The preflight for this documentation update verified local HEAD, fetched origin/main, and live remote main all at 783c3b56b9f549fbb443c3f7a9a905c413f6a36a before writing.
+
+The common workflow now distinguishes:
+- each workstream's handoff update after five successfully published commits attributable to that workstream, with earlier updates for milestones; and
+- Planning's responsibility to refresh cross-workstream project records when a material change is established, regardless of the individual five-commit count.
+
+### Current project-level decisions
+
+- The Maestro J4 correction is already published as `e85a1e38af74622de3a1b62cf1641af4b707fd26`; the old planning statement that it was awaiting implementation authorization is superseded. The documented interface mapping does not establish a safe current limit for the full output circuit.
+- The Promega specimen, assembly endpoint labels, and three IR-probe reference connections are incremental checkpoints. They do not establish complete physical wiring, active firmware configuration, or verified as-built machine identity.
+- The connector-group/contact convention is conditionally accepted as a bounded candidate. #2 has reissued the complete test proposal to #4. The prior #4 review was blocked because the exact source was unavailable; local review/validation after the reissue has not yet been reported.
+- #3's latest crosswalk uses immutable V3.0-specific firmware sources and reports `PD6` at EXP1 position 8 across BTT Klipper, upstream Klipper, and Marlin. Direct visual inspection of the manufacturer's PDF remains open, so do not describe the printed label or connector orientation as visually verified.
+- Octopus contact 6 remains `SLEEP` / `DRIVER2_SLP` against TMC5160T Pro V1.0 J1-6 `CLK`. Preserve the unresolved incompatibility and distinguish in-memory structure from successful save/reopen.
+- Keep source evidence, firmware aliases, functional relationships, canonical physical connections, and user-specific as-built facts separate. No new ontology entity is warranted by the current evidence.
+
+### Immediate Planning sequence
+
+1. Receive #4's local API/source review of the reissued validation test and its actual results.
+2. Receive #3's final clarification if it obtains a rendered-page view of the pinned manufacturer PDF; until then leave that item open.
+3. If Octopus save/reopen remains blocked by non-string dictionary keys, authorize a separate compatibility design instead of mutating the existing fixture silently.
+4. Continue the Promega reference connection graph only from sourced endpoints; separately model documented functions and firmware-version assignments.
+5. Reconcile `PROJECT_CURRENT_STATE.md` and this handoff at the next material checkpoint. Leave #2–#5 handoff ownership with their respective workstreams.
+
+### Scope and evidence status
+
+This handoff records reports supplied through the October 10, 2026 workflow publication. It does not claim new test execution. The recent test counts remain checkpoint-specific, and this local update must not include the concurrent modified Board handoff or the untracked `.vscode/launch.json`.
