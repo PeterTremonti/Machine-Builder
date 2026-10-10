@@ -38,6 +38,7 @@ class UpdateMachineComponent:
     label: str | None = None
     properties: dict[str, Any] | None = None
     provenance: Provenance | None = None
+    provenance_entries: list[Provenance] | None = None
 
     def apply(
         self,
@@ -82,6 +83,11 @@ class UpdateMachineComponent:
         if self.properties is not None:
             component.properties = (
                 self.properties.copy()
+            )
+
+        if self.provenance_entries is not None:
+            component.provenance = list(
+                self.provenance_entries
             )
 
         if self.provenance is not None:

@@ -131,6 +131,7 @@ class CanvasEditingMixin:
                 role=result.role,
                 label=result.label,
                 properties=result.properties,
+                provenance_entries=result.provenance,
             )
         )
 
@@ -212,7 +213,7 @@ class CanvasEditingMixin:
             connector_id=result.connector_id,
             pin_id=result.pin_id,
             properties=result.properties,
-            provenance=[],
+            provenance=result.provenance.copy(),
         )
 
         self.store.commit(
@@ -453,6 +454,7 @@ class CanvasEditingMixin:
                 connector_id=result.connector_id,
                 pin_id=result.pin_id,
                 properties=result.properties,
+                provenance_entries=result.provenance,
             )
         )
 

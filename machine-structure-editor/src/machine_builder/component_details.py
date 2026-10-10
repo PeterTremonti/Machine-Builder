@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -18,7 +18,11 @@ from PySide6.QtWidgets import (
 from .component_properties import (
     ComponentPropertiesDialog,
 )
-from .semantic_model import MachineComponent
+from .provenance_details import ProvenanceDialog
+from .semantic_model import (
+    MachineComponent,
+    Provenance,
+)
 
 
 @dataclass(frozen=True)
@@ -28,6 +32,7 @@ class ComponentDetailsResult:
     role: str
     label: str
     properties: dict[str, str]
+    provenance: list[Provenance] = field(default_factory=list)
 
 
 class ComponentDetailsDialog(QDialog):
@@ -59,6 +64,7 @@ class ComponentDetailsDialog(QDialog):
             in component.properties.items()
         }
 
+        self._provenance = list(component.provenance)
         self._build_ui(
             component,
             machine_name,
@@ -135,6 +141,19 @@ class ComponentDetailsDialog(QDialog):
             self._properties_button
         )
 
+        self._provenance_button = QPushButton(
+            f"Edit Provenance... ({len(self._provenance)})"
+        )
+        self._provenance_button.setObjectName(
+            "editProvenanceButton"
+        )
+        self._provenance_button.clicked.connect(
+            self._edit_provenance
+        )
+        layout.addWidget(
+            self._provenance_button
+        )
+
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok
             | QDialogButtonBox.StandardButton.Cancel
@@ -150,6 +169,26 @@ class ComponentDetailsDialog(QDialog):
 
         layout.addWidget(
             buttons
+        )
+
+    def _edit_provenance(
+        self,
+    ) -> None:
+        """Open the multi-entry provenance editor."""
+        dialog = ProvenanceDialog(
+            self._provenance,
+            parent=self,
+        )
+
+        if (
+            dialog.exec()
+            != dialog.DialogCode.Accepted
+        ):
+            return
+
+        self._provenance = dialog.result_provenance()
+        self._provenance_button.setText(
+            f"Edit Provenance... ({len(self._provenance)})"
         )
 
     def _edit_properties(
@@ -168,7 +207,7 @@ class ComponentDetailsDialog(QDialog):
             ),
             properties=self._properties.copy(),
             provenance=(
-                self._component.provenance.copy()
+                self._provenance.copy()
             ),
         )
 
@@ -203,6 +242,7 @@ class ComponentDetailsDialog(QDialog):
             role=self._role_edit.text(),
             label=self._label_edit.text(),
             properties=self._properties.copy(),
+            provenance=self._provenance.copy(),
         )
 
     def accept(self) -> None:

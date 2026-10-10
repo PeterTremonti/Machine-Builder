@@ -2080,3 +2080,51 @@ The four implementation/test files remain uncommitted pending Planning's separat
 Next action
 
 Return the changed-file scope, baseline, edit metadata, full and focused test results, and whitespace-check outcomes to Planning for review. Do not stage or commit until Planning separately authorizes it.
+
+
+# Checkpoint 25 - 2026-10-10 - Evidence-aware component and port provenance authoring
+
+Purpose and disposition
+
+Implement reusable user-facing editing of multiple existing Provenance records for MachineComponent and component-owned SemanticPort, using the current canonical schema and existing store mutations.
+
+Implementation
+
+- Added a reusable six-field provenance table editor with add/remove row controls.
+- Component and port detail dialogs expose an Edit Provenance control and return the complete provenance list alongside their existing fields.
+- Existing component and port mutations accept an optional provenance_entries list for undoable list replacement while retaining append-one-record compatibility.
+- Canvas editing passes component evidence through component updates, component-owned port evidence through port creation, and port evidence through port updates.
+- Generic components retain hardware_definition_id=None when the hardware identity is unknown. The persistence regression uses synthetic fixture endpoint identifiers explicitly marked as test-only, not Promega physical endpoint claims.
+- No ontology, catalog, hardware schema, automatic connection, or resource assignment was added.
+
+Files in scope
+
+- machine-structure-editor/src/machine_builder/provenance_details.py
+- machine-structure-editor/src/machine_builder/component_details.py
+- machine-structure-editor/src/machine_builder/port_details.py
+- machine-structure-editor/src/machine_builder/semantic_component_mutations.py
+- machine-structure-editor/src/machine_builder/semantic_port_mutations.py
+- machine-structure-editor/src/machine_builder/canvas_editing.py
+- machine-structure-editor/tests/test_provenance_details.py
+- machine-structure-editor/tests/test_component_authoring_ui.py
+- machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
+
+Verification
+
+Focused command: python 
+-m pytest -q tests/test_provenance_details.py tests/test_component_authoring_ui.py tests/test_component_details.py tests/test_component_properties.py tests/test_port_details.py tests/test_port_properties.py tests/test_semantic_component_mutations.py tests/test_semantic_port_mutations.py tests/test_store_persistence.py tests/test_controller_palette_authoring.py
+Focused result: 
+
+ (exit 
+-1
+).
+Full command: python -m pytest -q
+Full result: 
+
+ (exit 
+-1
+).
+Pre-handoff git diff --check is run below; staged diff is checked separately before commit.
+
+Recorded at: 
+2026-10-10 11:54:22 -04:00

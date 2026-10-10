@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
@@ -18,7 +18,11 @@ from PySide6.QtWidgets import (
 from .port_properties import (
     PortPropertiesDialog,
 )
-from .semantic_model import SemanticPort
+from .provenance_details import ProvenanceDialog
+from .semantic_model import (
+    Provenance,
+    SemanticPort,
+)
 
 
 @dataclass(frozen=True)
@@ -30,6 +34,8 @@ class PortDetailsResult:
     connector_id: str | None
     pin_id: str | None
     properties: dict[str, str]
+    provenance: list[Provenance] = field(default_factory=list)
+    provenance: list[Provenance] = field(default_factory=list)
 
 
 class PortDetailsDialog(QDialog):
@@ -61,6 +67,7 @@ class PortDetailsDialog(QDialog):
             in port.properties.items()
         }
 
+        self._provenance = list(port.provenance)
         self._build_ui(
             port,
             component_label,
@@ -159,6 +166,19 @@ class PortDetailsDialog(QDialog):
             self._properties_button
         )
 
+        self._provenance_button = QPushButton(
+            f"Edit Provenance... ({len(self._provenance)})"
+        )
+        self._provenance_button.setObjectName(
+            "editProvenanceButton"
+        )
+        self._provenance_button.clicked.connect(
+            self._edit_provenance
+        )
+        layout.addWidget(
+            self._provenance_button
+        )
+
         buttons = QDialogButtonBox(
             QDialogButtonBox.StandardButton.Ok
             | QDialogButtonBox.StandardButton.Cancel
@@ -174,6 +194,26 @@ class PortDetailsDialog(QDialog):
 
         layout.addWidget(
             buttons
+        )
+
+    def _edit_provenance(
+        self,
+    ) -> None:
+        """Open the multi-entry provenance editor."""
+        dialog = ProvenanceDialog(
+            self._provenance,
+            parent=self,
+        )
+
+        if (
+            dialog.exec()
+            != dialog.DialogCode.Accepted
+        ):
+            return
+
+        self._provenance = dialog.result_provenance()
+        self._provenance_button.setText(
+            f"Edit Provenance... ({len(self._provenance)})"
         )
 
     def _edit_properties(
@@ -201,7 +241,7 @@ class PortDetailsDialog(QDialog):
             ),
             properties=self._properties.copy(),
             provenance=(
-                self._port.provenance.copy()
+                self._provenance.copy()
             ),
         )
 
@@ -254,6 +294,7 @@ class PortDetailsDialog(QDialog):
                 else None
             ),
             properties=self._properties.copy(),
+            provenance=self._provenance.copy(),
         )
 
     def accept(self) -> None:

@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QApplication, QDialog, QPushButton
 import machine_builder.canvas_editing as canvas_editing
 from machine_builder.canvas import MachineCanvas
 from machine_builder.persistence import load_editor_state
+from machine_builder.store import ModelStore
 from machine_builder.port_details import PortDetailsResult
 from machine_builder.semantic_component_mutations import (
     UpdateMachineComponent,
@@ -17,9 +18,11 @@ from machine_builder.semantic_component_mutations import (
 from machine_builder.semantic_model import (
     Machine,
     MachineComponent,
+    Provenance,
     SemanticPort,
 )
 from machine_builder.semantic_port_mutations import (
+    CreateSemanticPort,
     UpdateSemanticPort,
 )
 from machine_builder.visual_model import VisualPort
@@ -624,3 +627,157 @@ def test_palette_created_component_can_add_port_and_round_trip(
         for port in restored_node.ports.values()
     ) == 1
     assert restored.semantic_model.controllers == {}
+
+def test_component_and_owned_port_provenance_are_undoable_and_persisted(
+    tmp_path,
+) -> None:
+    canvas = make_canvas()
+    component = canvas.store.semantic_model.components["component-1"]
+    original_component_provenance = list(component.provenance)
+
+    # This component deliberately has no catalog/hardware identity.
+    assert component.hardware_definition_id is None
+
+    component_evidence = [
+        Provenance(
+            source="Synthetic fixture documentation",
+            evidence_type="documentation",
+            method="manual transcription",
+            context="Generic test component only",
+            date="2026-10-10",
+            notes="Physical hardware identity has not been established.",
+        ),
+        Provenance(
+            source="Review note",
+            evidence_type="authored",
+            method="manual review",
+            context="Generic test component only",
+            date="2026-10-10",
+            notes="Do not infer a product identity from role or appearance.",
+        ),
+    ]
+    component_properties = {
+        "verification_status": "identity_unknown",
+        "verification_notes": "Hardware identity not verified.",
+    }
+
+    canvas.store.commit(
+        UpdateMachineComponent(
+            component_id=component.id,
+            role="test-device",
+            label="Generic component (hardware identity unknown)",
+            properties=component_properties,
+            provenance_entries=component_evidence,
+        )
+    )
+
+    edited_component = canvas.store.semantic_model.components[component.id]
+    assert edited_component.hardware_definition_id is None
+    assert edited_component.role == "test-device"
+    assert edited_component.label == "Generic component (hardware identity unknown)"
+    assert edited_component.properties == component_properties
+    assert edited_component.provenance == component_evidence
+
+    assert canvas.store.undo()
+    undone_component = canvas.store.semantic_model.components[component.id]
+    assert undone_component.provenance == original_component_provenance
+    assert undone_component.hardware_definition_id is None
+
+    assert canvas.store.redo()
+    redone_component = canvas.store.semantic_model.components[component.id]
+    assert redone_component.role == "test-device"
+    assert redone_component.label == "Generic component (hardware identity unknown)"
+    assert redone_component.properties == component_properties
+    assert redone_component.provenance == component_evidence
+    assert redone_component.hardware_definition_id is None
+
+    # The connector/contact identifiers below are synthetic test identifiers,
+    # not a claim about any real machine or Promega endpoint.
+    initial_port_evidence = Provenance(
+        source="Synthetic port fixture",
+        evidence_type="test_fixture",
+        method="fixture construction",
+        context="Synthetic port only; not a real connector assignment",
+        date="2026-10-10",
+        notes="Connector and contact values are test identifiers.",
+    )
+    port = SemanticPort(
+        id="component-1-evidence-port",
+        component_id=component.id,
+        purpose="fixture signal endpoint",
+        direction="input",
+        connector_id="fixture-connector-1",
+        pin_id="fixture-contact-2",
+        properties={
+            "verification_notes": "Fixture only; physical continuity not tested."
+        },
+        provenance=[initial_port_evidence],
+    )
+    canvas.store.commit(
+        CreateSemanticPort(
+            port=port,
+        )
+    )
+
+    port_evidence = [
+        initial_port_evidence,
+        Provenance(
+            source="Endpoint review note",
+            evidence_type="authored",
+            method="manual review",
+            context="Synthetic fixture port",
+            date="2026-10-10",
+            notes="No real machine endpoint is asserted by this test.",
+        ),
+    ]
+    canvas.store.commit(
+        UpdateSemanticPort(
+            port_id=port.id,
+            provenance_entries=port_evidence,
+        )
+    )
+
+    edited_port = canvas.store.semantic_model.ports[port.id]
+    assert edited_port.component_id == component.id
+    assert edited_port.connector_id == "fixture-connector-1"
+    assert edited_port.pin_id == "fixture-contact-2"
+    assert edited_port.provenance == port_evidence
+
+    assert canvas.store.undo()
+    assert canvas.store.semantic_model.ports[port.id].provenance == [
+        initial_port_evidence
+    ]
+
+    assert canvas.store.redo()
+    assert canvas.store.semantic_model.ports[port.id].provenance == port_evidence
+
+    path = tmp_path / "provenance-authoring-round-trip.machine.json"
+    canvas.store.save(path)
+
+    reopened = ModelStore()
+    reopened.load(path)
+    loaded = reopened.state.semantic_model
+    restored_component = loaded.components[component.id]
+    restored_port = loaded.ports[port.id]
+
+    assert restored_component.hardware_definition_id is None
+    assert restored_component.role == "test-device"
+    assert restored_component.label == "Generic component (hardware identity unknown)"
+    assert restored_component.properties == component_properties
+    assert restored_component.provenance == component_evidence
+    assert restored_component.provenance[1].notes == (
+        "Do not infer a product identity from role or appearance."
+    )
+
+    assert restored_port.component_id == component.id
+    assert restored_port.purpose == "fixture signal endpoint"
+    assert restored_port.direction == "input"
+    assert restored_port.connector_id == "fixture-connector-1"
+    assert restored_port.pin_id == "fixture-contact-2"
+    assert restored_port.properties == {
+        "verification_notes": "Fixture only; physical continuity not tested."
+    }
+    assert restored_port.provenance == port_evidence
+    assert restored_port.provenance[1].notes == (
+        "No real machine endpoint is asserted by this test."
+    )

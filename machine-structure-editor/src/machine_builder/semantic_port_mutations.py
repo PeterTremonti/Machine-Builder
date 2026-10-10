@@ -172,6 +172,11 @@ class UpdateSemanticPort:
                 self.properties.copy()
             )
 
+        if self.provenance_entries is not None:
+            port.provenance = list(
+                self.provenance_entries
+            )
+
         if self.provenance is not None:
             port.provenance.append(
                 self.provenance
