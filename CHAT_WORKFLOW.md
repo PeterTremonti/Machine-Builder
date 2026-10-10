@@ -1278,3 +1278,38 @@ expected result / next checkpoint
 This applies to repository inspection, testing, implementation, documentation changes, and other work where a concrete next action is already known.
 
 The user should not have to compose commands from a plan that the chat has already determined.
+
+---
+# 34. Cross-Workstream Messaging and Copy-Ready Handoffs
+
+This section defines the required format for messages that move between Machine Builder workstream chats.
+
+## Required sender-to-recipient label
+
+Every cross-workstream message must be fully enclosed in one clearly identified copy-ready block. The first line inside the block must use this format:
+
+From #N -> To #M - Topic
+
+Replace #N with the sending chat and #M with the receiving chat. For example:
+
+From #2 -> To #1 - Promega endpoint evidence matrix
+
+From #1 -> To #4 - Component endpoint authoring
+
+The sender, recipient, and topic must be inside the copy-ready block. The user must not have to type a prefix, prepend a label, or supply missing context when pasting the message.
+
+## Self-contained copy blocks
+
+- Put every instruction, report, handoff, acceptance review, decision, and required context inside the copy-ready block.
+- Do not put required portions before or after the block where the user must remember to copy them separately.
+- Use one complete block per destination chat. If multiple chats need messages, provide separate blocks in numerical chat order: #1, #2, #3, #4, #5.
+- Within each chat's file list, sort file paths alphabetically.
+- Text outside a copy-ready block may explain the message to the user, but it must not be necessary to make the copied message understandable or actionable.
+- Replies intended to be forwarded to another chat must follow the same rule, including reports returned to Planning. A report from #2 to #1 must carry the label "From #2 -> To #1" inside its own block.
+- Do not force ordinary responses intended only for the user into cross-workstream blocks.
+
+## Copy completeness
+
+Before sending a cross-workstream message, verify that its block is complete, correctly addressed, and contains the entire handoff. Do not require the user to reconstruct, shorten, relabel, or combine content from different parts of a response.
+
+The purpose is to eliminate manual sender prefixes and prevent the user from copying too little or too much.
