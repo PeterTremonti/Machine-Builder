@@ -64,6 +64,7 @@ class CanvasSelectionMixin:
                 connection,
                 self.store.model,
                 item,
+                self.store.semantic_model,
             )
 
             return

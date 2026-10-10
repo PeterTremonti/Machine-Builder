@@ -35,6 +35,15 @@ from .compatibility import (
     CompatibilityResult,
     check_port_compatibility,
 )
+from .connection_details import (
+    ConnectionEndpointSummary,
+    PhysicalConnectionDetailsDialog,
+    confirm_conditional_compatibility,
+    confirm_unknown_compatibility,
+    confirm_visual_only_connection,
+    show_incompatible_connection,
+    show_invalid_canonical_reference,
+)
 from .graphics.connection import ConnectionGraphicsItem
 from .graphics.node import NodeGraphicsItem
 from .graphics.port import PortGraphicsItem
@@ -44,6 +53,7 @@ from .mutations import (
     DeleteNodes,
     MoveNodes,
 )
+from .visual_model import VisualPort
 
 
 @dataclass
@@ -687,150 +697,223 @@ class CanvasInteractionMixin:
             message
         )
 
+    def _connection_endpoint_summary(
+        self,
+        visual_port: VisualPort,
+    ) -> ConnectionEndpointSummary:
+        """Build a read-only endpoint summary from its canonical port."""
+        reference = visual_port.semantic_reference
+        if reference is None:
+            raise ValueError("The visual endpoint has no canonical port reference.")
+
+        semantic_port = self.store.semantic_model.get_port(reference)
+        owner_label = "Unspecified"
+
+        if semantic_port.component_id is not None:
+            component = self.store.semantic_model.components.get(
+                semantic_port.component_id
+            )
+            if component is not None:
+                owner_label = component.label or component.role or component.id
+        elif semantic_port.controller_id is not None:
+            controller = self.store.semantic_model.controllers.get(
+                semantic_port.controller_id
+            )
+            if controller is not None:
+                owner_label = controller.name or controller.id
+
+        purpose = semantic_port.purpose
+        connector_id = semantic_port.connector_id
+        pin_id = semantic_port.pin_id
+
+        if not purpose or not purpose.strip():
+            purpose = "Unspecified"
+        if not connector_id or not connector_id.strip():
+            connector_id = "Unspecified"
+        if not pin_id or not pin_id.strip():
+            pin_id = "Unspecified"
+
+        return ConnectionEndpointSummary(
+            owner_label=owner_label,
+            port_purpose=purpose,
+            connector_id=connector_id,
+            pin_id=pin_id,
+        )
+
     def _finish_connection_drag(
         self,
         source_port_id: str,
         scene_position: QPointF,
     ) -> None:
-        """Commit a valid physical connection or cancel the preview."""
+        """Create a connection only after required authoring decisions."""
         drag = self._active_connection_drag
-
         if drag is None:
             return
 
-        target_item = (
-            self.scene_controller.find_port_graphics_at(
-                scene_position
-            )
+        target_item = self.scene_controller.find_port_graphics_at(
+            scene_position
         )
-
         target_port_id = (
             target_item.port_id
             if target_item is not None
             else None
         )
-
-        source_port = self.store.model.find_port(
-            drag.source_port_id
-        )
-
+        source_port = self.store.model.find_port(drag.source_port_id)
         target_port = (
-            self.store.model.find_port(
-                target_port_id
-            )
+            self.store.model.find_port(target_port_id)
             if target_port_id is not None
             else None
         )
 
-        if (
-            source_port is not None
-            and target_port is not None
-        ):
-            result = check_port_compatibility(
-                source_port,
-                target_port,
-            )
-
-            semantic_source = source_port
-            semantic_target = target_port
-
-            if (
-                result
-                != CompatibilityResult.COMPATIBLE
-            ):
-                reverse_result = check_port_compatibility(
-                    target_port,
-                    source_port,
-                )
-
-                if (
-                    reverse_result
-                    == CompatibilityResult.COMPATIBLE
-                ):
-                    result = reverse_result
-                    semantic_source = target_port
-                    semantic_target = source_port
-
-            if (
-                result
-                == CompatibilityResult.COMPATIBLE
-            ):
-                endpoint_a_id = source_port.id
-                endpoint_b_id = target_port.id
-
-                endpoint_pair = {
-                    endpoint_a_id,
-                    endpoint_b_id,
-                }
-
-                existing = any(
-                    {
-                        connection.endpoint_a_id,
-                        connection.endpoint_b_id,
-                    }
-                    == endpoint_pair
-                    for connection
-                    in self.store.model.connections.values()
-                )
-
-                if not existing:
-                    connection_id = (
-                        f"connection-"
-                        f"{len(self.store.model.connections) + 1}"
-                    )
-
-                    self.store.commit(
-                        CreateConnection(
-                            connection_id=connection_id,
-                            endpoint_a_id=endpoint_a_id,
-                            endpoint_b_id=endpoint_b_id,
-                            connection_type=semantic_source.port_type,
-                        )
-                    )
-
-                    self.statusBar().showMessage(
-                        f"Connected: "
-                        f"{semantic_source.label} → "
-                        f"{semantic_target.label}"
-                    )
-
-                else:
-                    self.statusBar().showMessage(
-                        "That connection already exists."
-                    )
-
-            elif (
-                result
-                == CompatibilityResult.UNKNOWN
-            ):
-                self.statusBar().showMessage(
-                    "Connection not committed: "
-                    "compatibility is unknown."
-                )
-
-            elif (
-                result
-                == CompatibilityResult.CONDITIONAL
-            ):
-                self.statusBar().showMessage(
-                    "Connection not committed: "
-                    "compatibility is conditional."
-                )
-
-            else:
-                self.statusBar().showMessage(
-                    "Connection rejected: "
-                    "incompatible ports."
-                )
-
+        if source_port is None or target_port is None:
+            self.statusBar().showMessage("Connection cancelled.")
         else:
-            self.statusBar().showMessage(
-                "Connection cancelled."
+            endpoint_a_ref = source_port.semantic_reference
+            endpoint_b_ref = target_port.semantic_reference
+            visual_pair = {source_port.id, target_port.id}
+
+            duplicate_visual = any(
+                {
+                    connection.endpoint_a_id,
+                    connection.endpoint_b_id,
+                } == visual_pair
+                for connection in self.store.model.connections.values()
             )
 
-        self._cancel_connection_drag(
-            preserve_status=True
-        )
+            duplicate_semantic = False
+            if endpoint_a_ref is not None and endpoint_b_ref is not None:
+                duplicate_semantic = any(
+                    connection.connects_same_ports(
+                        endpoint_a_ref,
+                        endpoint_b_ref,
+                    )
+                    for connection
+                    in self.store.semantic_model.connections.values()
+                )
+
+            if duplicate_visual or duplicate_semantic:
+                self.statusBar().showMessage(
+                    "That connection already exists."
+                )
+            elif (
+                endpoint_a_ref is not None
+                and endpoint_a_ref == endpoint_b_ref
+            ):
+                self.statusBar().showMessage(
+                    "Connection rejected: both endpoints resolve to the same canonical port."
+                )
+            else:
+                result = check_port_compatibility(
+                    source_port,
+                    target_port,
+                )
+                semantic_source = source_port
+                semantic_target = target_port
+
+                if result != CompatibilityResult.COMPATIBLE:
+                    reverse_result = check_port_compatibility(
+                        target_port,
+                        source_port,
+                    )
+                    if reverse_result == CompatibilityResult.COMPATIBLE:
+                        result = reverse_result
+                        semantic_source = target_port
+                        semantic_target = source_port
+
+                proceed = result == CompatibilityResult.COMPATIBLE
+                if result == CompatibilityResult.UNKNOWN:
+                    proceed = confirm_unknown_compatibility(self)
+                    if not proceed:
+                        self.statusBar().showMessage("Connection cancelled.")
+                elif result == CompatibilityResult.CONDITIONAL:
+                    proceed = confirm_conditional_compatibility(self)
+                    if not proceed:
+                        self.statusBar().showMessage("Connection cancelled.")
+                elif result == CompatibilityResult.INCOMPATIBLE:
+                    show_incompatible_connection(self)
+                    self.statusBar().showMessage(
+                        "Connection rejected: incompatible ports."
+                    )
+
+                if proceed:
+                    semantic_model = self.store.semantic_model
+                    canonical_a = (
+                        semantic_model.ports.get(endpoint_a_ref)
+                        if endpoint_a_ref is not None
+                        else None
+                    )
+                    canonical_b = (
+                        semantic_model.ports.get(endpoint_b_ref)
+                        if endpoint_b_ref is not None
+                        else None
+                    )
+
+                    invalid_reference = (
+                        endpoint_a_ref is not None
+                        and canonical_a is None
+                    ) or (
+                        endpoint_b_ref is not None
+                        and canonical_b is None
+                    )
+
+                    should_create = False
+                    canonical_connection_created = False
+                    connection_properties = None
+
+                    if invalid_reference:
+                        show_invalid_canonical_reference(self)
+                        self.statusBar().showMessage(
+                            "Connection not created: an endpoint has an invalid canonical port reference."
+                        )
+                    elif canonical_a is None or canonical_b is None:
+                        if confirm_visual_only_connection(self):
+                            should_create = True
+                        else:
+                            self.statusBar().showMessage("Connection cancelled.")
+                    else:
+                        dialog = PhysicalConnectionDetailsDialog(
+                            endpoint_a=self._connection_endpoint_summary(
+                                source_port
+                            ),
+                            endpoint_b=self._connection_endpoint_summary(
+                                target_port
+                            ),
+                            parent=self,
+                        )
+                        if dialog.exec() == dialog.DialogCode.Accepted:
+                            connection_properties = dialog.result_data()
+                            should_create = True
+                            canonical_connection_created = True
+                        else:
+                            self.statusBar().showMessage("Connection cancelled.")
+
+                    if should_create:
+                        connection_id = (
+                            f"connection-"
+                            f"{len(self.store.model.connections) + 1}"
+                        )
+                        self.store.commit(
+                            CreateConnection(
+                                connection_id=connection_id,
+                                endpoint_a_id=source_port.id,
+                                endpoint_b_id=target_port.id,
+                                connection_type=semantic_source.port_type,
+                                connection_properties=connection_properties,
+                            )
+                        )
+
+                        if canonical_connection_created:
+                            self.statusBar().showMessage(
+                                f"Connected: "
+                                f"{semantic_source.label} -> "
+                                f"{semantic_target.label}"
+                            )
+                        else:
+                            self.statusBar().showMessage(
+                                "Visual connection created; no canonical physical connection was created."
+                            )
+
+        self._cancel_connection_drag(preserve_status=True)
 
     def _cancel_connection_drag(
         self,

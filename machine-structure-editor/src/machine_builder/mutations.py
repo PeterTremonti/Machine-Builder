@@ -407,6 +407,7 @@ class CreateConnection:
     endpoint_a_id: str
     endpoint_b_id: str
     connection_type: str = "unknown"
+    connection_properties: dict[str, str | None] | None = None
 
     def apply(
         self,
@@ -446,19 +447,38 @@ class CreateConnection:
             endpoint_b.semantic_reference
         )
 
-        if (
-            semantic_endpoint_a is not None
-            and semantic_endpoint_b is not None
-        ):
+        # A non-null semantic reference must never be silently
+        # downgraded to visual-only creation when it is stale.
+        if semantic_endpoint_a is not None:
             _validate_semantic_port_reference(
                 state,
                 semantic_endpoint_a,
             )
 
+        if semantic_endpoint_b is not None:
             _validate_semantic_port_reference(
                 state,
                 semantic_endpoint_b,
             )
+
+        if (
+            semantic_endpoint_a is not None
+            and semantic_endpoint_b is not None
+        ):
+
+            connection_properties = {
+                "wire_color": None,
+                "harness_id": None,
+                "notes": None,
+            }
+            if self.connection_properties is not None:
+                for key in connection_properties:
+                    value = self.connection_properties.get(key)
+                    connection_properties[key] = (
+                        value
+                        if value is not None and value.strip()
+                        else None
+                    )
 
             semantic_connection = (
                 SemanticConnection(
@@ -466,6 +486,7 @@ class CreateConnection:
                     endpoint_a_id=semantic_endpoint_a,
                     endpoint_b_id=semantic_endpoint_b,
                     connection_type=self.connection_type,
+                    properties=connection_properties,
                 )
             )
 

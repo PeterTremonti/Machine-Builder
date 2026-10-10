@@ -392,6 +392,7 @@ class SelectionInspector(QWidget):
         connection: VisualConnection,
         model: VisualModel,
         graphics_item=None,
+        semantic_model=None,
     ) -> None:
         """Display one visual connection and its endpoints."""
         self._selection_label.setText(
@@ -401,6 +402,7 @@ class SelectionInspector(QWidget):
         text = self._build_connection_debug_text(
             connection,
             model,
+            semantic_model,
         )
 
         routing_diagnostics = getattr(
@@ -564,6 +566,7 @@ class SelectionInspector(QWidget):
     def _build_connection_debug_text(
         connection: VisualConnection,
         model: VisualModel,
+        semantic_model=None,
     ) -> str:
         lines = [
             "Selection",
@@ -599,6 +602,34 @@ class SelectionInspector(QWidget):
                 model,
             )
         )
+
+        if semantic_model is not None:
+            semantic_connection = semantic_model.connections.get(
+                connection.id
+            )
+            if semantic_connection is not None:
+                lines.extend(
+                    [
+                        "",
+                        "Physical connection details",
+                        "----------------------------",
+                    ]
+                )
+                for property_name, label in (
+                    ("wire_color", "Wire color"),
+                    ("harness_id", "Harness ID"),
+                    ("notes", "Notes"),
+                ):
+                    value = semantic_connection.properties.get(
+                        property_name
+                    )
+                    if value is None or (
+                        isinstance(value, str) and not value.strip()
+                    ):
+                        display_value = "Unspecified"
+                    else:
+                        display_value = str(value)
+                    lines.append(f"{label}: {display_value}")
 
         return "\n".join(
             lines
