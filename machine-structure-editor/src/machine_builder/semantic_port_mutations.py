@@ -104,6 +104,7 @@ class UpdateSemanticPort:
     pin_id: str | None = None
     properties: dict[str, Any] | None = None
     provenance: Provenance | None = None
+    provenance_entries: list[Provenance] | None = None
 
     def apply(
         self,
