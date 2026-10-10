@@ -2109,3 +2109,66 @@ Full command: .venv\Scripts\python.exe -m pytest -q
 Full result: 834 passed in 3.23s (exit 0).
 
 The initial checkpoint text failed git diff --check because of malformed whitespace on verification lines. Those lines were corrected. After the port mutation repair, the focused suite passed (98 passed in 1.27s, exit 0), the full suite passed (834 passed in 3.23s, exit 0), and both whole-worktree and staged git diff --check passed (exit 0) before follow-up commit 1b84f0f8e2451b31b8603fe7093cbf284ee6b62f.
+
+# Checkpoint 26 - 2026-10-10 - Published Promega IR Z-probe reference connections
+
+Purpose and disposition
+
+Record the Planning-authorized completion of three manufacturer-documented reference connections between the existing IR Z probe role and the board-backed Duet 2 Maestro reference controller. This advances the Promega specimen integration; it does not verify the user's installed wiring or board revision.
+
+Checkpoint timestamp, captured immediately before this handoff edit: 2026-10-10 18:24:00 -04:00
+
+Repository and commit state
+
+Commit: 3ba0253dc5231b822c23aa2b0eb19065ca0880cb
+
+Subject: Model Promega IR probe reference connections
+
+Git author timestamp observed in local history: 2026-10-10T18:10:48-04:00
+
+The local post-push verification fetched origin and confirmed that origin/main matched this commit. The implementation and its new integration test were committed together.
+
+What changed since Checkpoint 25
+
+- Extended CreateConnection with optional connection provenance and conditional support for the documented_cable_label connection property. Existing callers retain their default connection-property set.
+- Added an integration test that creates the established 14-role Promega specimen and extends its existing IR Z probe role through component-owned functional SemanticPorts.
+- Resolved the board endpoints from the instantiated controller's canonical z-probe ports and their contact metadata; no duplicate Maestro ports or hardcoded controller identity were introduced.
+- The probe-side functional ports retain connector_id=None and pin_id=None. Cable labels belong to connection properties and source evidence, not invented probe connector or pin identities.
+
+The three published reference connections
+
+- Cable lead S10 -> controller-owned Maestro z-probe contact position 1, pin label Z_PROBE_IN.
+- Cable lead P5 -> controller-owned Maestro z-probe contact position 2, pin label GND.
+- Cable lead S9 -> controller-owned Maestro z-probe contact position 4, pin label +3.3V.
+
+Each SemanticConnection records its documented cable label and provenance from the Promega Duet Maestro Wiring guide (https://promega.printm3d.com/documentation/electronics/duet-maestro-wiring) and the #3 Controller/Board J28 crosswalk. The evidence explicitly qualifies these as manufacturer-documented reference wiring, not verified as-built.
+
+J28 positions 3 (Z_PROBE_MOD) and 5 (+5V) remain unconnected in this reference mapping. This does not establish that those contacts are unused on every physical machine.
+
+Verification reported from the local checkout
+
+- Focused regression suite: 47 passed in 5.28 seconds.
+- Full repository suite: 837 passed in 6.81 seconds.
+- The integration test covers the 14-role specimen, canonical endpoint ownership, cable labels and provenance, unused contacts, undo/redo, and save/reopen persistence.
+- The implementation commit's git diff --check passed. The handoff-only update must pass its own diff checks before it is committed.
+
+These test results were reported from the user's local checkout before this handoff edit. They are not a new test run on this documentation-only change.
+
+Physical and firmware scope boundary
+
+The machine and installed Maestro board revision remain not verified as-built. These reference connections do not mean the IR probe is the active firmware-selected probing method: the reviewed Promega v1.0.1 configuration selects limit-switch probing while the IR alternative is commented out. No active firmware assignment was created by this milestone.
+
+The following physical mappings remain unresolved and must not be inferred or wired speculatively by this workstream:
+
+- P2/P4 extruder motor cable endpoints and joins.
+- H2/H4 heater cable endpoints and joins.
+- S8/S6 PT1000 sensor cable endpoints and joins.
+- P9/P11 fan roles and endpoints.
+
+The three IR-probe connections do not establish any of these additional mappings, and no other physical connections were added by this milestone.
+
+Historical reconciliation and next action
+
+This checkpoint advances the integration recorded by Checkpoints 23-25: physical connection metadata authoring, board-backed Maestro palette authoring, and evidence-aware component/port provenance authoring. Those checkpoints remain valid historical records of their respective baselines; their earlier scope limits are not rewritten as though they had observed this later commit. No earlier checkpoint or decision requires separate archival relocation for this incremental milestone, so HISTORICAL_DOCUMENT_ARCHIVE.md is unchanged.
+
+Wait for #2's connector/contact representation validation result before expanding Board/contact modeling conventions. Planning will use that result to select the next narrowly scoped implementation milestone. Do not begin speculative physical wiring for P2/P4, H2/H4, S8/S6, or P9/P11 without a new explicit assignment.
