@@ -1443,3 +1443,55 @@ Verification for implementation commit `57299aa`:
 
 No additional board-family or mating-case investigation is authorized by
 this evidence refinement.
+
+## 33. Maestro J4 Bed-Heater Capability Evidence and Accepted Correction Plan
+
+**Classification:** Bounded manufacturer-evidence investigation / read-only follow-up
+**Follow-up report timestamp:** October 9, 2026, 10:13 p.m. EDT
+**Status:** PARTIALLY RESOLVED — J4 correction plan accepted; implementation not authorized
+**Repository baseline:** **NOT VERIFIED FOR THIS FOLLOW-UP**
+
+### Investigation scope and baseline boundary
+
+The manufacturer-evidence follow-up itself was read-only and did not inspect or modify the repository. No tests were run as part of that follow-up. Its repository baseline was not verified and must not be backfilled from a different checkout state. Preserve any earlier audit commit and timestamp already recorded in this handoff as a separate historical checkpoint.
+
+This section records the accepted result of that follow-up. It is a later documentation closeout and does not retroactively change the investigation's timestamp or baseline designation.
+
+### Accepted manufacturer capability statement
+
+Duet3D's official [Duet 2 Maestro hardware reference](https://github.com/Duet3D/wiki-content/blob/master/Duet3D_hardware/Duet_2_family/Duet_2_Maestro.md), in the **Operating limits** and **Heating** sections, states that the bed heater supports up to 18 A. The Heating section explicitly qualifies the maximum 18 A figure as subject to thermal testing.
+
+**Accepted capability statement:** Manufacturer-stated bed-heater capability: up to 18 A, subject to thermal testing.
+
+The same reference separately lists the input connector at 25 A maximum. That is not a J4 bed-output rating and must not be treated as one.
+
+The available evidence does not include thermal-test results establishing 18 A as a verified safe operating maximum. It does not establish a distinct numerical ampacity for J4's terminal contacts or a verified safe current limit for the complete bed-output path. Leave the complete circuit's verified safe current limit unassigned.
+
+The official V1.0 schematics support the physical-path identification but do not independently establish the bed path's verified safe current limit:
+
+- [`Headers.sch`](https://github.com/Duet3D/Duet-2-Hardware/blob/master/Duet2/Duet2Maestro_v1.0/Headers.sch) identifies J4 as a four-position high-current terminal and shows the connector labels.
+- [`Htr_Fan.sch`](https://github.com/Duet3D/Duet-2-Hardware/blob/master/Duet2/Duet2Maestro_v1.0/Htr_Fan.sch) shows the bed MOSFET control path and the `BED-` switched return.
+
+Do not infer a verified J4 rating from the separate input-connector rating, generic screw-terminal statements, terminal-block family specifications, the MOSFET's individual datasheet, or heater-resistance calculations.
+
+### Accepted physical-interface correction plan
+
+J4 remains the only modeled physical bed-heater connector. When implementation is separately authorized:
+
+- Remove the unsupported synthetic `bed-heat-molex` and `bed-heat-screw` groups.
+- Preserve J4 pins 1–4 and the net labels `GND`, `V_IN`, `V_IN`, and `BED-`.
+- Distinguish the board power-input purpose of pin 2 from the bed-supply purpose of pin 3 without inventing different electrical nets.
+- Relate the existing `bed-heater` resource to J4 pins 3 and 4 only.
+- Do not relate the bed-heater resource to J4 pins 1 or 2.
+- Preserve the E0/E1 Molex and screw-terminal definitions, ratings, and relationships.
+- Do not assign a numeric verified maximum current to J4's contacts or the complete bed-output path.
+
+Keep the manufacturer-stated bed-heater capability, the machine-specific wiring, and the verified safe current limit for the complete circuit distinct. Evidence for one does not establish the others.
+
+The previous J4 implementation description in §26 is retained as a record of the earlier represented state. This section records the subsequently accepted correction plan; it does not claim that the fixture or catalog has already been corrected.
+
+### Authorization and next action
+
+Planning has accepted the J4 physical-interface correction plan. **Implementation remains NOT AUTHORIZED.**
+
+The next action is to await separate explicit implementation authorization. Until then, do not change application source, fixtures, tests, or catalog definitions. Any authorized future implementation must retain the thermal-testing qualification on the 18 A manufacturer statement and leave the complete bed-output path's verified safe current limit unassigned unless adequate evidence establishes it.

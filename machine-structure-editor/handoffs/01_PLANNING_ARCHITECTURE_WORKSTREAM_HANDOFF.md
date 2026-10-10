@@ -741,3 +741,38 @@ The index now identifies the five `docs/historical/visual-builder/` files as his
 No historical Visual Builder documents were modified or deleted, and no new architecture or ontology requirement was introduced.
 
 Status: **Resolved**.
+
+## Planning Closeout — Promega Integration and Documentation Recovery (2026-10-10)
+
+### Accepted direction
+
+Planning has adopted the Promega vertical slice as the immediate integration focus. The existing ontology remains adequate for the cases reviewed so far; implementation and evidence gaps should be addressed before considering new canonical entities.
+
+The physical connection-authoring checkpoint is published as `c445bef287d736afd20807f29d2506aab2434eaa`. #5's final read-only review returned **ACCEPTABLE**. The reported full-suite result was 827 passed, and the reported focused suite was 46 passed. These results are attributed to #4; #5 did not rerun the tests.
+
+### Workstream closeout
+
+* **#2 Research:** Six Promega research deliverables accepted. Research handoff and V0.2 checkpoint updates applied locally and whitespace-checked. Their baseline and update timestamp are recorded in the snapshot above.
+* **#3 Board:** J4 bed-heater evidence and correction plan recorded in the Board handoff. The manufacturer's up-to-18 A statement remains qualified by thermal testing; the complete J4 path's verified safe maximum remains unassigned. Implementation is not authorized.
+* **#4 Routing:** Connection-authoring implementation committed and pushed; Checkpoint 23 appended to the Routing handoff. The exact handoff-edit timestamp was not recorded.
+* **#5 Audit:** Final connection-authoring review accepted; handoff updated and whitespace-checked at `2026-10-10 00:43:56 -04:00`. Reported tests were not independently rerun by #5.
+
+### Documentation commit scope
+
+The specialist handoff/checkpoint updates and the Planning-owned documentation changes are to be committed separately from the published implementation commit. The intended documentation files are:
+
+* `CHAT_WORKFLOW.md`
+* `MASTER_PLAN.md`
+* `PROJECT_CURRENT_STATE.md`
+* `machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
+* `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
+* `machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md`
+* `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
+* `machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`
+* `machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_WORKSTREAM_HANDOFF.md`
+
+Before committing, verify the actual branch, HEAD, working-tree status, intended file list, and combined diff. Run `git diff --check`. Do not stage or commit `.vscode/launch.json` or any unrelated source, test, or catalog change. The documentation-only commit does not require a full test-suite rerun; report the actual whitespace and diff verification.
+
+### Current Planning Next Action
+
+Finish and verify the nine-file documentation closeout, then commit and publish it separately from the connection-authoring implementation. Preserve each workstream's own timestamp and verification baseline. After closeout, Planning will issue the next bounded Promega integration assignment; the accepted J4 correction plan remains awaiting explicit implementation authorization.

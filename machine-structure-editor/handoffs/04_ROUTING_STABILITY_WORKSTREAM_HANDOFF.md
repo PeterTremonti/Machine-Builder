@@ -1928,3 +1928,66 @@ Planning-authorized commit scope
 The authorized commit contains these two test files and this living handoff only.
 Exclude unrelated Board/catalog changes, the root `.vscode/` directory, and all other
 files outside this checkpoint.
+
+# Checkpoint 23 — 2026-10-10 — Physical connection metadata authoring
+
+Purpose and disposition
+
+Record the accepted physical connection authoring implementation as a separate integration checkpoint. The implementation extends connection creation and inspection while preserving the existing canonical-model, visual-model, and Routing boundaries.
+
+Repository and commit state
+
+Commit: c445bef287d736afd20807f29d2506aab2434eaa
+
+Subject: Add physical connection metadata authoring
+
+Commit timestamp: 2026-10-10T00:22:38-04:00
+
+Publication was independently confirmed after fetching origin: local main and origin/main both resolved to the accepted commit.
+
+Review disposition: #5 accepted the corrected implementation. Planning authorized the seven-file implementation commit and its subsequent push.
+
+Implementation files in the commit
+
+- src/machine_builder/canvas_interaction.py
+- src/machine_builder/canvas_selection.py
+- src/machine_builder/connection_details.py
+- src/machine_builder/mutations.py
+- src/machine_builder/selection_inspector.py
+- tests/test_connection_details.py
+- tests/test_store_persistence.py
+
+What changed
+
+The connection-authoring path supports creation-time entry of wire_color, harness_id, and notes for canonical physical connections. These values are stored in SemanticConnection.properties under exactly those keys. Blank or whitespace-only values normalize to None; nonblank values are preserved as entered.
+
+Connection creation retains compatibility handling: compatible endpoints proceed, unknown and conditional compatibility require explicit confirmation, and known incompatibility blocks creation. Canonically linked endpoints receive the physical-details dialog. Genuinely unlinked/provisional endpoints use a separate visual-only prompt and create no canonical physical connection.
+
+The mutation boundary independently validates every non-null canonical port reference before choosing between canonical and visual-only creation. A stale reference cannot silently downgrade into visual-only creation. The selected-connection inspector displays saved physical metadata read-only.
+
+Regression coverage includes warning and cancellation paths, stale references in both endpoint orientations, visual-only acceptance and cancellation, controller-to-component endpoint identity, undo/redo, and integrated save/reopen persistence for embedded hardware definition/provenance, port ownership, connection metadata, visual endpoint IDs, and route geometry.
+
+Verification reported from the local checkout before commit
+
+- Focused connection-authoring, persistence, and inspector suite: 46 passed in 0.73 seconds.
+- Full repository suite: 827 passed in 4.27 seconds.
+- Scoped implementation whitespace check: clean.
+
+These are the reported pre-commit test results, not new test runs by the reviewer. The accepted commit was subsequently confirmed published on origin/main.
+
+Architectural boundary
+
+No Routing production implementation or route geometry algorithm was changed by this checkpoint. Canonical physical connection identity and metadata remain distinct from visual endpoint identifiers and visual route geometry. No new ontology entity, generalized compatibility redesign, or global routing optimization was introduced.
+
+Nonblocking follow-ups
+
+- #5 did not separately certify exact word-for-word UX-copy equivalence. The dialog and warning copy has dedicated assertions, but that specific reviewer certification was not recorded as complete.
+- Reversed-order duplicate-pair rejection is implemented, but that orientation still lacks a dedicated duplicate-rejection regression assertion.
+
+These are follow-ups, not blockers for the accepted commit. Do not expand the completed commit or imply that either item was part of the reviewer's acceptance.
+
+Current status and next action
+
+The accepted connection-authoring implementation is committed and published. Continue the existing Routing investigation according to Planning's direction; this checkpoint does not justify a new Routing production change. Address the two listed coverage follow-ups only when Planning assigns that work.
+
+The three Research/Board document changes and the root .vscode/ configuration remained outside the implementation commit and push. This checkpoint changes Routing handoff documentation only; it does not include those other files.

@@ -628,6 +628,47 @@ Full-file replacement is preferred when updating a reasonably sized handoff.
 
 This section is the single authoritative project-wide procedure for replacing a chat after a conversation reaches its length limit. `README.md` and workstream handoffs must refer to it instead of maintaining competing universal recovery checklists.
 
+### Documentation-first recovery and local-state verification
+
+**Purpose:** Recover project context efficiently without requiring the user to relay repository documents that are already accessible to the chat.
+
+**1. Read the committed documentation baseline first.**
+
+Before asking the user to paste project documents, retrieve the latest accessible committed versions from the repository's canonical remote, normally `main`. Identify the commit used and the retrieval time.
+
+Read the universal recovery documents together:
+
+* `CHAT_WORKFLOW.md`, including this section.
+* `MASTER_PLAN.md`.
+* `PROJECT_CURRENT_STATE.md`.
+* The receiving workstream's current living handoff.
+
+Also read `DOCUMENTATION_AUTHORITY.md` for Planning, plus any workstream-specific or task-specific authorities required by the handoff.
+
+Do not ask the user to paste documents that are accessible from the committed repository. Do not substitute memory, old chat summaries, or historical reports for the required documents.
+
+**2. Verify the local checkout separately.**
+
+The committed remote baseline provides project context; it does not establish the user's working-tree state.
+
+Use one compact, batched, read-only Git check to establish the actual local branch, `HEAD`, remote reference, and working-tree status before implementation or file changes. Inspect relevant local diffs when they matter.
+
+The local checkout remains authoritative for source and test contents, uncommitted changes, user-owned files, actual branch state, and locally executed test results. A dirty local document may contain newer information than the remote version; preserve and reconcile that difference rather than overwriting it.
+
+**3. Use a bounded fallback.**
+
+If the remote is private, inaccessible, or a required document cannot be retrieved confidently, ask for only the missing information. Batch missing documents or relevant sections into one request wherever practical. Prefer a targeted local command over a broad dump that overwhelms the console.
+
+**4. Do not create substitute artifacts.**
+
+Do not generate downloadable update scripts, replacement document artifacts, patches, or repository copies as a workaround for the unavailable local checkout. If local changes cannot be applied through an available established workflow, provide the exact proposed text and concise direct-edit instructions for the user to apply in the authoritative checkout. Never imply that a proposed change has been applied.
+
+**5. Resume from verified state.**
+
+After the required reading and local-state check, continue from the workstream handoff's recorded `Next Action`. Record the baseline and timestamp associated with each inspection or update. Missing timestamps or unverified baselines must remain explicitly missing or unverified; never reconstruct them from another report's timestamp.
+
+This process reduces user effort without weakening ownership boundaries, test requirements, or implementation and commit authorization gates.
+
 ## Required on every replacement chat
 
 1. Read `CHAT_WORKFLOW.md`, including its current operating constraints and this recovery section.

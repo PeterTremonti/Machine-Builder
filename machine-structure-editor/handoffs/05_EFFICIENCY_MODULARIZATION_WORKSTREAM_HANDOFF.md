@@ -664,3 +664,45 @@ A separate controlled cleanup checkpoint is warranted for the six mixed-line-end
 No encoding or line-ending issue was identified that requires blocking continued development. The immediate preventative action is to use UTF-8-preserving, surgical editing methods for future Windows/PowerShell repository changes.
 
 This checkpoint records evidence and recommendations only. No implementation, test, catalog, workflow, project-state, or other repository files were intentionally modified by the audit.
+
+## Connection-authoring acceptance review closeout
+
+Handoff edit timestamp: 2026-10-10 00:43:56 -04:00 (local checkout time, with UTC offset; captured immediately before this append).
+
+Review timestamp record:
+- Earlier NOT ACCEPTABLE review timestamp: not recorded in the available contemporaneous review evidence.
+- Final ACCEPTABLE review timestamp: not recorded in the available contemporaneous review evidence.
+- #4's focused and full-suite test-run timestamps: not supplied in the reported results. No event timestamps have been inferred.
+
+Review baseline and implementation checkpoint:
+- Reviewer baseline observed for this review: 8d496aa50a09f2319a665233354ede49c00160f6. This is the review baseline, not the later implementation commit.
+- Implementation commit reviewed and accepted by Planning: c445bef287d736afd20807f29d2506aab2434eaa.
+
+Earlier disposition: NOT ACCEPTABLE.
+
+The blocker was in CreateConnection.apply: canonical semantic-reference validation only ran when both visual endpoints had non-null semantic references. A stale non-null canonical reference paired with an unlinked provisional endpoint could therefore bypass validation and be treated as a visual-only connection.
+
+Correction verified: CreateConnection.apply now validates each non-null semantic reference independently before deciding whether to create a canonical connection or a visual-only connection. A stale reference raises an error before connection creation. Visual-only creation remains available when an endpoint genuinely lacks a canonical reference.
+
+Regression and behavior coverage reviewed:
+- Stale canonical references paired with provisional endpoints, in both endpoint orders, are rejected without connection-model or undo/redo history changes.
+- UNKNOWN and CONDITIONAL compatibility flows exercise compatibility confirmation followed by the visual-only decision, including acceptance and cancellation.
+- Controller-to-component authoring verifies that canonical endpoint IDs remain distinct from visual endpoint IDs and that the two port ownership types are preserved.
+- Undo/redo coverage verifies restoration of both canonical and visual connections, their endpoint identities, and physical-connection metadata.
+- Cancellation and known-incompatibility paths verify that rejected operations do not create connections or alter history.
+
+Integrated persistence regression:
+The store round-trip test covers embedded HardwareDefinition data and provenance, machine/controller/component membership, both controller-owned and component-owned semantic ports, physical-connection metadata, canonical endpoint IDs, and independently stored visual endpoint IDs and geometry. It verifies that physical-connection metadata is not stored in visual geometry.
+
+Final disposition: ACCEPTABLE.
+
+Reported verification from #4 (not independently rerun by #5):
+- Focused tests: 46 passed in 0.73 seconds; reported exit code 0.
+- Full suite: 827 passed in 4.27 seconds; reported exit code 0.
+- #5 reviewed the supplied implementation and test evidence but did not run these tests independently.
+
+Nonblocking follow-ups:
+1. Exact UX-copy comparison remains unverified because the authoritative approved copy baseline was not supplied for a verbatim comparison. Revisit if Planning makes this a release gate.
+2. Add an explicit reversed-order duplicate-pair regression assertion. The reviewed duplicate checks account for unordered endpoint pairs, but a dedicated reversed-order assertion would strengthen regression coverage.
+
+This acceptance review did not authorize a commit. This handoff update is documentation-only; no staging, commit, or push is authorized by this entry.

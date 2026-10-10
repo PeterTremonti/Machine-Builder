@@ -1085,3 +1085,65 @@ As of this document:
 * The Controller-to-Hardware Definition relationship is resolved and reinforced through typed `hardware_definition_id`, validation, and persistence tests.
 * The Maestro and Octopus experiments have not justified a new canonical Board ontology.
 * The project should continue using implementation evidence to reinforce or refine architecture rather than allowing implementation complexity alone to trigger redesign.
+
+## Cross-Workstream Snapshot — Promega Integration (2026-10-10)
+
+**Snapshot basis:** Consolidated from the latest available workstream reports, including #5's handoff update at `2026-10-10 00:43:56 -04:00`. The snapshot does not assert that every workstream independently verified the same repository state.
+
+### Published implementation checkpoint
+
+Connection-authoring implementation commit:
+
+* Commit: `c445bef287d736afd20807f29d2506aab2434eaa`
+* Subject: `Add physical connection metadata authoring`
+* Commit time: `2026-10-10T00:22:38-04:00`
+* Reported branch/remote verification: local `main` and fetched `origin/main` matched that commit.
+
+The implementation captures `wire_color`, `harness_id`, and `notes` on canonical `SemanticConnection.properties`; separates physical metadata from visual routing geometry; preserves atomic creation, undo/redo, compatibility confirmation, and visual-only handling; and displays metadata read-only in the inspector.
+
+#4 reported 46 focused tests passed and 827 tests passed in the full suite. #5's independent review disposition is **ACCEPTABLE** after the stale-canonical-reference validation correction. #5 reviewed the supplied implementation and test evidence but did not independently rerun the tests.
+
+Recorded nonblocking follow-ups:
+
+* Exact word-for-word UX-copy equivalence was not separately certified by #5.
+* Reversed-order duplicate-pair rejection lacks a dedicated regression assertion.
+
+### Research — #2
+
+The six accepted Promega research assignments are complete. The Research handoff and `V0.2_RESEARCH_CHECKPOINT.md` were updated locally at the reported timestamp `2026-10-09 22:53:38.196 -04:00`, using baseline `8d496aa50a09f2319a665233354ede49c00160f6`. `git diff --check` passed; the reported diff was 77 insertions and 13 deletions across the two files.
+
+The evidence distinguishes physical components, component-side endpoint facts, functional relationships, and version-qualified firmware configuration. The actual machine variant and active firmware configuration remain unverified. The P4/P2 to E0/E1 mapping, H2/H4 and S8/S6 harness mapping, P9/P11 fan mapping, the cold-section fan output discrepancy, and legacy `M307` versus current-documentation `M301` differences remain explicit.
+
+### Controller / Board — #3
+
+The Board handoff's Section 33 records the Maestro V1.0 J4 bed-heater finding and proposed correction. Its source investigation report is dated October 9, 2026, 10:13 p.m. EDT; its own repository baseline was explicitly **NOT VERIFIED FOR THIS FOLLOW-UP**.
+
+A later handoff-update report records checkout commit `8d496aa50a09f2319a665233354ede49c00160f6`, with commit timestamp `2026-10-09T17:07:46-04:00`, and reports that `git diff --check` passed. The exact handoff-edit timestamp was not recorded.
+
+Duet3D's published bed-heater capability figure of up to 18 A is qualified as subject to thermal testing. This is not a verified safe maximum for J4's contacts or the complete bed-output path. The J4 correction plan is accepted, but implementation remains unauthorized.
+
+### Routing / Diagnostics — #4
+
+The Routing handoff's Checkpoint 23 records the published connection-authoring commit, its seven-file implementation scope, reported tests, and the two nonblocking follow-ups above. `git diff --check` passed. The handoff-edit timestamp was not recorded. The implementation commit and the later handoff edit remain separate events.
+
+### Efficiency / Audit — #5
+
+The Audit handoff records the initial blocked review and the final **ACCEPTABLE** review after the stale-canonical-reference validation fix. The handoff update was recorded at `2026-10-10 00:43:56 -04:00`, on `main` at `c445bef287d736afd20807f29d2506aab2434eaa`; 42 lines were added, and `git diff --check` passed. The test results remain attributed to #4.
+
+### Documentation closeout and working-tree qualification
+
+The following five workstream-owned documents have reported local updates that are not yet committed:
+
+* `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
+* `machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md`
+* `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
+* `machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`
+* `machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_WORKSTREAM_HANDOFF.md`
+
+The root `.vscode/launch.json` is a user-owned, untracked local configuration and must remain outside documentation commits.
+
+The latest reported Git state was `main` at `c445bef287d736afd20807f29d2506aab2434eaa`, as observed by #5 at `2026-10-10 00:43:56 -04:00`. A newer combined status and diff review must be performed immediately before the documentation commit.
+
+### Next action
+
+Complete the Planning-owned recovery-rule and project-state updates, inspect the combined documentation diff, and commit only the intended documentation files. Keep the connection-authoring implementation commit separate. After the documentation closeout, Planning will coordinate the next narrowly scoped Promega integration authorization.

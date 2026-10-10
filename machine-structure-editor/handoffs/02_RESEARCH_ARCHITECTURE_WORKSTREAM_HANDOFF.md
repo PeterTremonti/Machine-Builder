@@ -724,11 +724,11 @@ These should be introduced only when a concrete consumer need demonstrates that 
 
 ---
 
-# Current Active Research Question
+# Historical Research Assignment — Octopus Pin-6 Discrepancy
 
 ## BTT Octopus V1.1 ↔ TMC5160T Pro V1.0 Pin-6 Discrepancy
 
-This is the current narrowly targeted Board research task.
+This was a prior narrowly targeted Board task. Planning accepted its related evidence checkpoint on 2026-10-09. The SLEEP-versus-CLK electrical explanation remains unresolved; reopen only under a new Planning assignment.
 
 Question:
 
@@ -833,14 +833,17 @@ Repeat research only when a new implementation case asks a materially different 
 
 ---
 
-# Current Research Queue
+# Research Queue — Future Questions Only
+
+The entries below are possible future questions, not active authorization. As of 2026-10-09, await a new Planning assignment before resuming any queue item.
+
 
 ## Board
 
-1. Resolve or further narrow the Octopus V1.1 ↔ TMC5160T Pro V1.0 contact-6 discrepancy using primary evidence.
+1. Octopus V1.1 ↔ TMC5160T Pro V1.0 contact-6 discrepancy: retained as unresolved after Planning accepted the evidence checkpoint; reopen only if Planning assigns renewed research.
 2. Determine whether any concrete replaceable-driver/module case requires richer contact-level or reusable compatibility semantics.
 3. Determine when connector compatibility becomes an actual canonical machine requirement.
-4. Support Planning/Implementation with concrete evidence needed to instantiate the actual Promega accurately.
+4. Promega: the six bounded integration-research deliverables are accepted and complete; supply further evidence only for concrete gaps identified during Planning-coordinated implementation.
 
 ## Routing
 
@@ -928,7 +931,7 @@ Planning / Architecture decides whether to incorporate it.
 
 # Current State
 
-Updated: 2026-10-08
+Updated: 2026-10-09
 
 Research role:
 
@@ -952,12 +955,28 @@ Duet 2 Maestro V1.0
 COMPLETE
 ```
 
-Current immediate Board research:
+Most recent Board checkpoint (accepted; electrical discrepancy retained as unresolved history):
 
 ```text
 Octopus V1.1 ↔ TMC5160T Pro V1.0
-contact-6 SLEEP vs CLK discrepancy
+Planning accepted the evidence checkpoint on 2026-10-09.
+The contact-6 SLEEP-versus-CLK electrical explanation remains unresolved.
 ```
+
+Current Promega integration status:
+
+Planning accepted all six bounded Promega integration research deliverables: Installed-Hardware Inventory; Component-Side Endpoint Evidence Matrix; Compound Extruder Harness Mapping Matrix; Extruder-Harness Physical-Inspection Checklist; Functional-Relationship Evidence Matrix; and Firmware Resource-Binding Matrix.
+
+Keep documented physical components, functional relationships, versioned firmware configuration, and verified physical connections distinct. Evidence in one category does not by itself establish facts in another.
+
+The official Promega v1.0.1 Compound configuration is version-qualified reference evidence only. The user's active firmware configuration and physical machine variant remain unverified.
+
+Unresolved mappings and discrepancies:
+* P4/P2 to physical E0/E1 drive mapping.
+* Compound heater H2/H4 and PT1000 S8/S6 harness mapping.
+* Printer-specific P9/P11 fan mapping.
+* Cold-section fan logical-output assignment versus the documented Always On connection.
+* Legacy M307 settings versus current Promega documentation's M301 settings.
 
 Current architecture disposition:
 
@@ -976,6 +995,11 @@ instantiation of the actual Promega machine.
 Current documentation priority:
 
 Preserve source provenance and research conclusions so that replacement chats do not have to reconstruct the research history from conversation memory.
+
+Next Action:
+
+The bounded Promega functional/configuration research is complete. Planning is coordinating the first Promega implementation. Await Planning's next assignment; do not begin additional research independently.
+
 
 ---
 
@@ -1348,7 +1372,7 @@ Do not redo completed research unless a new question requires it or the source h
 
 # Live-State Summary
 
-As of 2026-10-08:
+As of 2026-10-09:
 
 ```text
 Research / Architecture role
@@ -1377,10 +1401,9 @@ PowerShell/parser research
         =
 CLOSED
 
-Current active research question
-        =
-Octopus V1.1 ↔ TMC5160T Pro V1.0
-pin-6 SLEEP vs CLK discrepancy
+Current active Research assignment
+         =
+NONE — await Planning
 ```
 
 The current Research objective is therefore **not broad ontology expansion**.

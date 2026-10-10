@@ -440,3 +440,28 @@ PROJECT_CURRENT_STATE.md
 ```
 
 No document should silently become a replacement for another document's role.
+
+## Planning Decision — Promega Vertical-Slice Focus (2026-10-10)
+
+**Decision:** Shift the immediate implementation emphasis toward proving the existing Machine Builder architecture against the standard M3D Promega, rather than expanding the ontology or beginning broad catalog work.
+
+The objective is a credible machine specimen that can represent documented installed hardware, controller interfaces, component-owned and controller-owned physical endpoints, physical connections, functional relationships, version-qualified firmware assignments, and persistent visual associations without inventing unknown facts.
+
+### Completed foundation
+
+* The generic palette canonical-component checkpoint is committed as `8d496aa50a09f2319a665233354ede49c00160f6`.
+* Physical connection metadata authoring is committed and published as `c445bef287d736afd20807f29d2506aab2434eaa`. The implementation captures wire color, harness ID, and notes on canonical `SemanticConnection.properties`, preserves visual-route separation, and passed the recorded acceptance review.
+* Research has completed the bounded Promega inventory, component-side endpoint, harness, physical-inspection, functional-relationship, and firmware-resource investigations.
+* The existing ontology remains adequate for the examined cases. No new ontology entity has been justified.
+
+### Next integration direction
+
+Planning will coordinate the next bounded implementation steps to establish a real Promega specimen. The order should follow demonstrated dependencies: establish reviewed hardware instantiation and board-interface coverage, author available physical connections without fabricating missing mappings, express documented functional relationships separately from wiring, and verify save/reopen persistence.
+
+The accepted Maestro J4 bed-heater correction plan is **not yet authorized for implementation**. Before that implementation is started, preserve the finding that Duet3D publishes a bed-heater capability figure of up to 18 A subject to thermal testing. This is not a verified safe maximum for J4's contacts or the complete bed-output circuit.
+
+### Preserve uncertainty and defer scope expansion
+
+Keep the user's actual machine variant, firmware configuration, harness arrangement, and undocumented pin or connector assignments unverified until evidence establishes them. Keep the unresolved P4/P2, H2/H4, S8/S6, and P9/P11 mappings explicit.
+
+Defer broad catalog importing, supplier integrations, a personal custom catalog, and further ontology expansion unless the real-machine workflow demonstrates a concrete need. Return to architecture only when a specific case shows that the existing semantics cannot represent the required relationship coherently.
