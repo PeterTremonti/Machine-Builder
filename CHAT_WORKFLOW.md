@@ -935,9 +935,31 @@ user commits in GitHub Desktop
 user pushes in GitHub Desktop
 ```
 
-Chats should **not normally commit or push through console commands**.
+GitHub Desktop remains the preferred interface when the user is performing the commit and push directly. Workstreams with existing standing authority to commit and publish their assigned, validated changes may use the common sequence below without a second Planning approval.
 
-Console-based `git commit` / `git push` should only be used when the user explicitly requests that workflow.
+Use console-based `git commit` / `git push` only when that path is authorized by the assignment and applicable workstream rules. This procedural standard does not grant authority for changes outside the assigned scope.
+
+## Standard checkpoint sequence
+
+1. **Preflight:** Resolve and verify the repository root, branch, HEAD, fetched `origin/main`, and live remote main. Inspect the complete worktree, index, staged and unstaged diffs, and all untracked paths. Fetch before deciding whether the baseline is current. If state is unexpected or ambiguous, stop and reconcile without discarding work.
+
+2. **Validate:** Use the project's verified virtual environment. Run focused tests first, then the full test suite when appropriate for the change. For documentation-only work, inspect the content and structure and run whitespace checks; do not present code tests as necessary or claim they passed when they were not run.
+
+3. **Review scope:** Inspect the entire working-tree diff for every authorized path and run `git diff --check`. Ensure the index is empty before staging unless existing staged content has been explicitly identified and safely handled. Preserve concurrent edits and untracked files.
+
+4. **Stage deliberately:** Stage only the exact approved paths using explicit `git add -- <path>` arguments. Never use `git add .` or `git add -A` in this workflow. Compare the staged path list to the exact expected list, inspect the complete staged diff, and run `git diff --cached --check`. Stop before committing if paths are missing, extra, unexpected, ambiguous, or mixed with other work.
+
+5. **Commit and inspect:** Commit only after required validation and scope checks pass, using existing commit authority. A routine authorized commit does not require a second Planning approval merely because it is a commit. Afterward, record the commit hash and subject, inspect its exact changed-file list and diff, and check the remaining worktree status.
+
+6. **Publish normally:** Push to the intended branch without force-pushing. Then fetch `origin` again, compare local HEAD with fetched `origin/main`, and query live remote main. When no concurrent commit intervenes, the hashes should match. If remote main advanced, check whether the intended commit is contained in the fetched remote history and reconcile safely. Do not blindly reset, revert, amend, rebase, overwrite, or force-push to conceal a failure.
+
+7. **Close out with evidence:** Report actual test commands and results, whitespace-check results, commit hash and subject, exact committed paths, publication verification, and every modified or untracked path remaining afterward. Attribute test results to the workstream that ran them and distinguish this task's files from unrelated shared-checkout work.
+
+## Native Git exit handling
+
+Capture `$LASTEXITCODE` immediately after each native Git command whose result controls execution. For `git diff --quiet`, exit `0` means no differences, exit `1` means differences exist, and other nonzero values indicate an error. Interpret the exit code directly; do not compare empty output with `$true` to infer success.
+
+On failure, stop, inspect state, and report the observed evidence and safe next action. Keep PowerShell guarded, with clear status messages and safe returns. Do not use `exit 1`, blanket resets/reverts, blind amend, or force-push as routine recovery.
 
 ## Commit Metadata Output Format
 
@@ -1313,3 +1335,39 @@ The sender, recipient, and topic must be inside the copy-ready block. The user m
 Before sending a cross-workstream message, verify that its block is complete, correctly addressed, and contains the entire handoff. Do not require the user to reconstruct, shorten, relabel, or combine content from different parts of a response.
 
 The purpose is to eliminate manual sender prefixes and prevent the user from copying too little or too much.
+
+# 35. Workstream Handoff and Planning Documentation Cadence
+
+## Individual workstream handoff cadence
+
+Each workstream must update its live handoff after every five commits attributable to that workstream have been successfully published since its last substantive handoff update.
+
+Count each attributable commit individually even if multiple commits are pushed in one batch. Only published commits count toward the threshold. A handoff-only commit does not count toward the next five-commit interval.
+
+This is a maximum routine interval, not a reason to delay an important update. Update the relevant handoff immediately after a significant milestone, material implementation or architecture decision, verified checkpoint, newly identified blocker, or ownership transition.
+
+## Planning's additional cross-workstream cadence
+
+Planning integrates the project-wide picture and must not wait for an individual workstream's five-commit threshold when a material cross-workstream change is already known.
+
+- Refresh `PROJECT_CURRENT_STATE.md` when a material actual-state change, validation result, blocker, or next action is established. Describe the evidentiary status accurately.
+- Update `MASTER_PLAN.md` when project scope, priorities, sequencing, or architectural decisions change.
+- Update the Planning handoff at material cross-workstream changes, milestones, ownership transitions, and before context handoffs.
+- Update `DOCUMENTATION_AUTHORITY.md` when document authority or ownership changes.
+- Preserve meaningful superseded decisions and milestones in `HISTORICAL_DOCUMENT_ARCHIVE` when they warrant retention. Do not turn the archive into a duplicate commit log.
+- Update `CHAT_WORKFLOW.md` when a common process rule has been adopted.
+
+Batch related documentation edits sensibly, but do not knowingly leave the project-state record stale simply because no individual workstream has yet reached five commits. Update only documents appropriate to their established ownership and authority, and preserve unrelated concurrent changes.
+
+## Evidence status language
+
+Project reports and documentation must distinguish these different states:
+
+- **Reported:** a workstream or person stated a result; this alone does not establish independent verification.
+- **Locally inspected:** the relevant source, diff, or repository state was directly examined.
+- **Tested:** the specified test or check was actually run and its observed outcome recorded.
+- **Published:** the relevant commit was verified on the remote repository.
+
+A reported result may trigger Planning review or a suitably qualified current-state update without being presented as locally inspected, tested, or published. Do not promote one evidence state to another without performing and recording the corresponding verification.
+
+This section supplements the handoff lifecycle and rollover rules in Section 25.1. Section 34, Cross-Workstream Messaging and Copy-Ready Handoffs, remains intact and mandatory.
