@@ -1370,42 +1370,50 @@ Do not redo completed research unless a new question requires it or the source h
 
 ---
 
+# Hardware Catalog Research Knowledge Checkpoint — 2026-10-11
+
+## Durable research record
+
+The detailed catalog/interchange proposal is recorded in `machine-builder-research/standards/STANDARDS_INDEX.md` under **Hardware Catalog and Interchange Formats — Research Proposal (2026-10-11)**. That section contains the format comparison, standards/reference leads, proposed record fields and directory layout, firmware adapter boundaries, candidate examples, gaps, staged adoption, and deferred decisions. This handoff records the decision-relevant summary rather than duplicating the full report.
+
+## Recommendation and boundaries
+
+Evaluate a declarative, versioned catalog with stable product/revision identity, claim-level evidence and uncertainty, structural validation, and separate version-aware adapters for firmware-native data. Keep reusable `HardwareDefinition` distinct from installed `MachineComponent`; keep physical ports/connections distinct from controller resources and firmware mappings. Represent contacts as records with numeric positions instead of integer dictionary keys, and prove persistence behavior through a bounded pilot.
+
+Manufacturer specifications, drawings, firmware examples, and observations of the user's actual machine are different evidence classes. Ambiguous sources and absent facts must not become asserted as-built connections. This research does not authorize ontology expansion or implementation.
+
+## Timing and authority
+
+- The Promega wiring vertical slice remains the active priority. Catalog implementation is deferred until that milestone and a separate Planning decision.
+- `MASTER_PLAN.md` Section 13 is the canonical register for future problems and deferred ideas.
+- Catalog layout, schema fields, and format choices remain research recommendations, not approved requirements.
+- Next research focus: a real liquid-cooled hotend/coolant-loop example, separating physical fluid topology from electrical wiring and firmware interpretation. ISO 1219-1/-2 and ISO 14617-1/-2 are initial leads whose scope must be confirmed.
+
+## Repository checkpoint for this documentation update
+
+The script verifies that local `main`, fetched `origin/main`, and live remote `main` match before writing. The verified pre-edit commit is `7316c22ae09fed95aba3bbf568c1e6d3bdc25493`, checked at `2026-10-11 10:39:16 -04:00`. These documentation edits remain uncommitted and unpublished until reviewed and published separately. This update changes no application code and runs no tests.
+
 # Live-State Summary
 
-As of 2026-10-09:
+## Established research baseline
 
-```text
-Research / Architecture role
-        =
-evidence, standards, terminology,
-manufacturer documentation, precedent,
-and architecture validation
+- **Broad connector terminology research:** substantially complete.
+- **Duet 2 Maestro V1.0 board research:** complete as a Research workstream milestone; retain the existing source-specific evidence and Board workstream handoff as authorities for their respective details.
+- **Real-data canonical/visual boundary validation:** reinforced.
+- **Routing architecture research:** stable; investigate concrete new questions rather than reopening settled decisions without evidence.
+- **PowerShell/parser research:** closed unless a new, concrete blocker appears.
 
-Broad connector terminology research
-        =
-substantially complete
+## Current checkpoint
 
-Duet 2 Maestro V1.0 Board research
-        =
-COMPLETE
+- The catalog/interchange research proposal is recorded in `machine-builder-research/standards/STANDARDS_INDEX.md` under **Hardware Catalog and Interchange Formats — Research Proposal (2026-10-11)**.
+- The proposal remains research, not implementation authorization. Catalog implementation is deferred until the Promega milestone and a separate Planning decision.
+- `MASTER_PLAN.md` Section 13 remains the canonical register for future problems and deferred ideas.
+- The two #2 documentation changes are still uncommitted and unpublished. The recorded pre-edit checkpoint was `7316c22ae09fed95aba3bbf568c1e6d3bdc25493`.
 
-Real-data canonical/visual boundary validation
-        =
-REINFORCED
+## Current Research focus
 
-Routing architecture research
-        =
-stable; investigate only concrete new questions
+Continue the standing Research / Architecture mission with an evidence-led investigation of a real manufacturer's liquid-cooled hotend and coolant loop.
 
-PowerShell/parser research
-        =
-CLOSED
+Separate physical coolant flow and fittings from electrical connections, sensors, and firmware controls. Gather revision-specific source evidence, distinguish documented facts from inference and unknowns, and test whether the current V0.2 model represents the real example before proposing any ontology change.
 
-Current active Research assignment
-         =
-NONE — await Planning
-```
-
-The current Research objective is therefore **not broad ontology expansion**.
-
-The objective is to resolve concrete evidence gaps that affect accurate representation of real machine hardware and to provide Planning with evidence-backed conclusions without inventing semantics.
+ISO 1219-1/-2 and ISO 14617-1/-2 are initial reference leads; verify their scope and applicability before relying on them. Keep the hardware-catalog implementation deferred, and do not interrupt the active Promega wiring vertical slice.

@@ -1330,3 +1330,206 @@ What evidence supports the architectural decision?
 If a standard does not materially answer one of those questions, it does not need to become part of the current architecture.
 
 The goal is a machine model that is informed by established engineering practice while remaining coherent, extensible, and useful across different machines, firmware systems, and engineering disciplines.
+
+## Hardware Catalog and Interchange Formats — Research Proposal (2026-10-11)
+
+**Status:** Research recommendation only. This does not authorize a catalog loader, schema implementation, ontology expansion, file migration, or firmware-adapter implementation. The Promega wiring vertical slice remains the immediate priority. Future catalog architecture work belongs in the canonical future-feature register in `MASTER_PLAN.md`, Section 13.
+
+### Executive recommendation
+
+Evaluate a declarative, versioned hardware catalog with stable product/revision identity, source-backed claims, and format-specific import adapters. YAML is a reasonable human-authored candidate if its accepted subset is restricted to a JSON-compatible data model and records are validated. JSON remains a viable alternative. JSON Schema Draft 2020-12 is a candidate for structural validation, not a replacement for domain validation or the canonical machine model.
+
+Keep three concerns separate:
+
+1. **Catalog facts:** manufacturer identity, product and hardware revision, documented connector/contact information, electrical limits, mechanical characteristics, and sources.
+2. **Installed machine structure:** the particular installed `MachineComponent`, `Controller`, `SemanticPort`, `SemanticConnection`, `ControllerResource`, and relevant assignments/relationships.
+3. **Firmware interpretation:** provider, firmware version, board-specific mapping, configuration syntax, and settings for a target.
+
+The catalog informs the canonical model; it must not silently replace the installed model with generic product assumptions. Unknown, inferred, conflicting, and unverified facts must remain distinguishable. Each material claim should be traceable to evidence at the claim/property level, not merely to a source listed on the overall object.
+
+### Architecture requirements and boundaries
+
+**Identity and versioning**
+
+- Give each reusable record a stable internal identifier rather than relying on its display name.
+- Separate schema version, record version, product/variant identity, and hardware revision.
+- Do not merge variants merely because they share a marketing name or connector family.
+- Record the source document's identity, revision, and date where available. A current web page does not prove an older board revision has the same pinout.
+- Preserve conflicting source claims rather than choosing one unqualified value.
+
+**Evidence and uncertainty**
+
+- Represent claim values, units where applicable, supporting source, applicable revision/variant, and status such as documented, inferred, conflicting, or unverified.
+- Keep manufacturer reference data, firmware sample/configuration data, and observations of the actual as-built machine separate.
+- Record assumptions and rationale for derived values. Object-level provenance does not prove which source supports each property.
+- Absence of evidence means unknown, not an empty connector, disconnected wire, default electrical value, or permission to infer a mapping.
+- Associate claims with the revision or assembly variant to which their evidence applies.
+
+**Installed structure and electrical semantics**
+
+- `HardwareDefinition` is a reusable catalog specification; `MachineComponent` represents the installed component or role in a particular machine.
+- Physical `SemanticPort` endpoints and `SemanticConnection` objects describe installed topology. `ControllerResource` describes a controller resource and is not itself a physical connector.
+- Firmware resource assignment is distinct from wiring. Board resource IDs, firmware channel names, connector labels, cable labels, and physical contact identities must not be conflated.
+- Catalog connector facts do not establish the identity or contact-to-contact connectivity of the actual installed cable.
+- Represent connector contacts as records with numeric `position` fields. Avoid integer dictionary keys in catalog records: the current persistence layer has a string-key restriction, and a serialization `TypeError` demonstrates that limitation rather than successful persistence.
+- Geometry, board artwork, contact locations, and drawing references are supporting data, distinct from electrical meaning and installed topology.
+
+### Format and interchange comparison
+
+| Format or source | Appropriate use | Important limits |
+|---|---|---|
+| YAML 1.2.2 | Readable, editable catalog records | Restrict accepted features; avoid custom tags and values that cannot round-trip to the chosen data model. Validate after loading. |
+| JSON | Programmatic records and interchange | Less pleasant for humans to maintain directly; still needs schema and semantic validation. |
+| JSON Schema Draft 2020-12 | Required fields, types, enums, and nested structure validation | Does not validate electrical truth, revision compatibility, machine topology, or source credibility. |
+| KiCad schematic and PCB formats | Import ECAD symbols, nets, footprints, and board layout when source files exist | Requires version-aware adapters. ECAD files do not prove the user's cable, board population, exact installed revision, or as-built assembly. |
+| IPC-2581, including the C revision when supported | Structured ECAD exchange for board, component, and net data | Confirm actual revision and tool support. Do not assume it contains all mechanical, harness, assembly, or as-built facts needed by this application. |
+| STEP AP242 / ISO 10303-242 | Mechanical geometry and supplied product/manufacturing information | Not a replacement for electrical connectivity, controller resources, or firmware mappings. Verify the actual model profile and content. |
+| 3MF | 3D-printable model data and associated information | Not a canonical controller, net, wiring, or firmware schema. |
+| Manufacturer PDFs, schematics, drawings, and manuals | Primary evidence for revision, pin labels, wiring options, mechanical drawings, and instructions | Preserve document revision/date and a page/sheet/section locator where possible. A document supports only claims it actually establishes. |
+| BOM and CSV exports | Part-number lists, quantities, and repeatable import/export | Columns and semantics vary. A BOM alone does not establish nets, installed position, cable routing, or configuration meaning. |
+| Native firmware configuration | Firmware-specific settings, names, pins, and supported behavior | Must be tied to the firmware/provider/version. A sample configuration does not prove the user's actual machine matches it. |
+
+### Standards and reference leads
+
+These are research leads, not a claim that the project must adopt a complete standard or that conformance has been audited.
+
+- **YAML 1.2.2:** https://yaml.org/spec/1.2.2/ — candidate human-editable syntax; define a restricted subset.
+- **JSON Schema Draft 2020-12:** https://json-schema.org/draft/2020-12 — structural schema validation.
+- **KiCad file formats:** https://dev-docs.kicad.org/en/file-formats/ — format-specific import research.
+- **IPC-2581:** https://www.ipc2581.com/ — verify revision, data coverage, implementation support, and source/toolchain conditions.
+- **ISO 10303 / STEP AP242:** https://www.iso.org/search.html?q=ISO%2010303-242 — mechanical/product interchange; evaluate actual source contents.
+- **3MF specifications:** https://3mf.io/specification/ — 3D model interchange.
+- **IEC 61360-1:** https://webstore.iec.ch/en/search?query=IEC%2061360-1 — standardized data-element types and classification concepts.
+- **ISO 8000 series:** https://www.iso.org/search.html?q=ISO%208000 — data quality and master-data research.
+- **IEC 61076 series:** https://webstore.iec.ch/en/search?query=IEC%2061076 — connector-interface research where a specific connector family/revision is relevant; do not infer compatibility from physical resemblance.
+- **W3C PROV-O:** https://www.w3.org/TR/prov-o/ — provenance vocabulary for source/activity/agent relationships; not an automatic reason to add a new V0.2 ontology.
+- **Dublin Core Metadata Terms:** https://www.dublincore.org/specifications/dublin-core/dcmi-terms/ — metadata concepts for source documents.
+- **Marlin configuration reference:** https://marlinfw.org/docs/configuration/configuration.html
+- **Klipper configuration reference:** https://www.klipper3d.org/Config_Reference.html
+- **Duet firmware documentation:** https://docs.duet3d.com/ — use the exact version-specific reference for each claim.
+
+Adopt standards only when a concrete requirement and bounded validation case justify them. Relevance is not a reason to implement an entire external provenance, classification, or interchange system.
+
+### Firmware adapters
+
+Marlin, Klipper, and RepRapFirmware should have separate, version-aware adapters rather than one universal firmware parser.
+
+- **Marlin:** configurations and pin/feature definitions depend on target board, build environment, enabled options, and firmware revision. A configuration or board pin file does not alone establish the actual machine.
+- **Klipper:** configuration files and includes describe Klipper-specific pins, steppers, heaters, sensors, and modules. Preserve include paths and firmware context during import.
+- **RepRapFirmware (RRF):** G-code configuration and board mappings must be associated with the target board and RRF version. A legacy vendor release does not prove compatibility with a later RRF configuration.
+
+An adapter translates recognized firmware-specific facts into the canonical model without redefining physical hardware facts. Preserve original text or source locations where practical, record adapter/version information, and distinguish parsed values from inferred intent. Ambiguous or unsupported syntax should not be silently reinterpreted.
+
+### Proposed catalog directory layout
+
+Proposal for later Planning review only; do not create this scaffolding now.
+
+    catalog/
+      catalog-manifest.yaml
+      schemas/
+        hardware-definition.schema.json
+        firmware-adapter.schema.json
+        source-record.schema.json
+      hardware/
+        controllers/<manufacturer>/<family>/<revision>/hardware.yaml
+        driver-modules/<manufacturer>/<model>/<revision>/hardware.yaml
+        motors/<manufacturer>/<model>/<revision>/hardware.yaml
+        sensors/<manufacturer>/<model>/<revision>/hardware.yaml
+        assemblies/<manufacturer>/<family>/<variant>/hardware.yaml
+      firmware-adapters/<provider>/<board-variant>/adapter.yaml
+      evidence/sources.yaml
+      assets/
+      examples/machines/
+      tests/
+
+A separate harness/assembly-definition layer should be justified by real reuse and evidence. Do not create empty catalog scaffolding or relocate existing model data as part of this research checkpoint.
+
+### Candidate record fields
+
+A future common record could evaluate:
+
+- **Identity:** stable ID, schema version, record version, record kind/category, manufacturer, product/family, model, variant, hardware revision, aliases, and documented manufacturer part number.
+- **Evidence:** source ID, document title/revision/date, URL or repository revision, page/sheet/section locator, claim/value/unit, status, applicable variant, and assumption/conflict note.
+- **Connectors and contacts:** local IDs, printed connector designator/name, connector family where known, contact array with numeric `position`, contact label, documented electrical role, qualified voltage/current constraints, and source references.
+- **Controller resources:** board-local resource ID, type, hardware mapping, limitations, and claim evidence. Do not confuse resource IDs with physical terminals.
+- **Geometry and assets:** sourced dimensions/outlines, coordinate system, orientation, asset reference, and exact board-revision evidence.
+- **Firmware adapter references:** provider, version range, board/variant condition, native configuration key, source path, mapping rule, and limitations.
+- **Compatibility and conflicts:** explicit scope and conditions rather than unsupported Boolean compatibility claims.
+
+A conceptual contact record could use an array like this:
+
+    contacts:
+      - position: 1
+        label: "GND"
+        claims:
+          - value: "ground"
+            state: documented
+            source: "source-duet-maestro-v1"
+      - position: 2
+        label: "SIGNAL"
+        claims:
+          - value: null
+            state: unverified
+            note: "Role has not been confirmed for this exact connector revision."
+
+This is illustrative only. Field names, enumerations, null behavior, units, and claim structures require an explicit decision and tests before implementation.
+
+### Candidate cases for a bounded pilot
+
+Use real, revision-identified cases that challenge different parts of the proposal:
+
+1. **BIGTREETECH Octopus:** multiple connectors/resources and revision-specific evidence.
+2. **BIGTREETECH SKR Mini E3 V3.0:** a contrasting board family and board-specific firmware mapping.
+3. **TMC5160T Pro driver module:** reusable driver module kept distinct from controller board and installed motor wiring.
+4. **Duet IR probe:** electrical terminals, physical mounting, firmware interpretation, and readings/configuration must remain distinct facts.
+5. **Promega harness and assembly variants:** uncertain or variant-dependent wiring, board ports, cable labels, and firmware channels.
+
+These are pilot candidates, not declarations that every detail has already been verified. Record exact source revisions and unresolved claims before using examples as schema acceptance fixtures.
+
+### Gap analysis
+
+Candidate capability gaps to evaluate after the Promega milestone:
+
+- No established, common versioned catalog contract and loader across the expected sources.
+- No accepted convention ensuring material claims have their own supporting evidence.
+- No demonstrated validation and migration process for schema revisions.
+- Electrical quantities, units, tolerances, conditions, and rating scope need consistent representation.
+- Revision, option, assembly, and harness variants must be representable without flattening disagreement into a universal pinout.
+- Source adapters need semantic validation; conversion to YAML/JSON alone does not preserve correct meaning.
+- Geometry and asset coordinates need source, revision, and coordinate context.
+- Persistence compatibility must be tested with actual records; numeric-position contact arrays avoid the known integer-dictionary-key problem.
+- Firmware import must preserve provider/version boundaries and source evidence.
+- Catalog data must not become an asserted as-built connection without evidence.
+
+### Staged adoption proposal
+
+**Stage 0 — current priority:** complete and validate Promega wiring with source-grounded details. Keep unknown connections unknown; do not interrupt that work to implement a catalog framework.
+
+**Stage 1 — after Promega, with Planning decision:** consider a bounded pilot using one controller board and one contrasting board/module or sensor. Demonstrate stable identity, schema validation, claim-level evidence, revision handling, contact arrays, persistence, and explicit unknown/conflict behavior end to end.
+
+**Stage 2 — if the pilot demonstrates value:** evaluate adapters for manufacturer drawings/ECAD, geometry, BOMs, harness/assembly definitions, and the three firmware families. Add formats based on documented needs.
+
+**Stage 3 — separate broader decision:** evaluate migrations, maintenance, source-update tracking, tests, and ownership.
+
+### Open decisions for Planning — deferred
+
+- YAML with a restricted JSON-compatible data model versus JSON-authored records.
+- Identity, schema versioning, and migration policy.
+- Minimum claim-level evidence and uncertainty vocabulary.
+- Units, revision applicability, conflicts, and derived-value representation.
+- Separation between reusable connector/part definitions and installed endpoint mappings.
+- Whether geometry, external standards, harness/assembly definitions, and firmware adapters belong in later phases.
+- Which real records and checks would make a bounded pilot acceptable.
+
+Record deferred ideas in `MASTER_PLAN.md` Section 13, the canonical future-problem/future-feature register. Do not create a competing backlog or interpret this research as implementation approval. V0.2 remains the working ontology boundary unless a real case demonstrates a representation blocker.
+
+### Follow-on research: liquid-cooled hotend and coolant loop
+
+After preserving this catalog report, investigate a real manufacturer's liquid-cooled hotend/coolant-loop example. Keep separate:
+
+- physical coolant path, ports, hoses, fittings, flow direction, pump, reservoir, radiator, and cold plate where applicable;
+- electrical power and signal wiring for pumps, fans, sensors, and control devices;
+- firmware-facing sensors, outputs, settings, and control semantics;
+- manufacturer facts, source-derived inference, and unresolved as-built details.
+
+Initial standards leads are ISO 1219-1 and ISO 1219-2 for fluid-power symbols/diagrams, and ISO 14617-1 and ISO 14617-2 for graphical symbols. Confirm the exact scope and applicability before relying on them. First test whether the existing canonical model and the `SemanticRelationship`/`SemanticConnection` distinction adequately represent the actual case. Do not add coolant/flow ontology entities merely because the example is new.
