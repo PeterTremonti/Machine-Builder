@@ -473,16 +473,8 @@ class CreateConnection:
                 "harness_id": None,
                 "notes": None,
             }
-            if (
-                self.connection_properties is not None
-                and "documented_cable_label"
-                in self.connection_properties
-            ):
-                connection_properties["documented_cable_label"] = None
-
             if self.connection_properties is not None:
-                for key in connection_properties:
-                    value = self.connection_properties.get(key)
+                for key, value in self.connection_properties.items():
                     connection_properties[key] = (
                         value
                         if value is not None and value.strip()

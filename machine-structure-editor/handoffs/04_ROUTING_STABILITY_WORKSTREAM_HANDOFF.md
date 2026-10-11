@@ -2223,3 +2223,34 @@ UI inspection milestone
 `MASTER_PLAN.md` Section 13 already records the user's report that crowded ports and unreadable labels prevented effective manual testing. Do not submit a duplicate intake. Revisit it at a dedicated GUI-inspection milestone, reproduce the symptom, then establish acceptance criteria before choosing spacing, grouping, filtering/layers, label placement, or other potential approaches. Do not interrupt this wiring increment with an unverified UI rewrite.
 
 The SKR hardware spike and broad catalog schema/loader work remain deferred.
+
+## 1. Promega X/Y Motor Reference Connections — Validated (2026-10-11)
+
+**Classification:** Implementation and validation.
+
+**Verified repository baseline:** `4d96f3d0bcaaade8524d3eb997e646d5fd954601` — Document directed fluid-transfer research contract.
+
+**Durable destination:** `machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`; `machine-structure-editor/src/machine_builder/promega_fixtures.py`; `machine-structure-editor/src/machine_builder/mutations.py`; `machine-structure-editor/tests/test_promega_xy_motor_reference.py`; `machine-structure-editor/tests/test_promega_ir_probe_connections.py`; `machine-structure-editor/tests/test_connection_authoring.py`.
+
+**Validation:** Python compilation passed. Focused tests: 14 passed in 4.61s. Full suite: 841 passed in 7.49s. `git diff --check` passed after this checkpoint was corrected.
+
+**Publication:** Included in the dedicated #4-owned commit containing this handoff entry; the final commit identifier is reported in the durable milestone message.
+
+## Durable update completed
+
+1. Added the XY reference API and four cable-side contacts per axis, mating by documented positions to Maestro J9 / X MOT and J8 / Y MOT.
+2. Updated `CreateConnection` to preserve supplied connection metadata while retaining default properties and blank-value normalization.
+3. Added mutation-contract coverage and XY tests for metadata, provenance, save/reopen persistence, and numeric-suffix position fallback.
+4. Restored the IR-probe implementation from the committed baseline before appending the separate XY helper.
+
+## Findings preserved
+
+1. The reference model maps mating positions 1–4 to documented board contacts B1, B2, A1, A2. This does not establish conductor order or internal motor wiring.
+2. Wire-colour-to-contact mapping and motor-coil terminal mapping remain `not_established`.
+3. Firmware drive assignment remains `not_established`; installed physical wiring remains `not_verified_as_built`.
+4. Cable-side reference ports do not establish direct connections to motor terminals or prove the installed harness endpoints.
+5. The focused tests cover the XY reference model, existing IR-probe connections, and connection-authoring metadata; the full suite passed.
+
+## Recommended next steps
+
+Resume manual GUI/connection testing against this bounded reference slice. Any extension to motor-coil terminals, wire-colour mapping, firmware drives, or installed harness endpoints requires specific documentary or as-built evidence.

@@ -469,3 +469,38 @@ def test_connection_resolves_controller_visual_port_to_canonical_port() -> None:
 
     assert controller_port.controller_id == "controller-1"
     assert controller_port.component_id is None
+
+def test_create_connection_preserves_supplied_metadata_and_normalizes_blank_values():
+    store = create_two_fans()
+    store.commit(
+        CreateConnection(
+            connection_id="connection-metadata",
+            endpoint_a_id="fan-a-power",
+            endpoint_b_id="fan-b-ground",
+            connection_type="electrical",
+            connection_properties={
+                "wire_color": "   ",
+                "harness_id": "",
+                "notes": "Reference-only X motor contact.",
+                "documented_cable_label": "X motor cable",
+                "reference_board_designator": "J9 / X MOT",
+                "board_contact_label": "B1",
+                "mapping_basis": "mated_connector_position_not_wire_colour",
+                "blank_metadata": " ",
+                "nullable_metadata": None,
+            },
+        )
+    )
+
+    connection = store.semantic_model.connections["connection-metadata"]
+    properties = connection.properties
+
+    assert properties["wire_color"] is None
+    assert properties["harness_id"] is None
+    assert properties["notes"] == "Reference-only X motor contact."
+    assert properties["documented_cable_label"] == "X motor cable"
+    assert properties["reference_board_designator"] == "J9 / X MOT"
+    assert properties["board_contact_label"] == "B1"
+    assert properties["mapping_basis"] == "mated_connector_position_not_wire_colour"
+    assert properties["blank_metadata"] is None
+    assert properties["nullable_metadata"] is None
