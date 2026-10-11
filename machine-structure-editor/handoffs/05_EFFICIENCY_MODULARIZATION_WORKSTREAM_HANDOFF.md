@@ -430,14 +430,14 @@ State the next concrete step.
 
 # Current Next Action
 
-1. Verify the actual current `main` checkout and repository structure.
-2. Perform the read-only repository audit.
-3. Investigate the known documentation candidates and the IdeaFormer `.crdownload`.
-4. Trace references before labeling anything obsolete or removable.
-5. Record findings and classifications in this handoff.
-6. Return recommendations to the owning workstreams before any cleanup implementation begins.
+Continue Workstream 05's standing Efficiency / Modularization / Audit mission under CHAT_WORKFLOW.md Sections 35-37.
 
----
+ - Take the next useful audit or acceptance review that fits existing authority; do not wait for routine procedural approval.
+ - For assigned reviews, assess every criterion and the supplied evidence. Report ACCEPTABLE or BLOCKED with concrete evidence, gaps, and actionable next steps. Missing evidence is never a pass.
+ - Keep reviews of other workstreams implementation read-only unless separately authorized. Protect other owners files, application code, tests, and catalog data.
+ - Do not reopen completed reviews without material new evidence or a material state change.
+ - Maintain this handoff at significant milestones and no later than the five-published-commit routine interval. The interval must not delay a significant update.
+
 
 # Core Principle
 
@@ -706,3 +706,41 @@ Nonblocking follow-ups:
 2. Add an explicit reversed-order duplicate-pair regression assertion. The reviewed duplicate checks account for unordered endpoint pairs, but a dedicated reversed-order assertion would strengthen regression coverage.
 
 This acceptance review did not authorize a commit. This handoff update is documentation-only; no staging, commit, or push is authorized by this entry.
+
+## Currency Checkpoint - 2026-10-11 - Workflow and Promega Readiness
+
+**Handoff edit timestamp:** 2026-10-11 01:11:08 -04:00. This is the time of this documentation edit, not an inferred timestamp for an earlier milestone.
+
+**Workflow reference:** Planning identifies 88fb470b7b60c53d2db4059d271df0a2c2f693b1 as the published workflow update. Sections 34-37 establish copy-ready workstream messaging, the five-published-commit maximum routine handoff interval with immediate material updates, autonomous continuation and durable handoff maintenance, and one-time future-feature intake through MASTER_PLAN.md Section 13.
+
+**Local checkpoint identity captured for this update:** the supplied PowerShell output reported branch `main`, HEAD `9f3626b5b3117c2aef691eec4b04ae9b863485d0` (`Add reusable Promega IR-probe reference wiring fixture`), and local `origin/main` at the same hash. This records the local observation captured for this update; remote publication was not independently fetched or verified.
+
+### Maestro J4 correction
+
+Final review disposition: **ACCEPTABLE FOR COMMIT REVIEW**. #3 supplied the scoped five-file correction diff and reported focused tests of 46 passed in 0.16 seconds, the full suite of 827 passed in 3.80 seconds, and `git diff --check` exit status 0. #5 did not independently rerun these tests.
+
+Keep the acceptance decision separate from publication status. The J4 evidence supplied for review stated that the implementation was not staged, committed, or pushed at that evidence point. The review material does not identify a later J4-specific commit and independently establish that the correction was published. Do not infer publication from the acceptance decision.
+
+### Promega reference specimen and wiring
+
+The reported published reference-specimen checkpoint is `4ea18dafa100b5b93d504f41229036b48854447f`, "Add Promega reference specimen integration test." #4 reported one focused test passed and 835 full-suite tests passed at that checkpoint. The integration test covers one board-backed Maestro reference controller, fourteen generic component roles, unverified identity/status metadata, provenance persistence, undo/redo, and save/reopen.
+
+That checkpoint left component hardware-definition identities unset and created no component-owned semantic ports or physical connections. It did not prove GUI creation or verified as-built wiring.
+
+Later Routing progress was reported for assembly cable-label endpoint documentation and three reference IR-probe connections. The previously supplied local-state output identified `9f3626b5b3117c2aef691eec4b04ae9b863485d0`, "Add reusable Promega IR-probe reference wiring fixture," as HEAD and showed the local `origin/main` reference at the same hash. Treat this as a later checkpoint reported by the workstream, not as evidence that a complete, accurate as-built Promega wiring model has passed acceptance.
+
+A complete-wiring claim still requires evidence for the expected canonical endpoints and physical connections, endpoint/connection provenance, target firmware bindings, persistence of the integrated graph, and specimen-specific as-built accuracy. The earlier BLOCKED assessment applies to the evidence then supplied; later reference connections are progress but do not themselves close every gap.
+
+### Board, Research, and workflow evidence
+
+#3 reported the SKR Mini E3 V3.0 EXP1 Evidence Crosswalk as read-only research, not as a catalog implementation or tested fixture change. #2 reported a prepared connector/contact representation spike and an Octopus persistence limitation; the reported spike does not establish that the persistence limitation is solved.
+
+#4 also reported a common successful commit/push workflow audit. The cadence distinction is now explicit in the published workflow: five published commits is the maximum routine handoff interval, not a reason to postpone significant workstream updates or Planning updates for material cross-workstream changes.
+
+### Planning documentation-currency audit
+
+The #5 Planning documentation-currency audit was conversation-only. It recommended review of the current-state, plan, roadmap, documentation-authority, and workflow records. The earlier local status output showed Planning-owned documents staged as changes, but their diffs were not assessed as part of that conversation-only audit. This entry does not claim which recommendations those changes incorporated.
+
+### Remaining review boundary
+
+Continue the standing #5 audit mission. Do not reopen completed reviews without material new evidence or a material state change. For a complete Promega wiring claim, review a new integrated evidence package when available; do not promote reported progress to locally inspected, tested, or published status without the corresponding evidence.
