@@ -1389,9 +1389,9 @@ Manufacturer specifications, drawings, firmware examples, and observations of th
 - Catalog layout, schema fields, and format choices remain research recommendations, not approved requirements.
 - Next research focus: a real liquid-cooled hotend/coolant-loop example, separating physical fluid topology from electrical wiring and firmware interpretation. ISO 1219-1/-2 and ISO 14617-1/-2 are initial leads whose scope must be confirmed.
 
-## Repository checkpoint for this documentation update
+## Historical repository checkpoint for the catalog documentation update
 
-The script verifies that local `main`, fetched `origin/main`, and live remote `main` match before writing. The verified pre-edit commit is `7316c22ae09fed95aba3bbf568c1e6d3bdc25493`, checked at `2026-10-11 10:39:16 -04:00`. These documentation edits remain uncommitted and unpublished until reviewed and published separately. This update changes no application code and runs no tests.
+The original catalog documentation edit recorded pre-edit HEAD `7316c22ae09fed95aba3bbf568c1e6d3bdc25493`, checked at `2026-10-11 10:39:16 -04:00`. This is a historical checkpoint, not the current live repository state. The catalog research record and corresponding Research handoff checkpoint were subsequently published in commit `25d8268600c0979ecfccfccb8a1b0b04bcf89014` (`Record hardware catalog research and handoff checkpoint`). The live checkout was separately re-verified before this liquid-cooling documentation update.
 
 # Live-State Summary
 
@@ -1408,12 +1408,11 @@ The script verifies that local `main`, fetched `origin/main`, and live remote `m
 - The catalog/interchange research proposal is recorded in `machine-builder-research/standards/STANDARDS_INDEX.md` under **Hardware Catalog and Interchange Formats — Research Proposal (2026-10-11)**.
 - The proposal remains research, not implementation authorization. Catalog implementation is deferred until the Promega milestone and a separate Planning decision.
 - `MASTER_PLAN.md` Section 13 remains the canonical register for future problems and deferred ideas.
-- The two #2 documentation changes are still uncommitted and unpublished. The recorded pre-edit checkpoint was `7316c22ae09fed95aba3bbf568c1e6d3bdc25493`.
+- The catalog research record and its corresponding Research handoff checkpoint were published in commit `25d8268600c0979ecfccfccb8a1b0b04bcf89014`. Catalog implementation remains deferred pending the separate Planning decision.
 
 ## Current Research focus
 
-Continue the standing Research / Architecture mission with an evidence-led investigation of a real manufacturer's liquid-cooled hotend and coolant loop.
-
-Separate physical coolant flow and fittings from electrical connections, sensors, and firmware controls. Gather revision-specific source evidence, distinguish documented facts from inference and unknowns, and test whether the current V0.2 model represents the real example before proposing any ontology change.
-
-ISO 1219-1/-2 and ISO 14617-1/-2 are initial reference leads; verify their scope and applicability before relying on them. Keep the hardware-catalog implementation deferred, and do not interrupt the active Promega wiring vertical slice.
+- **Completed liquid-cooling checkpoint:** DYZE DESIGN Typhoon LCX and Liquid Cooling guide checked on 2026-10-11. Detailed source-backed facts, revision/web-page qualification, ISO applicability, the conflicting tubing-bend instructions, and source/test-based model-fit assessment are recorded in `machine-builder-research/standards/STANDARDS_INDEX.md`. The V0.2 architecture assessment is cross-referenced in Section 14 of `machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md`.
+- **Model fit:** Existing records can represent much of the installed coolant-loop topology, but the inspected contracts/tests do not demonstrate a validated query contract for connection medium and directed fluid flow. Treat this as a contract/query limitation, not automatic authorization to add ontology entities.
+- **Unresolved evidence:** The detector and signal path behind the documented kink/blockage print pause; conflicting 50 mm bend-radius instructions in the mutable cooling guide; and the exact installed cooling kit, hose/fitting arrangement, wiring, and firmware integration. These remain unknown unless separately verified.
+- **Next Action:** Send Planning a bounded decision request about the directed-fluid-transfer query contract versus undirected physical connections. Continue the standing Research mission after that checkpoint, without beginning the separately assigned documentation/encoding/display-standard work package prematurely. Do not interrupt Promega wiring work.

@@ -1525,11 +1525,150 @@ Record deferred ideas in `MASTER_PLAN.md` Section 13, the canonical future-probl
 
 ### Follow-on research: liquid-cooled hotend and coolant loop
 
-After preserving this catalog report, investigate a real manufacturer's liquid-cooled hotend/coolant-loop example. Keep separate:
+**Checkpoint and source-access date:** 2026-10-11.
 
-- physical coolant path, ports, hoses, fittings, flow direction, pump, reservoir, radiator, and cold plate where applicable;
-- electrical power and signal wiring for pumps, fans, sensors, and control devices;
-- firmware-facing sensors, outputs, settings, and control semantics;
-- manufacturer facts, source-derived inference, and unresolved as-built details.
+**Status:** Manufacturer-source research and V0.2 representation assessment. This record does not authorize ontology expansion, new catalog infrastructure, or application implementation. The Promega wiring vertical slice remains the active implementation priority.
 
-Initial standards leads are ISO 1219-1 and ISO 1219-2 for fluid-power symbols/diagrams, and ISO 14617-1 and ISO 14617-2 for graphical symbols. Confirm the exact scope and applicability before relying on them. First test whether the existing canonical model and the `SemanticRelationship`/`SemanticConnection` distinction adequately represent the actual case. Do not add coolant/flow ontology entities merely because the example is new.
+#### Primary manufacturer sources and revision context
+
+1. **Typhoon LCX & Typhoon Air 2.85 mm Filament Extruder — DYZE DESIGN Docs:** https://docs.dyzedesign.com/typhoon.html
+   - The mutable manufacturer documentation page contains a revision table listing R001 dated 2023-09-29 and R002 dated 2026-06-12. The R002 entry says it added details about heater PWM frequency.
+   - The page footer reports a last update of October 1, 2026. Treat R002 as the revision label in the page's revision table; do not mistake this live page for an archived, independently frozen copy of a particular revision.
+   - Relevant sections include What's Included, What's Required, LCX Liquid Cooling, Air Cooling, and Wiring.
+
+2. **Liquid Cooling — DYZE DESIGN Docs:** https://docs.dyzedesign.com/liquid-cooling.html
+   - This is a separate mutable manufacturer guide. Its footer reports a last update of October 1, 2026 at 2:30 PM.
+   - Relevant sections include Dyze Design Liquid Cooling Kit, First Setup, Mounting, Wiring, Tube Routing, Maintenance, and the build-your-own recommendations.
+
+The source dates above are the revision/update labels displayed by the manufacturer, not the date of an independent bench test. Sources accessed for this checkpoint on 2026-10-11.
+
+#### Manufacturer-documented hardware and loop facts
+
+**LCX interface and fittings**
+
+- The Typhoon LCX included-parts list specifies a liquid-cooling fitting kit containing two M8 x 1.00 elbow or compression fittings and two M8 x 1.00 plugs.
+- The LCX liquid-cooling section says to use one inlet and one outlet, plug the unused ports, and put the inlet on the opposite side from the outlet.
+- The documentation does not establish the exact side/orientation of a particular installed unit or the fittings actually present in an as-built machine.
+
+**Tubing and loop topology**
+
+- Recommended tubing is high-temperature rubber tubing with 6.35 mm (1/4 inch) internal diameter and 9.53 mm (3/8 inch) outside diameter.
+- The cooling guide describes a complete loop from the Cooling Unit to the cooled component(s) and back to the Cooling Unit. Its fitting instructions describe the Cooling Unit output as cold water from the unit and the input as hot water returning from the hotend.
+- This supports a source-consistent supply/return representation: Cooling Unit output to LCX inlet, then the LCX outlet back to Cooling Unit input. It does not justify inventing internal passage geometry or asserting measured flow direction/rate for an installed assembly.
+- The guide recommends safely routing the tubes across the machine's full motion range and avoiding kinks, pinches, abrasion, hot surfaces, stretching, and interference with moving parts.
+
+**Cooling unit nominal specifications**
+
+The manufacturer's kit list specifies:
+
+- Pump: 800 L/h nominal rating.
+- Transparent reservoir: 300 ml.
+- Radiator: 360 x 120 mm.
+- Three 120 x 120 mm fans.
+
+These are the guide's product specifications, not measured coolant flow, installed performance, or proof that a particular kit is fitted to a user's printer. For a self-built loop, the same guide separately recommends at least 600 L/h pump capacity for a Typhoon or Pulsar; do not conflate that recommendation with the listed 800 L/h kit pump.
+
+**Materials and coolant**
+
+- The Typhoon LCX documentation states that its cooled parts are aluminum alloy and calls for an aluminum radiator to prevent galvanic-corrosion concerns. The liquid-cooling guide separately warns about potential galvanic corrosion involving copper/brass components and advises against copper or brass radiators.
+- The guide recommends deionized water with about 5 ppm of minerals, a corrosion inhibitor, and a biocide.
+- These are the manufacturer's application-specific recommendations. They do not establish universal compatibility of every fluid, tubing, metal, fitting, or mixed-material loop.
+
+**Electrical supplies and operating constraints**
+
+- The liquid-cooling guide says its Cooling Unit needs 12 V DC for its pump, fans, sensors, and circuit board. Its table lists 12 V typical input, 13.5 V maximum, and 2 A typical current; these figures should not be misreported as measured current or as a printer-controller output rating.
+- The same guide identifies the Cooling Unit supply terminals as bottom pin V+ and top pin V-. These are Cooling Unit supply terminals, not a printer-controller pin assignment.
+- The Typhoon page separately lists a 24 V DC supply requirement for the LCX when using DYZE DESIGN liquid cooling. Its separate front cooling fan is specified as 70 mm, 24 V DC, 0.19 A, and 4.6 W.
+- The LCX cooling section says its water pump must remain operational whenever the additive-manufacturing machine is in use. The integrated 70 mm cooling fan must also remain operational during use.
+- Keep the Cooling Unit's 12 V supply, the Typhoon/fan 24 V requirements, any verified printer-board wiring, and firmware resource assignments as distinct facts. The manufacturer supply requirements alone do not establish how an installed printer powers or controls these devices.
+
+**Kink/blockage and print-pause behavior**
+
+- The liquid-cooling guide states that tube kinks and blockages will be detected by the system and will pause the print.
+- The Typhoon product page does not describe this pause behavior in its LCX section. The inspected cooling guide documents the Cooling Unit's supply terminals but does not identify the detector, sensor output interface, external signal path, controller input, firmware setting, or pause command.
+- Therefore the system-level behavior is manufacturer-reported, while the detection subsystem and end-to-end signal path remain unresolved. Do not fabricate a sensor-to-controller connection or a firmware assignment.
+
+**Conflicting tubing bend-radius instructions**
+
+The same mutable liquid-cooling guide contains inconsistent limits:
+
+- In First Setup / Route the Tubing, it says the bend radius should never be smaller than 2 inches (50 mm).
+- In Mounting, it says the bend radius should not exceed 2 inches (50 mm).
+
+The inequalities conflict. Preserve this as conflicting manufacturer guidance and seek clarification before translating either limit into an acceptance requirement; do not silently select one interpretation.
+
+#### Official standards records and applicability
+
+The official ISO records were checked on 2026-10-11. These standards inform diagram presentation; this research does not declare conformance or require ontology changes.
+
+- **ISO 1219-1:2012:** https://www.iso.org/standard/60184.html
+  - Covers graphical symbols for fluid-power systems. The official record lists the 2012 edition as published and includes review/status information indicating the base standard is under review and to be revised. **ISO 1219-1:2012/Amd 1:2016** is separately listed as published: https://www.iso.org/standard/66287.html.
+  - It is a relevant fluid-power symbol reference, but the fact that it provides useful symbols does not establish that this standalone thermal-cooling loop falls under a mandatory fluid-power application.
+
+- **ISO 1219-2:2012:** https://www.iso.org/standard/51200.html
+  - The official record identifies the 2012 edition as published and reports confirmation in December 2023. Its scope includes diagrams for cooling systems, lubrication systems, cooling-lubricant systems, and technical-gas systems used in conjunction with fluid-power applications.
+  - The conjunction condition matters. This research has not established that it applies to the complete standalone Typhoon LCX cooling assembly. Check the live lifecycle record again before freezing an external standards requirement.
+
+- **ISO 14617-1:2025:** https://www.iso.org/standard/85641.html
+  - Published in March 2025, it supplies general rules and guidance for preparing and presenting graphical symbols for diagrams related to industrial components, products, and processing. It supersedes the withdrawn ISO 14617-1:2005 edition.
+
+- **ISO 14617-2:2025:** https://www.iso.org/standard/83364.html
+  - Published in April 2025, it provides a graphical-symbol library for diagrams. Its official scope explicitly excludes fluid-power objects (referred to ISO 1219-1), measurement/control-function symbols, and electrotechnical symbols (referred to IEC 60617).
+  - It is not a universal library for a combined coolant, electrical, sensor, and firmware/control view.
+
+Architectural implication: coolant, electrical, and firmware/resource diagrams may need domain-appropriate symbols and view-specific conventions while remaining presentations of one canonical machine model. The drawing convention does not justify duplicating physical facts in competing models.
+
+#### V0.2 source-contract and test assessment
+
+Local source and test files were inspected against checkout HEAD `25d8268600c0979ecfccfccb8a1b0b04bcf89014` on 2026-10-11. This research update did not run the tests; the test names below are existing inspected coverage.
+
+**Reusable definition versus installed component**
+
+- `machine-structure-editor/src/machine_builder/semantic_model.py` defines `HardwareDefinition` with family/manufacturer/variant, properties, and provenance; `MachineComponent` has a role, optional `hardware_definition_id`, port IDs, properties, and provenance.
+- This supports keeping reusable LCX and cooling-unit specifications distinct from installed component records and their machine-specific ports/connections.
+
+**Ports and physical connections**
+
+- `SemanticPort` provides a component owner (or controller owner), purpose, a string `direction`, properties, and provenance.
+- `SemanticConnection` in `machine-structure-editor/src/machine_builder/semantic_connection.py` stores two endpoint IDs, `connection_type`, properties, and provenance. Its documented contract explicitly says endpoint order is nonsemantic.
+- `machine-structure-editor/tests/test_semantic_connection.py::test_connection_endpoint_order_is_not_semantic` confirms that reversing the endpoint order still identifies the same physical connection.
+- The record can technically store a medium label in `connection_type` or arbitrary properties, and a port can store direction text. The inspected contracts do not define a shared validated vocabulary for fluid medium and flow direction, enforce consistency between port direction and a connection, or provide a dedicated semantic-connection flow traversal/query contract. The existing tests do not demonstrate a fluid-loop query.
+
+**Directed semantic relationships**
+
+- `SemanticRelationship` in `machine-structure-editor/src/machine_builder/semantic_relationship.py` has ordered `source_id` and `target_id`, a registered `relationship_type`, properties, and provenance. The relationship query helpers support source/target and type queries.
+- Its fixed allow-list is `realizes`, `supports`, `requires`, `depends_on`, `participates_in`, `exposed_through`, and `mated_with`. `machine-structure-editor/tests/test_semantic_relationship.py::test_unknown_relationship_type_is_rejected` verifies that an unregistered type is rejected; `test_relationship_can_match_endpoints` verifies that endpoint order matters for a relationship.
+- A directed functional relationship is not automatically the physical hose itself. Reusing one for both physical topology and directed coolant transfer would conflate distinct semantics unless their contracts explicitly distinguished those roles.
+
+**Electrical resources and firmware assignments**
+
+- `ControllerResource` and `ControllerResourceAssignment` are separate records, each with properties and provenance. Existing assignment tests establish resource-mapping fields; they do not infer physical wiring from a resource assignment.
+- The inspected DYZE sources do not establish a printer-board resource assignment for the Cooling Unit pump, fans, or blockage detection. The pause behavior's signal path must remain unknown.
+
+**Evidence and uncertainty**
+
+- `Provenance` and per-record provenance fields exist. The current model can retain source evidence on the relevant component, port, connection, or relationship.
+- This does not automatically make every property claim source-qualified or establish an unknown cable/sensor connection. Manufacturer documentation, inference from interface names, and actual as-built observations must remain distinguishable.
+
+#### Minimal representation/query acceptance case
+
+For an installed Cooling Unit and Typhoon LCX, a future acceptance test should be able to answer, without using connection endpoint ordering as direction:
+
+- Which physical hose connection joins the Cooling Unit cold output to the LCX inlet?
+- Which physical hose connection joins the LCX outlet to the Cooling Unit warm-return input?
+- Which directed coolant path is supported by those two connected interface roles?
+- Can the query return that liquid path without treating the separate 12 V supply, fan wiring, or firmware assignments as coolant connections?
+
+The relevant existing test files are `test_semantic_connection.py`, `test_semantic_relationship.py`, `test_semantic_relationship_queries.py`, `test_controller_resource_assignment.py`, and persistence/provenance tests. The inspected tests cover basic endpoint, registered relationship, assignment, and provenance behavior, but not this fluid-medium/directed-flow acceptance case.
+
+**Assessment:** Existing V0.2 records can represent much of the installed topology and retain directional hints, but a validated, queryable directed-fluid-transfer contract is not demonstrated. This is a concrete semantic-contract/query gap relative to the existing V0.2 statement that fluid direction must be representable. It is **not proof that a new ontology entity is necessary**.
+
+Alternatives to evaluate, without implementing any now:
+
+1. Define and test a bounded convention for port direction plus physical connection medium, with a query that traverses that convention.
+2. If this cannot remain unambiguous, evaluate a typed directed-transfer relation while retaining the hose as a separate undirected physical connection.
+3. Consider a new ontology construct only if a concrete acceptance test shows the existing canonical boundary cannot express the necessary distinction.
+
+No source, tests, catalog definitions, or ontology were changed for this research. Keep broader flow-rate semantics, flow sensors, leaks, pressure, coolant chemistry, and a universal fluid-safety ontology deferred as stated in the existing V0.2 checkpoint.
+
+**Next investigation:** Ask Planning to decide the desired contract/query boundary for directed fluid transfer versus undirected physical connections. Do not interrupt the Promega wiring vertical slice or start the separate documentation/encoding/display-standard research work package without its explicit assignment.
