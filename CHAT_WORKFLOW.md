@@ -917,27 +917,19 @@ Do not invent a new historical directory or naming convention when an establishe
 
 # 26. Commit and Push Workflow
 
-The user prefers **GitHub Desktop** for commits and pushes because it provides separate Summary and Description fields and is easier for the user's workflow.
+Authorized workstreams may use PowerShell and command-line Git to stage, commit, push, and verify their assigned, validated changes when existing workstream authority permits publication. GitHub Desktop remains an available alternative when the user performs publication manually; it is not mandatory for workstreams with standing publication authority.
 
-The normal process is:
+The normal sequence is:
 
-```text
-workstream makes/test changes
-        ↓
-report actual test result
-        ↓
-prepare commit Summary
-        ↓
-prepare commit Description
-        ↓
-user commits in GitHub Desktop
-        ↓
-user pushes in GitHub Desktop
-```
+1. Validate the work and inspect the complete change scope.
+2. Preserve concurrent work and ensure the index is in the expected state.
+3. Stage only explicitly authorized paths.
+4. Review staged paths and the complete staged diff; run `git diff --check`.
+5. Commit and push using the workstream's existing publication authority.
+6. Verify local HEAD, fetched `origin/main`, and live remote main.
+7. Report actual test results, publication state, commit details, and remaining worktree changes.
 
-GitHub Desktop remains the preferred interface when the user is performing the commit and push directly. Workstreams with existing standing authority to commit and publish their assigned, validated changes may use the common sequence below without a second Planning approval.
-
-Use console-based `git commit` / `git push` only when that path is authorized by the assignment and applicable workstream rules. This procedural standard does not grant authority for changes outside the assigned scope.
+A routine authorized commit and push does not require a second Planning approval. This section does not authorize changes outside the existing assignment or workstream scope.
 
 ## Standard checkpoint sequence
 
@@ -963,7 +955,7 @@ On failure, stop, inspect state, and report the observed evidence and safe next 
 
 ## Commit Metadata Output Format
 
-Every meaningful commit request must provide both Summary and Description using the following canonical format. This is the project's standard presentation format for GitHub Desktop, not merely an example.
+Every meaningful commit request must provide both Summary and Description using the following canonical format. This is the project's standard presentation format, not merely an example. For command-line Git, use Summary as the commit subject and Description as the commit body; GitHub Desktop is not mandatory when the workstream is authorized to publish.
 
 **Summary**
 
@@ -1371,3 +1363,55 @@ Project reports and documentation must distinguish these different states:
 A reported result may trigger Planning review or a suitably qualified current-state update without being presented as locally inspected, tested, or published. Do not promote one evidence state to another without performing and recording the corresponding verification.
 
 This section supplements the handoff lifecycle and rollover rules in Section 25.1. Section 34, Cross-Workstream Messaging and Copy-Ready Handoffs, remains intact and mandatory.
+
+# 36. Autonomous Workstream Continuation and Durable Knowledge
+
+## Continuing missions
+
+Each workstream has a continuing mission defined by the Master Plan, current project state, and its own live handoff. Completing an immediate assignment is a milestone, not the end of that mission.
+
+At the start of work and after a context replacement, read the applicable workflow, current project state, and workstream handoff. Recover the goal, completed work, evidence, unresolved questions, scope boundaries, and next actions.
+
+When the next useful action is clear and within authorization, take it without waiting for routine instructions from Planning. A discovery or completed search is not itself a stopping condition. Record the result, identify what follows, and continue. Do not wait for another workstream when useful work can proceed independently.
+
+Escalate genuine blockers, cross-workstream conflicts, decisions outside the workstream's authority, and changes that would exceed approved scope. Explain the concrete issue and recommended resolution. Continue other independent work where practical.
+
+## Durable findings and workstream-owned history
+
+Repository documentation is the durable project record. Chat responses are not a substitute for preserving useful findings.
+
+Unless an assignment explicitly prohibits repository writes, research-only work may update workstream-owned research notes and its handoff while remaining prohibited from changing production code, catalog data, or tests. An explicit no-repository-write boundary must be honored; in that case provide a complete, actionable handoff to the authorized owner.
+
+At meaningful milestones, each workstream must update its own handoff and appropriate research or implementation records. Preserve useful source links and revisions, decisions and rationale, evidence status, uncertainty, remaining questions, completed work, checkpoint, and next actions. Do not leave important findings only in chat history or downloadable files.
+
+When work must be performed in the user's local checkout, provide complete, guarded, copy-ready PowerShell commands. Do not claim local execution unless the returned results establish it. Do not use a downloadable artifact as a substitute for durable repository documentation.
+
+Update workstream documentation at significant milestones, decisions, blockers, and before context replacement. The five-published-commit cadence in Section 35 is a maximum routine interval, not permission to delay important updates.
+
+## Reporting and coordination
+
+Report meaningful milestones, verified outcomes, material blockers, and decisions—not every intermediate discovery. Distinguish reported, locally inspected, tested, and published outcomes under Section 35.
+
+Planning owns project-level priority, cross-workstream conflicts, architecture decisions, and project-wide synthesis. Planning does not need to prescribe every routine next step or personally reconstruct each workstream's technical findings.
+
+These rules do not override workstream ownership, publication authority, test/tool restrictions, or shared-checkout safeguards. Section 34's complete, copy-ready sender-to-recipient handoff convention remains mandatory.
+
+# 37. Future Feature Intake and Canonical Register
+
+## Canonical location
+
+`MASTER_PLAN.md` Section 13, "Future problems / deferred ideas," is the canonical register for future features, usability problems, and out-of-scope opportunities. Do not create a competing backlog unless Planning explicitly changes this decision.
+
+## Required intake and duplicate avoidance
+
+When any workstream discovers a genuinely new, unrecorded out-of-scope feature, usability issue, or research opportunity, it must provide Planning one complete copy-ready message beginning:
+
+`From #N -> To #1 - Future Feature Intake: <topic>`
+
+Include the problem or opportunity, impact, supporting context or sources, constraints, possible acceptance outcome, and suitable revisit point. Mark unverified recollection or speculation clearly.
+
+Do not repeatedly submit the same intake after Planning has acknowledged or recorded it. If the item already exists, preserve relevant technical evidence in the workstream's own durable notes and handoff, and continue the current mission. Send Planning an update only when new evidence materially changes the item, its urgency, scope, or acceptance criteria.
+
+Planning records accepted candidates in Section 13 and controls their priority. An intake message alone does not mean the item is recorded, prioritized, or authorized for implementation. Future-feature intake must not interrupt active work.
+
+Immediately blocking safety or data-integrity concerns must still be escalated promptly; do not defer an active blocker merely because a future-feature register exists.

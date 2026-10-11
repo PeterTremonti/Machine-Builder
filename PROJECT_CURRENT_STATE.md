@@ -1181,3 +1181,72 @@ Reported test results remain tied to their original checkpoints. The earlier rep
 4. Continue the Promega physical endpoint and connection graph using supported reference evidence; keep firmware-version assignments, functional relationships, and user-specific as-built facts distinct.
 
 No new canonical ontology entity is justified by these bounded findings. Revisit that conclusion only if an actual tested case demonstrates that the existing semantic model cannot represent the required facts coherently.
+
+## Planning Coordination Update - Autonomous Workstream Continuity and Research Intake (2026-10-11)
+
+**Evidence qualification:** This records workstream reports and the user's supplied read-only inspection. It does not establish independent testing, publication of uncommitted work, or physical inspection of the user's machine.
+
+### Current priority and shared-checkout state
+
+The Promega source-supported wiring vertical slice remains the current implementation priority for #4. The latest supplied inspection reported HEAD `52d96d662359eb2299d523dcec8771f010ee7232`, with the following worktree items at that time:
+
+- Modified: `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
+- Modified: `machine-structure-editor/tests/test_promega_ir_probe_connections.py`
+- Untracked: `.vscode/launch.json`
+- Untracked: `machine-structure-editor/src/machine_builder/promega_fixtures.py`
+
+This was a reported inspection state, not proof that the Promega changes passed tests or were published. Preserve concurrent Board, Routing, and user-owned configuration changes.
+
+### Controller/Board report - Promega harness evidence
+
+On 2026-10-11, #3 reported findings from the [Promega Extruder Assembly Wiring guide](https://promega.printm3d.com/documentation/electronics/extruder-assembly-wiring):
+
+- For the older extruder cable assembly, the report identifies H4 as the left heater connector and H2 as the right, and S8 as the left PT1000 sensor connector and S6 as the right.
+- The guide distinguishes old and new assemblies. Do not transfer the older mapping to a newer assembly or an individual machine until its variant is identified.
+- The nozzle-fan harness can be P9 or P11 depending on the printer; the report says manufacturer guidance recommends tracing the cable or continuity testing rather than guessing.
+- The reported reference arrangement uses a 24 V Always-On cold-section fan and a 5 V PWM-controlled nozzle-fan output. Actual wiring and installed jumper state remain unverified.
+- PrintM3D Promega release v1.0.1 at commit `5936e84b33ed3f9bf0183a960dc952513cac258b` is an older firmware baseline, not a verified active RepRapFirmware 3.5.4 configuration.
+
+These findings narrow the evidence gaps but do not prove the user's as-built harness. #3 owns its detailed source record and handoff, and should continue with new-assembly diagrams, P4/P2 mapping, cable-to-board endpoints, and a verified RRF 3.5.4 configuration baseline.
+
+### Research/Architecture report - future catalog proposal
+
+On 2026-10-11, #2 recommended a staged declarative hardware catalog with stable revision-qualified definitions, explicit sources and uncertainty, common validation, and adapters for external electronics, CAD, and firmware formats. The report recommends preserving the current canonical model and deferring a schema/loader pilot until after the Promega milestone.
+
+Planning has recorded the proposal in `MASTER_PLAN.md` Section 13. YAML with JSON Schema and JSON as a fallback remain candidates, not an approved format decision. #2 remains responsible for preserving the full source-backed research in its durable workstream documentation. No catalog implementation or ontology expansion is authorized by that report.
+
+### Operating decision and next actions
+
+- Keep #4 focused on its authorized Promega wiring slice and actual validation.
+- #3 continues source-backed controller/harness research and preserves new discoveries in its owned records and handoff.
+- #2 preserves its full catalog research and continues its standing research mission without making catalog work a Promega prerequisite.
+- Planning owns the project-level priority, feature register, and cross-workstream synthesis.
+- Do not infer successful testing, as-built wiring, active firmware configuration, or publication from reports alone.
+
+## Planning Milestone Update - Promega Fixture Publication (2026-10-11)
+
+**Published implementation checkpoint:** `9f3626b5b3117c2aef691eec4b04ae9b863485d0` - `Add reusable Promega IR-probe reference wiring fixture`.
+
+The supplied execution report records **838 passed in 8.07 seconds** for the full test suite before publication. It reports successful publication verification with local HEAD, fetched `origin/main`, and live remote `main` all matching the commit. The two committed paths were:
+
+- `machine-structure-editor/src/machine_builder/promega_fixtures.py`
+- `machine-structure-editor/tests/test_promega_ir_probe_connections.py`
+
+This is a tested and published implementation milestone based on the supplied command output. The fixture's exact coverage still must be understood from its source and assertions; this result does not establish complete Promega wiring or verify the user's installed harness.
+
+### Current workstream direction
+
+- **#4 — Routing/Visual Integration:** Continue the authorized Promega source-supported wiring vertical slice from the newly published fixture. Keep the actual machine's harness variant, cable endpoints, firmware settings, and port-layout usability qualified until directly established.
+- **#3 — Controller/Board:** Continue the Promega cable-assembly and Maestro evidence inventory, preserving distinctions between older and newer harness variants, manufacturer references, firmware examples, and as-built observations. Keep detailed source evidence in the Board workstream's durable records.
+- **#2 — Research/Architecture:** Preserve the future catalog/file-format research in durable research documentation. The schema/loader pilot remains deferred until after the Promega milestone and a separate Planning decision.
+- **#1 — Planning:** Maintain the shared priority, authoritative feature register in `MASTER_PLAN.md` Section 13, and cross-workstream synthesis. The former immediate SKR spike priority is superseded by the Promega direction.
+
+### Shared-checkout qualification
+
+After the reported #4 publication, the supplied final status showed the five Planning documents modified, the Board handoff modified, and `.vscode/launch.json` untracked. Planning's documentation remains a separate uncommitted change. Preserve the Board handoff and user-owned configuration, and do not stage them in a Planning documentation commit.
+
+The Planning documentation edits themselves have not been test-validated by the reported 838-test run; that result belongs to commit `9f3626b5b3117c2aef691eec4b04ae9b863485d0`. Recheck whitespace and review the separate documentation diff before publication.
+
+### Next action
+
+Finish review and publication of Planning's five owned documentation paths separately. Then continue coordinating the Promega milestone through material progress reports, not routine intermediate approvals. Do not resume the SKR spike or start the catalog loader as an implicit consequence of the research reports.

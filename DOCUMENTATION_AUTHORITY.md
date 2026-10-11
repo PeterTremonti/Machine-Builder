@@ -540,6 +540,10 @@ The workflow document should point to this authority map rather than maintaining
 
 ---
 
+### Canonical future-feature register
+
+`MASTER_PLAN.md` Section 13 ("Future problems / deferred ideas") is the authoritative project-level register. `CHAT_WORKFLOW.md` Section 37 defines intake and duplicate avoidance. Supporting technical evidence remains in the owning workstream's research notes and handoff. Do not create a competing backlog without an explicit Planning decision.
+
 # 13. Current Initial Classification
 
 The current starting classification is:

@@ -807,3 +807,57 @@ The common workflow now distinguishes:
 ### Scope and evidence status
 
 This handoff records reports supplied through the October 10, 2026 workflow publication. It does not claim new test execution. The recent test counts remain checkpoint-specific, and this local update must not include the concurrent modified Board handoff or the untracked `.vscode/launch.json`.
+
+## Planning Coordination Update - Autonomous Workstream Continuity and Future Intake (2026-10-11)
+
+### Operating decisions
+
+- `MASTER_PLAN.md` Section 13 is the single canonical register for future features, usability issues, and deferred opportunities.
+- `CHAT_WORKFLOW.md` Sections 36-37 require autonomous continuation, durable workstream-owned findings, milestone-based reporting, and non-duplicative future-feature intake.
+- Section 26 clarifies command-line Git as an authorized normal publication route for workstreams with standing publication authority. GitHub Desktop remains an alternative, not a requirement.
+- Section 34 remains mandatory: cross-workstream messages begin inside their copy-ready block with `From #N -> To #M - Topic`.
+
+### Durable findings captured
+
+- The port-layout readability issue has been recorded in `MASTER_PLAN.md` Section 13 as a future GUI-inspection item. Its cause and solution remain unverified.
+- #2's hardware-catalog schema proposal has been recorded in Section 13 and is deferred until after the Promega milestone.
+- #3's old-versus-new Promega cable-assembly findings and evidence qualifications have been summarized in `PROJECT_CURRENT_STATE.md`. P4/P2, the new assembly's exact mapping, P9/P11 variation, and the active RRF 3.5.4 configuration remain unresolved.
+- The last supplied local inspection showed in-progress #4 changes in `test_promega_ir_probe_connections.py` and untracked `promega_fixtures.py`, alongside the existing modified #3 handoff and untracked `.vscode/launch.json`. This Planning edit must not stage those files or claim their tests passed.
+
+### Next action
+
+Review the five Planning-owned document changes, run `git diff --check`, and inspect the complete diff. Stage only the five paths explicitly owned by this update. Do not stage Routing implementation, the Board handoff, or `.vscode/launch.json`. No code tests are claimed by this documentation update. Publish only after staged-path and staged-diff verification, then verify local HEAD, fetched `origin/main`, and live remote main.
+
+## Planning Coordination Update - Promega Fixture Published (2026-10-11)
+
+### Verified publication report
+
+#4 supplied a publication sequence reporting:
+
+- Commit: `9f3626b5b3117c2aef691eec4b04ae9b863485d0`
+- Subject: `Add reusable Promega IR-probe reference wiring fixture`
+- Full-suite result before publication: `838 passed in 8.07s`
+- Published paths: `machine-structure-editor/src/machine_builder/promega_fixtures.py` and `machine-structure-editor/tests/test_promega_ir_probe_connections.py`
+- Reported final verification: local HEAD, fetched `origin/main`, and live remote `main` matched the published commit.
+
+This result is established from the user's supplied command output. Do not inflate it into a claim that the entire Promega connection graph or actual as-built wiring is complete.
+
+### Project priority and next steps
+
+The immediate priority remains the Promega source-supported wiring vertical slice. The newly published fixture is the current implementation checkpoint. #4 should continue by checking the precise covered behavior and advancing the next justified wiring milestone within its standing scope.
+
+#3's ongoing Promega connector/harness research supports that work but need not block independent #4 progress while evidence questions remain open. #2's declarative catalog/schema proposal and the port-layout readability issue are preserved in `MASTER_PLAN.md` Section 13 and deferred according to current priority.
+
+The previous immediate SKR connector/contact spike is no longer the active priority. No ontology expansion or broad catalog loader is authorized by these findings.
+
+### Planning documentation publication
+
+The outstanding Planning-owned documentation paths remain:
+
+- `CHAT_WORKFLOW.md`
+- `DOCUMENTATION_AUTHORITY.md`
+- `MASTER_PLAN.md`
+- `PROJECT_CURRENT_STATE.md`
+- `machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
+
+Review and publish only these paths after the state and remote checkpoint are reconfirmed. Keep the modified Board handoff and untracked `.vscode/launch.json` out of the Planning commit.

@@ -316,6 +316,12 @@ These remain future/candidate areas unless promoted by evidence and architecture
 
 ---
 
+### Future-feature intake entries - 2026-10-11
+
+- **Visual port-layout readability - user testing issue.** The user recalls that ports were clustered along one side of the application view, making labels and connections difficult to read while inspecting the Promega specimen. A previous #4 investigation may have considered spacing, ordering, filtering, or layers, but the cause and current implementation status remain unverified. Revisit during an appropriate GUI inspection milestone after the Promega wiring slice is testable. Success means the user can distinguish relevant ports, labels, and connections well enough to inspect the build. Reproduce the symptom before selecting a solution. Do not displace active Promega work without a priority decision.
+
+- **Data-driven hardware catalog architecture - research proposal.** On 2026-10-11, #2 recommended a staged, declarative, revision-qualified hardware catalog with validation, explicit source evidence, uncertainty, and adapters into the existing canonical model. Candidate authoring formats include restricted YAML validated with JSON Schema Draft 2020-12, with JSON as a lower-dependency alternative. Prefer string-keyed objects and contact arrays with explicit numeric positions. This remains a research proposal, not a format decision or implementation authorization. Defer a schema/loader pilot and broad catalog migration until after the Promega milestone and a separate Planning decision. No ontology expansion is implied.
+
 # 14. Modularity and code health
 
 The project should favor cohesive modules with clear responsibilities.
@@ -479,3 +485,29 @@ The vertical slice has progressed from general authoring infrastructure to a sou
 5. Reconcile the reference model against the user's actual machine only when physical variant, harness, active configuration, and wiring evidence are available.
 
 The SKR position-8 firmware mapping is consistently reported as `PD6`; direct rendered-manufacturer-PDF verification is still open. Connector/contact representation remains conditionally accepted, and no ontology expansion is authorized by the current evidence.
+
+## Planning Operating Decision - Workstream Autonomy and Durable Knowledge (2026-10-11)
+
+Workstreams are expected to continue their standing missions, preserve findings in durable documentation, and report at meaningful milestones. `CHAT_WORKFLOW.md` Sections 36-37 define autonomous continuation and feature intake. `MASTER_PLAN.md` Section 13 is the single future-feature register.
+
+The Promega reference-wiring vertical slice remains the immediate implementation priority. The port-layout issue is a deferred usability item. The data-driven catalog proposal is deferred until after the Promega milestone and a separate bounded Planning decision. Neither authorizes current scope expansion or ontology changes.
+
+## Planning Checkpoint - Promega IR-Probe Fixture Publication (2026-10-11)
+
+**Published checkpoint:** `9f3626b5b3117c2aef691eec4b04ae9b863485d0` - `Add reusable Promega IR-probe reference wiring fixture`.
+
+The supplied publication output reports a full-suite result of **838 passed in 8.07 seconds**, followed by successful publication verification: local HEAD, fetched `origin/main`, and live remote `main` matched. The commit contains exactly `machine-structure-editor/src/machine_builder/promega_fixtures.py` and `machine-structure-editor/tests/test_promega_ir_probe_connections.py`.
+
+This advances the Promega reference-wiring vertical slice. It does not, by itself, establish a complete machine connection graph, the wiring of the user's individual printer, or successful visual inspection of the application.
+
+### Superseding sequencing decision
+
+The October 10 connector/contact-spike sequencing is superseded as the immediate priority. Continue the Promega wiring path first:
+
+1. Preserve the newly published fixture and test; use the actual committed implementation and assertions to establish exactly what is now covered.
+2. Continue the smallest useful source-supported Promega wiring milestone within #4's authorization. Do not invent machine-side cable assignments where evidence remains incomplete.
+3. Use #3's ongoing Promega harness and Maestro evidence research as supporting input, without requiring every research question to be resolved before independent implementation can proceed.
+4. Keep the port-layout readability issue in Section 13 for a later GUI inspection milestone.
+5. Defer the SKR hardware spike and broad catalog schema/loader implementation unless Planning explicitly reprioritizes them.
+
+Reference documentation and firmware examples must remain distinct from verified as-built wiring and the active configuration on the user's printer.
