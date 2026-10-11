@@ -6,21 +6,13 @@ from PySide6.QtCore import QPointF
 from PySide6.QtWidgets import QApplication
 
 from machine_builder.canvas import MachineCanvas
-from machine_builder.mutations import CreateConnection
+from machine_builder.promega_fixtures import (
+    add_promega_ir_probe_reference_connections,
+)
 from machine_builder.persistence import load_editor_state
 from machine_builder.semantic_component_mutations import UpdateMachineComponent
 from machine_builder.semantic_model import Provenance, SemanticPort
-from machine_builder.semantic_port_mutations import CreateSemanticPort
 
-
-GUIDE_TITLE = "Promega - Duet Maestro Wiring"
-GUIDE_URL = (
-    "https://promega.printm3d.com/documentation/electronics/"
-    "duet-maestro-wiring"
-)
-BOARD_CROSSWALK_SOURCE = (
-    "Machine Builder #3 Controller/Board crosswalk: Duet 2 Maestro J28"
-)
 REFERENCE_WIRING_NOTE = (
     "Manufacturer-documented reference wiring, not verified as-built."
 )
@@ -72,19 +64,6 @@ def _board_probe_port(model, controller_id, position, pin_label):
     assert len(matches) == 1, (
         f"Expected one controller-owned z-probe port at position "
         f"{position} labelled {pin_label!r}; found {len(matches)}"
-    )
-    return matches[0]
-
-
-def _visual_port_id(node, canonical_port_id):
-    matches = [
-        port.id
-        for port in node.ports.values()
-        if port.semantic_reference == canonical_port_id
-    ]
-    assert len(matches) == 1, (
-        f"Expected one visual projection for {canonical_port_id!r}; "
-        f"found {len(matches)}"
     )
     return matches[0]
 
@@ -180,56 +159,11 @@ def test_promega_ir_z_probe_reference_connections_are_provenanced_and_persisted(
         "not_established"
     )
 
-    probe_specs = (
-        ("signal", "IR Z probe signal", "signal", 1, "Z_PROBE_IN", "S10"),
-        ("ground", "IR Z probe ground", "ground_reference", 2, "GND", "P5"),
-        (
-            "power-3v3",
-            "IR Z probe 3.3 V supply",
-            "power_supply_3v3",
-            4,
-            "+3.3V",
-            "S9",
-        ),
+    probe_ports, expected = add_promega_ir_probe_reference_connections(
+        canvas,
+        probe_component_id=probe_component_id,
+        controller_id=controller.id,
     )
-
-    probe_ports = {}
-    for suffix, purpose, functional_role, position, pin_label, cable_label in (
-        probe_specs
-    ):
-        port_id = f"{probe_component_id}-ir-z-probe-{suffix}"
-        evidence = Provenance(
-            source=GUIDE_TITLE,
-            evidence_type="documentation",
-            method="manual source review",
-            context=(
-                f"IR Z probe functional endpoint {purpose}; the cited "
-                f"reference associates it with cable lead {cable_label}."
-            ),
-            date="2026-10-10",
-            notes=(
-                f"Source: {GUIDE_URL}. Functional endpoint only. The probe-side "
-                "connector/pin identity and installed wiring are not verified."
-            ),
-        )
-        port = SemanticPort(
-            id=port_id,
-            component_id=probe_component_id,
-            controller_id=None,
-            purpose=purpose,
-            direction="unknown",
-            connector_id=None,
-            pin_id=None,
-            properties={
-                "functional_role": functional_role,
-                "physical_wiring_status": "not_verified_as_built",
-                "firmware_assignment_status": "not_established",
-                "evidence_source_url": GUIDE_URL,
-            },
-            provenance=[evidence],
-        )
-        canvas.store.commit(CreateSemanticPort(port))
-        probe_ports[suffix] = port
 
     assert model.components[probe_component_id].port_ids == [
         port.id for port in probe_ports.values()
@@ -239,75 +173,6 @@ def test_promega_ir_z_probe_reference_connections_are_provenanced_and_persisted(
         assert port.controller_id is None
         assert port.connector_id is None
         assert port.pin_id is None
-
-    controller_node = next(
-        node
-        for node in canvas.store.model.nodes.values()
-        if node.semantic_reference == controller.id
-    )
-
-    expected = {}
-    for suffix, purpose, functional_role, position, pin_label, cable_label in (
-        probe_specs
-    ):
-        probe_port = probe_ports[suffix]
-        board_port = _board_probe_port(
-            model, controller.id, position, pin_label
-        )
-        connection_id = (
-            f"{probe_component_id}-ir-z-probe-connection-{suffix}"
-        )
-        evidence = [
-            Provenance(
-                source=GUIDE_TITLE,
-                evidence_type="documentation",
-                method="manual source review",
-                context=(
-                    f"Promega documents cable lead {cable_label} at J28 "
-                    f"contact {position}, labelled {pin_label}."
-                ),
-                date="2026-10-10",
-                notes=f"Source: {GUIDE_URL}. {REFERENCE_WIRING_NOTE}",
-            ),
-            Provenance(
-                source=BOARD_CROSSWALK_SOURCE,
-                evidence_type="authored",
-                method="controller-port crosswalk review",
-                context=(
-                    f"Resolved from this instantiated controller's z-probe "
-                    f"port at contact position {position}, labelled {pin_label}."
-                ),
-                date="2026-10-10",
-                notes=(
-                    "This endpoint represents the reference-board definition, "
-                    "not verification of the installed board revision or "
-                    f"physical wiring. {REFERENCE_WIRING_NOTE}"
-                ),
-            ),
-        ]
-
-        canvas.store.commit(
-            CreateConnection(
-                connection_id=connection_id,
-                endpoint_a_id=_visual_port_id(probe_node, probe_port.id),
-                endpoint_b_id=_visual_port_id(controller_node, board_port.id),
-                connection_type="electrical",
-                connection_properties={
-                    "documented_cable_label": cable_label,
-                    "notes": REFERENCE_WIRING_NOTE,
-                },
-                provenance_entries=evidence,
-            )
-        )
-        expected[connection_id] = (
-            probe_port.id,
-            board_port.id,
-            position,
-            pin_label,
-            cable_label,
-            evidence,
-        )
-
     assert len(expected) == 3
     assert set(model.connections) == set(expected)
     assert len(canvas.store.model.connections) == 3
@@ -324,6 +189,9 @@ def test_promega_ir_z_probe_reference_connections_are_provenanced_and_persisted(
         assert connection.properties["documented_cable_label"] == cable_label
         assert connection.properties["notes"] == REFERENCE_WIRING_NOTE
         assert connection.provenance == evidence
+        assert connection.connects_same_ports(probe_id, board_id)
+        assert connection.connects_same_ports(board_id, probe_id)
+        assert not connection.is_self_connection()
 
     unused_contact_ids = {
         _board_probe_port(
@@ -390,6 +258,9 @@ def test_promega_ir_z_probe_reference_connections_are_provenanced_and_persisted(
         assert connection.properties["documented_cable_label"] == cable_label
         assert connection.properties["notes"] == REFERENCE_WIRING_NOTE
         assert connection.provenance == evidence
+        assert connection.connects_same_ports(probe_id, board_id)
+        assert connection.connects_same_ports(board_id, probe_id)
+        assert not connection.is_self_connection()
 
     restored_unused_contact_ids = {
         restored_model.ports[port_id].id for port_id in unused_contact_ids
@@ -399,3 +270,102 @@ def test_promega_ir_z_probe_reference_connections_are_provenanced_and_persisted(
         for connection in restored_model.connections.values()
         for port_id in restored_unused_contact_ids
     )
+
+def test_promega_ir_probe_reference_connection_persistence_isolated(
+    tmp_path,
+):
+    """Test round-trip persistence independently with the reusable wiring path."""
+    application = QApplication.instance()
+    if application is None:
+        application = QApplication([])
+
+    canvas = MachineCanvas()
+    canvas.create_node_from_template(
+        "duet_2_maestro_v1_0", QPointF(100.0, 100.0)
+    )
+    model = canvas.store.semantic_model
+    controller = next(iter(model.controllers.values()))
+
+    probe_node_id = f"node-{len(canvas.store.model.nodes) + 1}"
+    canvas.create_node_from_template(
+        "sensor", QPointF(220.0, 180.0)
+    )
+    probe_node = canvas.store.model.nodes[probe_node_id]
+    probe_component_id = probe_node.semantic_reference
+    assert probe_component_id is not None
+
+    probe_component = model.components[probe_component_id]
+    evidence = Provenance(
+        source="Planning milestone: First Promega Reference Specimen",
+        evidence_type="authored",
+        method="manual transcription",
+        context="IR Z probe role only; exact installed identity is unknown.",
+        date="2026-10-10",
+        notes=(
+            "Manufacturer-reference wiring is not verification of the "
+            "particular installed probe or physical harness."
+        ),
+    )
+    properties = dict(probe_component.properties)
+    properties.update({
+        "specimen_scope": "promega_compound_reference",
+        "verification_status": "role_only_identity_unverified",
+        "physical_presence_status": "not_verified_as_built",
+        "inventory_crosswalk_status": "not_established",
+        "firmware_assignment_status": "not_established",
+    })
+    canvas.store.commit(
+        UpdateMachineComponent(
+            component_id=probe_component_id,
+            role="IR Z probe",
+            label="IR Z probe",
+            properties=properties,
+            provenance_entries=[evidence],
+        )
+    )
+
+    probe_ports, expected = add_promega_ir_probe_reference_connections(
+        canvas,
+        probe_component_id=probe_component_id,
+        controller_id=controller.id,
+    )
+    assert len(probe_ports) == 3
+    assert len(expected) == 3
+
+    destination = tmp_path / "promega-ir-probe-persistence-isolated.machine.json"
+    canvas.store.save(destination)
+    restored = load_editor_state(destination)
+    restored_model = restored.semantic_model
+
+    assert len(restored_model.connections) == 3
+    assert len(restored.visual_model.connections) == 3
+    assert restored_model.components[probe_component_id].properties[
+        "physical_presence_status"
+    ] == "not_verified_as_built"
+
+    for connection_id, expected_values in expected.items():
+        probe_id, board_id, position, pin_label, cable_label, evidence_entries = (
+            expected_values
+        )
+        connection = restored_model.connections[connection_id]
+
+        assert connection.connection_type == "electrical"
+        assert connection.connects_same_ports(probe_id, board_id)
+        assert connection.connects_same_ports(board_id, probe_id)
+        assert not connection.is_self_connection()
+        assert connection.properties["documented_cable_label"] == cable_label
+        assert connection.properties["notes"] == REFERENCE_WIRING_NOTE
+        assert connection.provenance == evidence_entries
+
+        restored_probe = restored_model.ports[probe_id]
+        restored_board = restored_model.ports[board_id]
+        assert restored_probe.component_id == probe_component_id
+        assert restored_probe.controller_id is None
+        assert restored_probe.properties["physical_wiring_status"] == (
+            "not_verified_as_built"
+        )
+        assert restored_board.controller_id == controller.id
+        assert restored_board.component_id is None
+        assert restored_board.connector_id == "z-probe"
+        assert restored_board.properties["pin_label"] == pin_label
+        assert _contact_position(restored_board) == position
