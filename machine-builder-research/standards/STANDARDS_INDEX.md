@@ -1675,7 +1675,7 @@ No source, tests, catalog definitions, or ontology were changed for this researc
 
 ## Shared Documentation, Encoding, and Display Standard -- Research Proposal (2026-10-11)
 
-**Status:** Research proposal for Planning review. This section does not authorize a policy change, repository-wide cleanup, or enforcement/configuration edit.
+**Status:** Planning adopted the core recommendations on 2026-10-11, subject to the bounded enforcement and workflow decisions recorded below. Broader configuration changes, repository-wide cleanup, and historical-file rewrites remain outside this authorization.
 
 ### Purpose and scope
 
@@ -1749,11 +1749,25 @@ All checks should be read-only until the cause and proposed correction are estab
 
 **Existing `.gitattributes`:** Keep `* text=auto` unchanged for this proposal. It concerns Git text detection and line-ending normalization, not UTF-8 validation. Do not run `git add --renormalize .` or introduce a repository-wide line-ending conversion as part of this work.
 
-**Potential `.editorconfig`:** There is currently no root file. If Planning approves a minimal editor convention, a scoped Markdown section could set `charset = utf-8`, `insert_final_newline = true`, and `indent_style = space`, under `root = true`. Do not introduce it in this research change. Initially leave `end_of_line` unspecified to avoid conflicting silently with the existing Windows checkout convention. Decide separately whether consistent LF working-tree files are worth the behavior change. Evaluate `trim_trailing_whitespace = true` only after confirming that existing Markdown does not rely on two trailing spaces for hard breaks and agreeing on a replacement convention.
+**Adopted `.editorconfig`:** Planning authorized this minimal root file with the following exact content:
 
-**Potential `.gitattributes` refinement:** Explicit `*.md text eol=lf` could enforce LF in Markdown working trees as well as normalized Git content, but it would deliberately change the present checkout behavior. It is not required to diagnose encoding problems and should not be bundled into this proposal without Planning's decision and a path-scoped validation plan.
+```ini
+root = true
 
-**Existing workflow:** `CHAT_WORKFLOW.md` already covers readable Markdown and complete handoffs in Section 16, paste-ready command safety in `Copy/Paste Command Formatting Safety`, and explicit encoding/line-ending preservation in `Paste-Ready PowerShell Safety Refinement`. This proposal consolidates supporting evidence and a diagnostic procedure; it does not independently edit or supersede that workflow.
+[*.md]
+indent_style = space
+insert_final_newline = true
+```
+
+No other properties are authorized in this first change. In particular, omit `end_of_line`, `trim_trailing_whitespace`, and `charset`. This scoped change does not alter Git line-ending behavior.
+
+**`.gitattributes` and line endings -- deferred:** Planning explicitly excluded a Git-attribute or line-ending change from this adoption. Preserve the existing `* text=auto` rule and current system-level `core.autocrlf=true` behavior. Evaluate explicit Markdown LF enforcement only in a separate decision if a demonstrated cross-platform need arises.
+
+**Workflow safety gap and Planning ownership:** Planning owns any edit to `CHAT_WORKFLOW.md`; Research must not edit it as part of this adoption. The concise insertion proposed for the existing `Paste-Ready PowerShell Safety Refinement` guidance is:
+
+> Before correcting suspected corrupted text, inspect the actual file bytes/decoding or character code points and compare the file/Git diff with the intended source. Never repair text solely because a terminal, chat rendering, font, or wrapped console excerpt makes it look wrong. Distinguish verified stored-content defects from presentation artifacts.
+
+This wording is a proposal for Planning to apply in the existing guidance, not an additional workflow section.
 
 ### Official references checked on 2026-10-11
 
@@ -1768,8 +1782,15 @@ All checks should be read-only until the cause and proposed correction are estab
 - CommonMark, [Version 0.31.2 specification](https://spec.commonmark.org/0.31.2/): Markdown line endings, headings, lists, and fenced code.
 - GitHub Docs, [Basic writing and formatting syntax](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax): Markdown rendering, including the distinction between a source newline and a rendered line break.
 
-### Recommendation and decision requested
+### Planning decision and bounded adoption (2026-10-11)
 
-Adopt this as the proposed shared documentation/encoding/display procedure after Planning review. Keep the current Git normalization configuration and the existing workflow unchanged for now. If Planning wants editor-level enforcement, make that a separate small, reviewable change and validate its actual effect on representative Markdown files.
+Planning adopted the core recommendations of this research on 2026-10-11, within these explicit boundaries:
 
-No repository-wide configuration, text normalization, historical encoding conversion, or repair of suspected mojibake was performed for this research.
+- Add only the root `.editorconfig` shown above, with `root = true`, Markdown `indent_style = space`, and `insert_final_newline = true`.
+- Defer `end_of_line`, `trim_trailing_whitespace`, and `charset` properties. Preserve existing file encodings unless an intentional, reviewable edit justifies a change.
+- Leave `.gitattributes`, `core.autocrlf`, Git line-ending behavior, and historical files unchanged. Do not perform repository-wide normalization.
+- Planning owns the actual `CHAT_WORKFLOW.md` edit. The concise proposed insertion is recorded above; Research must not edit that workflow as part of this adoption.
+
+The authorized change is limited to the root `.editorconfig`, confirmed local text corrections in this section, and the Research handoff update. No source, tests, ontology, or unrelated documentation changes are authorized by this decision.
+
+The next Research mission remains the queued directed-fluid-transfer query-contract evaluation versus undirected physical connections. Promega wiring remains the active implementation priority.
