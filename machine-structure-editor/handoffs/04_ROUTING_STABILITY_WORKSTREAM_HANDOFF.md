@@ -2172,3 +2172,54 @@ Historical reconciliation and next action
 This checkpoint advances the integration recorded by Checkpoints 23-25: physical connection metadata authoring, board-backed Maestro palette authoring, and evidence-aware component/port provenance authoring. Those checkpoints remain valid historical records of their respective baselines; their earlier scope limits are not rewritten as though they had observed this later commit. No earlier checkpoint or decision requires separate archival relocation for this incremental milestone, so HISTORICAL_DOCUMENT_ARCHIVE.md is unchanged.
 
 Wait for #2's connector/contact representation validation result before expanding Board/contact modeling conventions. Planning will use that result to select the next narrowly scoped implementation milestone. Do not begin speculative physical wiring for P2/P4, H2/H4, S8/S6, or P9/P11 without a new explicit assignment.
+
+
+# Checkpoint 27 - 2026-10-11 - Reusable Promega IR-probe reference wiring fixture
+
+Purpose and disposition
+
+Record the published reusable construction path for the three Promega IR Z-probe manufacturer-reference connections. This advances a testable reference-wiring slice, not a complete machine wiring graph or verification of the user's installed harness.
+
+Implementation commit
+
+Commit: 9f3626b5b3117c2aef691eec4b04ae9b863485d0
+Subject: Add reusable Promega IR-probe reference wiring fixture
+
+The published commit contains exactly:
+- machine-structure-editor/src/machine_builder/promega_fixtures.py
+- machine-structure-editor/tests/test_promega_ir_probe_connections.py
+
+The publication output confirmed that local HEAD, fetched origin/main, and live remote main matched. The current repository baseline for this handoff update is 8c3e9902dd612877d71a66c1cd99077025b88cc6.
+
+Implementation and coverage
+
+- Extracted `add_promega_ir_probe_reference_connections(...)` into a reusable fixture.
+- It reuses the specimen's role-only IR probe component, instantiated controller, controller-owned canonical contacts, and normal editor mutation path.
+- It creates probe-owned functional ports without inventing probe connector/pin identities, and adds canonical physical connections with corresponding visual connections.
+- It preserves deterministic IDs, documented cable labels, and evidence from the Promega Duet Maestro Wiring guide and the #3 Controller/Board J28 crosswalk.
+- Tests cover endpoint ownership and identity, non-directional physical connection semantics, provenance, unused J28 contacts, undo/redo, and persistence.
+- Full suite before publication: 838 passed in 8.07 seconds; staged whitespace check passed.
+
+The three reference connections
+
+- Cable lead S10 ↔ Maestro J28 position 1, `Z_PROBE_IN`.
+- Cable lead P5 ↔ Maestro J28 position 2, `GND`.
+- Cable lead S9 ↔ Maestro J28 position 4, `+3.3V`.
+
+J28 positions 3 (`Z_PROBE_MOD`) and 5 (`+5V`) are not connected by this reference mapping. Their omission does not establish that those contacts are unused on every physical machine.
+
+Evidence boundary
+
+These are manufacturer-reference mappings, not observations of the user's installed harness. The installed controller revision, probe-side connector/pin identity, actual wiring, and active firmware probing selection remain unverified by this fixture. Persistence passed for this specimen; that does not establish universal catalog serializability or resolve the known integer-key persistence limitation for other records.
+
+Next implementation increment: reusable assembly-side cable endpoints
+
+`test_promega_assembly_labels.py` currently adds eight component-owned printed-label endpoints to the Compound mixing nozzle/tool assembly: P2/P4 (extruder motor cable labels), H2/H4 (heater cable labels), S8/S6 (PT1000 sensor cable labels), and P9/P11 (fan cable labels whose roles vary by printer). This useful behavior remains test-local rather than a reusable fixture path.
+
+Extract and test reusable assembly-side endpoint authoring using the existing evidence and uncertainty metadata. Do not create physical connection edges to Maestro contacts or firmware resources until both endpoints and their mapping are adequately supported. Preserve assembly-variant uncertainty and the not-verified-as-built status.
+
+UI inspection milestone
+
+`MASTER_PLAN.md` Section 13 already records the user's report that crowded ports and unreadable labels prevented effective manual testing. Do not submit a duplicate intake. Revisit it at a dedicated GUI-inspection milestone, reproduce the symptom, then establish acceptance criteria before choosing spacing, grouping, filtering/layers, label placement, or other potential approaches. Do not interrupt this wiring increment with an unverified UI rewrite.
+
+The SKR hardware spike and broad catalog schema/loader work remain deferred.
