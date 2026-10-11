@@ -1671,4 +1671,105 @@ Alternatives to evaluate, without implementing any now:
 
 No source, tests, catalog definitions, or ontology were changed for this research. Keep broader flow-rate semantics, flow sensors, leaks, pressure, coolant chemistry, and a universal fluid-safety ontology deferred as stated in the existing V0.2 checkpoint.
 
-**Next investigation:** Ask Planning to decide the desired contract/query boundary for directed fluid transfer versus undirected physical connections. Do not interrupt the Promega wiring vertical slice or start the separate documentation/encoding/display-standard research work package without its explicit assignment.
+**Queued follow-up:** After Planning reviews the shared documentation/encoding/display-standard proposal, resume the bounded decision request about the directed-fluid-transfer query contract versus undirected physical connections. Do not interrupt the Promega wiring vertical slice.
+
+## Shared Documentation, Encoding, and Display Standard -- Research Proposal (2026-10-11)
+
+**Status:** Research proposal for Planning review. This section does not authorize a policy change, repository-wide cleanup, or enforcement/configuration edit.
+
+### Purpose and scope
+
+Define a small, cross-workstream method for keeping repository documents accurate, portable, readable, and safe to copy into tools. Separate four different things that can look alike during an incident: file bytes, decoded characters, Git normalization, and presentation by a terminal/editor/Markdown renderer.
+
+This is a documentation and workflow proposal. It does not change Machine Builder architecture or authorize broad normalization of existing files.
+
+### Verified repository baseline
+
+Checked against local HEAD, fetched `origin/main`, and live remote `main` at `274a1cd5432fb3803dc351c4b3074c86d6689ccf` on 2026-10-11:
+
+- `.gitattributes` contains `* text=auto`. Git reports the `text` attribute as `auto` and no explicit `eol` attribute for the inspected Markdown files.
+- Effective `core.autocrlf=true` is configured in `C:/Program Files/Git/etc/gitconfig`; this is system-level Git configuration, not a repository-local declaration.
+- There is no root `.editorconfig`.
+- The standards index and Research handoff both decode as valid UTF-8 without a BOM, use consistent CRLF working-tree line endings, and end with a newline.
+- The unrelated, pre-existing worktree modification is `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`. It is outside this research scope and must be preserved.
+- The 2026-10-05 repository audit recorded LF-normalized index content with CRLF commonly produced in Windows working trees, plus six then-observed mixed-line-ending files and two historical UTF-8-with-BOM files. That was a dated inventory, not a present-day scan of every file; do not treat it as authorization for broad cleanup.
+
+The prior audit transcript rendered some examples as `â€”` and `Ã—`. That display alone does not prove whether the source contained those code points or a display/decoding path altered them. Any repair must first inspect the actual file characters and Git diff. Do not rewrite the historical passage based only on a console excerpt.
+
+### Recommended shared defaults
+
+#### 1. Encoding and Unicode
+
+- Use UTF-8 without BOM for new Markdown research notes, handoffs, and ordinary documentation unless a specific consuming tool requires otherwise.
+- ASCII is a valid subset of UTF-8, not a separate repository encoding policy. Readable Unicode punctuation and symbols are acceptable in prose where intentional. Prefer plain ASCII punctuation in executable commands, identifiers, and copy/paste instructions to reduce ambiguity.
+- A file that decodes as valid UTF-8 is not necessarily semantically correct. Mojibake can itself consist of valid Unicode characters encoded as valid UTF-8. Compare suspicious text against the intended character or trusted source, and report code points when display is uncertain.
+- Preserve a historical file's existing BOM or encoding until an intentional, reviewable edit has a reason to change it. Do not use a new-file default as a reason to rewrite unrelated files.
+- PowerShell encoding rules are version-dependent. Windows PowerShell 5.1 and PowerShell 7 do not share all file-reading, file-writing, redirection, and native-pipeline defaults. In Windows PowerShell 5.1, do not rely on the implicit encoding of `Out-File`, `>`, `>>`, or `Set-Content` to create a UTF-8 repository file. Specify encoding deliberately or use an exact-byte method when preservation is required.
+- For PowerShell source containing non-ASCII characters that must be parsed by Windows PowerShell 5.1, follow Microsoft's 5.1 encoding guidance; a UTF-8 BOM may be required for reliable decoding. Do not apply the Markdown no-BOM rule indiscriminately to executable scripts.
+- `$OutputEncoding` concerns text sent from PowerShell to native programs; it does not set the encoding used by file redirection or every file-writing cmdlet.
+
+#### 2. Line endings, whitespace, and end-of-file
+
+- Treat Git-normalized text in the index as the version-controlled baseline. The existing `* text=auto` attribute supports text line-ending normalization; the current system `core.autocrlf=true` explains why CRLF Windows working trees can coexist with normalized index content.
+- Preserve a target file's existing working-tree line-ending style during a surgical edit. A file should not be left with mixed CRLF, LF-only, or CR-only sequences. Do not normalize an entire file merely to make a small content change.
+- New or deliberately rewritten Markdown should have a final newline. Do not silently remove a final newline from an existing file.
+- Avoid tabs for Markdown indentation and visual alignment; use spaces. Do not add trailing spaces. For Markdown hard breaks, do not rely on two trailing spaces; prefer normal paragraphs, lists, or a clearly intentional alternative.
+- `git diff --check` is required after edits. It detects introduced whitespace errors and conflict markers under Git's applicable rules; it is not an encoding validator, Unicode correctness check, or proof that no characters were lost.
+
+#### 3. Markdown structure and durable research records
+
+- Use Markdown heading markers rather than bold text as simulated headings. Keep one clear document title followed by a logical `##` / `###` hierarchy.
+- Separate paragraphs and block structures with blank lines. Use proper list syntax and actual Markdown tables only for genuinely tabular comparisons.
+- Fence code with matching delimiters and an appropriate language label. If an example contains the same fence marker, use a longer outer fence. Executable PowerShell presented to the user must follow `CHAT_WORKFLOW.md` Section 16 and `Copy/Paste Command Formatting Safety`: one continuous `powershell` block with no fence metadata, no nested Markdown fences, no interleaved prose, and no invisible steps the user must remove.
+- Prefer complete, locally meaningful research checkpoints over fragments. Dates should use `YYYY-MM-DD`; if a checkpoint needs a time, include the timezone. Record source title/organization, identifier or version, URL, access/retrieval date, relevant section/page, and what the source does and does not establish where available. Keep facts, observations, inferences, and unresolved questions distinct.
+- Do not hard-wrap prose to mimic a particular chat or terminal width. Markdown renderers can visually wrap paragraphs differently from the stored source. A visual wrap is not evidence that a newline exists in the file.
+
+#### 4. Display, copy/paste, and rendering
+
+- Diagnose suspicious output in this order: inspect bytes and decoding; inspect actual code points; compare the worktree content and Git diff; then inspect terminal/renderer/font behavior. Do not start by replacing visible odd characters.
+- Windows console input/output code pages, PowerShell's native-pipeline encoding, and terminal font availability are separate settings. A missing glyph or font fallback changes how text looks, not the file's stored bytes. Markdown itself is not a portable way to prescribe a viewer's font.
+- When unusual punctuation appears corrupted, display the suspect characters as ASCII code-point labels such as `U+2014` instead of retransmitting the character through a potentially lossy console. Compare against the expected text and source before editing.
+- When output seems to have missing spaces or truncated text, compare `git diff`, explicit line counts, and the actual decoded file. Terminal wrapping, clipped console output, and chat presentation are not evidence that spaces or lines are missing in the repository. Do not paste visually wrapped excerpts back into a tracked file as though they were the original source.
+- Copy/paste instructions must be complete and literal. Use straight quotes and ordinary hyphens in commands; keep explanation outside the executable block; never require the user to repair formatting after copying.
+
+### Short read-only diagnostic procedure
+
+For a file whose encoding, newline, or display is in question:
+
+1. Capture `git status --short --branch` and confirm the expected commit and worktree changes before touching anything.
+2. Inspect `git ls-files --eol -- path/to/file`, `git check-attr text eol -- path/to/file`, and `git config --show-origin --get core.autocrlf`. These establish the applicable Git attributes and checkout configuration; they do not prove character encoding.
+3. Read the file as bytes with `[System.IO.File]::ReadAllBytes()`. Check the UTF-8 BOM bytes (`EF BB BF`), then decode with a strict UTF-8 decoder such as `New-Object System.Text.UTF8Encoding($false, $true)`. A decoding exception means the content is not valid UTF-8 under that check.
+4. Count CRLF, LF-only, and CR-only sequences and check the final newline. Compare the working-tree content against the intended source. For a rigorous character/display check, print the numeric Unicode code points of the suspect line rather than displaying its characters.
+5. Inspect `git diff -- path/to/file` and run `git diff --check`. If the question is whether normalized content differs from the current commit, `git hash-object --path=path/to/file path/to/file` can be compared with `git rev-parse HEAD:path/to/file`; matching hashes indicate the cleaned content matches that committed blob. A differing hash means content differs, not necessarily that corruption occurred.
+6. Only after the stored characters are shown to be correct should terminal code pages, `$OutputEncoding`, font glyph support, Markdown preview, visual wrapping, or chat rendering be treated as the likely source of the appearance.
+
+All checks should be read-only until the cause and proposed correction are established. Avoid temporary files and broad rewrites when direct inspection suffices.
+
+### Evaluation of repository enforcement options
+
+**Existing `.gitattributes`:** Keep `* text=auto` unchanged for this proposal. It concerns Git text detection and line-ending normalization, not UTF-8 validation. Do not run `git add --renormalize .` or introduce a repository-wide line-ending conversion as part of this work.
+
+**Potential `.editorconfig`:** There is currently no root file. If Planning approves a minimal editor convention, a scoped Markdown section could set `charset = utf-8`, `insert_final_newline = true`, and `indent_style = space`, under `root = true`. Do not introduce it in this research change. Initially leave `end_of_line` unspecified to avoid conflicting silently with the existing Windows checkout convention. Decide separately whether consistent LF working-tree files are worth the behavior change. Evaluate `trim_trailing_whitespace = true` only after confirming that existing Markdown does not rely on two trailing spaces for hard breaks and agreeing on a replacement convention.
+
+**Potential `.gitattributes` refinement:** Explicit `*.md text eol=lf` could enforce LF in Markdown working trees as well as normalized Git content, but it would deliberately change the present checkout behavior. It is not required to diagnose encoding problems and should not be bundled into this proposal without Planning's decision and a path-scoped validation plan.
+
+**Existing workflow:** `CHAT_WORKFLOW.md` already covers readable Markdown and complete handoffs in Section 16, paste-ready command safety in `Copy/Paste Command Formatting Safety`, and explicit encoding/line-ending preservation in `Paste-Ready PowerShell Safety Refinement`. This proposal consolidates supporting evidence and a diagnostic procedure; it does not independently edit or supersede that workflow.
+
+### Official references checked on 2026-10-11
+
+- Microsoft, [about_Character_Encoding -- Windows PowerShell 5.1](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_character_encoding?view=powershell-5.1): version-dependent file and command encoding behavior.
+- Microsoft, [Out-File -- PowerShell 7.5](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/out-file?view=powershell-7.5): explicit encoding choices and the UTF-8-no-BOM default in modern PowerShell.
+- Microsoft, [Windows Console Code Pages](https://learn.microsoft.com/en-us/windows/console/console-code-pages): input and output code pages are separate; Unicode is recommended for new command-line applications.
+- Microsoft, [Windows Terminal profile appearance](https://learn.microsoft.com/en-us/windows/terminal/customize-settings/profile-appearance): terminal font configuration and fallback.
+- Git, [gitattributes](https://git-scm.com/docs/gitattributes): `text=auto`, normalization, and explicit `eol` behavior.
+- Git, [git-config](https://git-scm.com/docs/git-config): `core.autocrlf` and `core.eol` behavior.
+- Git, [git-diff](https://git-scm.com/docs/git-diff): the scope of `--check` whitespace/conflict-marker checking.
+- EditorConfig, [Specification](https://spec.editorconfig.org/): `charset`, `insert_final_newline`, `indent_style`, `end_of_line`, and `trim_trailing_whitespace`.
+- CommonMark, [Version 0.31.2 specification](https://spec.commonmark.org/0.31.2/): Markdown line endings, headings, lists, and fenced code.
+- GitHub Docs, [Basic writing and formatting syntax](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax): Markdown rendering, including the distinction between a source newline and a rendered line break.
+
+### Recommendation and decision requested
+
+Adopt this as the proposed shared documentation/encoding/display procedure after Planning review. Keep the current Git normalization configuration and the existing workflow unchanged for now. If Planning wants editor-level enforcement, make that a separate small, reviewable change and validate its actual effect on representative Markdown files.
+
+No repository-wide configuration, text normalization, historical encoding conversion, or repair of suspected mojibake was performed for this research.

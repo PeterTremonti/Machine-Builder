@@ -1415,4 +1415,25 @@ The original catalog documentation edit recorded pre-edit HEAD `7316c22ae09fed95
 - **Completed liquid-cooling checkpoint:** DYZE DESIGN Typhoon LCX and Liquid Cooling guide checked on 2026-10-11. Detailed source-backed facts, revision/web-page qualification, ISO applicability, the conflicting tubing-bend instructions, and source/test-based model-fit assessment are recorded in `machine-builder-research/standards/STANDARDS_INDEX.md`. The V0.2 architecture assessment is cross-referenced in Section 14 of `machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md`.
 - **Model fit:** Existing records can represent much of the installed coolant-loop topology, but the inspected contracts/tests do not demonstrate a validated query contract for connection medium and directed fluid flow. Treat this as a contract/query limitation, not automatic authorization to add ontology entities.
 - **Unresolved evidence:** The detector and signal path behind the documented kink/blockage print pause; conflicting 50 mm bend-radius instructions in the mutable cooling guide; and the exact installed cooling kit, hose/fitting arrangement, wiring, and firmware integration. These remain unknown unless separately verified.
-- **Next Action:** Send Planning a bounded decision request about the directed-fluid-transfer query contract versus undirected physical connections. Continue the standing Research mission after that checkpoint, without beginning the separately assigned documentation/encoding/display-standard work package prematurely. Do not interrupt Promega wiring work.
+- **Next Action:** Send Planning the bounded shared documentation, encoding, and display-standard proposal recorded in `machine-builder-research/standards/STANDARDS_INDEX.md` under **Shared Documentation, Encoding, and Display Standard -- Research Proposal (2026-10-11)** for review before any cross-workstream configuration or workflow change.
+- **Queued Research follow-up:** After this checkpoint, return to the unresolved directed-fluid-transfer query contract versus undirected physical connections. Do not interrupt Promega wiring work.
+
+# Shared Documentation, Encoding, and Display Standard Checkpoint -- 2026-10-11
+
+## Durable research record
+
+The evidence-backed proposal is recorded in `machine-builder-research/standards/STANDARDS_INDEX.md` under **Shared Documentation, Encoding, and Display Standard -- Research Proposal (2026-10-11)**. It covers file encoding, BOM behavior, Windows PowerShell version differences, Git line-ending normalization, Markdown structure, copy/paste safety, terminal and font rendering, read-only diagnostics, and the limited scope of `git diff --check`.
+
+## Findings and recommendation
+
+- The existing repository uses `.gitattributes` with `* text=auto`; effective system Git configuration sets `core.autocrlf=true`. The root has no `.editorconfig`.
+- The two inspected Research documents are valid UTF-8 without BOM, have consistent CRLF working-tree line endings, and end with a newline. This is a targeted check, not a fresh audit of every repository file.
+- The recommended documentation default is UTF-8 without BOM, while PowerShell source files retain version-specific encoding requirements. Preserve existing line endings in surgical edits and do not perform broad normalization.
+- Console code page, PowerShell native-pipeline encoding, font glyph support, and Markdown rendering are distinct from stored file bytes. Verify actual characters before attempting to repair suspicious output.
+- The proposal is not approved project policy and does not authorize edits to `.editorconfig`, `.gitattributes`, `CHAT_WORKFLOW.md`, or other cross-workstream files. Planning should review and decide whether to adopt the documented minimum conventions and any later enforcement.
+
+## Next action
+
+Send Planning the bounded proposal reference for review. If Planning approves enforcement changes, scope them separately and validate representative files before changing repository-wide behavior.
+
+The directed-fluid-transfer versus undirected-physical-connection query contract remains the queued liquid-cooling research question after this checkpoint. Preserve the Promega wiring priority.
