@@ -1328,6 +1328,53 @@ Before sending a cross-workstream message, verify that its block is complete, co
 
 The purpose is to eliminate manual sender prefixes and prevent the user from copying too little or too much.
 
+## Standardized Cross-Workstream Reporting Format
+
+Use the structured reporting style established by the Controller/Board workstream's milestone reports as the default across all Machine Builder workstreams. This section standardizes reporting presentation; it does not change workstream ownership, publication authority, acceptance criteria, or task scope.
+
+### Required copy-ready message form
+
+- Every cross-workstream assignment, decision request, acknowledgement, status report, milestone report, and acceptance review must be fully enclosed in one clearly identified, copy-ready message block.
+- The first line inside that block must identify sender, recipient, and topic, using the required form: `From #N -> To #M - Specific Topic`.
+- The message must be self-contained. Do not send the substantive cross-chat message as plain prose outside the copy-ready block and expect the recipient to infer that it is a handoff.
+- Use the structured metadata and sections below as the default. Adapt them to the task when a field or section is genuinely irrelevant; do not fabricate activity or fill sections with boilerplate.
+
+### Metadata block
+
+Use these bold labels where applicable:
+
+- **Classification:** Identify the task as research, documentation-only, implementation, validation, audit, acceptance review, or another accurate category.
+- **Verified repository baseline:** Give the actual commit SHA and subject when verified and relevant. If the repository was not inspected or the baseline was not verified, say so explicitly. Never present a prior chat's baseline as the current one without checking.
+- **Durable destination:** Name the existing repository path and section where the result was recorded. If no durable update occurred, state that clearly.
+- **Validation:** Name the checks actually performed and their results. Distinguish the reporting workstream's own execution from results supplied by another workstream.
+- **Publication:** State whether the work is uncommitted, staged, committed, pushed, and remotely verified as applicable. Do not imply that committing a change proves that a push succeeded.
+- **Disposition:** For formal audit or acceptance reviews, state `ACCEPTABLE` or `BLOCKED` and tie the disposition to explicit criteria and available evidence.
+
+### Standard report sections
+
+For substantive milestone and handoff reports, use these sections in this order:
+
+1. `## Durable update completed` — state what was actually changed and where it was recorded. If no durable update occurred, say so instead of implying one.
+2. `## Findings preserved` — list the material conclusions and their evidence. Clearly distinguish verified facts, reported-but-not-independently-verified results, inferences, recommendations, conflicts, and unresolved questions.
+3. `## Recommended next steps` — give the next bounded action, responsible workstream, and any dependency or Planning decision required.
+
+Keep reports concise, concrete, and scannable. Report exact paths and test results where relevant. A proposed fix is not a verified fix; a claimed test pass is not an independently verified test pass; and missing evidence must remain visible.
+
+Simple acknowledgements may use a shorter form, but must still use the required sender/recipient/topic label and one complete copy-ready block. Formal acceptance reviews must retain the existing read-only boundary and explicit disposition requirements.
+
+### Executable command formatting remains separate
+
+This reporting standard does not override the PowerShell and copy/paste safety requirements elsewhere in `CHAT_WORKFLOW.md`.
+
+- User-facing executable PowerShell must use the existing plain `powershell` code-fence format, with no fence metadata, title, or language-marker additions beyond the required language label.
+- A command must be continuous, complete, and directly copyable. Do not place explanatory prose inside it, and do not put nested Markdown fences inside an executable PowerShell block.
+- When a cross-workstream instruction also needs executable commands, ensure the message and command remain complete and the rendered copy boundaries cannot truncate either one. Do not make the user repair fences or reconstruct missing instructions.
+- Before sending a long or complex command, inspect the complete block for premature fence endings, missing sections, malformed here-string terminators, or formatting that would turn part of the command into ordinary text.
+
+### Scope and authority
+
+These conventions apply consistently to workstreams #1 through #5. They do not grant permission to edit another workstream's files, modify application code, change the ontology, stage or publish changes, or exceed existing task authority. All existing repository safeguards, workstream responsibilities, test restrictions, cross-chat requirements, and shared-checkout protections remain in force.
+
 # 35. Workstream Handoff and Planning Documentation Cadence
 
 ## Individual workstream handoff cadence
