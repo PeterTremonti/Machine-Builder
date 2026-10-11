@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Machine Builder",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "machine_builder.app",
+            "python": "${workspaceFolder}/machine-structure-editor/.venv/Scripts/python.exe",
+            "cwd": "${workspaceFolder}/machine-structure-editor",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/machine-structure-editor/src"
+            },
+            "console": "integratedTerminal",
+            "justMyCode": true
+        }
+    ]
+}
