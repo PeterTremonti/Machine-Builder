@@ -1416,8 +1416,8 @@ The original catalog documentation edit recorded pre-edit HEAD `7316c22ae09fed95
 - **Model fit:** Existing records can represent much of the installed coolant-loop topology, but the inspected contracts/tests do not demonstrate a validated query contract for connection medium and directed fluid flow. Treat this as a contract/query limitation, not automatic authorization to add ontology entities.
 - **Unresolved evidence:** The detector and signal path behind the documented kink/blockage print pause; conflicting 50 mm bend-radius instructions in the mutable cooling guide; and the exact installed cooling kit, hose/fitting arrangement, wiring, and firmware integration. These remain unknown unless separately verified.
 - **Planning decision received (2026-10-11):** Adopt the bounded shared documentation/encoding/display standard. The root `.editorconfig` scope and explicit deferrals are recorded in the checkpoint below; Planning retains ownership of the eventual `CHAT_WORKFLOW.md` edit.
-- **Next Research mission:** Resume the queued directed-fluid-transfer query-contract evaluation versus undirected physical connections when the implementation priority permits. Do not introduce ontology changes without the necessary Planning decision; preserve Promega wiring as the active priority.
-- **Queued Research follow-up:** After this checkpoint, return to the unresolved directed-fluid-transfer query contract versus undirected physical connections. Do not interrupt Promega wiring work.
+- **Next Research action:** Send Planning the bounded directed-fluid-transfer contract recommendation recorded in the standards index. Ask Planning to select the next permitted step and timing; preserve Promega wiring as the active implementation priority.
+- **Queued Research follow-up:** After Planning responds, continue only within the agreed scope. Do not interrupt Promega wiring work.
 
 # Shared Documentation, Encoding, and Display Standard Checkpoint -- 2026-10-11
 
@@ -1438,4 +1438,6 @@ Planning adopted the core recommendations on 2026-10-11 with limited first-step 
 
 ## Next Research mission
 
-The queued follow-up remains the directed-fluid-transfer query contract versus undirected physical connections. Determine the smallest defensible representation and acceptance case without interpreting physical endpoint order as direction or mixing fluid topology with electrical and firmware/resource assignments. Keep implementation changes deferred unless Planning authorizes them, and preserve Promega wiring as the active implementation priority.
+**Research conclusion (2026-10-11):** Prefer evaluating a typed directed-transfer relationship over existing ports, layered over (not substituted for) `SemanticConnection`; flow direction must never be inferred from stored endpoint order. The existing directed-relationship mechanism is a starting point, but a bounded contract would need a registered transfer type, explicit medium/path semantics, consistency checks for referenced hose connections, and a persistent end-to-end path query. Port roles plus connection metadata alone do not demonstrate internal transfer through components or a complete coolant loop. This is a research recommendation, not implementation or ontology authorization.
+
+**Next Action:** Send Planning a bounded decision request to select the proposed transfer contract and clarify the next permitted step and timing around the Promega wiring priority.

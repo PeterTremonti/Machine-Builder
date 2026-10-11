@@ -1669,9 +1669,44 @@ Alternatives to evaluate, without implementing any now:
 2. If this cannot remain unambiguous, evaluate a typed directed-transfer relation while retaining the hose as a separate undirected physical connection.
 3. Consider a new ontology construct only if a concrete acceptance test shows the existing canonical boundary cannot express the necessary distinction.
 
+#### Directed-fluid-transfer contract comparison and recommendation (2026-10-11)
+
+**Inspection basis:** Read-only inspection of the canonical model, port/connection/relationship definitions, query helpers, and existing connection, relationship, and persistence tests at the published checkpoint. This comparison does not change source code or tests.
+
+**What the current contracts establish**
+
+- `CanonicalMachineModel._has_canonical_object()` includes canonical port IDs. `add_relationship()` checks endpoints with that general lookup, so a `SemanticRelationship` can refer to ports as its ordered source and target. This endpoint support alone does not establish fluid-transfer semantics.
+- `SemanticPort.direction` is a string with a default of `unknown`; the inspected contract does not provide a validated fluid-direction vocabulary.
+- `SemanticConnection` represents a physical connection between two ports. Its endpoint order is intentionally nonsemantic. `connection_type`, properties, and provenance can hold descriptive data, but the inspected contract does not validate a shared fluid-medium vocabulary or relate that data to directed flow.
+- `SemanticRelationship` has ordered `source_id` and `target_id`, but its registered types do not currently include fluid transfer. The query helpers filter existing relationships by source, target, type, or ordered endpoint pair; they do not traverse a fluid loop or validate a physical hose reference.
+- Persistence tests demonstrate round-trip preservation of generic connections and relationships, not a directed coolant-path query.
+
+**Option A -- convention over port roles and physical connection metadata**
+
+A convention could label a hose connection as fluid/coolant and use validated inlet/outlet roles to infer direction across that hose without depending on endpoint order. This is less invasive conceptually, but the current direction field is not validated and no query implements the convention. More importantly, hose-end roles alone do not state how fluid transfers between a component's own inlet and outlet. This option is insufficient by itself for a verified end-to-end loop query.
+
+**Option B -- typed directed-transfer relationship over existing ports (preferred for Planning to evaluate)**
+
+Keep each hose as an undirected `SemanticConnection`; represent directed transfer separately with an explicitly registered, typed relationship whose ordered endpoints are ports. The eventual contract would need to define the transfer type and its validated medium/path metadata. A transfer across a hose should reference the associated physical connection and validate that it joins the same two ports in either endpoint order. An internal transfer through a component should be distinguishable from transfer across a physical connection. Preserve provenance and unknown values; do not infer a direction from `endpoint_a_id` or `endpoint_b_id`.
+
+Existing `SemanticRelationship` and its query helpers provide a possible starting point, but the allow-list, type validation, connection-reference consistency, and path-query behavior would need to be deliberately specified and tested. Do not simply overload `supports`, `participates_in`, or another existing type to mean coolant flow. This option does not, by itself, prove that a new ontology entity is needed.
+
+**Minimal acceptance case for a future bounded implementation**
+
+Represent an installed Cooling Unit and Typhoon LCX with these boundaries and path segments:
+
+1. Cooling Unit cold output -> LCX inlet, across physical hose A.
+2. LCX inlet -> LCX outlet, through the LCX component.
+3. LCX outlet -> Cooling Unit warm-return input, across physical hose B.
+4. Cooling Unit warm-return input -> cold output, through the Cooling Unit.
+
+A query should identify hose A and hose B by their physical connection records, return the directed sequence above, and retain evidence/provenance for each asserted transfer. Reversing either hose connection's stored endpoint order must not alter the result. Round-trip persistence must preserve the same queried path. The query must not include the Cooling Unit's separate electrical supply, fan wiring, or controller-resource/firmware assignments as coolant flow. Missing or unverified transfer direction must remain unknown rather than being inferred from connection storage order.
+
+**Conclusion:** Option B is the stronger candidate to evaluate because it separates physical connectivity from directed transfer while reusing the existing port and directed-relationship boundary. A new entity is not established as necessary. This remains a research recommendation only; implementation and ontology changes remain deferred pending Planning's decision and the Promega wiring priority.
+
 No source, tests, catalog definitions, or ontology were changed for this research. Keep broader flow-rate semantics, flow sensors, leaks, pressure, coolant chemistry, and a universal fluid-safety ontology deferred as stated in the existing V0.2 checkpoint.
 
-**Queued follow-up:** After Planning reviews the shared documentation/encoding/display-standard proposal, resume the bounded decision request about the directed-fluid-transfer query contract versus undirected physical connections. Do not interrupt the Promega wiring vertical slice.
+**Next action:** Send Planning a bounded decision request on whether to evaluate a typed directed-transfer relationship over ports, layered over undirected physical hose connections, and the minimal query/validation acceptance case above. This is a research recommendation; do not begin ontology or implementation changes without a Planning decision. Preserve Promega wiring as the active implementation priority.
 
 ## Shared Documentation, Encoding, and Display Standard -- Research Proposal (2026-10-11)
 
