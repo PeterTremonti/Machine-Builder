@@ -1451,3 +1451,28 @@ Planning adopted the core recommendations on 2026-10-11 with limited first-step 
 **Generic mixed-brand loop feasibility (2026-10-12):** A loop assembled from different-brand computer-cooling parts may be feasible, but cannot be approved from brand or appearance alone. The new vendor-neutral checklist in the Standards Index covers heat load/radiator duty, pump curve versus system resistance, wetted-metal and coolant compatibility, tubing/fitting/seal ratings, electrical ratings and control, priming/leak testing, and moving-hose clearance. It distinguishes a serviceable custom loop from a sealed AIO and explicitly keeps DYZE product-specific numbers, its unresolved 50 mm radius instructions, and its undocumented coolant kink/pause path from becoming universal requirements. The unidentified spare parts remain unqualified until their materials, labels/specifications, and intended thermal duty can be checked.
 
 **Next Action:** Keep Promega hardware evidence/catalog work as the active implementation priority. The leading engineering interpretation is that 50 mm is intended as a minimum bend radius for the flexible rubber tube, but this remains unconfirmed by DYZE and must not be represented as an official correction. Request DYZE confirmation of the correct bend-radius inequality and measurement datum, alongside the unresolved coolant kink/blockage detector, signal path, and installed Cooling Unit revision. The generic mixed-brand checklist remains the basis for evaluating unidentified spare parts. Do not make cooling research a prerequisite for Promega wiring or change canonical ontology/implementation without the required Planning decision.
+
+## DYZE Liquid-Cooling Evidence Reconciliation — 2026-10-12
+
+**Durable evidence record:** `machine-builder-research/standards/STANDARDS_INDEX.md`, section “DYZE Liquid-Cooling Evidence Reconciliation — 2026-10-12,” contains the direct source links and detailed evidence classifications.
+
+### Findings to carry forward
+
+- The current English DYZE cooling guide has contradictory bend-radius directions: one passage says 50 mm minimum; another says 50 mm maximum. A separate passage recommends a low bend radius to prevent kinking. The conflict remains unresolved.
+- The currently identified tubing listing gives two sizes but does not establish the exact material or complete operating ratings of the tubing supplied with the relevant kit.
+- Independent manufacturers use different bend-radius datums. Guidance for fixed/static bends does not establish suitability for repeated dynamic flexing or service life. Independent product ratings are not transferable to DYZE's tube.
+- DYZE publicly states that kink/blockage detection pauses printing, but the reviewed public documentation does not verify the sensor/method, threshold, electrical output, controller connection, firmware/configuration, or fault/reset behavior.
+
+### Interpretation and evidence boundaries
+
+The **50 mm minimum remains an unconfirmed working hypothesis**, not an approved DYZE specification. Do not assume centerline or inside-surface measurement. Do not infer that missing interface documentation proves the sensor/protection mechanism does not exist. Likewise, do not equate the drawing's low-water-level indication with an electrical output or kink detector without evidence.
+
+### User action and external dependency
+
+**User action:** None currently required. The DYZE support request has already been submitted; no duplicate request is needed.
+
+**External dependency:** DYZE's written response is needed to resolve the bend-radius contradiction and datum, identify the applicable tube construction and operating/motion limits, and explain the sensing and printer-pause implementation.
+
+### Research next step
+
+Continue only where there is a specific evidence target with material value, such as a newly located authoritative specification, an archived revision that directly resolves the wording, or DYZE's response. Avoid repeating broad searches that have not produced new evidence. This external dependency does not block independent Promega work or other already-authorized workstreams.

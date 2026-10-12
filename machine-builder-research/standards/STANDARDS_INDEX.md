@@ -1967,3 +1967,61 @@ Planning adopted the core recommendations of this research on 2026-10-11, within
 The authorized change is limited to the root `.editorconfig`, confirmed local text corrections in this section, and the Research handoff update. No source, tests, ontology, or unrelated documentation changes are authorized by this decision.
 
 The next Research mission remains the queued directed-fluid-transfer query-contract evaluation versus undirected physical connections. Promega wiring remains the active implementation priority.
+
+## DYZE Liquid-Cooling Evidence Reconciliation — 2026-10-12
+
+This record supplements the generic mixed-brand liquid-cooling qualification checklist. It separates DYZE-published statements, independent manufacturer examples, engineering interpretation, and unresolved product-specific questions.
+
+### Manufacturer-published DYZE evidence
+
+**Conflicting bend-radius directions.** The [DYZE English liquid-cooling guide](https://docs.dyzedesign.com/liquid-cooling.html), shown as updated 2026-10-01, contains conflicting instructions. Its setup/routing guidance says the radius must not be smaller than 2 inches (50 mm), while its mounting guidance says the radius must not exceed 2 inches (50 mm). A separate tubing passage describes a low bend radius as a way to prevent kinking. The two inequalities are contradictory as a single operating limit. No public correction resolving them was identified in the material reviewed.
+
+The [French DYZE guide](https://docs.dyzedesign.com/fr/liquid-cooling.html) says “Rayon de courbure faible pour éviter le vrillage” (low bend radius to avoid twisting) and mentions routing aids such as clamps, cable chains, and anti-kink coils where appropriate. It does not resolve the numerical contradiction or specify a measurement datum.
+
+**Status of the 50 mm interpretation:** A 50 mm minimum is a plausible working hypothesis for flexible tubing given the stated anti-kink purpose, but it is **not a confirmed DYZE specification**. Do not treat either inequality as an approved requirement until clarified by authoritative product-specific evidence.
+
+**Tubing sizes versus material and ratings.** The [official DYZE tubing listing](https://dyzedesign.com/shop/liquid-cooling/high-temperature-tubing-9-53mm-od-7-94mm-od/) lists 6.35 mm ID × 9.53 mm OD and 4.76 mm ID × 7.94 mm OD options. The cooling-kit guide identifies the larger 1/4-inch ID × 3/8-inch OD tube for the kit described there. The current listing and guide do not establish the exact polymer compound supplied in the applicable kit, maximum operating temperature, working-pressure rating, static minimum bend radius, dynamic bend limit, or repeated-flex cycle life.
+
+A [2018 DYZE project article](https://dyzedesign.com/2018/10/our-cube-pro-total-conversion-part-2/) mentions silicone and EPDM tubing in a custom installation. It does not establish which compound corresponds to the current product listing or what is supplied in the present cooling kit. Do not infer the present kit's material from the older custom-build article. “High temperature” in the product name and a dimensional match are not substitutes for the missing ratings.
+
+The [Typhoon LCX guide](https://docs.dyzedesign.com/typhoon.html) says the pump must operate while the machine is in use and gives 6.35 mm ID × 9.53 mm OD tubing dimensions. It does not describe a kink/blockage detector implementation or a printer-facing fault interface.
+
+**Documented cooling-fault claim versus undocumented implementation.** The DYZE English cooling guide states that the system detects tubing kinks/blockages and pauses printing. In the public documentation examined, the physical quantity sensed, sensor or detection method, threshold, response time, fault-output type, pinout, signal voltage/polarity, controller connection, required firmware/configuration, reset behavior, and sensor/power/wiring failure behavior are not established.
+
+The guide's wiring section describes Cooling Unit power as 12 V nominal/typical with 13.5 V maximum and identifies V+ and V− supply terminals. The [DYZE CAD/drawings index](https://docs.dyzedesign.com/general-support/cad-drawings.html) links a STEP asset and a “T - MAIN ASSEMBLY” drawing. The drawing shows separate G1/4 input/output/fill fittings, a power connector labelled “2P Term Block Plug 282805-2,” and a low-water-level indication at the level slot. It does not establish a kink detector or printer-facing fault signal. The low-water indication must not be assumed to be electrical or equivalent to kink/blockage detection.
+
+The [TE Connectivity 282805-2 product entry](https://www.te.com/en/product/282805-2.html) identifies the component as a two-position terminal-block plug. That establishes connector form, not its use as a fault output.
+
+The [DYZE changelog](https://docs.dyzedesign.com/general-support/changelog.html) documents the Typhoon-to-LCX/Air transition and cooling-related product changes, but the public entries examined did not resolve either the bend-radius contradiction or the detector interface. This is a bounded public-documentation finding, not proof that unpublished or private support information does not exist.
+
+### Independent manufacturer examples — context only, not DYZE ratings
+
+- [Saint-Gobain hose engineering guidance](https://www.pooleyinc.com/wp-content/uploads/Versilon-Hose-Engineering-Guide-FINAL.pdf) describes an inside-surface bend-radius convention for rubber/fluoropolymer hose and a centerline convention for metal hose.
+- [Flexaust guidance](https://blog.flexaust.com/blog/hose-bend-radius-essentials) uses centerline radius for its products. These examples show that the datum varies by manufacturer/product. Neither establishes the datum intended by DYZE.
+- For a nominal 9.53 mm OD circular tube, the inside-surface radius and centerline radius differ geometrically by about half the OD, approximately 4.8 mm. Under that idealized geometry, a 50 mm inside radius corresponds to about 54.8 mm centerline radius. This is only a geometric conversion; it is not a DYZE rating or evidence of its intended convention.
+- [OmegaFlex motion guidance](https://omegaflex.com/engineering-design/motion/) discusses motion and fatigue for its metal-hose products. [Kanaflex guidance](https://kanaflex.com/products/hoses/flexchem-220-220rs/) warns about repeated flexing near fittings for its products. These are qualitative examples only; their requirements and values must not be transferred to DYZE's flexible tube. A radius appropriate for a stationary bend does not, by itself, establish suitability for repeated dynamic flexing or service life.
+- [Saint-Gobain Tygon E-1000 tubing](https://www.ics.saint-gobain.com/products/tygon-tubing-accessories/thermoplastic-elastomer-flexible-tubing/tygon-e-1000) lists the same nominal 6.35 mm ID × 9.53 mm OD size and a 25 mm minimum bend-radius value for that different tube construction/application. Matching dimensions do not make that bend-radius or temperature rating applicable to DYZE's supplied tube.
+
+### Engineering interpretation and unresolved questions
+
+1. Keep 50 mm minimum radius as an **unconfirmed hypothesis only**. The contradictory 50 mm maximum remains unresolved.
+2. Obtain an explicit measurement datum (inside surface, centerline, or other defined reference) and clarify whether the requirement applies to a stationary bend, the whole moving envelope, or repeated dynamic flexing. Static bend guidance does not establish dynamic cycle life.
+3. Obtain the exact tube identity/material for the applicable kit/revision, along with its working pressure, normal and fault-condition temperature limits, static/dynamic bend requirements, and motion/cycle-life limits as applicable.
+4. Separate DYZE's published claim that a kink/blockage fault pauses printing from unverified implementation details. Clarify the physical quantity and method sensed, threshold/timing, output type and electrical characteristics, pinout, controller connection, firmware/configuration, reset behavior, and behavior on sensor/power/wire failure.
+5. Clarify whether the low-water indication is visual or electrical and whether it has any relationship to kink/blockage detection. Do not infer a relationship from the fact that both relate to the cooling system.
+6. Missing public documentation does **not** prove the detection/protection mechanism or an interface does not exist. Mark those implementation details unverified until supported by authoritative product-specific evidence.
+
+### Direct source references
+
+- DYZE English cooling guide: https://docs.dyzedesign.com/liquid-cooling.html
+- DYZE French cooling guide: https://docs.dyzedesign.com/fr/liquid-cooling.html
+- DYZE tubing listing: https://dyzedesign.com/shop/liquid-cooling/high-temperature-tubing-9-53mm-od-7-94mm-od/
+- DYZE Typhoon LCX guide: https://docs.dyzedesign.com/typhoon.html
+- DYZE CAD/drawings index: https://docs.dyzedesign.com/general-support/cad-drawings.html
+- DYZE changelog: https://docs.dyzedesign.com/general-support/changelog.html
+- TE Connectivity 282805-2: https://www.te.com/en/product/282805-2.html
+- Saint-Gobain hose engineering guidance: https://www.pooleyinc.com/wp-content/uploads/Versilon-Hose-Engineering-Guide-FINAL.pdf
+- Flexaust bend-radius guidance: https://blog.flexaust.com/blog/hose-bend-radius-essentials
+- OmegaFlex motion guidance: https://omegaflex.com/engineering-design/motion/
+- Kanaflex product guidance: https://kanaflex.com/products/hoses/flexchem-220-220rs/
+- Saint-Gobain Tygon E-1000: https://www.ics.saint-gobain.com/products/tygon-tubing-accessories/thermoplastic-elastomer-flexible-tubing/tygon-e-1000
