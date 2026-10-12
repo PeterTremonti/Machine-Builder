@@ -62,6 +62,102 @@ DUET_2_MAESTRO_CONNECTOR_LAYOUT = (
 )
 
 
+# Repository commit identity is distinct from PCB title-block revision/date.
+DUET2_MAESTRO_PCB_SOURCE_COMMIT = (
+    "56958640c73c7febf3bce6e1eefbbdffd5a2db1b"
+)
+# Compatibility alias: the legacy source_revision field contains this commit SHA.
+DUET2_MAESTRO_PCB_SOURCE_REVISION = DUET2_MAESTRO_PCB_SOURCE_COMMIT
+DUET2_MAESTRO_PCB_SOURCE_FILE = (
+    "Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb"
+)
+DUET2_MAESTRO_PCB_BOARD_REVISION = "V1.0"
+DUET2_MAESTRO_PCB_SOURCE_DATE = "2018-02-20"
+DUET2_MAESTRO_PCB_SOURCE_URL = (
+    "https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/"
+    f"{DUET2_MAESTRO_PCB_SOURCE_COMMIT}/"
+    f"{DUET2_MAESTRO_PCB_SOURCE_FILE}"
+)
+DUET2_MAESTRO_PCB_NET_STATUS_ASSIGNED = (
+    "named_net_assigned_in_reference_pcb"
+)
+DUET2_MAESTRO_PCB_NET_STATUS_UNASSIGNED = (
+    "unassigned_in_reference_pcb"
+)
+DUET2_MAESTRO_PCB_NET_STATUS_UNKNOWN = "unknown_or_uninspected"
+# Each entry explicitly maps the existing fixture ordinal to a PCB pad.
+# The ordinal and legacy pin_label do not independently establish pad identity.
+DUET2_MAESTRO_PCB_PAD_MAP: dict[
+    str, dict[int, tuple[str, int, str | None]]
+] = {
+    "x-motor": {
+        1: ("J9", 3, "X_MOT_B1"),
+        2: ("J9", 4, "X_MOT_B2"),
+        3: ("J9", 1, "X_MOT_A1"),
+        4: ("J9", 2, "X_MOT_A2"),
+    },
+    "y-motor": {
+        1: ("J8", 3, "Y_MOT_B1"),
+        2: ("J8", 4, "Y_MOT_B2"),
+        3: ("J8", 1, "Y_MOT_A1"),
+        4: ("J8", 2, "Y_MOT_A2"),
+    },
+    "z-a-motor": {
+        1: ("J36", 3, "Z_MOT_B1"),
+        2: ("J36", 4, "Net-(J36-Pad4)"),
+        3: ("J36", 1, "Z_MOT_A1"),
+        4: ("J36", 2, "Net-(J36-Pad2)"),
+    },
+    "z-b-motor": {
+        1: ("J7", 3, "Net-(J36-Pad4)"),
+        2: ("J7", 4, "Z_MOT_B2"),
+        3: ("J7", 1, "Net-(J36-Pad2)"),
+        4: ("J7", 2, "Z_MOT_A2"),
+    },
+    "x-stop": {
+        1: ("J33", 3, "X_STOP_CONN"),
+        2: ("J33", 2, "+3.3V"),
+        3: ("J33", 1, "GND"),
+    },
+    "y-stop": {
+        1: ("J32", 3, "Y_STOP_CONN"),
+        2: ("J32", 2, "+3.3V"),
+        3: ("J32", 1, "GND"),
+    },
+    "z-probe": {
+        1: ("J28", 5, "Z_PROBE_IN"),
+        2: ("J28", 4, "GND"),
+        3: ("J28", 3, "Z_PROBE_MOD"),
+        4: ("J28", 2, "+3.3V"),
+        5: ("J28", 1, "+5V"),
+    },
+    "temp-ob": {
+        1: ("J37", 1, "SPI0_CS2"),
+        2: ("J37", 2, "GND"),
+        3: ("J37", 3, "SPI0_CS1"),
+        4: ("J37", 4, "SPI0_SCK"),
+        5: ("J37", 5, "SPI0_MOSI"),
+        6: ("J37", 6, "SPI0_MISO"),
+        7: ("J37", 7, "TWCK0"),
+        8: ("J37", 8, "+3.3V"),
+        9: ("J37", 9, "TWD0"),
+        10: ("J37", 10, None),
+    },
+}
+
+DUET2_MAESTRO_PROMEGA_GUIDE_VIEW_SOURCE = (
+    "https://promega.printm3d.com/documentation/electronics/"
+    "duet-maestro-wiring"
+)
+DUET2_MAESTRO_PROMEGA_GUIDE_VIEW_POSITIONS = {
+    "Z_PROBE_IN": 1,
+    "GND": 2,
+    "Z_PROBE_MOD": 3,
+    "+3.3V": 4,
+    "+5V": 5,
+}
+
+
 def add_duet_2_maestro_physical_interfaces(
     model: CanonicalMachineModel,
     machine_id: str,
@@ -395,6 +491,91 @@ def add_duet_2_maestro_physical_interfaces(
                 direction = "output"
                 port_properties["electrical_role"] = "controlled_fan_output"
 
+            pcb_identity = DUET2_MAESTRO_PCB_PAD_MAP.get(
+                connector_id, {}
+            ).get(position)
+            port_properties["pcb_identity_inventory_status"] = (
+                "covered_by_reviewed_pcb_identity_inventory"
+                if pcb_identity is not None
+                else "outside_reviewed_pcb_identity_inventory"
+            )
+            pcb_provenance: list[Provenance] = []
+            if pcb_identity is not None:
+                (
+                    pcb_reference_designator,
+                    pcb_pad_number,
+                    pcb_net_name,
+                ) = pcb_identity
+                pcb_net_status = (
+                    DUET2_MAESTRO_PCB_NET_STATUS_ASSIGNED
+                    if pcb_net_name is not None
+                    else DUET2_MAESTRO_PCB_NET_STATUS_UNASSIGNED
+                )
+                port_properties.update({
+                    "pcb_reference_designator": pcb_reference_designator,
+                    "pcb_pad_number": pcb_pad_number,
+                    "pcb_net_name": pcb_net_name,
+                    "pcb_net_status": pcb_net_status,
+                    "pcb_source_url": DUET2_MAESTRO_PCB_SOURCE_URL,
+                    "pcb_source_commit": DUET2_MAESTRO_PCB_SOURCE_COMMIT,
+                    "pcb_source_revision": DUET2_MAESTRO_PCB_SOURCE_REVISION,
+                    "pcb_source_file": DUET2_MAESTRO_PCB_SOURCE_FILE,
+                    "pcb_board_revision": DUET2_MAESTRO_PCB_BOARD_REVISION,
+                    "pcb_source_date": DUET2_MAESTRO_PCB_SOURCE_DATE,
+                })
+                net_context = (
+                    f"net {pcb_net_name!r}"
+                    if pcb_net_name is not None
+                    else "no net assigned in the reference PCB"
+                )
+                pcb_provenance.append(
+                    Provenance(
+                        source=DUET2_MAESTRO_PCB_SOURCE_URL,
+                        evidence_type="published",
+                        method=(
+                            "manual crosswalk review against pinned "
+                            "manufacturer KiCad PCB source"
+                        ),
+                        context=(
+                            f"PCB title-block revision "
+                            f"{DUET2_MAESTRO_PCB_BOARD_REVISION}, "
+                            f"date {DUET2_MAESTRO_PCB_SOURCE_DATE}; "
+                            f"repository commit "
+                            f"{DUET2_MAESTRO_PCB_SOURCE_COMMIT}; "
+                            f"PCB reference {pcb_reference_designator}, "
+                            f"pad {pcb_pad_number}: {net_context}. "
+                            "This is reference-PCB evidence only; installed "
+                            "hardware and physical wiring are not thereby "
+                            "verified."
+                        ),
+                        date="2026-10-11",
+                        notes=(
+                            f"Source file: {DUET2_MAESTRO_PCB_SOURCE_FILE}. "
+                            "This is a manually reviewed expected crosswalk; "
+                            "tests do not automatically parse the external "
+                            "PCB source. Exact source net spelling is "
+                            "preserved. An unassigned reference-PCB pad does "
+                            "not prove real-world physical disconnection. "
+                            "PCB-view coordinates and cable mating-face/"
+                            "cavity positions are not inferred."
+                        ),
+                    )
+                )
+
+            if connector_id == "z-probe":
+                guide_position = (
+                    DUET2_MAESTRO_PROMEGA_GUIDE_VIEW_POSITIONS.get(
+                        pin_label or ""
+                    )
+                )
+                if guide_position is not None:
+                    port_properties.update({
+                        "promega_diagram_view_position": guide_position,
+                        "promega_diagram_view_source": (
+                            DUET2_MAESTRO_PROMEGA_GUIDE_VIEW_SOURCE
+                        ),
+                    })
+
             port = SemanticPort(
                 id=(
                     f"{controller_id}"
@@ -407,7 +588,7 @@ def add_duet_2_maestro_physical_interfaces(
                 connector_id=connector_id,
                 pin_id=str(position),
                 properties=port_properties,
-                provenance=[],
+                provenance=pcb_provenance,
                 controller_id=controller_id,
             )
 

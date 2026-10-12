@@ -862,3 +862,149 @@ def test_removing_z_stepper_resource_removes_exposure_relationships() -> None:
         for relationship
         in model.relationships.values()
     )
+
+
+def test_maestro_pcb_pad_identity_metadata_matches_pinned_manual_crosswalk() -> None:
+    """Compare against a manually reviewed expected crosswalk, not a parsed external PCB."""
+    _, _, ports = get_fixture()
+    ports_by_key = {(port.connector_id, port.pin_id): port for port in ports}
+
+    source_commit = "56958640c73c7febf3bce6e1eefbbdffd5a2db1b"
+    # Backward-compatible pcb_source_revision stores the repository commit.
+    source_revision = source_commit
+    source_file = "Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb"
+    source_url = (
+        "https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/"
+        f"{source_commit}/{source_file}"
+    )
+    guide_url = (
+        "https://promega.printm3d.com/documentation/electronics/"
+        "duet-maestro-wiring"
+    )
+
+    # These expectations are manually reviewed against the pinned KiCad source.
+    # The test validates fixture metadata and does not parse that external source.
+    # Each sequence is in legacy fixture ordinal order, not PCB pad order.
+    expected = {
+        "x-motor": ("J9", [(3, "X_MOT_B1"), (4, "X_MOT_B2"), (1, "X_MOT_A1"), (2, "X_MOT_A2")]),
+        "y-motor": ("J8", [(3, "Y_MOT_B1"), (4, "Y_MOT_B2"), (1, "Y_MOT_A1"), (2, "Y_MOT_A2")]),
+        "z-a-motor": ("J36", [(3, "Z_MOT_B1"), (4, "Net-(J36-Pad4)"), (1, "Z_MOT_A1"), (2, "Net-(J36-Pad2)")]),
+        "z-b-motor": ("J7", [(3, "Net-(J36-Pad4)"), (4, "Z_MOT_B2"), (1, "Net-(J36-Pad2)"), (2, "Z_MOT_A2")]),
+        "x-stop": ("J33", [(3, "X_STOP_CONN"), (2, "+3.3V"), (1, "GND")]),
+        "y-stop": ("J32", [(3, "Y_STOP_CONN"), (2, "+3.3V"), (1, "GND")]),
+        "z-probe": ("J28", [(5, "Z_PROBE_IN"), (4, "GND"), (3, "Z_PROBE_MOD"), (2, "+3.3V"), (1, "+5V")]),
+        "temp-ob": ("J37", [(1, "SPI0_CS2"), (2, "GND"), (3, "SPI0_CS1"), (4, "SPI0_SCK"), (5, "SPI0_MOSI"), (6, "SPI0_MISO"), (7, "TWCK0"), (8, "+3.3V"), (9, "TWD0"), (10, None)]),
+    }
+
+    for connector_id, (reference, contacts) in expected.items():
+        for position, (pad_number, net_name) in enumerate(contacts, start=1):
+            port = ports_by_key[(connector_id, str(position))]
+            properties = port.properties
+
+            assert port.pin_id == str(position)
+            assert port.id.endswith(f"-pin-{position}")
+            assert properties["pcb_identity_inventory_status"] == (
+                "covered_by_reviewed_pcb_identity_inventory"
+            )
+            assert properties["pcb_reference_designator"] == reference
+            assert properties["pcb_pad_number"] == pad_number
+            assert properties["pcb_net_name"] == net_name
+            assert properties["pcb_net_status"] == (
+                "unassigned_in_reference_pcb"
+                if net_name is None
+                else "named_net_assigned_in_reference_pcb"
+            )
+            assert properties["pcb_source_url"] == source_url
+            assert properties["pcb_source_commit"] == source_commit
+            assert properties["pcb_source_revision"] == source_revision
+            assert properties["pcb_source_file"] == source_file
+            assert properties["pcb_board_revision"] == "V1.0"
+            assert properties["pcb_source_date"] == "2018-02-20"
+            assert len(port.provenance) == 1
+
+            evidence = port.provenance[0]
+            assert evidence.source == source_url
+            assert evidence.evidence_type == "published"
+            assert evidence.method == (
+                "manual crosswalk review against pinned "
+                "manufacturer KiCad PCB source"
+            )
+            assert reference in (evidence.context or "")
+            assert f"pad {pad_number}" in (evidence.context or "")
+            assert source_revision in (evidence.context or "")
+            assert "V1.0" in (evidence.context or "")
+            assert "2018-02-20" in (evidence.context or "")
+            assert "not automatically parse" in (evidence.notes or "")
+            assert "mating-face/cavity positions are not inferred" in (
+                evidence.notes or ""
+            )
+
+            # Coordinate identities stay separate and explicitly source-qualified.
+            assert "connector_position" not in properties
+            assert "pcb_front_view_location" not in properties
+            assert "cable_cavity_position" not in properties
+
+            if connector_id == "z-probe":
+                guide_positions = {
+                    "Z_PROBE_IN": 1,
+                    "GND": 2,
+                    "Z_PROBE_MOD": 3,
+                    "+3.3V": 4,
+                    "+5V": 5,
+                }
+                assert properties["promega_diagram_view_position"] == (
+                    guide_positions[properties["pin_label"]]
+                )
+                assert properties["promega_diagram_view_source"] == guide_url
+            else:
+                assert "promega_diagram_view_position" not in properties
+                assert "promega_diagram_view_source" not in properties
+
+    # E0/E1 motor pad identity is outside this authorized slice.
+    for connector_id in ("e0-motor", "e1-motor"):
+        excluded_ports = [
+            port for port in ports
+            if port.connector_id == connector_id
+        ]
+        assert len(excluded_ports) == 4
+        assert all(
+            "pcb_pad_number" not in port.properties
+            for port in excluded_ports
+        )
+    # Every fixture port is explicitly classified for this bounded inventory.
+    # Being outside the inventory does not establish its PCB net state.
+    mapped_fixture_keys = {
+        (connector_id, str(position))
+        for connector_id, (_, contacts) in expected.items()
+        for position, _ in enumerate(contacts, start=1)
+    }
+    outside_inventory = [
+        port for port in ports
+        if (port.connector_id, port.pin_id) not in mapped_fixture_keys
+    ]
+    assert outside_inventory
+    assert len(mapped_fixture_keys) + len(outside_inventory) == len(ports)
+    assert all(
+        port.properties["pcb_identity_inventory_status"]
+        == "outside_reviewed_pcb_identity_inventory"
+        for port in outside_inventory
+    )
+    assert all(
+        "pcb_source_url" not in port.properties
+        and "pcb_net_status" not in port.properties
+        for port in outside_inventory
+    )
+
+    expected_labels = {
+        "x-motor": ("B1", "B2", "A1", "A2"),
+        "y-motor": ("B1", "B2", "A1", "A2"),
+        "z-a-motor": ("B1", "B2", "A1", "A2"),
+        "z-b-motor": ("B1", "B2", "A1", "A2"),
+        "x-stop": ("xstop", "+3.3V", "GND"),
+        "y-stop": ("ystop", "+3.3V", "GND"),
+        "z-probe": ("Z_PROBE_IN", "GND", "Z_PROBE_MOD", "+3.3V", "+5V"),
+    }
+    for connector_id, labels in expected_labels.items():
+        for position, label in enumerate(labels, start=1):
+            port = ports_by_key[(connector_id, str(position))]
+            assert port.properties["pin_label"] == label

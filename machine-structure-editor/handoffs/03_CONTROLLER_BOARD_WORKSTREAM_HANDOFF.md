@@ -1,8 +1,8 @@
 # Machine Builder — Controller / Board Workstream Handoff
 
-Updated: 2026-10-07
+Updated: 2026-10-11
 
-Current repository checkpoint: `437e674` — `Formalize handoff lifecycle and rollover`
+Current repository checkpoint: `25d8268` — `Record hardware catalog research and handoff checkpoint`
 
 Current branch: `main`
 
@@ -57,13 +57,15 @@ Repository state is authoritative over stale handoffs or memory.
 
 Current verified repository checkpoint:
 
-`437e674 Formalize handoff lifecycle and rollover`
+`25d8268 Record hardware catalog research and handoff checkpoint`
+
+Verified at 2026-10-11 12:33:29 -04:00 against local main and fetched origin/main at full SHA 25d8268600c0979ecfccfccb8a1b0b04bcf89014. Before this documentation update, the Board handoff had existing unstaged documentation corrections; three Research-owned files had staged changes. This update preserves those other changes.
 
 Current branch and remote:
 
 `main...origin/main`
 
-The working tree was clean when this handoff rollover was prepared.
+At the start of this update, local main and fetched origin/main matched at 25d8268600c0979ecfccfccb8a1b0b04bcf89014. Existing staged Research-owned changes and the prior unstaged Board handoff correction are being preserved.
 
 Board work should use:
 
@@ -207,7 +209,7 @@ Reusable HardwareDefinition:
 
 Current installed Maestro fixture contains:
 
-`115` controller-owned physical SemanticPorts.
+`111` controller-owned physical SemanticPorts.
 
 Current connector groups:
 
@@ -217,8 +219,6 @@ Current connector groups:
 * `e1-motor` — 4
 * `z-a-motor` — 4
 * `z-b-motor` — 4
-* `bed-heat-molex` — 2
-* `bed-heat-screw` — 2
 * `e0-heat-molex` — 2
 * `e0-heat-screw` — 2
 * `e1-heat-molex` — 2
@@ -294,10 +294,13 @@ Three heater resources are represented:
 * E0 heater
 * E1 heater
 
-Each resource is exposed through two physical access-point groups:
+The current fixture exposure is:
 
-* Molex-compatible heater interface;
-* screw-terminal heater interface.
+* Bed heater: J4 pins 3 and 4 only.
+* E0 heater: `e0-heat-screw` (J11) and `e0-heat-molex` (J16 alternate access; production population unverified).
+* E1 heater: `e1-heat-screw` (J13) and `e1-heat-molex` (J17 alternate access; production population unverified).
+
+J4 is the sole modeled physical bed-heater connector. Do not treat the J16/J17 Molex-compatible groups as confirmed physical Promega endpoints without evidence that those connectors are populated on the applicable board.
 
 The fixture therefore demonstrates:
 
@@ -874,7 +877,7 @@ The manufacturer-maintained Maestro `Headers.sch` identifies:
 
 Source:
 
-`https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/master/Duet2/Duet2Maestro_v1.0/Headers.sch`
+`https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Headers.sch`
 
 The Maestro schematic connects the four numbered J8 positions to the
 motor nets `Y_MOT_A1`, `Y_MOT_A2`, `Y_MOT_B1`, and `Y_MOT_B2` in schematic
@@ -961,7 +964,7 @@ The manufacturer-maintained Maestro `Headers.sch` identifies:
 
 Source:
 
-`https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/master/Duet2/Duet2Maestro_v1.0/Headers.sch`
+`https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Headers.sch`
 
 The Maestro schematic associates the four J10 positions with the E0 motor
 nets `E0_MOT_A1`, `E0_MOT_A2`, `E0_MOT_B1`, and `E0_MOT_B2`.
@@ -1469,14 +1472,14 @@ The available evidence does not include thermal-test results establishing 18 A a
 
 The official V1.0 schematics support the physical-path identification but do not independently establish the bed path's verified safe current limit:
 
-- [`Headers.sch`](https://github.com/Duet3D/Duet-2-Hardware/blob/master/Duet2/Duet2Maestro_v1.0/Headers.sch) identifies J4 as a four-position high-current terminal and shows the connector labels.
-- [`Htr_Fan.sch`](https://github.com/Duet3D/Duet-2-Hardware/blob/master/Duet2/Duet2Maestro_v1.0/Htr_Fan.sch) shows the bed MOSFET control path and the `BED-` switched return.
+- [`Headers.sch`](https://github.com/Duet3D/Duet-2-Hardware/blob/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Headers.sch) identifies J4 as a four-position high-current terminal and shows the connector labels.
+- [`Htr_Fan.sch`](https://github.com/Duet3D/Duet-2-Hardware/blob/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Htr_Fan.sch) shows the bed MOSFET control path and the `BED-` switched return.
 
 Do not infer a verified J4 rating from the separate input-connector rating, generic screw-terminal statements, terminal-block family specifications, the MOSFET's individual datasheet, or heater-resistance calculations.
 
-### Accepted physical-interface correction plan
+### Accepted physical-interface correction plan (historical plan; superseded by implementation)
 
-J4 remains the only modeled physical bed-heater connector. When implementation is separately authorized:
+J4 remains the only modeled physical bed-heater connector. The following records the accepted pre-implementation plan. The J4 correction was subsequently implemented in commit e85a1e38af74622de3a1b62cf1641af4b707fd26 ("Correct Maestro bed heater interface mapping"). This list is retained as historical context, not pending work:
 
 - Remove the unsupported synthetic `bed-heat-molex` and `bed-heat-screw` groups.
 - Preserve J4 pins 1–4 and the net labels `GND`, `V_IN`, `V_IN`, and `BED-`.
@@ -1488,21 +1491,13 @@ J4 remains the only modeled physical bed-heater connector. When implementation i
 
 Keep the manufacturer-stated bed-heater capability, the machine-specific wiring, and the verified safe current limit for the complete circuit distinct. Evidence for one does not establish the others.
 
-The previous J4 implementation description in §26 is retained as a record of the earlier represented state. This section records the subsequently accepted correction plan; it does not claim that the fixture or catalog has already been corrected.
+The previous J4 implementation description in §26 is retained as a record of the earlier represented state. This section records the accepted correction plan and its subsequent implementation. The corrected J4 mapping is implemented, but the verified safe current limit for the complete bed-output path remains unassigned.
 
-### Authorization and next action
+### Historical authorization state (superseded by implementation)
 
-Planning has accepted the J4 physical-interface correction plan. **Implementation remains NOT AUTHORIZED.**
+At the time this section was written, Planning had accepted the correction plan, but implementation was not yet authorized. That authorization status was superseded by implementation commit e85a1e38af74622de3a1b62cf1641af4b707fd26 ("Correct Maestro bed heater interface mapping").
 
-The next action is to await separate explicit implementation authorization. Until then, do not change application source, fixtures, tests, or catalog definitions. Any authorized future implementation must retain the thermal-testing qualification on the 18 A manufacturer statement and leave the complete bed-output path's verified safe current limit unassigned unless adequate evidence establishes it.
-
-
-
-
-
--------------------------------------
-
-This is most likely in the wrong place and will need to be fixed by the #3 chat at the next handoff update but it was provided by #3 as the chat limit was reached.
+The J4 mapping correction is implemented. The verified safe current limit for the complete bed-output path remains unassigned. Preserve the thermal-testing qualification on the manufacturer-stated 18 A capability; the separate 25 A input-connector figure does not establish a safe J4 output rating.
 
 ## 34. Maestro V1.0 Controller-Side Endpoint Evidence for Promega Wiring
 
@@ -1517,9 +1512,9 @@ This report establishes the controller/board-side endpoints that can support the
 
 Primary Duet3D sources:
 
-1. [Maestro V1.0 Headers.sch](https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/master/Duet2/Duet2Maestro_v1.0/Headers.sch) — schematic sheet 4 of 7, dated 2017-12-05, revision 1.0. This is the primary source for connector reference designators, labels, contact counts, and electrical net identities.
-2. [Maestro V1.0 Htr_Fan.sch](https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/master/Duet2/Duet2Maestro_v1.0/Htr_Fan.sch) — schematic sheet 6 of 7, dated 2017-12-05, revision 1.0. This establishes the bed/E0/E1 heater control paths and FAN0/FAN1/FAN2 output circuits.
-3. [Duet2Maestro_Wiring_V1.0_drawing_v1.3.svg](https://github.com/Duet3D/Duet-2-Hardware/blob/master/Duet2/Duet2Maestro_v1.0/Duet2Maestro_Wiring_V1.0_drawing_v1.3.svg) — manufacturer wiring drawing for the Maestro V1.0 board, drawing revision v1.3. Use this for the physical wiring/contact-label convention, rather than reordering physical contacts solely from net names.
+1. [Maestro V1.0 Headers.sch](https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Headers.sch) — schematic sheet 4 of 7, dated 2017-12-05, revision 1.0. This is the primary source for connector reference designators, labels, contact counts, and electrical net identities.
+2. [Maestro V1.0 Htr_Fan.sch](https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Htr_Fan.sch) — schematic sheet 6 of 7, dated 2017-12-05, revision 1.0. This establishes the bed/E0/E1 heater control paths and FAN0/FAN1/FAN2 output circuits.
+3. [Duet2Maestro_Wiring_V1.0_drawing_v1.3.svg](https://github.com/Duet3D/Duet-2-Hardware/blob/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro_Wiring_V1.0_drawing_v1.3.svg) — manufacturer wiring drawing for the Maestro V1.0 board, drawing revision v1.3. Use this for the physical wiring/contact-label convention, rather than reordering physical contacts solely from net names.
 4. [Duet3D Duet 2 Maestro hardware reference](https://github.com/Duet3D/wiki-content/blob/master/Duet3D_hardware/Duet_2_family/Duet_2_Maestro.md) and [Wiring your Duet 2](https://docs.duet3d.com/en/How_to_guides/Wiring_your_Duet_2) — supplementary manufacturer documentation.
 5. [Promega Duet Maestro Wiring guide](https://promega.printm3d.com/documentation/electronics/duet-maestro-wiring) — machine-specific evidence for the Promega's documented Z-probe wiring and Z-motor jumper considerations.
 6. Current published Machine Builder sources: [controller_board_fixtures.py](https://github.com/PeterTremonti/Machine-Builder/blob/main/machine-structure-editor/src/machine_builder/controller_board_fixtures.py) and [hardware_catalog.py](https://github.com/PeterTremonti/Machine-Builder/blob/main/machine-structure-editor/src/machine_builder/hardware_catalog.py). These establish the currently published canonical identifiers and fixture behavior. They are not a fresh inspection of the local checkout.
@@ -1625,15 +1620,17 @@ The board-side endpoint is therefore documented; the X endstop switch, connector
 
 The manufacturer schematic identifies J28 — Probe as a five-position interface. The published fixture's canonical connector ID is `z-probe`.
 
-| J28 position | Board-side label | Board-side role          |
-| ------------ | ---------------- | ------------------------ |
-| 1            | `Z_PROBE_IN`     | Probe signal input       |
-| 2            | `GND`            | Ground reference         |
-| 3            | `Z_PROBE_MOD`    | Probe MOD control output |
-| 4            | `+3.3V`          | 3.3 V supply             |
-| 5            | `+5V`            | 5 V supply               |
+**Promega guide-view positions versus KiCad PCB pad numbers**
 
-The Promega wiring guide specifically documents its J28 use: position 1 is the signal wire identified as S10, position 2 is GND/P5, position 3 (MOD) is left empty, position 4 supplies 3.3 V/S9, and position 5 (5 V) is left empty.
+| Promega guide view position (left to right) | Function / documented lead | KiCad PCB pad number | PCB net | Promega use |
+|---:|---|---:|---|---|
+| 1 | Probe signal / S10 | 5 | `Z_PROBE_IN` | Connected |
+| 2 | GND / P5 | 4 | `GND` | Connected |
+| 3 | MOD | 3 | `Z_PROBE_MOD` | Left empty |
+| 4 | +3.3 V / S9 | 2 | `+3.3V` | Connected |
+| 5 | +5 V | 1 | `+5V` | Left empty |
+
+The Promega wiring guide documents its connector-view positions from left to right: position 1 is the signal lead S10, position 2 is GND/P5, position 3 (MOD) is left empty, position 4 supplies 3.3 V/S9, and position 5 (+5 V) is left empty. The official revision-1.0 PCB layout independently numbers J28 pads in the opposite order: pad 1 is +5V, pad 2 is +3.3V, pad 3 is Z_PROBE_MOD, pad 4 is GND, and pad 5 is Z_PROBE_IN. These are two different numbering conventions for the same reference interface. Do not treat the Promega view-position number as a KiCad pad number. The current model's connector_position/pin-ID convention must be checked before altering the canonical port mapping. Installed board revision and physical harness remain unverified.
 
 This distinction matters: positions 3 and 5 remain physical contacts on the board connector even though the documented Promega harness leaves them unwired. The catalog field `unused_position_numbers: [3, 5]` should not be interpreted as physical contacts being absent. Machine-side unconnected contacts must be represented on the harness/component side, not deleted from the board's physical interface.
 
@@ -1668,19 +1665,356 @@ A board's port labels and capabilities do not by themselves establish which Prom
 
 ### Explicit Promega harness evidence boundary
 
-This report does not resolve the following machine-side mappings:
+Controller-side connector/contact identity does not establish which harness is fitted to an installed Promega. The manufacturer's [Extruder Assembly Wiring guide](https://promega.printm3d.com/documentation/electronics/extruder-assembly-wiring) distinguishes the newer black ABS-R cable assembly from the older silver assembly and says the first 50 printers used the older assembly. Establish the applicable assembly version before applying side-specific harness mappings.
 
-* P4 / P2;
-* H2 / H4;
-* S8 / S6;
-* P9 / P11.
+### Variant-qualified Promega extruder harness evidence
 
-Those mappings must remain unresolved until backed by the applicable machine-specific wiring evidence or physical inspection. Do not infer them from the board connector inventory or port adjacency. The J28 probe connections mentioned above are included because the Promega wiring guide explicitly describes those five connector positions and which positions are left empty.
+**Sources and revision qualifications**
 
-### Smallest concrete follow-up for #4
+* [Promega Extruder Assembly Wiring](https://promega.printm3d.com/documentation/electronics/extruder-assembly-wiring), New Extruder Assembly steps 7-16 and Old Extruder Assembly Wiring section. Retrieved 2026-10-11. The live page does not expose an immutable documentation revision.
+* Black-assembly figures linked from the [Promega-Docs source Markdown](https://github.com/PrintM3D/Promega-Docs/blob/master/documentation/electronics/extruder-assembly-wiring.md): [S8 placement](https://raw.githubusercontent.com/PrintM3D/Promega-Docs/master/.gitbook/assets/new_extruder_wiring_s8.jpg), [S6 placement](https://raw.githubusercontent.com/PrintM3D/Promega-Docs/master/.gitbook/assets/new_extruder_wiring_s6.jpg), [H2/H4 placement](https://raw.githubusercontent.com/PrintM3D/Promega-Docs/master/.gitbook/assets/cnofx5dxdnpft6qv-heaterconnectorplacement.jpg), and [step 15 routing photo](https://raw.githubusercontent.com/PrintM3D/Promega-Docs/master/.gitbook/assets/610hfv9gt9oszycr-wheretorouteleftsidestuff.jpg). Inspected 2026-10-11; upstream `master` is mutable.
+* [Promega Extruder install/uninstall](https://promega.printm3d.com/repair-and-maintenance/install-uninstall/extruder). Retrieved 2026-10-11; documents Compound and K'tana heater/PT1000 routing; mutable manufacturer page with no immutable revision identified.
+* [Promega Duet Maestro Wiring](https://promega.printm3d.com/documentation/electronics/duet-maestro-wiring), including motor identification, probe, fan jumper and resistance guidance. Retrieved 2026-10-11; no immutable page revision exposed.
+* [Duet2Maestro.kicad_pcb - official Duet3D Duet-2-Hardware repository](https://github.com/Duet3D/Duet-2-Hardware/blob/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb). The board-file title block identifies Duet 2 Maestro revision 1.0, dated 2018-02-20. Inspected 2026-10-11; the repository master branch is mutable.
+* [Promega Tool Definitions](https://promega.printm3d.com/documentation/software-firmware/tool-definitions). Retrieved 2026-10-11; no immutable page revision exposed.
+* [Promega SD Card Structure](https://promega.printm3d.com/documentation/software-firmware/sd-card-structure). Retrieved 2026-10-11; documents startup includes, machine configuration files, and homing macros; no immutable revision exposed.
+* [Promega Adjust Homing Macros](https://promega.printm3d.com/documentation/software-firmware/adjust-homing-macros). Retrieved 2026-10-11; documents the published CoreXY homing behavior; no immutable revision exposed.
+* [Promega Homing The Printer](https://promega.printm3d.com/beginners-setup-guides/homing-the-printer). Retrieved 2026-10-11; documents axis orientation and the published Home All motion sequence; no immutable revision exposed.
+* [Promega Help! My Extruders Are Backwards](https://promega.printm3d.com/how-to-troubleshoot/common-troubleshooting/help-my-extruders-are-backwards). Retrieved 2026-10-11; the page reports last updated seven years ago and exposes no immutable revision.
+* [PrintM3D Promega release v1.0.0](https://github.com/PrintM3D/Promega/releases/tag/v1.0.0), first SD-card release; commit `b89928cd3dda6e43c93919d120a18d41dd2f4187`.
+* [Compound config.g at pinned v1.0.0 commit](https://github.com/PrintM3D/Promega/blob/b89928cd3dda6e43c93919d120a18d41dd2f4187/SD%20Card%20Structure/Compound/sys/config.g), historical release configuration for comparison only.
+* [PrintM3D Promega release v1.0.1](https://github.com/PrintM3D/Promega/releases/tag/v1.0.1), source commit `5936e84b33ed3f9bf0183a960dc952513cac258b`, released 2018-07-09 and described as the new black cable-assembly SD-card structure. Its release notes direct older silver-assembly users to v1.0.0.
+* [Compound config.g at the pinned release](https://github.com/PrintM3D/Promega/blob/5936e84b33ed3f9bf0183a960dc952513cac258b/SD%20Card%20Structure/Compound/sys/config.g), [Compound tool definitions](https://github.com/PrintM3D/Promega/blob/5936e84b33ed3f9bf0183a960dc952513cac258b/SD%20Card%20Structure/Compound/sys/machine_compound_tools.g), and [Compound Z-probe file](https://github.com/PrintM3D/Promega/blob/5936e84b33ed3f9bf0183a960dc952513cac258b/SD%20Card%20Structure/Compound/sys/machine_zprobe.g).
+* [RepRapFirmware 3.x changelog](https://github.com/Duet3D/RepRapFirmware/wiki/Changelog-RRF-3.x), including the 3.5.3 and 3.5.4 notes. This is a mutable manufacturer wiki rather than an immutable file revision.
 
-Proceed with the confirmed board-side connector/contact IDs above, and author a physical machine connection only when both endpoints and the machine-side wire/harness evidence are established.
+The Promega documentation pages are published manufacturer references but do not expose immutable page revisions in this audit. The PrintM3D firmware package is commit-pinned historical evidence. Neither source establishes the actual assembly fitted to the installed machine or proves its current SD-card configuration.
 
-Before using the E0/E1 Molex-compatible endpoints in the Promega connection graph, verify whether J16/J17 are populated on the applicable Promega Maestro board or keep those endpoints provisional. Preserve the known J11/J13 screw-terminal endpoints separately. For J4, use the existing committed bed-resource exposure through pins 3 and 4; do not add an independent safe-current limit.
+**Maestro V1.0 temperature connector physical-contact assignments**
 
-For unresolved P4/P2, H2/H4, S8/S6, and P9/P11, the immediate deliverable should be a machine-side evidence table containing the source page/figure, exact endpoint labels, confidence/status, and any still-unknown contact—not guessed connections or new ontology. No Board source edit is part of this follow-up.
+The official revision-1.0 PCB layout source assigns the following physical pad numbers and nets:
+
+| Board connector | Function | Pad 1 | Pad 2 |
+|---|---|---|---|
+| J5 | BED TEMP | `VSSA` | `THERMISTOR0` |
+| J12 | E0 TEMP | `VSSA` | `THERMISTOR1` |
+| J14 | E1 TEMP | `VSSA` | `THERMISTOR2` |
+| J1 | C TEMP | `VSSA` | `THERMISTOR3` |
+
+The PCB file represents J1 C TEMP as a two-position `PIN_ARRAY_2X1` footprint, with pad 1 connected to VSSA and pad 2 to THERMISTOR3. The same pad-number-to-net evidence is explicit for J5, J12 and J14.
+
+This establishes reference-board contact labels and pad numbers for these four two-position temperature connectors. It is suitable evidence for assigning board-side `pin_label` values from physical connector positions 1 and 2. It does not establish which installed sensor or harness reaches each connector, whether the installed board is revision 1.0, or how the Promega black-assembly S8/S6 labels map to the left/right PT1000 cartridges. Keep those machine-side mappings unresolved.
+
+**Variant-specific cable evidence**
+
+| Machine-side cable/role | Older silver assembly | Newer black assembly | Board-side interpretation and remaining gap |
+|---|---|---|---|
+| P4/P2 extruder motors | The guide identifies both as extruder-motor connectors and shows their placement in the old assembly, but the available text does not state a universal label-to-side mapping. | Step 12 shows P4/P2 placement; steps 15-16 separately say to connect the right-side and left-side motor, heater and thermistor. The text does not explicitly map each P label to a side. | Board references are J10 / `e0-motor` and J6 / `e1-motor`. Do not equate harness label P4 with firmware drive P4. Confirm the new assembly mapping from a readable manufacturer figure or trace the applicable harness. |
+| H2/H4 heater cartridges | Explicit old-assembly placement: H4 goes to the left heater position and H2 to the right, as identified in that guide's old-assembly section. | Steps 13-16 identify H2/H4 and the left/right connection procedure; the text does not explicitly pair each H label with a side. It warns that H4 must follow the red-line routing path to avoid print interference. | Board references are J11 / `e0-heat-screw` and J13 / `e1-heat-screw`. Do not transfer the old assembly's side mapping to the new assembly without confirming its figure or tracing the harness. J16/J17 remain unverified alternate populated endpoints. |
+| S8/S6 PT1000 sensors | Explicit old-assembly placement: S8 goes left and S6 goes right. | Steps 10-11 show where to route S8/S6 but explicitly warn that the pictured wire colors are wrong and say to follow the labels. Steps 15-16 then discuss the right-side and left-side connections without textually pairing each S label to a side. | Board references are J12 / `e0-temp` and J14 / `e1-temp`. The new assembly's side mapping remains unresolved; do not infer it from color. |
+| P9/P11 fans | The old-assembly guide explicitly says there is no universal rule determining which is the nozzle fan and which is the cold-section fan. It recommends testing or tracing them. | Step 7 says the nozzle fan is P9 or P11 depending on the printer and recommends continuity testing or tracing wires to the Duet board. Color examples are only aids because multiple wires share colors. | The documented reference setup uses controlled FAN2/J2 (`fan2`) for the 5 V nozzle fan and the distinct Always-On connector J24 (`always-on-fan`) for the 24 V cold-section fan. Identify each actual termination before authoring a definite edge or applying voltage. |
+| X/Y/Z motors | Maestro Wiring guide: the X cable is an otherwise-unlabelled four-pin connection with red, green, blue and black wires; the Z cable is described as coiled/rope-like and the Y cable as not coiled. | Same published identification guidance; it is not a wire-to-coil pinout. | Board references J9 / `x-motor`, J8 / `y-motor`, and J36/J7 / `z-a-motor` / `z-b-motor`. The installed cable-to-board termination and coil-contact order still require evidence. |
+
+The extruder replacement guide warns that the side where a cable emerges or wraps around the assembly is not necessarily the side where its plug terminates. Image-level audit of the newer black cable assembly figures: the repository's linked `new_extruder_wiring_s8.jpg` and `new_extruder_wiring_s6.jpg` images show labelled connector positions and routing arrows, but do not trace either lead end-to-end to a named left/right PT1000 cartridge. The `cnofx5dxdnpft6qv-heaterconnectorplacement.jpg` image marks the H2 and H4 holder positions and H4's routing path, but does not identify each heater cartridge endpoint. The step 15 text instructs connection of the right-side heater, thermistor and stepper motor, while the linked photograph filename is `wheretorouteleftsidestuff.jpg`; that filename conflicts with the step text and must not be used to infer a wiring assignment. The images therefore do not resolve the newer assembly's H2/H4 or S8/S6 label-to-component-side mapping. The separate manufacturer [Extruder install/uninstall guide](https://promega.printm3d.com/repair-and-maintenance/install-uninstall/extruder) independently specifies that Compound nozzle heater/PT1000 wires wrap around the right side of the extruder but plug into the left side of the cable assembly. For K'tana, right-side heater/PT1000 wires plug into the left cable-assembly side, while left-side wires plug into the right. This confirms a routing crossover in the instructions; it does not explicitly resolve the newer black assembly's H2/H4 or S8/S6 label-to-component-side mapping. Keep those mappings unresolved until the figures can be interpreted unambiguously or the applicable harness is physically traced. It also describes routing exceptions for Compound versus K'Tana arrangements. Do not infer the motor, heater or sensor's logical left/right identity solely from the cable's exit direction or holder slot.
+
+**Historical logical firmware assignments: not as-built proof**
+
+Comparison of the commit-pinned v1.0.0 and v1.0.1 SD-card releases:
+
+- Release v1.0.0 (commit `b89928cd3dda6e43c93919d120a18d41dd2f4187`) is identified by its release page as the first Promega SD-card release. Its Compound `config.g` has inline definitions `M563 P1 D0 ... S"Mixing as Single Right"` and `M563 P2 D1 ... S"Mixing as Single Left"`, while its `M569` comments label physical drive P3 as the left extruder and P4 as the right extruder.
+- Release v1.0.1 (commit `5936e84b33ed3f9bf0183a960dc952513cac258b`) is explicitly for the new black extruder cable assembly; its release notes direct older silver-assembly users to v1.0.0. Its `config.g` delegates Compound tool definitions to `machine_compound_tools.g`, where P1/D0 is named Single Left and P2/D1 Single Right, with comments matching those logical names.
+- This is a version-specific change in historical logical tool naming/drive assignments. It must not be flattened into one universal mapping or used to infer the active firmware setup of an installed printer. The installed SD-card configuration and actual harness remain unverified.
+- Neither pinned configuration establishes how the newer black assembly's cable labels H2/H4 or S8/S6 map to the left/right heater or PT1000 cartridges. Cable labels are not firmware heater numbers; retain the unresolved mapping until the applicable harness is physically traced or a clear manufacturer source resolves it.
+
+The pinned 2018 Compound `config.g` labels P0/P1 as the CoreXY drives, P2 as Z, P3 as left extruder and P4 as right extruder. It uses `M667 S1` for CoreXY, old `M305` temperature definitions (P0 bed, P1 left PT1000, P2 right PT1000), old `M574` endstop syntax, and `M106` fan channels P0-P2. These are logical firmware channel numbers, not machine-side cable labels P2/P4, S8/S6 or P9/P11.
+
+The separate Compound tool definitions use H2 for the Compound mixing tool and its associated tool definitions. Promega's Tool Definitions page describes the ordinary K'Tana two-tool arrangement with bed H0, left heater H1 and right heater H2, and describes Compound as a special configuration. Heater cable label H2 must not be equated with logical heater H2 as a universal physical mapping.
+
+The current manufacturer Tool Definitions page contains contradictory left/right statements for Compound T1 and T2: T1 is labeled Single Left and assigned Extruder 0 (Left), but its prose says it extrudes with only the right extruder; T2 is labeled Single Right and assigned Extruder 1 (Right), but its prose says it extrudes with only the left. The commit-pinned historical v1.0.1 `machine_compound_tools.g` clarifies the intent in that release: `M563 P1 D0 ... S"Mixing as Single Left"` is commented as using the left extruder motor, and `M563 P2 D1 ... S"Mixing as Single Right"` is commented as using the right extruder motor. The page prose therefore appears reversed relative to the pinned historical configuration and its tool/drive assignments. Promega's Help! My Extruders Are Backwards troubleshooting guide independently states that drive 0 should move the left extruder and drive 1 the right, and repeats the M563 P1 D0 / M563 P2 D1 assignments. This corroborates the intended logical mapping in those sources but does not prove which drive the installed physical harness actually moves; physical wiring or the applicable as-built configuration must still be verified. Treat this as historical logical configuration evidence only; the actual installed `machine_compound_tools.g` and physical harness terminations still need verification before confirming the as-built left/right mapping.
+
+The public 2018 PrintM3D release is not a verified active RepRapFirmware 3.5.4 configuration. The RRF 3.x changelog says `M667` is no longer supported from RRF 3.5.3 and `M669 K1` selects CoreXY; its 3.5.3 notes also document removal of the `I` parameter from `M558`. RRF3 sensor setup uses `M308`, and heater/fan setup commonly uses `M950`. The project context reports RRF 3.5.4 / ConfigTool 3.5.12 as its target baseline, but those installed files were not retrieved in this research pass.
+
+A reliable active-configuration audit requires the applicable installed `sys/config.g` and the files it calls through `M98`. Promega's SD Card Structure guide identifies separate machine files including `machine_axisdimensions.g`, `machine_axissteps.g`, `machine_maxtemp.g`, `machine_zendstop.g`, and `machine_zprobe.g`, as well as the `homex.g`, `homey.g`, `homez.g`, and `homeall.g` homing macros. Inspect the actual include targets and any nested includes; do not assume `config.g` alone defines the active assignments. Check motor and axis mapping (`M584`, `M569`, `M92`, `M350`, `M208`, `M669`), sensors/heaters/fans (`M308`, `M950`, `M558`, `G31`, `M307`, `M106`), endstops (`M574`), and tool definitions (`M563`, `M568`, `M567`). Include any files under `macros` that are actually called. Do not describe historical assignments as active machine facts without reading those files.
+
+The Promega Adjust Homing Macros guide states that `homex.g` and `homey.g` are both CoreXY homing files and each homes both X and Y. Do not infer active physical endstop-input assignments from whether Home X or Home Y was selected; inspect the installed homing macros and `M574` configuration. This is published manufacturer guidance, not confirmation of the installed printer's current configuration.
+
+The Promega Homing The Printer guide states that X spans left-to-right across the front, Y spans front-to-back, positive Z points down, and the machine origin is top-front-left. Its published Home All sequence sends the CoreXY gantry to the rear Y-limit switch first, then to the X-limit switch, and then moves the bed to its Z limit. This establishes the documented functional reference sequence only; it does not establish which installed harness conductors reach the switches or which physical input channels the active configuration uses. Confirm the installed homing macros and `M574` settings before assigning those machine-side connections.
+
+Manufacturer-reference mapping: X-labeled limit-switch harness to Maestro J33 / X STOP; Y-labeled limit-switch harness to Maestro J32 / Y STOP.
+
+The Promega Duet Maestro Wiring guide states that its main diagram text boxes reproduce labels printed near cable connectors and that blue identifies the limit-switch cable group. Inspection of the readable [main connection diagram](https://raw.githubusercontent.com/PrintM3D/Promega-Docs/master/.gitbook/assets/eegr4vx3jeacoiyn-guideswiringdiagram.png) shows the X and Y label callouts at their corresponding endstop connector locations. This supports the intended manufacturer-reference mapping. The [detailed Maestro diagram](https://raw.githubusercontent.com/PrintM3D/Promega-Docs/master/.gitbook/assets/detailed-maestro-wiring-guide.PNG) and [wiring-assemblies photograph](https://raw.githubusercontent.com/PrintM3D/Promega-Docs/master/.gitbook/assets/75w5fdmofqhmwc8n-promegawiringassemblies.jpg) did not independently provide a readable, continuous trace of each machine-side harness; no contradictory mapping was found. The [Homing The Printer guide](https://promega.printm3d.com/beginners-setup-guides/homing-the-printer) corroborates functional axis identity by describing the rear Y-limit switch before the X-limit switch during homing.
+
+Evidence status: strong for the manufacturer's intended reference mapping; not verified for the installed printer. The installed harness and active `M574`/homing configuration have not been inspected. These labels do not establish conductor-to-contact pin order. If the labels are absent or ambiguous, power the printer off and trace each physical harness to its board connector; verify the active configuration before treating the as-built endpoints as established.
+
+### Published electrical reference values and inspection safety
+
+The Promega Duet Maestro Wiring guide publishes the following expected component resistances:
+
+| Component | Manufacturer reference |
+|---|---:|
+| Extruder PT1000 sensor | 1,090 ohms |
+| Extruder heater | 13.1 ohms |
+| Heated bed | 2.2 ohms |
+| Bed thermistor | 106,800 ohms |
+| Extruder stepper motor | 19.3 ohms |
+| Axis stepper motor | 9.0 ohms |
+
+The manufacturer states that thermistor values vary with temperature; its listed sensor values were measured around 24 C. Treat the table as diagnostic reference information, not as a guaranteed pass/fail tolerance for an unidentified component or harness.
+
+The same guide warns of board damage from shorts, electrostatic discharge, voltage generated by manually moving motors, connecting or disconnecting components while powered, and touching electrical components while powered. It recommends switching off the Duet board before resistance measurements. Record actual measurement conditions and confirm the component and endpoints being measured. Do not perform powered continuity or resistance checks.
+### X/Y motor board-plug reference slice - locally validated, uncommitted
+
+The shared working tree now implements the reference-only X/Y motor cable board-plug mating slice. Four cable-plug contact positions per axis mate by corresponding connector position to Maestro J9 / X MOT and J8 / Y MOT. The current model and focused test explicitly preserve the distinction between connector mating and internal cable or motor wiring.
+
+Established by the current implementation and validation:
+- Eight electrical reference connections are created, four for X and four for Y.
+- The contact labels and mating positions are represented with connection metadata and provenance.
+- Focused validation: 14 passed in 5.46 seconds for `test_promega_xy_motor_reference.py`, `test_promega_ir_probe_connections.py`, and `test_connection_authoring.py`.
+- Full project validation: 841 passed in 8.22 seconds.
+- `git diff --check`: passed.
+
+These test results validate the current reference-model implementation, not the user's installed machine. Wire-colour-to-contact mapping, motor-coil terminal mapping, physical as-built wiring, and firmware drive assignment remain unestablished. Do not add direct cable-to-motor-coil connections or assert as-built drive assignments without additional evidence.
+
+The implementation and this handoff update remain uncommitted. Preserve concurrent work from other workstreams and do not stage unrelated files.
+
+### Manufacturer diagram: physical endstop contact-role order
+
+The official [Duet 2 Maestro V1.0 wiring diagram](https://docs.duet3d.com/duet_boards/duet_2_wifi_ethernet_maestro/duet_2_maestro_v1.0_wiring.png) depicts the three contact roles on J19 Z STOP, J32 Y STOP, J33 X STOP, J34 E0 STOP, and J35 E1 STOP. In the diagram's displayed connector orientation, the contact-role order is axis-specific STOP signal, GND, then +3.3 V. This adds board-side physical-position evidence beyond the connector-level contact inventory.
+
+**KiCad-confirmed numbered-pad mapping**
+
+The official [Duet2Maestro.kicad_pcb source](https://github.com/Duet3D/Duet-2-Hardware/blob/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb), titled Duet 2 Maestro revision 1.0 and dated 2018-02-20, explicitly binds these connector pad numbers to their nets:
+
+| Connector | Pad 1 | Pad 2 | Pad 3 |
+|---|---|---|---|
+| J19 / Z STOP | `GND` | `+3.3V` | `Z_STOP_CONN` |
+| J32 / Y STOP | `GND` | `+3.3V` | `Y_STOP_CONN` |
+| J33 / X STOP | `GND` | `+3.3V` | `X_STOP_CONN` |
+| J34 / E0 STOP | `GND` | `+3.3V` | `E0_STOP_CONN` |
+| J35 / E1 STOP | `GND` | `+3.3V` | `E1_STOP_CONN` |
+
+This PCB source resolves the reference-board numbered-pad mapping. It supersedes the preceding uncertainty about whether numbered pad assignments could be inferred from the diagram's displayed orientation. Preserve the distinction between PCB net names (for example, `X_STOP_CONN`) and fixture-level functional aliases (for example, `xstop`).
+
+This is a revision-1.0 design reference, not verification of the installed controller revision, switch harness, or active `M574`/homing configuration. The repository `master` source link is mutable; the PCB title block identifies the referenced design revision.
+
+### KiCad-confirmed extruder heater connector pads and shared nets
+
+The official Duet 2 Maestro revision 1.0 PCB layout source explicitly defines the following heater connector pad/net assignments:
+
+| Connector | Board label | Pad 1 | Pad 2 | Connector type in PCB source |
+|---|---|---|---|---|
+| J11 | E0 HEAT | `V_IN` | `E0-` | 3.5 mm screw-terminal footprint |
+| J16 | E0 HEAT | `V_IN` | `E0-` | 2-position pin-header footprint |
+| J13 | E1 HEAT | `V_IN` | `E1-` | 3.5 mm screw-terminal footprint |
+| J17 | E1 HEAT | `V_IN` | `E1-` | 2-position pin-header footprint |
+
+The CAD layout therefore establishes that J11 and J16 are assigned to the same two electrical nets for E0, and J13 and J17 to the same two electrical nets for E1. The alternate connector footprint is not a separate heater resource or a different switched output in this design; it is drawn on the same net pair as its corresponding screw-terminal.
+
+**Population and installation boundary:** Presence of a footprint in the revision-1.0 PCB file does not prove that the connector is populated on every manufactured board. Keep J11/J13 as the documented screw-terminal reference endpoints. Keep J16/J17 as design-defined alternate endpoints whose physical population on the applicable board remains unverified. Do not create a confirmed machine-side connection to J16/J17 without evidence for the actual board, and do not infer H2/H4 cable-label-to-heater-side mapping from the PCB nets.
+
+Source: [Official Duet2Maestro.kicad_pcb, Duet-2-Hardware repository](https://github.com/Duet3D/Duet-2-Hardware/blob/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb), revision 1.0 design dated 2018-02-20. Repository `master` is mutable.
+
+### KiCad-confirmed fan contacts and selectable supply banks
+
+The official Duet 2 Maestro revision 1.0 PCB source assigns these numbered pad nets:
+
+| Connector | Pad 1 | Pad 2 | Reference function |
+|---|---|---|---|
+| J24 | `V_FAN_A` | `GND` | Separate always-on fan supply |
+| J25 | `V_FAN_A` | `FAN0-` | Controlled FAN0 connector |
+| J29 | `V_FAN_A` | `FAN1-` | Controlled FAN1 connector |
+| J2 | `V_FAN_B` | `FAN2-` | Controlled FAN2 connector |
+
+The supply selectors are:
+
+| Selector | Pad 1 | Pad 2 | Pad 3 |
+|---|---|---|---|
+| J3 | `+5V` | `V_FAN_A` | `V_IN` |
+| J23 | `+5V` | `V_FAN_B` | `V_IN` |
+
+The official `Headers.sch` identifies J24 as "Always on FAN 0". J25, J29 and J2 are the separate FAN0, FAN1 and FAN2 connectors. `Htr_Fan.sch` shows the controlled FAN0, FAN1 and FAN2 MOSFET paths. Therefore, do not conflate always-on J24 with controlled FAN0 at J25.
+
+**J24 label/net qualification:** The footprint value text reads `GND V_IN`, but the PCB assigns pad 1 to `V_FAN_A`. Preserve the explicit pad/net mapping. J3 selects `V_FAN_A` between `+5V` and `V_IN`; J23 selects `V_FAN_B` between `+5V` and `V_IN`. Do not assume J24 is always at `V_IN` or 24 V without confirming the selector configuration.
+
+These are reference-board assignments for the revision 1.0 design. They do not verify the installed board revision, selector positions, actual connector voltages, fan wiring, or firmware channel configuration. Keep connector identity, physical pad, selectable supply bank, controlled output, and installed fan termination as separate facts.
+
+### Historical motor numeric pad/net mapping audit (bounded crosswalk subsequently implemented)
+
+An independent reading of the official Duet 2 Maestro V1.0 PCB layout identifies these numbered pad/net mappings for the four standard motor connectors:
+
+| Connector | Pad 1 | Pad 2 | Pad 3 | Pad 4 |
+|---|---|---|---|---|
+| J9 / X MOT | `X_MOT_A1` | `X_MOT_A2` | `X_MOT_B1` | `X_MOT_B2` |
+| J8 / Y MOT | `Y_MOT_A1` | `Y_MOT_A2` | `Y_MOT_B1` | `Y_MOT_B2` |
+| J10 / E0 MOT | `E0_MOT_A1` | `E0_MOT_A2` | `E0_MOT_B1` | `E0_MOT_B2` |
+| J6 / E1 MOT | `E1_MOT_A1` | `E1_MOT_A2` | `E1_MOT_B1` | `E1_MOT_B2` |
+
+The board source gives a different, non-simple shared-net pattern on the dual-Z connectors:
+
+| Connector | Pad 1 | Pad 2 | Pad 3 | Pad 4 |
+|---|---|---|---|---|
+| J36 / Z A | `Z_MOT_A1` | `Net-(J36-Pad2)` | `Z_MOT_B1` | `Net-(J36-Pad4)` |
+| J7 / Z B | `Net-(J36-Pad2)` | `Z_MOT_A2` | `Net-(J36-Pad4)` | `Z_MOT_B2` |
+
+**Historical finding (before the bounded PCB crosswalk was implemented):** Section 34 records the functional motor labels in the order `B1`, `B2`, `A1`, `A2`, while the official PCB numbers J9/J8/J10/J6 pads in `A1`, `A2`, `B1`, `B2` order. The bounded crosswalk now explicitly records the corresponding PCB pad numbers and net names for J9/J8/J36/J7 while preserving the existing functional labels and internal port IDs. The regression test checks fixed expected values reviewed against the pinned PCB source; it does not parse the external PCB file. E0/E1 motor connectors J10/J6 remain excluded from this inventory.
+
+For the bounded motor inventory, preserve the distinction between legacy numeric contact identity, functional `pin_label`, and explicit `pcb_pad_number`/`pcb_net_name` metadata. J9/J8 and the separate dual-Z J36/J7 shared-net pattern are represented explicitly in the reviewed crosswalk. This reference crosswalk does not establish cable mating-face orientation, cavity numbering, internal conductor order, coil pairing, firmware assignment, or installed wiring.
+
+Source: [Official Duet2Maestro.kicad_pcb, Duet-2-Hardware repository](https://github.com/Duet3D/Duet-2-Hardware/blob/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb). The PCB title block identifies revision 1.0, dated 2018-02-20; the board source is pinned to commit `56958640c73c7febf3bce6e1eefbbdffd5a2db1b`.
+
+This is a board-source consistency finding, not a claim about installed motor wiring or coil order. Do not infer wire colors, coil terminals, firmware assignments, or motor direction from this table alone.
+
+### PCB footprint orientation versus numbered-pad identity
+
+Pinned-source checkpoint: the referenced Duet 2 Maestro V1.0 PCB and schematic files in this handoff use immutable repository commit `56958640c73c7febf3bce6e1eefbbdffd5a2db1b`. The PCB title block identifies design revision 1.0 dated 2018-02-20. This provides a repeatable source snapshot for pad/net assignments, footprint rotations, and the related schematic sheets; it does not establish the installed controller revision.
+
+The official [Duet2Maestro.kicad_pcb source](https://github.com/Duet3D/Duet-2-Hardware/blob/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb), revision 1.0, places connector footprints at different rotations. Their numbered pad identity is therefore not interchangeable with left-to-right or top-to-bottom order in a viewer. The following orientation summary is derived from the footprint rotation, local pad coordinates, and pad/net assignments in that PCB file. "Top/bottom/left/right" means the PCB front-side board-coordinate view, not the mating-face view of an unplugged cable.
+
+| Connector group | Footprint rotation | Pad layout in PCB front-side coordinates |
+|---|---:|---|
+| J9 / J8 / J10 / J6 motor headers | 270 degrees | Pads 1 through 4 run bottom to top. For the single-axis X/Y/E0/E1 connectors: bottom-to-top pads 1-4 are A1, A2, B1, B2; top-to-bottom are B2, B1, A2, A1. |
+| J36 / J7 dual-Z motor headers | 270 degrees | Pads 1 through 4 run bottom to top, but use the documented shared-net pattern in the motor pad table above; do not substitute the simple X/Y/E0/E1 sequence. |
+| J19 / J32 / J33 / J34 / J35 endstops | 270 degrees | Pad 1 at bottom (GND), pad 2 middle (+3.3V), pad 3 top (axis-specific STOP net). |
+| J24 / J25 / J29 / J2 fan connectors | 270 degrees | Pad 1 at bottom (V_FAN_A or V_FAN_B), pad 2 top (GND on J24, controlled FANx- on J25/J29/J2). |
+| J11 / J13 screw heater connectors | 90 degrees | Pad 1 above pad 2: V_IN above the corresponding switched E0- or E1- net. |
+| J16 / J17 alternate heater headers | 90 degrees | Pad 1 above pad 2: V_IN above the corresponding switched E0- or E1- net. Physical population remains unverified. |
+| J3 / J23 fan supply selectors | 180 degrees | Pad 1 right (+5V), pad 2 centre (V_FAN_A or V_FAN_B), pad 3 left (V_IN). |
+| J5 bed temperature | 180 degrees | Pad 1 right (VSSA), pad 2 left (THERMISTOR0). |
+| J1 / J12 / J14 temperature connectors | 270 degrees | Pad 1 bottom (VSSA), pad 2 top (THERMISTOR3, THERMISTOR1, and THERMISTOR2 respectively). |
+| J28 probe | 270 degrees | Pads 1 through 5 run bottom to top: +5V, +3.3V, Z_PROBE_MOD, GND, Z_PROBE_IN. This is the reverse order of the Promega guide's left-to-right view positions. |
+
+**Canonical-model rule to audit:** A controller port ID ending in `pin-N` should be interpreted as numbered PCB pad N only if that is the declared convention for the controller definition. A connector-view position and a cable-side cavity position are separate identities. Never infer either of them from board-view top/bottom/left/right ordering alone.
+
+For any reference wiring edge, preserve the basis used to connect the endpoints: exact PCB pad number/net, a documented connector-view position, or a documented cable cavity identity. When the mating orientation or view convention is not established, keep the mapping unresolved instead of relying on array order.
+
+This orientation audit describes the revision-1.0 reference PCB design. It does not verify the installed controller revision, cable orientation, harness population, internal conductor order, or firmware configuration.
+
+### J37 TEMP_DB numbered pad/net crosswalk
+
+The official Duet 2 Maestro V1.0 PCB source defines J37 as footprint `MAX_TEMP_DB`, a two-row, five-contact header. The footprint is placed at PCB coordinates X = 162.875 mm, Y = 95.55848 mm, with a 90-degree footprint rotation. These are KiCad board coordinates and placement metadata, not a connector mating-face view.
+
+| J37 PCB pad number | Net assigned in the revision-1.0 PCB source |
+|---:|---|
+| 1 | `SPI0_CS2` |
+| 2 | `GND` |
+| 3 | `SPI0_CS1` |
+| 4 | `SPI0_SCK` |
+| 5 | `SPI0_MOSI` |
+| 6 | `SPI0_MISO` |
+| 7 | `TWCK0` |
+| 8 | `+3.3V` |
+| 9 | `TWD0` |
+| 10 | No net assigned in the PCB file |
+
+This is a direct numbered-pad/net crosswalk from the PCB source. J37's listed nets are a digital/interface and power set; they are not a fifth direct `THERMISTORx` input. Preserve J37 as the TEMP_DB interface rather than inventing a direct analog temperature channel. Keep the literal net names as source labels unless another authoritative source establishes their intended functional descriptions.
+
+The source also contains the footprint user text `<10mm max height` (hidden in the saved PCB view); retain that as board-design documentation if physical clearance becomes relevant. Do not interpret it as verification of a daughterboard's presence or height on the installed machine.
+
+This establishes the revision-1.0 board design only. It does not establish whether a temperature daughterboard is fitted to the user's machine, what daughterboard is compatible, or how an external sensor is routed through it.
+
+Source: [Official Duet2Maestro.kicad_pcb, Duet-2-Hardware repository](https://github.com/Duet3D/Duet-2-Hardware/blob/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb), PCB title block revision 1.0 dated 2018-02-20. The repository `master` URL is mutable.
+
+### Source-to-model identity audit: PCB pad versus canonical port position
+
+**Audit received from #4:** Read-only source-to-model consistency audit at baseline `f959e14601ada7d0f024ece8a15677c3b3ddd229` (`Standardize cross-workstream reporting format`). The audit ran no tests; `git diff --check` passed.
+
+The inspected code in `src/machine_builder/controller_board_fixtures.py`, `hardware_catalog.py`, and `promega_fixtures.py` does not establish a consistent identity contract between the canonical controller port's numeric suffix, `pin_id`, functional `pin_label`, KiCad PCB pad number, and a connector-view/cable-cavity position. The inspected port initialization uses IDs of the form `pin-{position}` and `pin_id=str(position)` with connector-specific functional-label sequences; no explicit `connector_position` property was found in that initialization. `_contact_position()` falls back to numeric `pin_id` or port-ID suffix.
+
+Consequently, passing positional-connection tests does not by itself prove that canonical port number N means KiCad PCB pad N or cable cavity N. The earlier PCB footprint-orientation summary describes the reference PCB view; it must not be read as proof that existing canonical port labels or a cable-side view use the same sequence.
+
+**Source-to-model discrepancies identified by #4**
+
+| Connector group | Existing canonical fixture order described by #4 | Official revision-1.0 PCB pad/net order | Required treatment |
+|---|---|---|---|
+| J9/J8/J10/J6 motors | `B1`, `B2`, `A1`, `A2` by numeric position | Pads 1–4: `A1`, `A2`, `B1`, `B2` | Do not interpret the canonical numeric suffix as a PCB pad number until reconciled. |
+| J32/J33 and other three-contact endstops | Signal alias first, +3.3 V second, GND third | Pad 1 GND, pad 2 +3.3 V, pad 3 axis-specific STOP net | Represent explicit PCB pad/net identities; retain functional aliases separately. |
+| J28 probe | Numeric positions reflect Promega guide-view order: signal, GND, MOD, +3.3 V, +5 V | PCB pads 1–5: +5 V, +3.3 V, MOD, GND, signal | Preserve the guide-view-to-PCB-pad crosswalk; do not change the working IR-probe functional mapping in isolation. |
+| XY reference helper | Directly mates cable positions 1–4 to board positions 1–4 | Board pad numbering has a different sequence from the existing B1/B2/A1/A2 labels | Positional tests do not establish the cable mating-face orientation or cavity-to-pad correspondence. |
+
+The dual-Z connectors J36/J7 have a separate shared-net pattern documented above; do not apply the ordinary four-pad motor sequence to them.
+
+**Identity contract to resolve before further fixture expansion**
+
+Evaluate an explicit distinction between:
+- stable internal port identity (`id` / `pin_id`), which must not silently imply a different physical coordinate system;
+- KiCad PCB pad number and exact PCB net name;
+- PCB front-side spatial position or footprint orientation when relevant;
+- manufacturer diagram connector-view position; and
+- cable mating-face/cavity position.
+
+Candidate metadata such as `pcb_pad_number` and `pcb_net_name` could preserve PCB identity, with separately named view/cavity fields where supported. This is a proposal for the identity-contract review, not an adopted schema or authorization to edit production fixtures.
+
+**Implementation gate:** Before expanding the motor/endstop helpers or changing J28 mappings, reconcile the controller fixture and hardware catalog against the official [Duet2Maestro.kicad_pcb, revision-1.0 design](https://github.com/Duet3D/Duet-2-Hardware/blob/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb). Add focused source-to-model assertions for motor, endstop, and J28 pad/net identities only after the convention is explicit. Then run the affected tests and full suite.
+
+Do not infer motor coil pairings, wire colours, cable cavity numbering, active firmware assignments, or installed wiring from the current labels alone. Preserve the established IR-probe functional connections and keep the installed board revision/harness unverified until direct evidence is available.
+
+### Proposed controller-port identity contract for #4 agreement
+
+**Status: proposal for cross-workstream agreement; not yet an adopted implementation contract.** This proposal responds to the read-only source-to-model audit from #4 at baseline `f959e14601ada7d0f024ece8a15677c3b3ddd229`. No production implementation is authorized by recording this proposal.
+
+The current `SemanticPort` model exposes `id`, `connector_id`, `pin_id`, `properties`, and provenance, but no dedicated PCB pad-number or PCB net-name field. The controller fixture derives its `pin_id` and `pin-{position}` ID suffix from a loop position, then assigns `pin_label` through connector-specific sequences. `connector_position_count` records the number of contacts, not an individual contact's position. The Promega `_contact_position()` helper may fall back to `pin_id` or the numeric ID suffix. These values do not, by themselves, establish a shared coordinate system.
+
+**Proposed identity meanings**
+
+| Field/concept | Proposed contract |
+|---|---|
+| `id` | Stable internal semantic identity. Preserve current IDs for compatibility. The numeric suffix is not sufficient evidence of a physical coordinate. |
+| `pin_id` | Existing identifier used by current code and consumers. Do not universally interpret it as a KiCad pad number unless explicitly established for that connector definition. |
+| `pin_label` | Existing functional/readable contact label, such as `B1`, `xstop`, or `Z_PROBE_IN`. It is not necessarily equal to the PCB net name. |
+| `pcb_reference_designator` | Exact physical board reference, such as `J9`, `J33`, or `J28`. This is distinct from the canonical `connector_id`. |
+| `pcb_pad_number` | One-based numbered pad explicitly established by the applicable PCB source. Store as a number, not an inferred position. |
+| `pcb_net_name` | Exact source net name, for example `X_MOT_B1` or `X_STOP_CONN`. For a pad without a net, represent that separately from unknown, e.g. `pcb_net_status: unassigned_in_reference_pcb`. |
+| `pcb_front_view_location` | Optional position in an explicitly identified PCB front-side view, derived from the footprint geometry/rotation. It is not a pad number and not a cable mating-face position. |
+| `promega_diagram_view_position` | Position in a specifically named Promega diagram view, stored with a source/view identifier. Do not treat it as a PCB pad number. |
+| `cable_cavity_position` | Cable-side cavity position only when the applicable cable mating-face view and numbering are supported by evidence. Do not infer it from `pin_id`, board orientation, or equal numeric ordinals. |
+
+For the initial compatible implementation, use the existing `SemanticPort.properties` dictionary to carry `pcb_reference_designator`, `pcb_pad_number`, and `pcb_net_name` for every contact whose identity is established by the reference PCB. Include provenance for the source. This proposal does not require changing the `SemanticPort` dataclass or persistence schema; first-class typed fields, if later desired, require separate review.
+
+Do not give `connector_position` a universal meaning. Where it remains for compatibility, its coordinate basis must be explicit. Connector view positions and cable cavity positions require a named view and source. Connection metadata should identify the mapping basis used to relate endpoint coordinate systems. If that relationship is not established, keep the corresponding mating mapping unresolved.
+
+**Representative mappings that require source-to-model assertions**
+
+- J9 / X MOT: PCB pads 1–4 are `X_MOT_A1`, `X_MOT_A2`, `X_MOT_B1`, `X_MOT_B2`. If the existing functional `pin_label` sequence is retained as `B1`, `B2`, `A1`, `A2`, its explicit PCB pad numbers would correspond to 3, 4, 1, 2 respectively. This source crosswalk must be checked against the canonical fixture before changing it.
+- J33 / X STOP: PCB pad 1 is GND, pad 2 is +3.3 V, pad 3 is `X_STOP_CONN`. The current fixture assigns its internal sequence as signal, +3.3 V, GND; retain the labels/IDs only as legacy identifiers while adding explicit PCB identities.
+- J28 / probe: the Promega guide-view positions map to PCB pads in reverse order: guide position 1 signal maps to pad 5 `Z_PROBE_IN`; position 2 GND maps to pad 4; position 3 MOD maps to pad 3; position 4 +3.3 V maps to pad 2; position 5 +5 V maps to pad 1. Keep the documented functional probe wiring unchanged until the board-port lookup and identity contract are reconciled together.
+
+**Validation gate before extending positional connections**
+
+1. Agree the field meanings and compatibility approach with #4 before production fixture edits.
+2. Populate PCB source identities from the pinned revision-1.0 KiCad board source. Do not infer the net or pad solely from current loop sequence or `pin_label`.
+3. Preserve existing IDs and explicitly test each source-backed contact mapping: motor labels/pads, endstop labels/pads, J28 guide-position/pad crosswalk, and J37's unassigned-pad status where relevant.
+4. Ensure serialization round-trips preserve the new metadata.
+5. Do not accept equal ordinal values alone as evidence that a cable cavity mates to a PCB pad. Require a documented cross-coordinate mapping basis.
+6. Run focused source-to-model and affected behavior tests, then the full project suite after the focused tests pass. Check `git diff --check` and preserve all other workstream changes.
+
+Source baseline: [Duet2Maestro.kicad_pcb, Duet-2-Hardware repository](https://github.com/Duet3D/Duet-2-Hardware/blob/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb), pinned commit `56958640c73c7febf3bce6e1eefbbdffd5a2db1b`; board title block revision 1.0, dated 2018-02-20.
+
+### Bounded PCB-contact crosswalk inventory boundary
+
+The PCB contact map is a bounded, manually reviewed expected crosswalk, not a complete inventory of every board connector. The exact reference PCB is [`Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb`](https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb), pinned to repository commit `56958640c73c7febf3bce6e1eefbbdffd5a2db1b`. The repository commit SHA is source identity, separate from the PCB title-block revision `V1.0` and date `2018-02-20`. The legacy `pcb_source_revision` property remains a compatibility alias for the repository commit SHA.
+
+The implemented motor-pad subset covers J9 (X), J8 (Y), J36 (Z A), and J7 (Z B). E0/E1 motor connectors J10/J6 are explicitly excluded from this motor-pad inventory. The reviewed subset also covers X/Y endstops J33/J32, Z probe J28, and TEMP_DB J37. Each fixture port is explicitly classified as covered by or outside the reviewed PCB identity inventory. Regression tests compare fixture metadata with fixed expected values reviewed against the pinned KiCad source; they do not automatically parse the external PCB file.
+
+A connector/contact omitted from the map is outside the inventory only. Omission does not mean its PCB design identity or net assignment is unknown, that the pad is unassigned, or that a real-world conductor is disconnected. Use the unknown net state only for a represented contact whose PCB net status has not been established; use the unassigned state only where the pinned reference PCB explicitly has no net assigned. J37 pad 10 is an explicit reference-PCB unassigned case, but that does not establish physical disconnection on an installed board.
+
+The map does not establish PCB-view coordinates or cable mating-face/cavity positions. Those identities require their own source-qualified evidence.
+
+### Current validation record
+
+Validation performed on the uncommitted working tree after the bounded inventory assertions were added:
+
+- Focused Board fixture, connector-specification, Promega IR-probe, and XY-reference regressions: **36 passed**.
+- Full test suite: **842 passed**.
+- `git diff --check`: **passed**; Git reported line-ending warnings only.
+
+These results validate the tested fixture and regression behavior in that working tree. They do not establish complete Promega wiring, installed-board identity, or as-built physical connections. Research subsequently published a documentation-only commit at `2f7227530b75937e262acd64459f062d73ddf3ba`; that publication did not include Board source or test files.
+
+### Concrete next research steps
+
+1. Preserve the validated X/Y board-plug reference mating slice. Do not add cable-to-coil connections until the internal wire/contact order is supported by manufacturer evidence or physical inspection.
+2. Use the manufacturer-reference mapping X-labeled limit-switch harness to J33 / X STOP and Y-labeled harness to J32 / Y STOP. Keep installed wiring and active M574/homing configuration unverified until checked; do not infer conductor-to-contact pin order. Keep the mechanical Z endstop distinct from the IR-probe path.
+3. Expand bed and extruder temperature connections when physical sensor/harness roles are established. Use S8/S6 side facts only after confirming the old assembly or resolving the new assembly with a source or physical trace.
+4. Keep E0/E1 heater wiring provisional until the appropriate assembly's H2/H4 side mapping is established. Retain J11/J13 as known screw-terminal reference endpoints and J16/J17 as unverified populated physical endpoints.
+5. Resolve P9/P11 by tracing or continuity-testing the installed leads, then confirm the board output and jumper state. Preserve the 5 V nozzle versus 24 V cold-section distinction.
+6. Obtain the actual RRF 3.5.4 SD-card configuration set for the applicable machine and record its files and assignments as observed, separate from the pinned historical baseline.
+
+The existing IR-probe reference connections and corrected J4 mapping remain established project context. No duplicate implementation is proposed here. No new ontology, fixtures or source changes are authorized by this research update.
