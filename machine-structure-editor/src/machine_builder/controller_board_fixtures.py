@@ -136,6 +136,11 @@ DUET2_MAESTRO_PCB_PAD_MAP: dict[
         2: ("J32", 2, "+3.3V"),
         3: ("J32", 1, "GND"),
     },
+    "e0-stop": {
+        1: ("J34", 3, "E0_STOP_CONN"),
+        2: ("J34", 2, "+3.3V"),
+        3: ("J34", 1, "GND"),
+    },
     "z-probe": {
         1: ("J28", 5, "Z_PROBE_IN"),
         2: ("J28", 4, "GND"),

@@ -2,7 +2,7 @@
 
 Updated: 2026-10-12
 
-Current repository checkpoint: `ec5c738` — `Use source-qualified Promega J28 guide-view identity`
+Current repository checkpoint: `e4c8d6e` — `Correct Promega J28 guide-view and PCB pad identities`
 
 Current branch: `main`
 
@@ -1992,7 +1992,7 @@ Source baseline: [Duet2Maestro.kicad_pcb, Duet-2-Hardware repository](https://gi
 
 The PCB contact map is a bounded, manually reviewed expected crosswalk, not a complete inventory of every board connector. The exact reference PCB is [`Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb`](https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb), pinned to repository commit `56958640c73c7febf3bce6e1eefbbdffd5a2db1b`. The repository commit SHA is source identity, separate from the PCB title-block revision `V1.0` and date `2018-02-20`. The legacy `pcb_source_revision` property remains a compatibility alias for the repository commit SHA.
 
-The implemented motor-pad subset covers J9 (X), J8 (Y), J36 (Z A), J7 (Z B), J10 (E0), and J6 (E1). The reviewed subset also covers X/Y endstops J33/J32, Z probe J28, and TEMP_DB J37. Each fixture port is explicitly classified as covered by or outside the reviewed PCB identity inventory. Regression tests compare fixture metadata with fixed expected values manually reviewed against the pinned KiCad source; they do not automatically parse the external PCB file.
+The implemented motor-pad subset covers J9 (X), J8 (Y), J36 (Z A), J7 (Z B), J10 (E0), and J6 (E1). The reviewed subset also covers X/Y/E0 endstops J33/J32/J34, Z probe J28, and TEMP_DB J37. Each fixture port is explicitly classified as covered by or outside the reviewed PCB identity inventory. Regression tests compare fixture metadata with fixed expected values manually reviewed against the pinned KiCad source; they do not automatically parse the external PCB file.
 
 ### E0/E1 motor PCB identity extension
 
@@ -2013,19 +2013,35 @@ All eight contacts have `named_net_assigned_in_reference_pcb` status. None is un
 
 This establishes reference-board pad/net identity only. It does not establish the installed board revision, connector mating orientation, cable-cavity numbering, conductor order, motor-coil pairing, firmware drive assignment, installed harness wiring, or as-built connectivity. Those identities require separate evidence or physical verification.
 
+### E0 STOP J34 PCB identity crosswalk
+
+The existing controller-owned `e0-stop` SemanticPort endpoints and their IDs, labels, and fixture-position semantics are preserved. The pinned Duet 2 Maestro V1.0 PCB identifies J34 as E0 STOP and assigns named nets to all three numbered pads. This expected crosswalk is in existing fixture-position order, not PCB pad-number order. Source inspected 2026-10-12.
+
+| Stable SemanticPort endpoint ID | Fixture connector | PCB reference | Fixture position / `pin_label` | PCB pad number | PCB net name |
+|---|---|---|---|---:|---|
+| `duet-2-maestro-v1-0-controller-e0-stop-pin-1` | `e0-stop` | J34 | 1 / `e0stop` | 3 | `E0_STOP_CONN` |
+| `duet-2-maestro-v1-0-controller-e0-stop-pin-2` | `e0-stop` | J34 | 2 / `+3.3V` | 2 | `+3.3V` |
+| `duet-2-maestro-v1-0-controller-e0-stop-pin-3` | `e0-stop` | J34 | 3 / `GND` | 1 | `GND` |
+
+All three contacts have `named_net_assigned_in_reference_pcb` status. The expected pad/net values are manually reviewed against the pinned KiCad source; the regression tests do not automatically parse the external PCB file.
+
+This crosswalk records reference-PCB pad/net identity only. It does not establish the installed board revision, connector mating orientation, cable-cavity numbering, harness wiring, as-built connectivity, or active firmware STOP configuration. It creates no firmware-resource assignment.
+
+Source: [Official `Duet2Maestro.kicad_pcb`, Duet-2-Hardware repository](https://github.com/Duet3D/Duet-2-Hardware/blob/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb), pinned to commit `56958640c73c7febf3bce6e1eefbbdffd5a2db1b`; title-block revision V1.0, dated 2018-02-20.
+
 A connector/contact omitted from the map is outside the inventory only. Omission does not mean its PCB design identity or net assignment is unknown, that the pad is unassigned, or that a real-world conductor is disconnected. Use the unknown net state only for a represented contact whose PCB net status has not been established; use the unassigned state only where the pinned reference PCB explicitly has no net assigned. J37 pad 10 is an explicit reference-PCB unassigned case, but that does not establish physical disconnection on an installed board.
 
 The map does not establish PCB-view coordinates or cable mating-face/cavity positions. Those identities require their own source-qualified evidence.
 
 ### Current validation record
 
-Validation performed on the working tree after extending the pinned PCB identity crosswalk to E0/J10 and E1/J6:
+Validation performed on the working tree after adding the J34 / E0 STOP PCB identity crosswalk:
 
-- Focused Board fixture, connector-specification, Promega IR-probe, and XY-reference regressions: **36 passed in 5.44s**.
-- Full project test suite: **842 passed in 8.54s**.
-- `git diff --check`: **passed** for the Board-owned source, regression test, and handoff paths.
+- Focused Board fixture test command, run from `machine-structure-editor`: `.venv\Scripts\python.exe -m pytest -q tests/test_controller_board_fixtures.py` — **30 passed in 0.18s**.
+- Full project test command, run from `machine-structure-editor`: `.venv\Scripts\python.exe -m pytest -q` — **843 passed in 12.08s**.
+- `git diff --check`: **passed** for the three authorized Board paths.
 
-The J10/J6 expected pad/net values were manually reviewed against the pinned KiCad PCB source. The regression test does not automatically parse the external PCB. The results validate the reference fixture and regression behavior; they do not establish the installed board revision, mating orientation, cable-cavity numbering, conductor order, motor-coil pairing, firmware assignment, or as-built wiring.
+The J34 expected pad/net values were manually reviewed against the pinned KiCad PCB source. The tests validate fixture metadata and provenance; they do not parse the external PCB file. The mapping establishes reference-board pad/net identity only, not installed-board revision, cable orientation/cavities, actual wiring, or firmware STOP configuration.
 
 ### Concrete next research steps
 

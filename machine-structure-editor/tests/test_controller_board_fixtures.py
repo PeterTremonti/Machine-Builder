@@ -436,6 +436,24 @@ def test_z_a_and_z_b_are_separate_connector_groups() -> None:
     )
 
 
+def test_e0_stop_crosswalk_preserves_existing_semantic_port_ids() -> None:
+    _, controller, ports = get_fixture()
+    e0_stop_ports = {
+        port.pin_id: port
+        for port in ports
+        if port.connector_id == "e0-stop"
+    }
+
+    assert set(e0_stop_ports) == {"1", "2", "3"}
+    assert {
+        position: e0_stop_ports[position].id
+        for position in ("1", "2", "3")
+    } == {
+        "1": f"{controller.id}-e0-stop-pin-1",
+        "2": f"{controller.id}-e0-stop-pin-2",
+        "3": f"{controller.id}-e0-stop-pin-3",
+    }
+
 def test_endstop_connector_pins_have_verified_roles() -> None:
     _, _, ports = get_fixture()
 
@@ -894,6 +912,7 @@ def test_maestro_pcb_pad_identity_metadata_matches_pinned_manual_crosswalk() -> 
         "e1-motor": ("J6", [(3, "E1_MOT_B1"), (4, "E1_MOT_B2"), (1, "E1_MOT_A1"), (2, "E1_MOT_A2")]),
         "x-stop": ("J33", [(3, "X_STOP_CONN"), (2, "+3.3V"), (1, "GND")]),
         "y-stop": ("J32", [(3, "Y_STOP_CONN"), (2, "+3.3V"), (1, "GND")]),
+        "e0-stop": ("J34", [(3, "E0_STOP_CONN"), (2, "+3.3V"), (1, "GND")]),
         "z-probe": ("J28", [(5, "Z_PROBE_IN"), (4, "GND"), (3, "Z_PROBE_MOD"), (2, "+3.3V"), (1, "+5V")]),
         "temp-ob": ("J37", [(1, "SPI0_CS2"), (2, "GND"), (3, "SPI0_CS1"), (4, "SPI0_SCK"), (5, "SPI0_MOSI"), (6, "SPI0_MISO"), (7, "TWCK0"), (8, "+3.3V"), (9, "TWD0"), (10, None)]),
     }
@@ -997,6 +1016,7 @@ def test_maestro_pcb_pad_identity_metadata_matches_pinned_manual_crosswalk() -> 
         "e1-motor": ("B1", "B2", "A1", "A2"),
         "x-stop": ("xstop", "+3.3V", "GND"),
         "y-stop": ("ystop", "+3.3V", "GND"),
+        "e0-stop": ("e0stop", "+3.3V", "GND"),
         "z-probe": ("Z_PROBE_IN", "GND", "Z_PROBE_MOD", "+3.3V", "+5V"),
     }
     for connector_id, labels in expected_labels.items():
