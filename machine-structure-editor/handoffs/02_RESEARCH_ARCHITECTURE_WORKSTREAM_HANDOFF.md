@@ -1476,3 +1476,23 @@ The **50 mm minimum remains an unconfirmed working hypothesis**, not an approved
 ### Research next step
 
 Continue only where there is a specific evidence target with material value, such as a newly located authoritative specification, an archived revision that directly resolves the wording, or DYZE's response. Avoid repeating broad searches that have not produced new evidence. This external dependency does not block independent Promega work or other already-authorized workstreams.
+
+## Promega J28 Coordinate Identity Correction - 2026-10-12
+
+The expected-connection inventory correction is recorded in `machine-builder-research/standards/STANDARDS_INDEX.md` under "Promega J28 Guide-View Position to PCB Pad Crosswalk - 2026-10-12".
+
+The correct reference crosswalk is:
+
+| Promega guide-view / legacy fixture position | Duet 2 Maestro V1.0 PCB pad | Function |
+|---:|---:|---|
+| 1 | 5 | `Z_PROBE_IN` - IR-01 / S10 |
+| 2 | 4 | GND - IR-02 / P5 |
+| 3 | 3 | `Z_PROBE_MOD` - crosswalk reference only |
+| 4 | 2 | +3.3 V - IR-03 / S9 |
+| 5 | 1 | +5 V - crosswalk reference only |
+
+**Correction:** The earlier inventory's phrase "PCB contact identity 1/2/4" was incorrect terminology for guide-view/fixture positions 1/2/4. The corresponding PCB pads are 5/4/2.
+
+**Evidence:** Board workstream checkpoint `12fc3dc0b4522a5efee03f68baf931f47a3c6d8f`; pinned Duet 2 Maestro V1.0 PCB source commit `56958640c73c7febf3bce6e1eefbbdffd5a2db1b`; Promega Duet Maestro Wiring guide https://promega.printm3d.com/documentation/electronics/duet-maestro-wiring; Routing reference slice `ec5c7381fe5624e94bb22c81740153ce260ab298`.
+
+Guide-view position, PCB pad, and physical cable cavity/mating orientation are distinct identities. The correction does not establish installed cable wiring or continuity. The three reference IR-probe relationships remain unchanged, and the P4/P2, H2/H4, S8/S6, and P9/P11 mapping uncertainties remain open.

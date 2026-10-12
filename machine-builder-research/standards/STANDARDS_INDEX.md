@@ -2025,3 +2025,30 @@ The [DYZE changelog](https://docs.dyzedesign.com/general-support/changelog.html)
 - OmegaFlex motion guidance: https://omegaflex.com/engineering-design/motion/
 - Kanaflex product guidance: https://kanaflex.com/products/hoses/flexchem-220-220rs/
 - Saint-Gobain Tygon E-1000: https://www.ics.saint-gobain.com/products/tygon-tubing-accessories/thermoplastic-elastomer-flexible-tubing/tygon-e-1000
+
+## Promega J28 Guide-View Position to PCB Pad Crosswalk - 2026-10-12
+
+### Targeted correction to the expected-connection inventory
+
+The prior expected-connection inventory incorrectly called guide-view/legacy fixture positions 1, 2, and 4 "PCB contact identities." Those values are Promega guide-view/fixture positions, not PCB pad numbers. Keep guide-view position, PCB pad identity, and physical cable cavity/mating orientation as separate source-qualified fields.
+
+| Reference use | Promega guide-view / legacy fixture position | Duet 2 Maestro V1.0 PCB pad | Reference PCB label |
+|---|---:|---:|---|
+| IR-01: S10 to J28 `Z_PROBE_IN` | 1 | 5 | `Z_PROBE_IN` |
+| IR-02: P5 to J28 GND | 2 | 4 | `GND` |
+| J28 reference crosswalk only | 3 | 3 | `Z_PROBE_MOD` |
+| IR-03: S9 to J28 +3.3 V | 4 | 2 | `+3.3V` |
+| J28 reference crosswalk only | 5 | 1 | `+5V` |
+
+The three expected IR-probe reference relationships are unchanged: S10 to `Z_PROBE_IN`, P5 to GND, and S9 to +3.3 V. Positions 3 and 5 document the rest of the five-position reference crosswalk; they do not assert that `Z_PROBE_MOD` or +5 V is connected to one of the three cited IR-probe leads.
+
+### Evidence basis and coordinate boundaries
+
+- The Board workstream reported this guide/fixture-position-to-pad crosswalk at checkpoint `12fc3dc0b4522a5efee03f68baf931f47a3c6d8f`.
+- The pinned Duet 2 Maestro V1.0 reference PCB is repository commit `56958640c73c7febf3bce6e1eefbbdffd5a2db1b`, file `Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb`, title-block revision V1.0, dated 2018-02-20: https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb
+- Promega guide-view identity source: https://promega.printm3d.com/documentation/electronics/duet-maestro-wiring
+- The three reference connections belong to Routing milestone `ec5c7381fe5624e94bb22c81740153ce260ab298`.
+
+This is a reference crosswalk only. Do not infer cable mating-face/cavity identity, conductor-to-contact correspondence, or end-to-end continuity from these numbers. Do not use guide-view positions as PCB pad numbers or reconstruct guide-view positions from a port ID suffix. The reference crosswalk also does not establish that the IR probe is physically installed or selected by the currently active firmware configuration.
+
+Unrelated mapping boundaries remain unchanged: P4/P2 extruder motor correspondence, variant-sensitive H2/H4 heater and S8/S6 PT1000 assignments, P9/P11 fan identity, active firmware files, and actual installed wiring remain unresolved wherever supporting evidence is incomplete.
