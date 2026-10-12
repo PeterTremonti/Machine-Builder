@@ -55,6 +55,17 @@ def _contact_position(port: SemanticPort) -> int:
     )
 
 
+def _promega_diagram_view_position(port: SemanticPort) -> int:
+    """Resolve the J28 position only from its source-qualified Promega guide identity."""
+    position = port.properties.get("promega_diagram_view_position")
+    source = port.properties.get("promega_diagram_view_source")
+    if position is None or source != GUIDE_URL:
+        raise ValueError(
+            f"Board port {port.id!r} has no source-qualified Promega guide-view position"
+        )
+    return int(position)
+
+
 def _visual_node(canvas: Any, semantic_reference: str) -> Any:
     matches = [
         node
@@ -95,7 +106,7 @@ def _board_probe_port(
         if port.controller_id == controller_id
         and port.component_id is None
         and port.connector_id == "z-probe"
-        and _contact_position(port) == position
+        and _promega_diagram_view_position(port) == position
         and port.properties.get("pin_label") == pin_label
     ]
     if len(matches) != 1:

@@ -2254,3 +2254,87 @@ The SKR hardware spike and broad catalog schema/loader work remain deferred.
 ## Recommended next steps
 
 Resume manual GUI/connection testing against this bounded reference slice. Any extension to motor-coil terminals, wire-colour mapping, firmware drives, or installed harness endpoints requires specific documentary or as-built evidence.
+
+### Promega J28 guide-view identity integration (2026-10-12)
+
+**Status:** Bounded manufacturer-reference integration. The Board PCB identity
+checkpoint is published at `8c7e94efa3f0d691bbd678ad836ea81a283335f8`.
+Post-Board-checkpoint validation passed on the working tree with the Routing
+code and test changes present, before this Routing slice was published.
+
+#### Scope implemented
+
+- The controller-board fixture assigns J28's controller-owned contacts an explicit
+  `promega_diagram_view_position` and source-qualified
+  `promega_diagram_view_source`. This guide coordinate is distinct from PCB pad
+  identity and physical cable mating-face/cavity identity.
+- `promega_fixtures.py` resolves J28 contacts through
+  `_promega_diagram_view_position()`. The lookup requires both the guide-view
+  position and the exact Promega guide URL; it does not derive that coordinate
+  from `pin_id` or the port-ID suffix.
+- The generic `_contact_position()` helper and existing XY motor helper are
+  unchanged.
+- The IR-probe helper creates three manufacturer-reference connections: S10 to
+  `Z_PROBE_IN` at guide-view position 1, P5 to GND at position 2, and S9 to
+  +3.3 V at position 4. J28 MOD at position 3 and +5 V at position 5 are not
+  connected by this helper.
+
+#### Regression coverage
+
+- `test_promega_ir_probe_connections.py` covers source-qualified guide-view
+  lookup, the three reference connections and their provenance,
+  persistence/undo-redo behavior, and the unused MOD and +5 V contacts remaining
+  unconnected by this helper.
+- `test_controller_board_fixtures.py` checks the manually reviewed J28
+  guide-position-to-PCB-pad crosswalk. It does not automatically parse the
+  external KiCad source.
+- `test_promega_xy_motor_reference.py` was included in the post-Board-checkpoint
+  focused test command to confirm that existing XY helper behavior remains
+  intact.
+
+#### Post-Board-checkpoint validation
+
+At local `HEAD` and `origin/main` both equal to
+`8c7e94efa3f0d691bbd678ad836ea81a283335f8`, the focused command was run from
+`machine-structure-editor` with `.venv\Scripts\python.exe -m pytest` over:
+
+- `tests\test_controller_board_fixtures.py`
+- `tests\test_promega_ir_probe_connections.py`
+- `tests\test_promega_xy_motor_reference.py`
+
+**Result: 33 passed in 5.73 seconds.**
+
+The same interpreter then ran `python -m pytest -q` for the full suite:
+**842 passed in 8.44 seconds.**
+
+`git diff --check` returned 0 for the Routing paths, the complete unstaged
+working tree, and the staged diff check. Git displayed line-ending warnings for
+the two modified Python files, but the checks succeeded. There were no staged
+paths at the time of that validation.
+
+These results apply to the working tree tested after the published Board
+checkpoint was integrated and before the Routing changes were committed. They
+document that actual run and do not assert test results for later code changes.
+
+#### Routing publication scope and next steps
+
+Only these Routing-owned paths may be staged for this publication:
+
+- `machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`
+- `machine-structure-editor/src/machine_builder/promega_fixtures.py`
+- `machine-structure-editor/tests/test_promega_ir_probe_connections.py`
+
+Before committing, inspect the complete staged diff and exact staged path list.
+Preserve the Planning handoff and `CHAT_WORKFLOW.md`, as well as all staged or
+unstaged work belonging to other workstreams. After publication, verify local
+`HEAD`, fetched `origin/main`, and live remote `main`.
+
+#### Evidence and limitations
+
+This is a bounded manufacturer-reference integration, not a complete machine
+graph and not evidence of the user's installed wiring or verified as-built
+connector mating. The Promega guide-view position is source-qualified
+documentation identity only; it does not establish cable-cavity orientation.
+The helper connects only the three documented IR-probe endpoints. Do not infer
+additional connections, complete Promega wiring, motor-coil pairing, firmware
+assignment, or E0/E1 motor-pad metadata from this milestone.

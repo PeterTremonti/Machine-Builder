@@ -35,20 +35,18 @@ PROMEGA_ROLES = (
 )
 
 
-def _contact_position(port: SemanticPort) -> int:
-    """Resolve a contact's position from its instantiated board identity."""
-    explicit_position = port.properties.get("connector_position")
-    if explicit_position is not None:
-        return int(explicit_position)
-
-    for identity in (port.pin_id, port.id):
-        match = re.search(r"(?:^|[-_])(\d+)$", identity or "")
-        if match:
-            return int(match.group(1))
-
-    raise AssertionError(
-        f"No contact position metadata found for board port {port.id!r}"
+def _promega_diagram_view_position(port: SemanticPort) -> int:
+    """Resolve the guide-view position from its explicit source-qualified identity."""
+    position = port.properties.get("promega_diagram_view_position")
+    source = port.properties.get("promega_diagram_view_source")
+    assert source == (
+        "https://promega.printm3d.com/documentation/electronics/"
+        "duet-maestro-wiring"
+    ), f"Missing Promega guide-view source on {port.id!r}"
+    assert position is not None, (
+        f"Missing Promega guide-view position on {port.id!r}"
     )
+    return int(position)
 
 
 def _board_probe_port(model, controller_id, position, pin_label):
@@ -58,7 +56,7 @@ def _board_probe_port(model, controller_id, position, pin_label):
         if port.controller_id == controller_id
         and port.component_id is None
         and port.connector_id == "z-probe"
-        and _contact_position(port) == position
+        and _promega_diagram_view_position(port) == position
         and port.properties.get("pin_label") == pin_label
     ]
     assert len(matches) == 1, (
@@ -368,4 +366,4 @@ def test_promega_ir_probe_reference_connection_persistence_isolated(
         assert restored_board.component_id is None
         assert restored_board.connector_id == "z-probe"
         assert restored_board.properties["pin_label"] == pin_label
-        assert _contact_position(restored_board) == position
+        assert _promega_diagram_view_position(restored_board) == position
