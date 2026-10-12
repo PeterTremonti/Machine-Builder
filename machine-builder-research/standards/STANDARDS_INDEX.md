@@ -1702,11 +1702,81 @@ Represent an installed Cooling Unit and Typhoon LCX with these boundaries and pa
 
 A query should identify hose A and hose B by their physical connection records, return the directed sequence above, and retain evidence/provenance for each asserted transfer. Reversing either hose connection's stored endpoint order must not alter the result. Round-trip persistence must preserve the same queried path. The query must not include the Cooling Unit's separate electrical supply, fan wiring, or controller-resource/firmware assignments as coolant flow. Missing or unverified transfer direction must remain unknown rather than being inferred from connection storage order.
 
-**Conclusion:** Option B is the stronger candidate to evaluate because it separates physical connectivity from directed transfer while reusing the existing port and directed-relationship boundary. A new entity is not established as necessary. This remains a research recommendation only; implementation and ontology changes remain deferred pending Planning's decision and the Promega wiring priority.
+**Conclusion:** The bounded contract below is the proposed specification for Planning review. Option B remains preferred, but current evidence does not establish that a new ontology entity is necessary. This checkpoint authorizes documentation only; implementation, source/test edits, application behavior changes, and ontology changes remain deferred.
 
 No source, tests, catalog definitions, or ontology were changed for this research. Keep broader flow-rate semantics, flow sensors, leaks, pressure, coolant chemistry, and a universal fluid-safety ontology deferred as stated in the existing V0.2 checkpoint.
 
-**Next action:** Send Planning a bounded decision request on whether to evaluate a typed directed-transfer relationship over ports, layered over undirected physical hose connections, and the minimal query/validation acceptance case above. This is a research recommendation; do not begin ontology or implementation changes without a Planning decision. Preserve Promega wiring as the active implementation priority.
+#### Bounded directed-fluid-transfer contract specification (2026-10-11)
+
+**Status and scope:** Proposed semantic/query contract for Planning review only. It is limited to an installed liquid-coolant loop such as a Cooling Unit and Typhoon LCX. It does not define universal fluid safety, coolant chemistry, pressure/flow-rate semantics, leak detection, or a new ontology entity.
+
+##### 1. Physical connectivity versus directional transfer
+
+- `SemanticConnection` records physical adjacency between two ports. Stored endpoint order has no directional meaning. Physical connectivity alone does not establish which way a medium flows.
+- A directed transfer is a separate assertion with ordered source and target ports. Its direction comes from that assertion and its supporting evidence, never from `endpoint_a_id` versus `endpoint_b_id`.
+- An across-hose transfer must reference an explicitly classified fluid-hose connection. The current `connection_type` is a free string, so this contract proposes a validated classification such as `fluid_hose`; arbitrary text, port labels, and proximity are insufficient.
+- A hose may be known to connect two ports while its flow direction remains unknown. Preserve the physical fact without inventing a directed transfer.
+
+##### 2. Proposed relationship contract
+
+Evaluate a dedicated registered relationship type named `fluid_transfer` using `SemanticRelationship`. This name is proposed and is not currently registered.
+
+- `source_id` and `target_id` must resolve to distinct canonical `SemanticPort` records. The source is upstream for this transfer step and the target downstream. A component ID, controller ID, wire, or `SemanticConnection` ID is not a valid transfer endpoint.
+- Require a validated relationship-level `medium` value. For this bounded contract the only recognized value is `liquid_coolant`; missing or unrecognized values are invalid for the coolant query. The relationship medium must be present as a key in both endpoint ports' medium-scoped role maps.
+- Require a validated `segment_kind`, with initial values `across_connection` and `within_component`, distinguishing transfer across a hose from transfer through a component.
+- **Canonical role location:** Each `SemanticPort` owns its role assignments, scoped by medium. Propose using the existing `SemanticPort.properties` container with a reserved `fluid_roles` map, for example `{"liquid_coolant": "inlet"}` or `{"liquid_coolant": "outlet"}`. Do not duplicate a `fluid_role` value on each transfer relationship. This is a proposed contract shape, not a currently validated model field.
+- **Role-pair validation:** The relationship's `medium` must be a recognized controlled key present in both endpoint ports' `fluid_roles` maps. For this bounded contract, `liquid_coolant` is the only allowed key and `inlet`/`outlet` are the only allowed role values. For `across_connection`, source role must be `outlet` and target role `inlet`; for `within_component`, source role must be `inlet` and target role `outlet`.
+- **Contradictory or missing roles:** Reject malformed maps, invalid values, contradictory role/segment combinations, and medium mismatches. Missing role keys, unknown values, or unsupported media leave the role unresolved; transfers with unresolved endpoint roles must not be treated as valid traversable edges. Do not infer roles from free text or interpret generic `SemanticPort.direction` as coolant-flow direction.
+- **Existing-contract limitation:** `SemanticPort.properties` can structurally store this map, but the current contract does not validate its schema, medium keys, or role values. A future validation boundary must interpret and validate the medium-scoped map consistently before it is authoritative. If the current port contract cannot represent and validate roles reliably, record that specific limitation for Planning rather than silently duplicating roles on relationships or adding an ontology entity now.
+- For `across_connection`, require `physical_connection_id` referencing an existing, non-self fluid-hose `SemanticConnection`. Its two endpoint IDs must equal the transfer's source/target IDs as an unordered pair. Either stored endpoint order is valid. Electrical, fan, signal, and other non-fluid connections must be rejected.
+- For `within_component`, require `through_component_id`. Both ports must belong to that same installed component and must be distinct. Do not invent a hose reference for internal transfer.
+- Reject unknown relationship types, non-port endpoints, dangling references, endpoint mismatch, missing required metadata, contradictory segment fields, unsupported media, and inconsistent roles. Do not overload `supports`, `participates_in`, or unrelated relationship types.
+- `SemanticRelationship.properties` can store arbitrary data, but storage is not validation. The contract must specify a deliberate validation boundary for the controlled values and references. Prefer using the current ports, physical connections, relationships, and provenance. Consider a new entity only if a concrete constraint cannot be represented and validated with those concepts; that requires a separate Planning decision.
+
+##### 3. Directed path and loop query
+
+A future query should accept a start port, a target port or non-empty-loop request, and the required medium. Example API names are illustrative, not an implementation commitment.
+
+- Traverse only validated `fluid_transfer` relationships matching the requested medium, following source to target. Never traverse physical connections or generic relationships as though they were flow assertions.
+- Return the ordered transfer-relationship IDs. For every across-connection step also return the referenced physical connection ID; for each within-component step return the component ID.
+- Adjacent steps must share the same canonical port ID. A loop must be a non-empty directed cycle; a zero-step query from a port to itself is not a loop.
+- If more than one valid route exists, return the alternatives or an explicit ambiguity. Never silently select a path because of storage or insertion order.
+- Electrical supply, fan wiring, controller-resource assignments, firmware mappings, and unrelated physical connections must not become coolant-flow edges, even if they share components with the fluid loop.
+
+##### 4. Provenance, unknowns, and incomplete installations
+
+- Every directed step needs provenance that supports its direction and segment kind, such as a manufacturer reference, engineering record, or physical observation. Evidence of connectivity alone does not prove direction.
+- An unverified direction remains unknown and is not traversable as an established directed edge. Preserve known physical connections and their evidence, and record the unresolved direction rather than inventing a transfer, medium, internal path, or loop closure.
+- An incomplete physical configuration must produce an incomplete result, not a completed loop inferred from intended behavior or undocumented assumptions.
+- If competing or unresolved transfer hypotheses need first-class representation, specify their status and query behavior separately. Do not present an uncertain assertion as a verified edge.
+
+##### 5. Minimal positive acceptance case
+
+**Evidence classification:** The cited manufacturer sources document products and published guides, but do not establish the graph below as verified installed topology. The precise port labels and role assignments, hose A/B placements, transfer directions, internal port arrangement and transfer through either component, and loop closure below are explicitly synthetic acceptance-fixture assertions. None of these graph edges is claimed as manufacturer-documented or inferred from those sources. This fixture is not evidence for the user's installed machine or a catalog topology.
+
+The following graph is constructed synthetic test data:
+
+1. **Synthetic fixture assertion:** Cooling Unit cold output (`outlet`) -> LCX inlet (`inlet`), across synthetic physical hose A.
+2. **Synthetic fixture assertion:** LCX inlet (`inlet`) -> LCX outlet (`outlet`), through the LCX component.
+3. **Synthetic fixture assertion:** LCX outlet (`outlet`) -> Cooling Unit warm-return input (`inlet`), across synthetic physical hose B.
+4. **Synthetic fixture assertion:** Cooling Unit warm-return input (`inlet`) -> Cooling Unit cold output (`outlet`), through the Cooling Unit component.
+
+A query starting at the Cooling Unit cold output must return all four directed steps in that order, identify hose A and hose B for steps 1 and 3, and explicitly include the closing transfer inside the Cooling Unit.
+
+##### 6. Negative and persistence acceptance cases
+
+- Reverse hose A's stored endpoint order, then hose B's independently. The directed result must remain unchanged.
+- Reverse a transfer relationship's source and target. Directional traversal must change, demonstrating that transfer direction is independent of physical endpoint storage order.
+- Remove a referenced hose; mismatch its endpoints; classify it as electrical; omit the reference; or use a non-port endpoint. The step must be rejected or excluded with a clear validation result.
+- Remove the medium, segment kind, component/connection reference, or validated port role. The incomplete step must not qualify for the path.
+- Save and reload. Transfer IDs, ordered endpoints, metadata, provenance, component and connection references, and the queried ordered path must survive round-trip.
+- Include electrical supply and fan connections in the same fixture and verify they are absent from the coolant route.
+- Mark a transfer direction unknown. The result must become incomplete/unresolved rather than inferring direction from physical endpoint order or claiming a closed loop.
+- Create two distinct valid routes between the same endpoints and verify that ambiguity is reported rather than silently resolving to one route.
+
+**Decision trigger:** If a required rule cannot be validated using existing canonical ports, connections, relationships, properties, and provenance, record the smallest failing case and the exact unexpressible constraint for Planning. No application, schema, ontology, source-code, or test changes are authorized under this specification.
+
+**Next action:** Submit the bounded directed-fluid-transfer specification below to Planning for review, then stop for a scoped decision. Do not implement it or interrupt the Promega wiring priority.
 
 ## Shared Documentation, Encoding, and Display Standard -- Research Proposal (2026-10-11)
 
