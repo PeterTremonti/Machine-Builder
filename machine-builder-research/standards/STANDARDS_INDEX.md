@@ -1618,6 +1618,20 @@ The official ISO records were checked on 2026-10-11. These standards inform diag
 
 Architectural implication: coolant, electrical, and firmware/resource diagrams may need domain-appropriate symbols and view-specific conventions while remaining presentations of one canonical machine model. The drawing convention does not justify duplicating physical facts in competing models.
 
+#### Current official-source follow-up (2026-10-12)
+
+**Sources reviewed:** DYZE DESIGN's current [Liquid Cooling guide](https://docs.dyzedesign.com/liquid-cooling.html), [Typhoon/LCX guide](https://docs.dyzedesign.com/typhoon.html), and official [Products Changelog](https://docs.dyzedesign.com/general-support/changelog.html).
+
+**Bend-radius contradiction remains unresolved:** The current Liquid Cooling guide says under "Route the tubing" that the radius must never be smaller than 2 inches (50 mm), while its "Mounting" section says it should not exceed 2 inches (50 mm). Read literally for the same radius, these instructions permit exactly 50 mm. The guide does not resolve the opposing minimum/maximum or identify the radius measurement datum. Do not guess which statement is intended.
+
+**Kink/blockage pause behavior remains unexplained:** The guide says tubing kinks or blockages will be detected and printing paused, but does not identify the detector, measured physical quantity, threshold, electrical output/interface, controller signal path, or firmware pause mechanism. The adjacent wiring section identifies the Cooling Unit's 12 V supply and V+/V- terminals but does not document a sensor output or printer signal path. The Typhoon/LCX guide says the pump must remain operational while the machine is in use, but does not explain the claimed kink-detection pause. Do not infer a flow sensor, pressure sensor, or specific interface.
+
+**Product revision matters:** Public changelog PCN-00006 describes the original Typhoon being phased out in favor of LCX/Air variants, with liquid cooling streamlined to pressure-plate cooling and revised elbow fittings. The current kit listing specifies an 800 L/h pump, 300 ml reservoir, 360 x 120 mm radiator, three 120 mm fans, and 8 m of tubing with 1/4 inch ID and 3/8 inch OD. Its build-your-own guidance separately recommends at least a 600 L/h pump for Typhoon/Pulsar, a reservoir of 500 ml or larger, an aluminum radiator, and avoiding copper/brass radiators. These published specifications are reference data only, not evidence of the hardware installed on the Promega.
+
+**Bounded public-source search result:** The accessible current official pages and public changelog did not resolve the radius contradiction or explain the detector-to-firmware path. This does not prove that no older, private, or otherwise unavailable manufacturer documentation exists. The installed Cooling Unit revision, pump/radiator, hose and fitting arrangement, wiring, active configuration/macros, and firmware integration remain unverified.
+
+**Follow-up:** Request written DYZE clarification of the intended radius limits and measurement datum, and ask what detects kink/blockage, what interface it uses, and how the pause signal reaches printer firmware. When physically possible, identify the installed unit revision and record its hoses, fittings, and wiring. Once the SD card is accessible, inspect the active configuration/macros before making claims about firmware integration. Keep this follow-up parallel to Promega wiring; it is not a prerequisite for that work.
+
 #### V0.2 source-contract and test assessment
 
 Local source and test files were inspected against checkout HEAD `25d8268600c0979ecfccfccb8a1b0b04bcf89014` on 2026-10-11. This research update did not run the tests; the test names below are existing inspected coverage.
