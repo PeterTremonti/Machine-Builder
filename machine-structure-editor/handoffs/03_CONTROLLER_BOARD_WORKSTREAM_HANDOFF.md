@@ -1,8 +1,8 @@
 # Machine Builder — Controller / Board Workstream Handoff
 
-Updated: 2026-10-11
+Updated: 2026-10-12
 
-Current repository checkpoint: `25d8268` — `Record hardware catalog research and handoff checkpoint`
+Current repository checkpoint: `ec5c738` — `Use source-qualified Promega J28 guide-view identity`
 
 Current branch: `main`
 
@@ -1855,9 +1855,9 @@ The board source gives a different, non-simple shared-net pattern on the dual-Z 
 | J36 / Z A | `Z_MOT_A1` | `Net-(J36-Pad2)` | `Z_MOT_B1` | `Net-(J36-Pad4)` |
 | J7 / Z B | `Net-(J36-Pad2)` | `Z_MOT_A2` | `Net-(J36-Pad4)` | `Z_MOT_B2` |
 
-**Historical finding (before the bounded PCB crosswalk was implemented):** Section 34 records the functional motor labels in the order `B1`, `B2`, `A1`, `A2`, while the official PCB numbers J9/J8/J10/J6 pads in `A1`, `A2`, `B1`, `B2` order. The bounded crosswalk now explicitly records the corresponding PCB pad numbers and net names for J9/J8/J36/J7 while preserving the existing functional labels and internal port IDs. The regression test checks fixed expected values reviewed against the pinned PCB source; it does not parse the external PCB file. E0/E1 motor connectors J10/J6 remain excluded from this inventory.
+**Historical finding (before the bounded PCB crosswalk was implemented):** Section 34 records the functional motor labels in the order `B1`, `B2`, `A1`, `A2`, while the official PCB numbers J9/J8/J10/J6 pads in `A1`, `A2`, `B1`, `B2` order. The bounded crosswalk now explicitly records the corresponding PCB pad numbers and net names for J9/J8/J36/J7/J10/J6 while preserving the existing functional labels and internal port IDs. The regression test checks fixed expected values reviewed against the pinned PCB source; it does not parse the external PCB file. At the time of that historical finding, E0/E1 motor connectors J10/J6 were outside the reviewed inventory; the J10/J6 crosswalk added below supersedes that scope boundary.
 
-For the bounded motor inventory, preserve the distinction between legacy numeric contact identity, functional `pin_label`, and explicit `pcb_pad_number`/`pcb_net_name` metadata. J9/J8 and the separate dual-Z J36/J7 shared-net pattern are represented explicitly in the reviewed crosswalk. This reference crosswalk does not establish cable mating-face orientation, cavity numbering, internal conductor order, coil pairing, firmware assignment, or installed wiring.
+For the bounded motor inventory, preserve the distinction between legacy numeric contact identity, functional `pin_label`, and explicit `pcb_pad_number`/`pcb_net_name` metadata. J9/J8, J10/J6, and the separate dual-Z J36/J7 shared-net pattern are represented explicitly in the reviewed crosswalk. This reference crosswalk does not establish cable mating-face orientation, cavity numbering, internal conductor order, coil pairing, firmware assignment, or installed wiring.
 
 Source: [Official Duet2Maestro.kicad_pcb, Duet-2-Hardware repository](https://github.com/Duet3D/Duet-2-Hardware/blob/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb). The PCB title block identifies revision 1.0, dated 2018-02-20; the board source is pinned to commit `56958640c73c7febf3bce6e1eefbbdffd5a2db1b`.
 
@@ -1992,7 +1992,26 @@ Source baseline: [Duet2Maestro.kicad_pcb, Duet-2-Hardware repository](https://gi
 
 The PCB contact map is a bounded, manually reviewed expected crosswalk, not a complete inventory of every board connector. The exact reference PCB is [`Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb`](https://raw.githubusercontent.com/Duet3D/Duet-2-Hardware/56958640c73c7febf3bce6e1eefbbdffd5a2db1b/Duet2/Duet2Maestro_v1.0/Duet2Maestro.kicad_pcb), pinned to repository commit `56958640c73c7febf3bce6e1eefbbdffd5a2db1b`. The repository commit SHA is source identity, separate from the PCB title-block revision `V1.0` and date `2018-02-20`. The legacy `pcb_source_revision` property remains a compatibility alias for the repository commit SHA.
 
-The implemented motor-pad subset covers J9 (X), J8 (Y), J36 (Z A), and J7 (Z B). E0/E1 motor connectors J10/J6 are explicitly excluded from this motor-pad inventory. The reviewed subset also covers X/Y endstops J33/J32, Z probe J28, and TEMP_DB J37. Each fixture port is explicitly classified as covered by or outside the reviewed PCB identity inventory. Regression tests compare fixture metadata with fixed expected values reviewed against the pinned KiCad source; they do not automatically parse the external PCB file.
+The implemented motor-pad subset covers J9 (X), J8 (Y), J36 (Z A), J7 (Z B), J10 (E0), and J6 (E1). The reviewed subset also covers X/Y endstops J33/J32, Z probe J28, and TEMP_DB J37. Each fixture port is explicitly classified as covered by or outside the reviewed PCB identity inventory. Regression tests compare fixture metadata with fixed expected values manually reviewed against the pinned KiCad source; they do not automatically parse the external PCB file.
+
+### E0/E1 motor PCB identity extension
+
+The pinned Duet 2 Maestro V1.0 PCB assigns named nets to all four numbered pads on J10 / E0 MOT and J6 / E1 MOT. The following expected crosswalk is in legacy fixture-position order, not PCB pad-number order. Source inspected 2026-10-12.
+
+| Stable SemanticPort endpoint ID | Fixture connector | PCB reference | Legacy fixture position / `pin_label` | PCB pad number | PCB net name |
+|---|---|---|---|---:|---|
+| `duet-2-maestro-v1-0-controller-e0-motor-pin-1` | `e0-motor` | J10 | 1 / `B1` | 3 | `E0_MOT_B1` |
+| `duet-2-maestro-v1-0-controller-e0-motor-pin-2` | `e0-motor` | J10 | 2 / `B2` | 4 | `E0_MOT_B2` |
+| `duet-2-maestro-v1-0-controller-e0-motor-pin-3` | `e0-motor` | J10 | 3 / `A1` | 1 | `E0_MOT_A1` |
+| `duet-2-maestro-v1-0-controller-e0-motor-pin-4` | `e0-motor` | J10 | 4 / `A2` | 2 | `E0_MOT_A2` |
+| `duet-2-maestro-v1-0-controller-e1-motor-pin-1` | `e1-motor` | J6 | 1 / `B1` | 3 | `E1_MOT_B1` |
+| `duet-2-maestro-v1-0-controller-e1-motor-pin-2` | `e1-motor` | J6 | 2 / `B2` | 4 | `E1_MOT_B2` |
+| `duet-2-maestro-v1-0-controller-e1-motor-pin-3` | `e1-motor` | J6 | 3 / `A1` | 1 | `E1_MOT_A1` |
+| `duet-2-maestro-v1-0-controller-e1-motor-pin-4` | `e1-motor` | J6 | 4 / `A2` | 2 | `E1_MOT_A2` |
+
+All eight contacts have `named_net_assigned_in_reference_pcb` status. None is unassigned or unknown in this pinned PCB source. The expected values are manually reviewed against the PCB; the regression test does not automatically parse the external PCB file.
+
+This establishes reference-board pad/net identity only. It does not establish the installed board revision, connector mating orientation, cable-cavity numbering, conductor order, motor-coil pairing, firmware drive assignment, installed harness wiring, or as-built connectivity. Those identities require separate evidence or physical verification.
 
 A connector/contact omitted from the map is outside the inventory only. Omission does not mean its PCB design identity or net assignment is unknown, that the pad is unassigned, or that a real-world conductor is disconnected. Use the unknown net state only for a represented contact whose PCB net status has not been established; use the unassigned state only where the pinned reference PCB explicitly has no net assigned. J37 pad 10 is an explicit reference-PCB unassigned case, but that does not establish physical disconnection on an installed board.
 
@@ -2000,13 +2019,13 @@ The map does not establish PCB-view coordinates or cable mating-face/cavity posi
 
 ### Current validation record
 
-Validation performed on the uncommitted working tree after the bounded inventory assertions were added:
+Validation performed on the working tree after extending the pinned PCB identity crosswalk to E0/J10 and E1/J6:
 
-- Focused Board fixture, connector-specification, Promega IR-probe, and XY-reference regressions: **36 passed**.
-- Full test suite: **842 passed**.
-- `git diff --check`: **passed**; Git reported line-ending warnings only.
+- Focused Board fixture, connector-specification, Promega IR-probe, and XY-reference regressions: **36 passed in 5.44s**.
+- Full project test suite: **842 passed in 8.54s**.
+- `git diff --check`: **passed** for the Board-owned source, regression test, and handoff paths.
 
-These results validate the tested fixture and regression behavior in that working tree. They do not establish complete Promega wiring, installed-board identity, or as-built physical connections. Research subsequently published a documentation-only commit at `2f7227530b75937e262acd64459f062d73ddf3ba`; that publication did not include Board source or test files.
+The J10/J6 expected pad/net values were manually reviewed against the pinned KiCad PCB source. The regression test does not automatically parse the external PCB. The results validate the reference fixture and regression behavior; they do not establish the installed board revision, mating orientation, cable-cavity numbering, conductor order, motor-coil pairing, firmware assignment, or as-built wiring.
 
 ### Concrete next research steps
 

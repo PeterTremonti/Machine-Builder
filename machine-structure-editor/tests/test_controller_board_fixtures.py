@@ -890,6 +890,8 @@ def test_maestro_pcb_pad_identity_metadata_matches_pinned_manual_crosswalk() -> 
         "y-motor": ("J8", [(3, "Y_MOT_B1"), (4, "Y_MOT_B2"), (1, "Y_MOT_A1"), (2, "Y_MOT_A2")]),
         "z-a-motor": ("J36", [(3, "Z_MOT_B1"), (4, "Net-(J36-Pad4)"), (1, "Z_MOT_A1"), (2, "Net-(J36-Pad2)")]),
         "z-b-motor": ("J7", [(3, "Net-(J36-Pad4)"), (4, "Z_MOT_B2"), (1, "Net-(J36-Pad2)"), (2, "Z_MOT_A2")]),
+        "e0-motor": ("J10", [(3, "E0_MOT_B1"), (4, "E0_MOT_B2"), (1, "E0_MOT_A1"), (2, "E0_MOT_A2")]),
+        "e1-motor": ("J6", [(3, "E1_MOT_B1"), (4, "E1_MOT_B2"), (1, "E1_MOT_A1"), (2, "E1_MOT_A2")]),
         "x-stop": ("J33", [(3, "X_STOP_CONN"), (2, "+3.3V"), (1, "GND")]),
         "y-stop": ("J32", [(3, "Y_STOP_CONN"), (2, "+3.3V"), (1, "GND")]),
         "z-probe": ("J28", [(5, "Z_PROBE_IN"), (4, "GND"), (3, "Z_PROBE_MOD"), (2, "+3.3V"), (1, "+5V")]),
@@ -960,17 +962,8 @@ def test_maestro_pcb_pad_identity_metadata_matches_pinned_manual_crosswalk() -> 
                 assert "promega_diagram_view_position" not in properties
                 assert "promega_diagram_view_source" not in properties
 
-    # E0/E1 motor pad identity is outside this authorized slice.
-    for connector_id in ("e0-motor", "e1-motor"):
-        excluded_ports = [
-            port for port in ports
-            if port.connector_id == connector_id
-        ]
-        assert len(excluded_ports) == 4
-        assert all(
-            "pcb_pad_number" not in port.properties
-            for port in excluded_ports
-        )
+    # E0/E1 contacts are now covered by the expected crosswalk entries above.
+
     # Every fixture port is explicitly classified for this bounded inventory.
     # Being outside the inventory does not establish its PCB net state.
     mapped_fixture_keys = {
@@ -1000,6 +993,8 @@ def test_maestro_pcb_pad_identity_metadata_matches_pinned_manual_crosswalk() -> 
         "y-motor": ("B1", "B2", "A1", "A2"),
         "z-a-motor": ("B1", "B2", "A1", "A2"),
         "z-b-motor": ("B1", "B2", "A1", "A2"),
+        "e0-motor": ("B1", "B2", "A1", "A2"),
+        "e1-motor": ("B1", "B2", "A1", "A2"),
         "x-stop": ("xstop", "+3.3V", "GND"),
         "y-stop": ("ystop", "+3.3V", "GND"),
         "z-probe": ("Z_PROBE_IN", "GND", "Z_PROBE_MOD", "+3.3V", "+5V"),
