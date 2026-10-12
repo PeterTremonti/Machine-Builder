@@ -1702,7 +1702,7 @@ Represent an installed Cooling Unit and Typhoon LCX with these boundaries and pa
 
 A query should identify hose A and hose B by their physical connection records, return the directed sequence above, and retain evidence/provenance for each asserted transfer. Reversing either hose connection's stored endpoint order must not alter the result. Round-trip persistence must preserve the same queried path. The query must not include the Cooling Unit's separate electrical supply, fan wiring, or controller-resource/firmware assignments as coolant flow. Missing or unverified transfer direction must remain unknown rather than being inferred from connection storage order.
 
-**Conclusion:** The bounded contract below is the proposed specification for Planning review. Option B remains preferred, but current evidence does not establish that a new ontology entity is necessary. This checkpoint authorizes documentation only; implementation, source/test edits, application behavior changes, and ontology changes remain deferred.
+**Conclusion:** Planning accepted the bounded Option B contract on 2026-10-12 as an appropriate proposed conceptual/documentation design. This acceptance does not authorize implementation, test changes, production-validation claims, or ontology expansion. The existing port-role validation gap remains explicit.
 
 No source, tests, catalog definitions, or ontology were changed for this research. Keep broader flow-rate semantics, flow sensors, leaks, pressure, coolant chemistry, and a universal fluid-safety ontology deferred as stated in the existing V0.2 checkpoint.
 
@@ -1776,7 +1776,13 @@ A query starting at the Cooling Unit cold output must return all four directed s
 
 **Decision trigger:** If a required rule cannot be validated using existing canonical ports, connections, relationships, properties, and provenance, record the smallest failing case and the exact unexpressible constraint for Planning. No application, schema, ontology, source-code, or test changes are authorized under this specification.
 
-**Next action:** Submit the bounded directed-fluid-transfer specification below to Planning for review, then stop for a scoped decision. Do not implement it or interrupt the Promega wiring priority.
+##### Planning acceptance checkpoint (2026-10-12)
+
+**Planning disposition:** ACCEPTED as a bounded proposed research contract. Acceptance is conceptual/documentation-level only, not implementation authorization and not a claim that production validation exists.
+
+**Boundaries retained:** The medium-scoped `fluid_roles` map remains a proposed contract; the existing `SemanticPort.properties` container does not currently validate its schema, medium keys, or role values. Physical connection endpoint order remains non-directional. The Cooling Unit/LCX four-step graph remains synthetic acceptance-fixture data, not manufacturer-verified or installed topology. No new canonical entity, application change, test change, or broad ontology expansion is authorized.
+
+**Next Research action:** Continue source-evidence work on the documented kink/blockage print-pause detector and signal path; the conflicting published 50 mm bend-radius guidance; and the exact installed cooling kit, hose/fitting arrangement, wiring, and firmware integration. Preserve source evidence and uncertainties in this existing record. Do not make this work a prerequisite for Promega wiring. Return to Planning if a concrete test or implementation case shows a constraint the current model cannot express or validate coherently.
 
 ## Shared Documentation, Encoding, and Display Standard -- Research Proposal (2026-10-11)
 
