@@ -43,6 +43,7 @@ For project knowledge questions, use the authority map below.
 | What is Machine Builder?                                             | `README.md`                                                        |
 | Where is the project going?                                          | `MASTER_PLAN.md`                                                   |
 | What is true across the project right now?                           | `PROJECT_CURRENT_STATE.md`                                         |
+| What significant project milestones occurred, when, and what evidence supports the record? | `PROJECT_MILESTONE_TIMELINE.md` |
 | How do the project chats/workstreams operate?                        | `CHAT_WORKFLOW.md`                                                 |
 | Which document answers a project documentation question?             | `DOCUMENTATION_AUTHORITY.md`                                       |
 | Where does Research start?                                           | `machine-builder-research/START_HERE.md`                           |
@@ -130,6 +131,24 @@ The Current State document should remain a snapshot, not become a second history
 
 ---
 
+## PROJECT_MILESTONE_TIMELINE.md
+
+**Status:** AUTHORITATIVE FOR PROJECT MILESTONE CHRONOLOGY
+
+Primary question:
+
+> What significant project milestones occurred, when did they occur, and what evidence supports the record?
+
+It owns:
+
+* the project-wide chronology of significant milestones and outcomes;
+* links to source commits, project documents, test records, and external evidence;
+* distinctions between commit timestamps, documented event dates, and later observations;
+* confidence labels and known gaps in historical evidence.
+
+It does not replace `MASTER_PLAN.md` for project direction, `PROJECT_CURRENT_STATE.md` for the current snapshot, the Decision Log for accepted decisions, or workstream handoffs for detailed implementation continuity.
+
+---
 ## CHAT_WORKFLOW.md
 
 **Status:** AUTHORITATIVE
@@ -557,6 +576,9 @@ MASTER_PLAN.md
 
 PROJECT_CURRENT_STATE.md
     AUTHORITATIVE
+
+PROJECT_MILESTONE_TIMELINE.md
+    AUTHORITATIVE FOR PROJECT MILESTONE CHRONOLOGY
 
 CHAT_WORKFLOW.md
     AUTHORITATIVE

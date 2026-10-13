@@ -100,6 +100,11 @@ Planning / Architecture (#1) owns this document.
 
 ---
 
+## Project Milestone Timeline
+
+`PROJECT_MILESTONE_TIMELINE.md`
+
+Use this document for the project-wide chronology of significant milestones and their supporting evidence. It preserves uncertainty and distinguishes Git commit timestamps from documented event dates. Use `MASTER_PLAN.md` for current direction and `PROJECT_CURRENT_STATE.md` for the current project snapshot.
 ## Chat Workflow
 
 ```text
