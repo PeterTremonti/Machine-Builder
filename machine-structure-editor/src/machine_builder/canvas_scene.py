@@ -147,6 +147,22 @@ class CanvasSceneController:
 
             self.update_connection_graphics()
 
+            # Scene-only hosts need not construct the Canvas focus UI.
+            refresh_focus_choices = getattr(
+                self.canvas,
+                "_refresh_controller_connector_choices",
+                None,
+            )
+            apply_focus = getattr(
+                self.canvas,
+                "_apply_controller_connector_focus",
+                None,
+            )
+            if callable(refresh_focus_choices):
+                refresh_focus_choices()
+            if callable(apply_focus):
+                apply_focus()
+
         finally:
             self.canvas._synchronizing_scene = False
 

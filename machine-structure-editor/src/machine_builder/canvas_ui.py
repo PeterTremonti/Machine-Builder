@@ -5,6 +5,7 @@ from __future__ import annotations
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
+    QComboBox,
     QGraphicsScene,
     QHBoxLayout,
     QLabel,
@@ -170,8 +171,33 @@ class CanvasUIMixin:
             palette_panel
         )
 
+        focus_panel = QWidget()
+        focus_layout = QVBoxLayout(focus_panel)
+        focus_layout.setContentsMargins(0, 0, 0, 0)
+
+        focus_row = QHBoxLayout()
+        focus_row.addWidget(QLabel("Controller ports:"))
+        self.controller_connector_focus_combo = QComboBox()
+        self.controller_connector_focus_combo.setObjectName(
+            "controller_connector_focus_combo"
+        )
+        self.controller_connector_focus_combo.addItem(
+            "Functional interfaces",
+            "",
+        )
+        self.controller_connector_focus_combo.currentIndexChanged.connect(
+            self._controller_connector_focus_changed
+        )
+        focus_row.addWidget(self.controller_connector_focus_combo, 1)
+        focus_layout.addLayout(focus_row)
+
+        self.controller_connector_focus_help = QLabel()
+        self.controller_connector_focus_help.setWordWrap(True)
+        focus_layout.addWidget(self.controller_connector_focus_help)
+        focus_layout.addWidget(self.view, 1)
+
         main_layout.addWidget(
-            self.view,
+            focus_panel,
             1,
         )
 
@@ -182,6 +208,174 @@ class CanvasUIMixin:
         self.statusBar().showMessage(
             "Ready"
         )
+
+    def _refresh_controller_connector_choices(self) -> None:
+        """Populate view-only focus choices from canonical controller ports."""
+        combo = self.controller_connector_focus_combo
+        old_focus = self._controller_port_focus
+        old_key = "::".join(old_focus) if old_focus is not None else ""
+
+        was_blocked = combo.blockSignals(True)
+        combo.clear()
+        combo.addItem("Functional interfaces", "")
+        options = []
+        model = self.store.semantic_model
+
+        for node in self.store.model.nodes.values():
+            controller_id = node.semantic_reference
+            if node.node_type != "controller" or not controller_id:
+                continue
+
+            grouped = {}
+            for visual_port in node.ports.values():
+                port = model.ports.get(visual_port.semantic_reference)
+                if (
+                    port is None
+                    or port.controller_id != controller_id
+                    or not port.connector_id
+                ):
+                    continue
+
+                group = grouped.setdefault(
+                    port.connector_id,
+                    {"interface": [], "contacts": []},
+                )
+                if (
+                    port.pin_id is None
+                    and port.properties.get("interface_granularity")
+                    == "connector_level"
+                ):
+                    group["interface"].append(port)
+                elif port.pin_id is not None:
+                    group["contacts"].append(port)
+
+            for connector_id, group in grouped.items():
+                candidates = group["interface"] + group["contacts"]
+                designator = next(
+                    (
+                        port.properties.get("pcb_reference_designator")
+                        for port in candidates
+                        if port.properties.get("pcb_reference_designator")
+                    ),
+                    connector_id,
+                )
+                owner_label = node.label or controller_id
+                if group["interface"]:
+                    options.append((
+                        f"{owner_label} — {designator} interface",
+                        f"{controller_id}::{connector_id}::interface",
+                    ))
+                if group["contacts"]:
+                    options.append((
+                        f"{owner_label} — {designator} contacts",
+                        f"{controller_id}::{connector_id}::contacts",
+                    ))
+
+        for label, key in sorted(
+            options,
+            key=lambda entry: (entry[0].casefold(), entry[1]),
+        ):
+            combo.addItem(label, key)
+
+        selected_index = 0
+        for index in range(combo.count()):
+            if combo.itemData(index) == old_key:
+                selected_index = index
+                break
+        combo.setCurrentIndex(selected_index)
+        combo.blockSignals(was_blocked)
+
+        selected = combo.currentData()
+        parts = selected.split("::", 2) if isinstance(selected, str) and selected else []
+        self._controller_port_focus = tuple(parts) if len(parts) == 3 else None
+        self._update_controller_focus_help()
+
+    def _controller_connector_focus_changed(self, _index: int = -1) -> None:
+        """Change visible controller ports without committing a model mutation."""
+        selected = self.controller_connector_focus_combo.currentData()
+        parts = selected.split("::", 2) if isinstance(selected, str) and selected else []
+        self._controller_port_focus = tuple(parts) if len(parts) == 3 else None
+        self._apply_controller_connector_focus()
+        self._update_controller_focus_help()
+
+    def _apply_controller_connector_focus(self) -> None:
+        """Filter presentation items only; do not remove ports or connections."""
+        focus = self._controller_port_focus
+        model = self.store.semantic_model
+
+        for node in self.store.model.nodes.values():
+            if node.node_type != "controller":
+                continue
+            graphics = self._node_items.get(node.id)
+            if graphics is None:
+                continue
+
+            visible_ids = set()
+            for visual_port in node.ports.values():
+                port = model.ports.get(visual_port.semantic_reference)
+                if port is None:
+                    continue
+
+                if focus is None:
+                    visible = (
+                        port.properties.get("interface_granularity")
+                        == "connector_level"
+                    )
+                else:
+                    controller_id, connector_id, mode = focus
+                    visible = (
+                        node.semantic_reference == controller_id
+                        and port.controller_id == controller_id
+                        and port.connector_id == connector_id
+                        and (
+                            (
+                                mode == "interface"
+                                and port.pin_id is None
+                                and port.properties.get("interface_granularity")
+                                == "connector_level"
+                            )
+                            or (mode == "contacts" and port.pin_id is not None)
+                        )
+                    )
+
+                if visible:
+                    visible_ids.add(visual_port.id)
+
+            graphics.set_controller_port_focus(visible_ids)
+
+        self._scene_controller.update_connection_graphics()
+        self.view.viewport().update()
+
+    def _update_controller_focus_help(self) -> None:
+        """Explain connector focus and the generic-controller empty state."""
+        focus = self._controller_port_focus
+        if focus is not None:
+            _controller_id, connector_id, mode = focus
+            if mode == "contacts":
+                text = (
+                    f"Contact detail: {connector_id}. Hidden ports and connections "
+                    "remain in the model. This selector changes presentation only."
+                )
+            else:
+                text = (
+                    f"Functional interface: {connector_id}. This is a connector-level "
+                    "endpoint, not an individual contact or conductor mapping."
+                )
+        elif any(
+            port.properties.get("interface_granularity") == "connector_level"
+            for port in self.store.semantic_model.ports.values()
+        ):
+            text = (
+                "Functional-interface view. Select a connector to inspect its "
+                "individual contacts. Focus does not edit machine semantics."
+            )
+        else:
+            text = (
+                "A generic Controller has no hardware-specific ports. Add a "
+                "board-specific controller to expose documented interfaces; "
+                "this view does not fabricate contacts."
+            )
+        self.controller_connector_focus_help.setText(text)
 
     def _create_actions(self) -> None:
         """Create editor actions and shortcuts."""

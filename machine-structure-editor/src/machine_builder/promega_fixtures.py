@@ -314,6 +314,7 @@ def _xy_motor_board_contact_ports(
         if port.controller_id == controller_id
         and port.component_id is None
         and port.connector_id == connector_id
+        and port.pin_id is not None
     ]
     if len(matches) != 4:
         raise ValueError(

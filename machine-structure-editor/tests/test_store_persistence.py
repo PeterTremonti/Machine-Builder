@@ -540,6 +540,13 @@ def test_maestro_controller_round_trips_with_definition_ports_and_visual_links(
         position_count
         for _connector_id, _connector_name, position_count
         in DUET_2_MAESTRO_CONNECTOR_LAYOUT
+    ) + 1
+
+    expected_group_interface_id = f"{controller_id}-x-motor-interface"
+    assert expected_group_interface_id in before_controller.port_ids
+    assert expected_port_connector_pin[expected_group_interface_id] == (
+        "x-motor",
+        None,
     )
 
     path = tmp_path / "promega-maestro-reference-specimen.machine.json"

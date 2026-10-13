@@ -435,7 +435,23 @@ def test_maestro_palette_creation_is_atomic_undoable_and_redoable() -> None:
         position_count
         for _connector_id, _connector_name, position_count
         in DUET_2_MAESTRO_CONNECTOR_LAYOUT
+    ) + 1
+
+    expected_group_interface_id = f"{controller.id}-x-motor-interface"
+    assert expected_group_interface_id in controller.port_ids
+    expected_group_interface = semantic_model.ports[
+        expected_group_interface_id
+    ]
+    assert (
+        expected_group_interface.connector_id,
+        expected_group_interface.pin_id,
+    ) == ("x-motor", None)
+    assert expected_group_interface.controller_id == controller.id
+    assert expected_group_interface.component_id is None
+    assert expected_group_interface.properties["interface_granularity"] == (
+        "connector_level"
     )
+
     installed_ports = [
         semantic_model.ports[port_id]
         for port_id in controller.port_ids
@@ -465,8 +481,18 @@ def test_maestro_palette_creation_is_atomic_undoable_and_redoable() -> None:
     assert all(
         port.controller_id == controller.id
         and port.component_id is None
-        and port.pin_id is not None
         for port in installed_ports
+    )
+
+    contact_ports = [
+        port
+        for port in installed_ports
+        if port.id != expected_group_interface_id
+    ]
+    assert len(contact_ports) == expected_port_count - 1
+    assert all(
+        port.pin_id is not None
+        for port in contact_ports
     )
     assert {
         port.connector_id

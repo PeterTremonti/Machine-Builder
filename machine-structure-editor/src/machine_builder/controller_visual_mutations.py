@@ -13,7 +13,11 @@ from .controller_queries import (
     machine_id_for_controller,
 )
 from .editor_state import EditorState
-from .semantic_model import Machine
+from .semantic_model import (
+    Machine,
+    Provenance,
+    SemanticPort,
+)
 from .semantic_projection import (
     project_controller_ports,
 )
@@ -220,6 +224,53 @@ class CreateDuet2MaestroControllerNode:
         controller.version = None
         controller.properties["physical_revision_status"] = (
             "not_verified_as_built"
+        )
+
+        # Separate connector-level interface endpoint; preserve all four
+        # Board-owned J9 contact ports and their existing identities.
+        state.semantic_model.add_port(
+            SemanticPort(
+                id=f"{controller.id}-x-motor-interface",
+                component_id=None,
+                controller_id=controller.id,
+                purpose="J9 / X Motor functional interface",
+                direction="unknown",
+                connector_id="x-motor",
+                pin_id=None,
+                properties={
+                    "interface_role": "motor_connector_interface",
+                    "interface_granularity": "connector_level",
+                    "connector_label": "J9 / X Motor",
+                    "pcb_reference_designator": "J9",
+                    "visual_port_type": "motor",
+                    "visual_side": "right",
+                    "reference_scope": "functional_interface_only",
+                    "physical_wiring_status": "not_verified_as_built",
+                    "contact_mapping_status": "not_established",
+                    "firmware_assignment_status": "not_established",
+                },
+                provenance=[
+                    Provenance(
+                        source=(
+                            "Machine Builder #3 Controller/Board crosswalk: "
+                            "Duet 2 Maestro J9 / X Motor connector identity"
+                        ),
+                        evidence_type="published",
+                        method="reference-board connector crosswalk",
+                        context=(
+                            "The Board crosswalk identifies x-motor as J9 / X MOT. "
+                            "This is a connector-level functional endpoint, "
+                            "separate from individual contact ports."
+                        ),
+                        date="2026-10-13",
+                        notes=(
+                            "This evidence does not establish installed wiring, "
+                            "cable mating-face positions, motor-terminal mapping, "
+                            "coil pairing, or firmware assignment."
+                        ),
+                    )
+                ],
+            )
         )
 
         self.node.semantic_reference = controller.id

@@ -291,6 +291,63 @@ class CreateNode:
             component.id
         )
 
+        if (
+            self.node.node_type == "motor"
+            and (self.node.label or "").strip().casefold() == "x motor"
+        ):
+            motor_interface = SemanticPort(
+                id=f"{component.id}-motor-electrical-interface",
+                component_id=component.id,
+                controller_id=None,
+                purpose="Motor electrical interface",
+                direction="unknown",
+                connector_id=None,
+                pin_id=None,
+                properties={
+                    "interface_role": "motor_electrical_interface",
+                    "interface_granularity": "functional_interface",
+                    "visual_port_type": "motor",
+                    "visual_side": "left",
+                    "reference_scope": "functional_interface_only",
+                    "physical_wiring_status": "not_verified_as_built",
+                    "contact_mapping_status": "not_established",
+                    "firmware_assignment_status": "not_established",
+                },
+                provenance=[
+                    Provenance(
+                        source="Machine Builder V0.2 generic Motor template",
+                        evidence_type="authored",
+                        method="functional-interface template",
+                        context=(
+                            "A generic motor functional electrical endpoint. "
+                            "No physical connector, motor terminal, contact order, "
+                            "or coil mapping is asserted."
+                        ),
+                        date="2026-10-13",
+                        notes=(
+                            "Installed motor identity, harness, terminal order, "
+                            "firmware assignment, and as-built connectivity remain "
+                            "unverified."
+                        ),
+                    )
+                ],
+            )
+            state.semantic_model.add_port(motor_interface)
+
+            provisional_ports = tuple(self.node.ports.values())
+            project_component_ports(
+                component,
+                state.semantic_model,
+                self.node,
+            )
+            projected_ids = set(self.node.ports)
+            for provisional_port in provisional_ports:
+                if (
+                    provisional_port.id not in projected_ids
+                    and provisional_port.semantic_reference is None
+                ):
+                    self.node.ports[provisional_port.id] = provisional_port
+
         state.visual_model.add_node(
             self.node
         )

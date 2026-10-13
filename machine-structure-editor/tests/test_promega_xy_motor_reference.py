@@ -132,6 +132,7 @@ def test_promega_xy_motor_reference_connections_are_mating_position_based_and_pe
             if port.controller_id == controller.id
             and port.component_id is None
             and port.connector_id == connector_id
+            and port.pin_id is not None
         ]
         assert len(board_contacts) == 4
         assert {

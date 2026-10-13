@@ -44,6 +44,7 @@ class MachineCanvas(
 
         self._node_items = {}
         self._connection_items = {}
+        self._controller_port_focus: tuple[str, str, str] | None = None
 
         self._node_counter = 0
 

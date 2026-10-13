@@ -53,6 +53,7 @@ from .mutations import (
     DeleteNodes,
     MoveNodes,
 )
+from .semantic_model import Provenance
 from .visual_model import VisualPort
 
 
@@ -859,6 +860,7 @@ class CanvasInteractionMixin:
                     should_create = False
                     canonical_connection_created = False
                     connection_properties = None
+                    connection_provenance_entries = None
 
                     if invalid_reference:
                         show_invalid_canonical_reference(self)
@@ -881,7 +883,71 @@ class CanvasInteractionMixin:
                             parent=self,
                         )
                         if dialog.exec() == dialog.DialogCode.Accepted:
-                            connection_properties = dialog.result_data()
+                            connection_properties = dict(dialog.result_data())
+                            roles = {
+                                canonical_a.properties.get("interface_role"),
+                                canonical_b.properties.get("interface_role"),
+                            }
+                            granularities = {
+                                canonical_a.properties.get("interface_granularity"),
+                                canonical_b.properties.get("interface_granularity"),
+                            }
+
+                            if (
+                                roles == {
+                                    "motor_connector_interface",
+                                    "motor_electrical_interface",
+                                }
+                                and granularities == {
+                                    "connector_level",
+                                    "functional_interface",
+                                }
+                            ):
+                                scope_note = (
+                                    "Functional-interface reference only. This does not "
+                                    "verify installed connectivity, direct connector mating, "
+                                    "cable contact positions, conductor mapping, coil pairing, "
+                                    "or firmware assignment."
+                                )
+                                refinement_note = (
+                                    "If a harness and contact-level mappings are later "
+                                    "represented, refine or supersede this coarse reference; "
+                                    "do not count it as an additional conductor path."
+                                )
+                                existing_notes = connection_properties.get("notes") or ""
+                                connection_properties.update({
+                                    "connection_scope": "functional_interface_reference",
+                                    "physical_wiring_status": "not_verified_as_built",
+                                    "contact_mapping_status": "not_established",
+                                    "firmware_assignment_status": "not_established",
+                                    "refinement_policy": refinement_note,
+                                    "notes": " ".join(
+                                        part for part in (
+                                            existing_notes,
+                                            scope_note,
+                                            refinement_note,
+                                        ) if part
+                                    ),
+                                })
+                                connection_provenance_entries = (
+                                    list(canonical_a.provenance)
+                                    + list(canonical_b.provenance)
+                                    + [
+                                        Provenance(
+                                            source="Machine Builder Visual Editor",
+                                            evidence_type="authored",
+                                            method="functional-interface reference connection",
+                                            context=(
+                                                "A connector-level motor endpoint was "
+                                                "linked to a component's functional "
+                                                "electrical interface."
+                                            ),
+                                            date="2026-10-13",
+                                            notes=scope_note + " " + refinement_note,
+                                        )
+                                    ]
+                                )
+
                             should_create = True
                             canonical_connection_created = True
                         else:
@@ -897,8 +963,13 @@ class CanvasInteractionMixin:
                                 connection_id=connection_id,
                                 endpoint_a_id=source_port.id,
                                 endpoint_b_id=target_port.id,
-                                connection_type=semantic_source.port_type,
+                                connection_type=(
+                                    "electrical"
+                                    if connection_provenance_entries is not None
+                                    else semantic_source.port_type
+                                ),
                                 connection_properties=connection_properties,
+                                provenance_entries=connection_provenance_entries,
                             )
                         )
 

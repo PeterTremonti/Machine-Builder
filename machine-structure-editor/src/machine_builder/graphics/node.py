@@ -96,6 +96,11 @@ class NodeGraphicsItem(QGraphicsRectItem):
             str,
             PortGraphicsItem,
         ] = {}
+        self._base_width = float(node.width)
+        self._base_height = float(node.height)
+        self._visual_ports = dict(node.ports)
+        self._controller_focus_active = False
+        self._focused_port_ids: set[str] = set()
 
         self.setFlag(
             QGraphicsItem.GraphicsItemFlag.ItemIsMovable,
@@ -267,9 +272,12 @@ class NodeGraphicsItem(QGraphicsRectItem):
                     )
                 )
 
+        self._visual_ports = dict(node.ports)
         self._layout_ports(
             node
         )
+        if self._controller_focus_active:
+            self._apply_controller_port_focus()
 
     def _layout_ports(
         self,
@@ -330,6 +338,71 @@ class NodeGraphicsItem(QGraphicsRectItem):
             node.width,
             node.height,
         )
+
+    def set_controller_port_focus(
+        self,
+        visible_port_ids: set[str],
+    ) -> None:
+        """Apply transient focus to controller graphics only."""
+        if self._node_type != "controller":
+            return
+        self._controller_focus_active = True
+        self._focused_port_ids = set(visible_port_ids)
+        self._apply_controller_port_focus()
+
+    def _apply_controller_port_focus(self) -> None:
+        """Hide off-focus port graphics and expand the box for contacts."""
+        if self._node_type != "controller" or not self._controller_focus_active:
+            return
+
+        visible_ids = self._focused_port_ids.intersection(self._port_items)
+        for port_id, item in self._port_items.items():
+            item.setVisible(port_id in visible_ids)
+
+        focused_ports = [
+            self._visual_ports[port_id]
+            for port_id in visible_ids
+            if port_id in self._visual_ports
+        ]
+        if not focused_ports:
+            self.setRect(0.0, 0.0, self._base_width, self._base_height)
+            return
+
+        by_side = {
+            "left": [],
+            "right": [],
+            "top": [],
+            "bottom": [],
+        }
+        for port in focused_ports:
+            side = port.side.lower()
+            if side not in by_side:
+                side = "right"
+            by_side[side].append(port)
+
+        for ports in by_side.values():
+            ports.sort(key=lambda port: (port.order, port.id))
+
+        width = max(
+            self._base_width,
+            48.0 + 34.0 * max(
+                len(by_side["top"]),
+                len(by_side["bottom"]),
+            ),
+        )
+        height = max(
+            self._base_height,
+            48.0 + 34.0 * max(
+                len(by_side["left"]),
+                len(by_side["right"]),
+            ),
+        )
+        self.setRect(0.0, 0.0, width, height)
+
+        self._layout_side(by_side["left"], "left", width, height)
+        self._layout_side(by_side["right"], "right", width, height)
+        self._layout_side(by_side["top"], "top", width, height)
+        self._layout_side(by_side["bottom"], "bottom", width, height)
 
     def _layout_side(
         self,

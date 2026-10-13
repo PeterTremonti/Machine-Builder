@@ -106,7 +106,7 @@ def _project_canonical_ports(
                 ),
                 direction=canonical_port.direction,
                 semantic_reference=canonical_port.id,
-                side="left",
+                side=str(canonical_port.properties.get("visual_side", "left")),
                 order=len(
                     projected_ports
                 ),
@@ -187,6 +187,12 @@ def _default_visual_port_type(
     canonical_port: SemanticPort,
 ) -> str:
     """Choose a presentation type without changing canonical meaning."""
+    if canonical_port.properties.get("interface_role") in {
+        "motor_connector_interface",
+        "motor_electrical_interface",
+    }:
+        return "motor"
+
     purpose = (
         canonical_port.purpose
         .lower()
