@@ -11,7 +11,12 @@ from machine_builder.compatibility import CompatibilityResult
 from machine_builder.controller_visual_mutations import CreateDuet2MaestroControllerNode
 from machine_builder.mutations import CreateNode
 from machine_builder.persistence import load_editor_state
-from machine_builder.promega_fixtures import _xy_motor_board_contact_ports
+from machine_builder.promega_fixtures import (
+    _xy_motor_board_contact_ports,
+    add_promega_xy_motor_reference_connections,
+)
+from machine_builder.semantic_component_mutations import UpdateMachineComponent
+from machine_builder.semantic_model import Provenance
 from machine_builder.visual_model import VisualNode
 
 
@@ -51,6 +56,46 @@ def _make_canvas():
         if node.node_type == "motor"
     )
     return canvas, controller_node, motor_node, "test-maestro"
+
+
+def _create_reference_cable_component(canvas, role, position):
+    """Create a synthetic cable-reference component for regression setup."""
+    existing_node_ids = set(canvas.store.model.nodes)
+    canvas.create_node_from_template("component", position)
+    new_nodes = [
+        node for node in canvas.store.model.nodes.values()
+        if node.id not in existing_node_ids and node.node_type == "component"
+    ]
+    assert len(new_nodes) == 1
+    component_id = new_nodes[0].semantic_reference
+    assert component_id is not None
+
+    component = canvas.store.semantic_model.components[component_id]
+    evidence = Provenance(
+        source="Machine Builder regression fixture",
+        evidence_type="authored",
+        method="synthetic test setup",
+        context=f"{role} exists only to seed pre-existing contact connections.",
+        date="2026-10-15",
+        notes="Not evidence of installed hardware or as-built wiring.",
+    )
+    properties = dict(component.properties)
+    properties.update({
+        "specimen_scope": "promega_compound_reference",
+        "physical_presence_status": "not_verified_as_built",
+        "physical_wiring_status": "not_verified_as_built",
+        "firmware_assignment_status": "not_established",
+    })
+    canvas.store.commit(
+        UpdateMachineComponent(
+            component_id=component_id,
+            role=role,
+            label=role,
+            properties=properties,
+            provenance_entries=list(component.provenance) + [evidence],
+        )
+    )
+    return component_id
 
 
 def _visual_port(node, semantic_port_id):
@@ -190,6 +235,52 @@ def test_interface_focus_preserves_contacts_and_persistence(tmp_path):
 
 def test_interface_drag_creates_reference_scoped_connection(monkeypatch, tmp_path):
     canvas, controller_node, motor_node, controller_id = _make_canvas()
+
+    x_cable_id = _create_reference_cable_component(
+        canvas, "X motor cable reference", QPointF(260.0, 80.0)
+    )
+    y_cable_id = _create_reference_cable_component(
+        canvas, "Y motor cable reference", QPointF(260.0, 300.0)
+    )
+    _, fixture_connections = add_promega_xy_motor_reference_connections(
+        canvas,
+        x_cable_component_id=x_cable_id,
+        y_cable_component_id=y_cable_id,
+        controller_id=controller_id,
+    )
+
+    j9_connection_ids = {
+        connection_id
+        for connection_id, values in fixture_connections.items()
+        if values[0] == "X"
+    }
+    assert len(j9_connection_ids) == 4
+
+    contact_ids = {
+        f"{controller_id}-x-motor-pin-{position}"
+        for position in range(1, 5)
+    }
+    original_contact_ports = {
+        port_id: deepcopy(canvas.store.semantic_model.ports[port_id])
+        for port_id in contact_ids
+    }
+    original_semantic_connections = deepcopy(
+        canvas.store.semantic_model.connections
+    )
+    original_visual_connections = deepcopy(canvas.store.model.connections)
+    original_j9_semantic_connections = {
+        connection_id: deepcopy(
+            canvas.store.semantic_model.connections[connection_id]
+        )
+        for connection_id in j9_connection_ids
+    }
+    original_j9_visual_connections = {
+        connection_id: deepcopy(canvas.store.model.connections[connection_id])
+        for connection_id in j9_connection_ids
+    }
+
+    controller_node = canvas.store.model.nodes[controller_node.id]
+    motor_node = canvas.store.model.nodes[motor_node.id]
     motor_component_id = motor_node.semantic_reference
     assert motor_component_id is not None
 
@@ -237,8 +328,17 @@ def test_interface_drag_creates_reference_scoped_connection(monkeypatch, tmp_pat
     canvas._start_connection_drag(controller_visual.id, source_item.scenePos())
     canvas._finish_connection_drag(controller_visual.id, target_item.scenePos())
 
-    assert len(canvas.store.semantic_model.connections) == 1
-    connection = next(iter(canvas.store.semantic_model.connections.values()))
+    assert len(canvas.store.semantic_model.connections) == (
+        len(original_semantic_connections) + 1
+    )
+    new_connection_ids = (
+        set(canvas.store.semantic_model.connections)
+        - set(original_semantic_connections)
+    )
+    assert len(new_connection_ids) == 1
+    connection = canvas.store.semantic_model.connections[
+        next(iter(new_connection_ids))
+    ]
     assert {connection.endpoint_a_id, connection.endpoint_b_id} == {
         controller_port_id,
         motor_port_id,
@@ -257,10 +357,30 @@ def test_interface_drag_creates_reference_scoped_connection(monkeypatch, tmp_pat
         for item in connection.provenance
     )
 
-    contact_ids = {
-        f"{controller_id}-x-motor-pin-{position}"
-        for position in range(1, 5)
-    }
+    functional_semantic_record = deepcopy(connection)
+    functional_visual_record = deepcopy(
+        canvas.store.model.connections[connection.id]
+    )
+    expected_semantic_after = dict(original_semantic_connections)
+    expected_semantic_after[connection.id] = functional_semantic_record
+    expected_visual_after = dict(original_visual_connections)
+    expected_visual_after[connection.id] = functional_visual_record
+
+    assert canvas.store.semantic_model.connections == expected_semantic_after
+    assert canvas.store.model.connections == expected_visual_after
+    assert {
+        connection_id: canvas.store.semantic_model.connections[connection_id]
+        for connection_id in j9_connection_ids
+    } == original_j9_semantic_connections
+    assert {
+        connection_id: canvas.store.model.connections[connection_id]
+        for connection_id in j9_connection_ids
+    } == original_j9_visual_connections
+    assert {
+        port_id: canvas.store.semantic_model.ports[port_id]
+        for port_id in contact_ids
+    } == original_contact_ports
+
     assert not any(
         connection.connects_same_ports(controller_port_id, contact_id)
         for contact_id in contact_ids
@@ -274,6 +394,37 @@ def test_interface_drag_creates_reference_scoped_connection(monkeypatch, tmp_pat
         controller_visual.id
     ].isVisible()
     assert graphics_connection.isVisible()
+
+    # Focus changes must not affect undo history. Undo/redo must remove and
+    # restore the functional relationship while preserving J9 contacts.
+    assert canvas.store.undo()
+    assert canvas.store.semantic_model.connections == original_semantic_connections
+    assert canvas.store.model.connections == original_visual_connections
+    assert {
+        port_id: canvas.store.semantic_model.ports[port_id]
+        for port_id in contact_ids
+    } == original_contact_ports
+
+    assert canvas.store.redo()
+    assert canvas.store.semantic_model.connections == expected_semantic_after
+    assert canvas.store.model.connections == expected_visual_after
+    restored_connection = canvas.store.semantic_model.connections[connection.id]
+    assert {
+        restored_connection.endpoint_a_id,
+        restored_connection.endpoint_b_id,
+    } == {controller_port_id, motor_port_id}
+    assert {
+        port_id: canvas.store.semantic_model.ports[port_id]
+        for port_id in contact_ids
+    } == original_contact_ports
+    assert {
+        connection_id: canvas.store.semantic_model.connections[connection_id]
+        for connection_id in j9_connection_ids
+    } == original_j9_semantic_connections
+    assert {
+        connection_id: canvas.store.model.connections[connection_id]
+        for connection_id in j9_connection_ids
+    } == original_j9_visual_connections
 
     save_path = tmp_path / "functional-connection.machine.json"
     canvas.store.save(save_path)

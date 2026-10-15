@@ -2399,3 +2399,36 @@ Source:
 - https://github.com/PrintM3D/Promega
 
 **Routing disposition:** Retain the validated X/Y reference slice. Do not expand physical extruder/fan connections based solely on older assembly documentation or historical firmware examples. Keep unsupported cable-to-component edges unresolved until the applicable variant and its mappings are substantiated. J34, J28, and the held Z-A contact-correspondence gate remain unaffected.
+
+## X Motor Functional-Interface Acceptance Closeout (2026-10-15)
+
+**Base checkpoint:** `5e235be1232d9b42f2c50a4018160e9740205798` — Add generic motor functional interface workflow.
+
+### Criterion 4 — Preserve existing J9 contact connections
+
+`tests/test_functional_interface_connection.py::test_interface_drag_creates_reference_scoped_connection` creates four existing X-motor cable-to-J9 reference connections before adding the functional-interface relationship. It snapshots the complete semantic and visual connection maps, the four J9 contact records, and the four existing J9 connection records. After creation it verifies that the only addition is the new functional relationship and that the existing contact and connection records are unchanged.
+
+### Criterion 6 — Presentation-only focus and undo/redo
+
+`test_interface_focus_preserves_contacts_and_persistence` verifies connector-focus changes preserve canonical ports and connections, visual connections, undo/redo stack depths, and the modified flag. The functional-connection test separately verifies that undo restores the complete prior semantic and visual connection maps, and redo restores the same records and endpoints while preserving all four J9 contacts and the existing J9 connections.
+
+### Criterion 7 — GUI acceptance status and limits
+
+**User-reported manual observations; not independently reproduced during this closeout:**
+
+- The user dragged between the controller functional endpoint and generic Motor endpoint, confirmed the UNKNOWN-compatibility prompt, accepted the physical-connection details dialog, and observed a visible functional relationship.
+- In J9 contact focus, the four individual contacts were visible while the functional relationship remained anchored at the hidden connector-level endpoint and appeared detached.
+- Detailed-port view made the Maestro node very tall and repeated labels crowded.
+- After saving and reopening, the machine nodes/data returned, but viewport pan/zoom did not. Viewport persistence remains separate work.
+
+**Outstanding GUI acceptance:** Recheck endpoint presentation in contact focus and detailed-view legibility after the connector-group visual work. This closeout does not implement or accept enclosure/cone rendering. Automated test results do not constitute independent manual GUI verification.
+
+### Automated validation
+
+The commands below were run against the worktree based on the base checkpoint, before this closeout publication:
+
+- Focused tests: `.venv\Scripts\python.exe -m pytest -q --tb=short tests/test_functional_interface_connection.py tests/test_promega_xy_motor_reference.py` — 6 passed in 10.21s
+- Full suite: `.venv\Scripts\python.exe -m pytest -q --tb=short` — 847 passed in 31.76s
+- `git diff --check` — required to pass before publication.
+
+This is a bounded X Motor acceptance closeout. It does not accept the complete Promega wiring graph, connector mating, as-built wiring, contact mapping, or firmware assignment.
