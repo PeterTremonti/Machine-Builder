@@ -101,7 +101,21 @@ def test_promega_ir_z_probe_reference_connections_are_provenanced_and_persisted(
 
         component = model.components[component_id]
         assert component.hardware_definition_id is None
-        assert component.port_ids == []
+        if node_type == "motor":
+            functional_port_id = (
+                f"{component_id}-motor-electrical-interface"
+            )
+            assert component.port_ids == [functional_port_id]
+            motor_port = model.ports[functional_port_id]
+            assert motor_port.component_id == component_id
+            assert motor_port.controller_id is None
+            assert motor_port.connector_id is None
+            assert motor_port.pin_id is None
+            assert motor_port.properties["interface_role"] == (
+                "motor_electrical_interface"
+            )
+        else:
+            assert component.port_ids == []
 
         evidence = Provenance(
             source="Planning milestone: First Promega Reference Specimen",

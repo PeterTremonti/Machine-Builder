@@ -176,7 +176,7 @@ class CanvasUIMixin:
         focus_layout.setContentsMargins(0, 0, 0, 0)
 
         focus_row = QHBoxLayout()
-        focus_row.addWidget(QLabel("Controller ports:"))
+        focus_row.addWidget(QLabel("Port detail:"))
         self.controller_connector_focus_combo = QComboBox()
         self.controller_connector_focus_combo.setObjectName(
             "controller_connector_focus_combo"
@@ -184,6 +184,10 @@ class CanvasUIMixin:
         self.controller_connector_focus_combo.addItem(
             "Functional interfaces",
             "",
+        )
+        self.controller_connector_focus_combo.addItem(
+            "Detailed ports (all nodes)",
+            "__all__::all::details",
         )
         self.controller_connector_focus_combo.currentIndexChanged.connect(
             self._controller_connector_focus_changed
@@ -218,6 +222,7 @@ class CanvasUIMixin:
         was_blocked = combo.blockSignals(True)
         combo.clear()
         combo.addItem("Functional interfaces", "")
+        combo.addItem("Detailed ports (all nodes)", "__all__::all::details")
         options = []
         model = self.store.semantic_model
 
@@ -299,47 +304,63 @@ class CanvasUIMixin:
         self._update_controller_focus_help()
 
     def _apply_controller_connector_focus(self) -> None:
-        """Filter presentation items only; do not remove ports or connections."""
+        """Filter port graphics by detail level without editing the model."""
         focus = self._controller_port_focus
         model = self.store.semantic_model
+        all_details = focus == ("__all__", "all", "details")
 
         for node in self.store.model.nodes.values():
-            if node.node_type != "controller":
-                continue
             graphics = self._node_items.get(node.id)
             if graphics is None:
                 continue
 
             visible_ids = set()
-            for visual_port in node.ports.values():
-                port = model.ports.get(visual_port.semantic_reference)
-                if port is None:
-                    continue
+            if all_details:
+                visible_ids.update(node.ports)
+            elif node.node_type == "controller":
+                for visual_port in node.ports.values():
+                    port = model.ports.get(visual_port.semantic_reference)
+                    if port is None:
+                        continue
 
-                if focus is None:
-                    visible = (
-                        port.properties.get("interface_granularity")
-                        == "connector_level"
-                    )
-                else:
-                    controller_id, connector_id, mode = focus
-                    visible = (
-                        node.semantic_reference == controller_id
-                        and port.controller_id == controller_id
-                        and port.connector_id == connector_id
-                        and (
-                            (
-                                mode == "interface"
-                                and port.pin_id is None
-                                and port.properties.get("interface_granularity")
-                                == "connector_level"
-                            )
-                            or (mode == "contacts" and port.pin_id is not None)
+                    if focus is None:
+                        visible = (
+                            port.properties.get("interface_granularity")
+                            == "connector_level"
                         )
-                    )
+                    else:
+                        controller_id, connector_id, mode = focus
+                        visible = (
+                            node.semantic_reference == controller_id
+                            and port.controller_id == controller_id
+                            and port.connector_id == connector_id
+                            and (
+                                (
+                                    mode == "interface"
+                                    and port.pin_id is None
+                                    and port.properties.get("interface_granularity")
+                                    == "connector_level"
+                                )
+                                or (mode == "contacts" and port.pin_id is not None)
+                            )
+                        )
+                    if visible:
+                        visible_ids.add(visual_port.id)
+            else:
+                for visual_port in node.ports.values():
+                    port = model.ports.get(visual_port.semantic_reference)
+                    if (
+                        port is not None
+                        and port.component_id == node.semantic_reference
+                        and port.properties.get("interface_granularity")
+                        == "functional_interface"
+                    ):
+                        visible_ids.add(visual_port.id)
 
-                if visible:
-                    visible_ids.add(visual_port.id)
+                # Components without a canonical functional endpoint retain
+                # their existing visible detail ports.
+                if not visible_ids:
+                    visible_ids.update(node.ports)
 
             graphics.set_controller_port_focus(visible_ids)
 
@@ -347,9 +368,14 @@ class CanvasUIMixin:
         self.view.viewport().update()
 
     def _update_controller_focus_help(self) -> None:
-        """Explain connector focus and the generic-controller empty state."""
+        """Explain the chosen port detail level."""
         focus = self._controller_port_focus
-        if focus is not None:
+        if focus == ("__all__", "all", "details"):
+            text = (
+                "Detailed-port view: shows all available port details on all nodes. "
+                "This changes presentation only; machine semantics are unchanged."
+            )
+        elif focus is not None:
             _controller_id, connector_id, mode = focus
             if mode == "contacts":
                 text = (
@@ -367,7 +393,8 @@ class CanvasUIMixin:
         ):
             text = (
                 "Functional-interface view. Select a connector to inspect its "
-                "individual contacts. Focus does not edit machine semantics."
+                "individual contacts, or choose Detailed ports to show all available "
+                "detail. Focus does not edit machine semantics."
             )
         else:
             text = (
@@ -486,7 +513,14 @@ class CanvasUIMixin:
         if not self.store.model.nodes:
             return
 
-        bounds = self.scene.itemsBoundingRect()
+        frame_items = list(self._node_items.values())
+        frame_items.extend(self._connection_items.values())
+        if not frame_items:
+            return
+
+        bounds = frame_items[0].sceneBoundingRect()
+        for item in frame_items[1:]:
+            bounds = bounds.united(item.sceneBoundingRect())
 
         if bounds.isNull():
             return

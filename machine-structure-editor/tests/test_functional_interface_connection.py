@@ -41,14 +41,15 @@ def _make_canvas():
         )
     )
 
-    motor_node = VisualNode(
-        id="x-motor-node",
+    canvas.create_node_from_template(
         node_type="motor",
-        label="X motor",
-        x=100.0,
-        y=100.0,
+        scene_position=QPointF(100.0, 100.0),
     )
-    canvas.store.commit(CreateNode(node=motor_node))
+    motor_node = next(
+        node
+        for node in canvas.store.model.nodes.values()
+        if node.node_type == "motor"
+    )
     return canvas, controller_node, motor_node, "test-maestro"
 
 
@@ -122,7 +123,18 @@ def test_interface_focus_preserves_contacts_and_persistence(tmp_path):
 
     assert canvas.controller_connector_focus_combo.currentData() == ""
     assert controller_graphics._port_items[group_visual.id].isVisible()
-    assert canvas._node_items[motor_node.id]._port_items[motor_visual.id].isVisible()
+    motor_graphics = canvas._node_items[motor_node.id]
+    assert motor_graphics._port_items[motor_visual.id].isVisible()
+    motor_detail_ids = [
+        port.id
+        for port in motor_node.ports.values()
+        if port.semantic_reference is None
+    ]
+    assert len(motor_detail_ids) == 2
+    assert all(
+        not motor_graphics._port_items[port_id].isVisible()
+        for port_id in motor_detail_ids
+    )
 
     contacts = {
         port_id: _visual_port(controller_node, port_id)
@@ -146,6 +158,19 @@ def test_interface_focus_preserves_contacts_and_persistence(tmp_path):
 
     _focus(canvas, controller_id, "z-probe", "contacts")
     _focus(canvas, controller_id, "x-motor", "contacts")
+    canvas.controller_connector_focus_combo.setCurrentIndex(0)
+    details_index = next(
+        index
+        for index in range(canvas.controller_connector_focus_combo.count())
+        if canvas.controller_connector_focus_combo.itemData(index)
+        == "__all__::all::details"
+    )
+    canvas.controller_connector_focus_combo.setCurrentIndex(details_index)
+    assert all(
+        item.isVisible()
+        for graphics in canvas._node_items.values()
+        for item in graphics._port_items.values()
+    )
     canvas.controller_connector_focus_combo.setCurrentIndex(0)
 
     assert model.ports == ports_before
@@ -194,10 +219,14 @@ def test_interface_drag_creates_reference_scoped_connection(monkeypatch, tmp_pat
         "PhysicalConnectionDetailsDialog",
         AcceptedDialog,
     )
+    assert canvas_interaction.check_port_compatibility(
+        controller_visual,
+        motor_visual,
+    ) == CompatibilityResult.UNKNOWN
     monkeypatch.setattr(
         canvas_interaction,
-        "check_port_compatibility",
-        lambda *_args: CompatibilityResult.COMPATIBLE,
+        "confirm_unknown_compatibility",
+        lambda *_args: True,
     )
     monkeypatch.setattr(
         canvas._scene_controller,
@@ -256,6 +285,19 @@ def test_interface_drag_creates_reference_scoped_connection(monkeypatch, tmp_pat
     assert contact_ids.issubset(restored.semantic_model.ports)
 
 
+def test_frame_all_ignores_routing_debug_overlay():
+    canvas, _controller_node, _motor_node, _controller_id = _make_canvas()
+    try:
+        canvas.show()
+        _app().processEvents()
+        canvas._frame_all()
+        _app().processEvents()
+        transform = canvas.view.transform()
+        assert transform.m11() > 0.05
+        assert transform.m22() > 0.05
+    finally:
+        canvas.close()
+
 def test_generic_controller_has_explanatory_empty_state():
     _app()
     canvas = MachineCanvas()
@@ -271,7 +313,12 @@ def test_generic_controller_has_explanatory_empty_state():
         )
     )
     assert canvas.store.model.nodes["generic-controller-node"].ports == {}
-    assert canvas.controller_connector_focus_combo.count() == 1
+    assert canvas.controller_connector_focus_combo.count() == 2
+    assert any(
+        canvas.controller_connector_focus_combo.itemData(index)
+        == "__all__::all::details"
+        for index in range(canvas.controller_connector_focus_combo.count())
+    )
     assert "generic Controller has no hardware-specific ports" in (
         canvas.controller_connector_focus_help.text()
     )

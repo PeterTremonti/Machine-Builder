@@ -521,9 +521,26 @@ def test_palette_created_component_can_add_port_and_round_trip(
     component_id = "component-node-1"
     node_id = "node-1"
     original_node = canvas.store.model.nodes[node_id]
-    provisional_port_ids = set(original_node.ports)
+    provisional_port_ids = {
+        port_id
+        for port_id, port in original_node.ports.items()
+        if port.semantic_reference is None
+    }
+    functional_port_id = f"{component_id}-motor-electrical-interface"
 
     assert len(provisional_port_ids) == 2
+    functional_visual_ports = [
+        port
+        for port in original_node.ports.values()
+        if port.semantic_reference == functional_port_id
+    ]
+    assert len(functional_visual_ports) == 1
+    assert functional_port_id in canvas.store.semantic_model.components[
+        component_id
+    ].port_ids
+    assert canvas.store.semantic_model.ports[
+        functional_port_id
+    ].component_id == component_id
     assert all(
         original_node.ports[port_id].semantic_reference is None
         for port_id in provisional_port_ids
@@ -618,6 +635,14 @@ def test_palette_created_component_can_add_port_and_round_trip(
     assert restored_node.semantic_reference == restored_component.id
 
     assert provisional_port_ids.issubset(restored_node.ports)
+    assert sum(
+        port.semantic_reference == functional_port_id
+        for port in restored_node.ports.values()
+    ) == 1
+    assert functional_port_id in restored.semantic_model.ports
+    assert restored.semantic_model.ports[
+        functional_port_id
+    ].component_id == component_id
     assert all(
         restored_node.ports[port_id].semantic_reference is None
         for port_id in provisional_port_ids

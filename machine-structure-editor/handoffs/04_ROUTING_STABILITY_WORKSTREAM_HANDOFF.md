@@ -2338,3 +2338,64 @@ documentation identity only; it does not establish cable-cavity orientation.
 The helper connects only the three documented IR-probe endpoints. Do not infer
 additional connections, complete Promega wiring, motor-coil pairing, firmware
 assignment, or E0/E1 motor-pad metadata from this milestone.
+
+### Standard single-Z / J36-Z-A contact-correspondence gate (2026-10-12)
+
+**Status:** Held at the source-evidence gate. No Z-A cable-to-board connections are created by this finding.
+
+**Planning authorization:** A bounded standard single-Z reference slice is authorized for four source-supported reference connections to J36/Z-A. J7/Z-B is outside this slice.
+
+**Research finding:** The reviewed official Promega wiring guide and related manufacturer diagrams identify the intended Z-motor cable by its coiled construction and establish its assembly-level destination at the Z bed motor and board connection. They do not establish the numbered four-contact order of the cable relative to J36/Z-A fixture positions, nor a defined mating-face/cavity convention linking the cable side to the controller-side positions.
+
+**Controller-side reference map:** The Board fixture supplies the following source-backed J36/Z-A fixture-position mapping:
+
+| Z-A fixture position | PCB reference | PCB pad | Reference net |
+|---:|---|---:|---|
+| 1 | J36 | 3 | `Z_MOT_B1` |
+| 2 | J36 | 4 | `Net-(J36-Pad4)` |
+| 3 | J36 | 1 | `Z_MOT_A1` |
+| 4 | J36 | 2 | `Net-(J36-Pad2)` |
+
+This identifies the controller-side PCB pads and nets. It does not identify which cable-side contact mates with each fixture position.
+
+**Required evidence to release the gate:** An authoritative, applicable source must identify the Z-cable contact numbering and orientation and establish its correspondence to J36/Z-A. A specimen-specific continuity inspection could document the installed machine, but must be recorded as as-built evidence rather than generalized into a source-backed reference mapping without further authority.
+
+Do not infer the missing mapping from XY symmetry, cable appearance, wire colours, connector shape, PCB pad ordinals, or motor-coil assumptions. Do not create direct motor-terminal connections or infer coil pairing, firmware drive assignment, installed harness identity, or as-built connectivity. Keep J7/Z-B outside the standard single-Z slice.
+
+**Independent reconciliation:** The accepted J28 reference slice and existing XY reference slice remain closed and unchanged. The current supplied evidence does not establish another new connection slice with a sufficiently supported complete endpoint mapping to implement here. Variant-sensitive P4/P2, H2/H4, S8/S6, and P9/P11 relationships remain unresolved where their applicable contact mappings are not established.
+
+**Board checkpoint:** The published J34/E0 STOP PCB identity crosswalk is included at `287a1489a53dc695d5dc5a55defd795151de3719`. Its existing `e0-stop` SemanticPort IDs are preserved; fixture position 1 maps to J34 pad 3 (`E0_STOP_CONN`), position 2 to pad 2 (`+3.3V`), and position 3 to pad 1 (`GND`). These are PCB reference identities, not cable-cavity or as-built wiring evidence.
+
+**Overall readiness:** Promega wiring readiness remains **BLOCKED** pending the remaining endpoint and connection coverage, provenance, persistence, version-qualified firmware relationships, and physical/as-built evidence.
+
+### DYZE Cooling Unit tubing bend radius and protection capability correction (2026-10-13)
+
+**Evidence:** DYZE Technical Support response received October 13, 2026.
+
+**Specified tubing bend radius:** For the supplied soft, high-temperature rubber tubing, 1/4-inch ID × 3/8-inch OD, the minimum bend radius is 2 inches (50 mm), never smaller. DYZE specifies the measurement to the tubing's outside diameter (OD). Preserve this OD-based wording rather than substituting a centerline or inner-wall radius. The stated minimum applies both while stationary and while moving.
+
+**Blockage detection and automatic pausing:** These are not features of the current Cooling Unit. DYZE states that the claim originated in an earlier prototype and is being corrected; the feature was removed because of false positives and inadequate reliability. Do not model or describe the current product as detecting a blockage or automatically pausing a print.
+
+**Evidence limits and routing implications:** The support response does not establish dynamic-flex cycle life or additional temperature or pressure ratings. Do not infer those ratings. Any machine-level coolant-loss or blockage protection is a separate requirement that must be based on separately established hardware and control capabilities; it is not supplied by an undocumented Cooling Unit sensing function.
+
+### Promega extruder/fan harness and RRF configuration evidence gate (2026-10-13)
+
+**Classification:** Research/Board evidence update for Routing. Preserve unresolved mappings; no schema or ontology change is proposed.
+
+**Fan harness — P9/P11:** The manufacturer extruder-assembly wiring guide says nozzle-fan assignment to P9 versus P11 varies by printer. The companion fan guide identifies the cold-section fan as 24 V and intended for the Duet Maestro always-on port, while nozzle fans are 5 V and PWM-controllable. The manufacturer warns that routing a nozzle fan to the cold-section output can destroy nozzle fans. Do not create a universal P9/P11-to-function mapping. Establish the actual harness lead by continuity inspection or direct, applicable board-side evidence before asserting routing.
+
+Source:
+- https://promega.printm3d.com/documentation/electronics/extruder-assembly-wiring
+
+**Heater and thermistor harness — H2/H4/S8/S6:** The older silver assembly's documented arrangement places H4/S8 on the left and H2/S6 on the right. This is variant-specific evidence and must not be transferred automatically to the newer black assembly. The new-assembly guide identifies connector roles but warns that the S8/S6 image wire colors are wrong and H4 must follow the corrected route. The separate installation guide documents left/right routing crossovers for Compound and K'Tana. Together, these sources do not establish a complete revision-qualified new-assembly label-to-component map. Preserve the cable-to-component edges as unresolved unless the applicable assembly is identified and stronger source or physical-trace evidence becomes available.
+
+Sources:
+- https://promega.printm3d.com/documentation/electronics/extruder-assembly-wiring
+- https://promega.printm3d.com/repair-and-maintenance/install-uninstall/extruder
+
+**Firmware configuration:** The publicly visible SD-card releases distinguish old and new cable assemblies, but the reviewed files are historical examples: Compound `devel` is dated January 16, 2019, and K'Tana is dated October 1, 2018. They use `M667 S1`, which the official RRF changelog says is unsupported from RRF 3.5.1 onward. They are not verified RRF 3.5.4 configurations and must not establish current fan or heater assignments. The necessary evidence is the actual installed SD-card configuration set, including `config.g`, override files, nested system-file calls, and relevant tool macros; the Board workstream has not yet inspected that installed set.
+
+Source:
+- https://github.com/PrintM3D/Promega
+
+**Routing disposition:** Retain the validated X/Y reference slice. Do not expand physical extruder/fan connections based solely on older assembly documentation or historical firmware examples. Keep unsupported cable-to-component edges unresolved until the applicable variant and its mappings are substantiated. J34, J28, and the held Z-A contact-correspondence gate remain unaffected.

@@ -291,10 +291,7 @@ class CreateNode:
             component.id
         )
 
-        if (
-            self.node.node_type == "motor"
-            and (self.node.label or "").strip().casefold() == "x motor"
-        ):
+        if self.node.node_type == "motor":
             motor_interface = SemanticPort(
                 id=f"{component.id}-motor-electrical-interface",
                 component_id=component.id,

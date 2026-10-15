@@ -220,7 +220,14 @@ def test_non_controller_palette_creation_creates_canonical_component() -> None:
         node.semantic_reference
         == "component-node-1"
     )
-    assert len(node.ports) == 2
+    functional_port_id = "component-node-1-motor-electrical-interface"
+    assert component.port_ids == [functional_port_id]
+    assert functional_port_id in canvas.store.semantic_model.ports
+    assert any(
+        port.semantic_reference == functional_port_id
+        for port in node.ports.values()
+    )
+    assert len(node.ports) == 3
 
 
 def test_generic_palette_templates_create_registered_components() -> None:
@@ -261,7 +268,20 @@ def test_generic_palette_templates_create_registered_components() -> None:
         assert component.properties == {
             "visual_node_type": node_type,
         }
-        assert component.port_ids == []
+        if node_type == "motor":
+            functional_port_id = (
+                f"{component_id}-motor-electrical-interface"
+            )
+            assert component.port_ids == [functional_port_id]
+            assert canvas.store.semantic_model.ports[
+                functional_port_id
+            ].component_id == component.id
+            assert sum(
+                port.semantic_reference == functional_port_id
+                for port in node.ports.values()
+            ) == 1
+        else:
+            assert component.port_ids == []
 
         assert node.node_type == node_type
         assert node.semantic_reference == component.id
@@ -320,7 +340,17 @@ def test_generic_palette_component_round_trips_with_identity_and_ports(
     component_id = "component-node-1"
     node_id = "node-1"
     original_node = canvas.store.model.nodes[node_id]
-    provisional_port_ids = set(original_node.ports)
+    provisional_port_ids = {
+        port_id
+        for port_id, port in original_node.ports.items()
+        if port.semantic_reference is None
+    }
+    functional_port_id = f"{component_id}-motor-electrical-interface"
+    assert len(provisional_port_ids) == 2
+    assert sum(
+        port.semantic_reference == functional_port_id
+        for port in original_node.ports.values()
+    ) == 1
 
     path = tmp_path / "generic-component.machine.json"
     canvas.store.save(path)
@@ -340,7 +370,19 @@ def test_generic_palette_component_round_trips_with_identity_and_ports(
     ].component_ids
 
     assert node.semantic_reference == component.id
-    assert set(node.ports) == provisional_port_ids
+    assert {
+        port_id
+        for port_id, port in node.ports.items()
+        if port.semantic_reference is None
+    } == provisional_port_ids
+    assert sum(
+        port.semantic_reference == functional_port_id
+        for port in node.ports.values()
+    ) == 1
+    assert functional_port_id in restored.semantic_model.ports
+    assert restored.semantic_model.ports[
+        functional_port_id
+    ].component_id == component.id
     assert all(
         node.ports[port_id].semantic_reference is None
         for port_id in provisional_port_ids

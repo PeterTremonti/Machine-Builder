@@ -91,7 +91,14 @@ def test_promega_roles_use_existing_authoring_and_persistence_paths(tmp_path):
         component = model.components[node.semantic_reference]
 
         assert component.hardware_definition_id is None
-        assert component.port_ids == []
+        if node_type == "motor":
+            functional_port_id = (
+                f"{component.id}-motor-electrical-interface"
+            )
+            assert component.port_ids == [functional_port_id]
+            assert model.ports[functional_port_id].component_id == component.id
+        else:
+            assert component.port_ids == []
 
         if index == len(PROMEGA_ROLES):
             last_original = (
@@ -154,7 +161,14 @@ def test_promega_roles_use_existing_authoring_and_persistence_paths(tmp_path):
         assert component.label == role == node.label
         assert node.semantic_reference == component.id
         assert component.hardware_definition_id is None
-        assert component.port_ids == []
+        if node.node_type == "motor":
+            functional_port_id = (
+                f"{component.id}-motor-electrical-interface"
+            )
+            assert component.port_ids == [functional_port_id]
+            assert model.ports[functional_port_id].component_id == component.id
+        else:
+            assert component.port_ids == []
         assert component.provenance == [evidence]
         assert component.properties["inventory_crosswalk_status"] == (
             "not_established"
@@ -204,7 +218,16 @@ def test_promega_roles_use_existing_authoring_and_persistence_paths(tmp_path):
         assert restored_roles[role].id == component_id
         assert component.label == role
         assert component.hardware_definition_id is None
-        assert component.port_ids == []
+        if node.node_type == "motor":
+            functional_port_id = (
+                f"{component.id}-motor-electrical-interface"
+            )
+            assert component.port_ids == [functional_port_id]
+            assert restored_model.ports[
+                functional_port_id
+            ].component_id == component.id
+        else:
+            assert component.port_ids == []
         assert component.provenance == [evidence]
         assert node.label == role
         assert node.semantic_reference == component_id

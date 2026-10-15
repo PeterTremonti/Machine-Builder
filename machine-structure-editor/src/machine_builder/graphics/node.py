@@ -343,16 +343,14 @@ class NodeGraphicsItem(QGraphicsRectItem):
         self,
         visible_port_ids: set[str],
     ) -> None:
-        """Apply transient focus to controller graphics only."""
-        if self._node_type != "controller":
-            return
+        """Apply transient port-detail focus to a node's graphics only."""
         self._controller_focus_active = True
         self._focused_port_ids = set(visible_port_ids)
         self._apply_controller_port_focus()
 
     def _apply_controller_port_focus(self) -> None:
         """Hide off-focus port graphics and expand the box for contacts."""
-        if self._node_type != "controller" or not self._controller_focus_active:
+        if not self._controller_focus_active:
             return
 
         visible_ids = self._focused_port_ids.intersection(self._port_items)
