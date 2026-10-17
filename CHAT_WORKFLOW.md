@@ -659,6 +659,13 @@ The local checkout remains authoritative for source and test contents, uncommitt
 
 If the remote is private, inaccessible, or a required document cannot be retrieved confidently, ask for only the missing information. Batch missing documents or relevant sections into one request wherever practical. Prefer a targeted local command over a broad dump that overwhelms the console.
 
+**Console-output and paste limit:**
+
+- Observed paste ceiling: approximately 884 numbered content lines (the visible range was 369-1252). This is an observed ceiling, not a guaranteed capacity.
+- Maximum routine target per command: at most 700 total printed lines, including headings and status messages. Prefer 350 lines or fewer for long documents; long lines and command echo can still cause clipping.
+- Read large documents in separate bounded batches. Check file length and headings first, then print only needed sections. Do not combine multiple long documents into one console dump.
+- Print a clear completion marker. If output is clipped or the completion marker is missing, treat unread sections as unavailable and continue with smaller ranges; never claim the full document was read.
+
 **4. Do not create substitute artifacts.**
 
 Do not generate downloadable update scripts, replacement document artifacts, patches, or repository copies as a workaround for the unavailable local checkout. If local changes cannot be applied through an available established workflow, provide the exact proposed text and concise direct-edit instructions for the user to apply in the authoritative checkout. Never imply that a proposed change has been applied.
@@ -1338,6 +1345,13 @@ Use the structured reporting style established by the Controller/Board workstrea
 - The first line inside that block must identify sender, recipient, and topic, using the required form: `From #N -> To #M - Specific Topic`.
 - The message must be self-contained. Do not send the substantive cross-chat message as plain prose outside the copy-ready block and expect the recipient to infer that it is a handoff.
 - Use the structured metadata and sections below as the default. Adapt them to the task when a field or section is genuinely irrelevant; do not fabricate activity or fill sections with boilerplate.
+
+### Rendered copy-block presentation
+
+- For cross-workstream prose messages intended to be pasted into another chat, use a dedicated styled writing/draft block with a copy control whenever the response interface supports one. Do not substitute a generic code block intended for source code or commands.
+- Keep the required `From #N -> To #M - Specific Topic` first line and every actionable part of the message inside that single writing/draft block. Explanations for the user stay outside it and must not be necessary to use the copied message.
+- Standardize the semantic block type and copy boundary, not exact colors or font sizes. The interface controls the visual rendering, which may vary.
+- Keep executable PowerShell separate in the plain `powershell`-labeled code block required below. Never put executable commands in a prose writing/draft block.
 
 ### Metadata block
 
