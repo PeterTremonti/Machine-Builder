@@ -134,65 +134,57 @@ New canonical concepts should be introduced only when concrete evidence demonstr
 
 # Current Board Position
 
-Recent Maestro and Octopus implementation work has demonstrated that the existing model can represent:
+Recent Maestro and Octopus work continues to demonstrate that the existing model can represent reusable hardware definitions, installed controller instances, controller-owned and component-owned SemanticPorts, connector grouping, physical interface metadata, controller-resource exposure, physical interface mating, and replaceable driver-module cases.
 
-* reusable hardware definitions;
-* installed controller instances;
-* controller-owned physical SemanticPorts;
-* component-owned physical SemanticPorts;
-* connector grouping;
-* physical interface metadata;
-* controller-resource exposure through SemanticPorts;
-* physical interface mating;
-* replaceable driver-module cases.
+No new canonical Connector, MatingInterface, DriverSocket, DriverModule, Contact, or similar entity has been justified by the current evidence.
 
-No new canonical Connector, MatingInterface, DriverSocket, DriverModule, Contact, or similar entity has been justified by current evidence.
+The Controller-to-Hardware-Definition relationship is resolved for the current model through the typed `hardware_definition_id` relationship, with validation and persistence tests. Do not reopen it without concrete contrary evidence.
 
-The major remaining Board architecture question is how an installed Controller should relate to its reusable Hardware Definition.
+**Current source-evidence status (2026-10-17)**
 
-Board discoveries belong to Workstream 03 and should be reported to Planning when they have project-level implications.
+- **SKR Mini E3 V3.0 EXP1: ACCEPTABLE for the bounded implementation and test evidence.** Research disposition `MB-20261017-0009-01`; Routing handoff update `MB-20261017-0115-01`. This does not validate physical orientation, mating geometry, continuity, or installed wiring.
+- **Promega public configuration:** snapshot `fa72508fd221f9238521f33b0bcdc43c0f5d8332`. `config.g` uses `M208 X0:360`; `config.g.bak` uses `M208 X0:380`. Their listed X/Y/Z `M92` values match. The backup's purpose remains uncertain.
+- **Static includes:** six of seven `M98` calls resolve in that public snapshot. `sys/resurrect.g` references `resurrect-prologue.g`, absent from that snapshot. This does not prove that the file is absent from the installed printer or used at runtime.
+- **Scan limitation:** the original scan script was not recovered. The targeted substitute examined 22 top-level configuration-file candidates; 99 reported line occurrences include four supplemental `M92` occurrences and are not 99 independent configuration statements.
+- **Machine-specific evidence still missing:** installed SD-card files and physical P9/P11 harness identity plus variant-specific H2/H4/S8/S6 mapping. Board workstream #3 retains ownership of collecting this evidence when available.
+- **Separate unresolved compatibility issue:** Octopus Driver 2 contact 6 `SLEEP` / `DRIVER2_SLP` versus TMC5160T Pro V1.0 J1 contact 6 `CLK`. Do not infer compatibility.
+
+The historical public sources, firmware reports, installed SD-card files, and physical as-built wiring must remain distinct evidence sources.
 
 ---
 
 # Current Routing Position
 
-Routing is a presentation/implementation concern over canonical connection semantics.
+Routing remains a presentation and implementation layer over canonical connection semantics. Keep route topology separate from route geometry; the existing per-connection routing integration/stability layer is not an accidental duplicate pathfinder.
 
-The useful distinction remains:
+**Accepted bounded workflows**
 
-```text
-route topology
-    ≠
-route geometry
-```
+- **X Motor functional-interface workflow: ACCEPTABLE** for the seven defined criteria at checkpoint `a84526b28237d1e678a044c534cc9e8ad6a80444`, per the #5 review. This is not blanket approval of Promega wiring or unrelated visual work.
+- **SKR Mini E3 V3.0 EXP1: ACCEPTABLE** for the bounded fixture, source inventory, stable endpoint identities, uncertainty preservation, and save/reopen tests. Research reviewed the supplied evidence in `MB-20261017-0009-01`; #4's subsequent handoff update is `MB-20261017-0115-01`.
 
-Current routing implementation distinguishes topology selection, geometry, stability, diagnostics, endpoint escape behavior, and related routing concerns.
+**Still open**
 
-The recent Workstream 04 audit determined that `graphics/connection.py` is not an accidental duplicate pathfinder; it remains the active per-connection routing integration/stability layer.
+- Manual GUI acceptance for connector-cone rendering and the Function-to-Detailed presentation remains pending. Do not mark visual acceptance complete without the actual GUI evidence.
+- General connector/contact validation remains separate from the accepted SKR slice. The Octopus `SLEEP` versus `CLK` discrepancy and integer-keyed persistence limitation are unresolved.
+- No broader Promega wiring-readiness or production-standard approval is implied by either bounded acceptance.
 
-No broad routing modularization is currently justified merely by file size.
-
-Routing Checkpoint 20 is complete. No current Routing implementation task is assigned; the geometry-only preferred-spacing experiment is closed, and no further production Routing change is justified from that single-connection evidence alone.
+Keep implementation, test evidence, and handoff claims aligned to the checkpoint actually tested. Preserve unrelated concurrent Routing and Board changes.
 
 ---
 
 # Current Test State
 
-Latest verified full repository test result:
+Latest workstream-reported full-suite result: **853 passed in 36.85 seconds**, reported by #4 for a working tree based on checkpoint `a84526b28237d1e678a044c534cc9e8ad6a80444`.
 
-```text
-756 passed
-```
+The same reported validation included:
 
-This was verified after:
+- Dedicated SKR EXP1 tests: **6 passed in 0.14 seconds**.
+- Focused regression tests: **96 passed in 4.17 seconds**.
+- `git diff --check`: passed for the reported target and full worktree.
 
-* SelectionInspector duplicate-definition cleanup;
-* removal of the obsolete `_segment_clear()` helper;
-* removal of tracked generated `egg-info` files.
+These tests included the bounded SKR fixture/test changes and concurrent working-tree changes. They are not tests attributable to the base commit alone. Research reviewed the supplied SKR evidence but did not independently rerun the tests. #4 reported that its later handoff-only correction did not trigger another Python test run.
 
-Exact current `main` HEAD should be re-verified locally when this handoff is reconciled before its next commit.
-
-Do not substitute an older remembered commit for the current one.
+The latest Planning preflight found local branch `main`, `HEAD`, and fetched `origin/main` all at `a84526b28237d1e678a044c534cc9e8ad6a80444`. Live remote `main` was not checked in that preflight. Planning's documentation edit requires its own `git diff --check`; it does not by itself justify a code-test claim.
 
 ---
 
@@ -415,81 +407,61 @@ A file can be old without being obsolete.
 
 ## Research / Architecture (#2)
 
-Research owns:
+Research owns external evidence, standards, terminology, ontology, architecture investigation, provenance, and research conclusions.
 
-* external evidence;
-* standards;
-* terminology;
-* ontology;
-* research architecture;
-* source provenance;
-* research questions;
-* research conclusions.
+**Current status (2026-10-17)**
 
-Chat 02 has completed a repository-wide documentation audit for the documentation-authority effort.
+- The Research handoff was reported reconciled in place; the Standards Index has a bounded mapping-layer clarification. Both paths are modified in the shared working tree and remain uncommitted.
+- **SKR Mini E3 V3.0 EXP1: ACCEPTABLE** for the scoped implementation and test evidence. Research reviewed the reported six dedicated tests, 96 focused regression tests, 853 full-suite tests, and whitespace check; it did not independently rerun tests against the live checkout.
+- The accepted scope keeps logical position-to-MCU mapping distinct from Marlin drawing labels, downstream conditional peripheral assignments, and unverified physical wiring.
+- General connector/contact validation remains open. The Octopus `SLEEP`/`CLK` discrepancy, the group-level `mated_with` limitation, physical evidence gaps, Marlin provenance/role interpretation, and general integer-key persistence limitation remain unresolved.
 
-Planning's decision was required before the Research workstream could reconcile its documentation hierarchy.
-
-The next Research instruction should be to reconcile its actual documents against `DOCUMENTATION_AUTHORITY.md`, especially:
-
-* `PROJECT_CONTEXT.md`
-* `START_HERE.md`
-* architecture documents
-* ontology documents
-* terminology baseline
-* decision log
-* open questions
-* research checkpoint
-
-Chat 02 should update its own handoff rather than Planning editing it.
+**Next action and owner:** #5's proposed next action is to resume the separate, read-only review of the general connector/contact validation proposal, checking `MB-20261015-1154-01` against current source and baseline evidence. #1 coordinates any resulting scope/disposition decision; #2 reviews research-evidence assumptions for follow-on work. Do not reopen the accepted SKR slice without concrete contrary evidence or a defined new scope.
 
 ---
 
 ## Controller / Board (#3)
 
-Board implementation continues independently on shared `main`.
+Controller/Board owns board and controller research, board fixtures, physical-interface identity, and the associated implementation/tests. Implementation changes remain on the shared `main` checkout and must not be mixed into Planning-only publication.
 
-No documentation cleanup work is currently delegated to Chat 03.
+**Current status (2026-10-17)**
 
-Board discoveries with architectural implications should still be reported to Planning.
+- The Board handoff records the Promega public-configuration research checkpoint `MB-20261017-0953-01`. #3 reported that the existing handoff was already reconciled at its last recorded verification; no new edit was needed at that checkpoint. The current worktree shows the Board handoff modified, but the prior verification was not freshly rerun after the latest message.
+- Public-snapshot findings are historical evidence only: `config.g` uses `M208 X0:360`; `config.g.bak` uses `M208 X0:380`; six of seven static `M98` calls resolve, with `resurrect-prologue.g` absent from the collected snapshot. The original scan script was not recovered; a targeted scan covered 22 candidate files.
+- **Still missing:** direct retrieval of the installed printer's SD-card files and confirmation of physical P9/P11 harness identity and variant-specific H2/H4/S8/S6 assignments.
+- Keep the user's reported backup rationale tentative. Do not infer an installed configuration or wiring assignment from the public snapshot.
+
+**Next action and owner:** #3 retains responsibility for the installed-SD and physical-harness evidence when those materials are available. No further Board handoff edit is requested unless a concrete inconsistency is found.
 
 ---
 
 ## Routing / Diagnostics (#4)
 
-Chat 04 has already:
+Routing owns routing/visual integration, diagnostic presentation, implementation evidence, and its own handoff.
 
-* removed the duplicate SelectionInspector definitions;
-* removed the unused `_segment_clear()` helper;
-* validated the full 756-test suite;
-* completed the `connection.py` routing-responsibility investigation.
+**Current status (2026-10-17)**
 
-The routing architecture is currently considered healthy enough to leave alone.
+- The Routing handoff was reconciled in place and now records Research's **ACCEPTABLE** disposition for the bounded SKR EXP1 implementation/test evidence.
+- #4 reports six dedicated SKR tests, 96 focused regression tests, 853 full-suite tests, and successful `git diff --check` at the tested working-tree checkpoint based on `a84526b28237d1e678a044c534cc9e8ad6a80444`. Research reviewed that evidence and did not independently rerun the tests.
+- The X Motor functional-interface acceptance remains scoped to its seven criteria at its accepted checkpoint. Neither that result nor SKR EXP1 acceptance constitutes complete Promega wiring readiness.
+- Connector-cone rendering and Function-to-Detailed presentation remain pending manual GUI acceptance.
+- The fixture/source/test and visual integration paths remain part of a shared working tree with uncommitted concurrent changes. Do not stage or publish them as part of a Planning-only documentation change.
 
-Its next normal implementation task remains the geometry-only route-repair experiment.
-
-No further documentation cleanup is delegated to Chat 04 at this time.
+**Next action and owner:** #4 owns follow-through on its remaining GUI evidence and any separately authorized Routing work. General connector/contact validation must stay separate from the accepted SKR EXP1 slice.
 
 ---
 
 ## Efficiency / Modularization (#5)
 
-Chat 05 has completed the initial repository audit.
+Workstream #5 is the read-only efficiency, modularization, code-health, and evidence-audit workstream. It reviews responsibilities, coupling, duplication, documentation, test organization, and acceptance evidence; under its current boundary it does not edit, stage, commit, push, or run tests.
 
-It identified:
+**Current disposition**
 
-* confirmed duplicate SelectionInspector methods;
-* tracked generated `egg-info`;
-* unused `_segment_clear()`;
-* documentation candidates;
-* modularity review targets;
-* historical artifacts.
+- The X Motor functional-interface workflow is **ACCEPTABLE** for the seven stated criteria at checkpoint `a84526b28237d1e678a044c534cc9e8ad6a80444`. #4 reported the tests and publication evidence; #5 reviewed the supplied evidence but did not independently rerun tests or refresh the live remote.
+- This does not approve the entire Promega wiring model, installed wiring, all visual integration, or general connector/contact validation.
+- #5 supplied the proposed audit-handoff correction in `MB-20261016-1813-01`. It is a proposed correction for Planning to incorporate, not a report that #5 edited the repository.
 
-Those concrete cleanup items have now been addressed where appropriate.
-
-Chat 05 should remain available for future code-health audits but should **not continue broad repository archaeology** unless a new question requires it.
-
-The next historical-document inventory may be requested from Chat 05 after Planning establishes the authority model.
+**Next action and owner:** #5's next audit action is the separate, read-only general connector/contact proposal review described in `MB-20261016-1813-01`. It remains distinct from the accepted SKR EXP1 slice. #1 coordinates any resulting scope/disposition decision.
 
 ---
 
@@ -775,7 +747,14 @@ Before committing, verify the actual branch, HEAD, working-tree status, intended
 
 ### Current Planning Next Action
 
-Planning's active next action is to maintain the cross-workstream state and coordinate the next bounded Promega vertical-slice tasks. The Maestro J4 correction was published as e85a1e38af74622de3a1b62cf1641af4b707fd26; current-limit safety remains unestablished. Connector/contact validation must wait for local review of the reissued test proposal and source evidence.
+The cross-workstream documentation refresh is reconciled in this handoff and `PROJECT_CURRENT_STATE.md`, based on the supplied workstream reports and Planning's pre-publication review. The implementation/test results remain attributed to #4; Research reviewed the bounded SKR EXP1 evidence without independently rerunning tests. Physical/as-built wiring and complete Promega readiness remain unverified.
+
+**Next actions and owners**
+
+1. **Audit (#5):** Conduct the separate read-only review of general connector/contact validation proposal `MB-20261015-1154-01` against current source and baseline evidence, as proposed in `MB-20261016-1813-01`. Report ACCEPTABLE or BLOCKED with concrete evidence and remaining gaps.
+2. **Controller/Board (#3):** Collect the installed Promega SD-card files and confirm physical P9/P11 harness identity and variant-specific H2/H4/S8/S6 mapping when the relevant materials are available.
+3. **Routing (#4):** Complete and report manual GUI acceptance evidence for connector-cone rendering and Function-to-Detailed presentation; do not claim visual acceptance before that evidence is reviewed.
+4. **Planning (#1):** Coordinate any resulting scope/disposition decisions and refresh cross-project records when materially new evidence arrives. Preserve workstream ownership and use the Action-Ready Work Rule for every substantive handoff.
 
 ## Planning Coordination Update — 2026-10-10
 
@@ -791,18 +770,23 @@ The common workflow now distinguishes:
 
 - The Maestro J4 correction is already published as `e85a1e38af74622de3a1b62cf1641af4b707fd26`; the old planning statement that it was awaiting implementation authorization is superseded. The documented interface mapping does not establish a safe current limit for the full output circuit.
 - The Promega specimen, assembly endpoint labels, and three IR-probe reference connections are incremental checkpoints. They do not establish complete physical wiring, active firmware configuration, or verified as-built machine identity.
-- The connector-group/contact convention is conditionally accepted as a bounded candidate. #2 has reissued the complete test proposal to #4. The prior #4 review was blocked because the exact source was unavailable; local review/validation after the reissue has not yet been reported.
-- #3's latest crosswalk uses immutable V3.0-specific firmware sources and reports `PD6` at EXP1 position 8 across BTT Klipper, upstream Klipper, and Marlin. Direct visual inspection of the manufacturer's PDF remains open, so do not describe the printed label or connector orientation as visually verified.
+- **SKR Mini E3 V3.0 EXP1 bounded implementation/test evidence: ACCEPTABLE** following Research review `MB-20261017-0009-01` and Routing's update `MB-20261017-0115-01`. This replaces NEEDS A BOUNDED REVISION only for that slice; it does not establish physical orientation, mating geometry, continuity, installed wiring, or general connector/contact validation.
+- **General connector/contact validation remains open.** #5's next action is the separate read-only review of proposal `MB-20261015-1154-01` against current source and baseline evidence, per `MB-20261016-1813-01`. Planning coordinates any resulting scope/disposition decision.
+- The source-supported SKR mapping for EXP1 position 8 is PD6. Keep logical position-to-MCU mapping distinct from Marlin diagram/comment labels and downstream conditional peripheral assignments. The Marlin role-label/configuration relationship, manufacturer-PDF visual confirmation, physical orientation, mating geometry, continuity, and as-built wiring remain unresolved.
 - Octopus contact 6 remains `SLEEP` / `DRIVER2_SLP` against TMC5160T Pro V1.0 J1-6 `CLK`. Preserve the unresolved incompatibility and distinguish in-memory structure from successful save/reopen.
 - Keep source evidence, firmware aliases, functional relationships, canonical physical connections, and user-specific as-built facts separate. No new ontology entity is warranted by the current evidence.
 
 ### Immediate Planning sequence
 
-1. Receive #4's local API/source review of the reissued validation test and its actual results.
-2. Receive #3's final clarification if it obtains a rendered-page view of the pinned manufacturer PDF; until then leave that item open.
-3. If Octopus save/reopen remains blocked by non-string dictionary keys, authorize a separate compatibility design instead of mutating the existing fixture silently.
-4. Continue the Promega reference connection graph only from sourced endpoints; separately model documented functions and firmware-version assignments.
-5. Reconcile `PROJECT_CURRENT_STATE.md` and this handoff at the next material checkpoint. Leave #2–#5 handoff ownership with their respective workstreams.
+1. **Planning (#1):** Finish reviewing the current `PROJECT_CURRENT_STATE.md` and Planning handoff diffs. Check content accuracy, spacing/word integrity, and preservation of historical checkpoints. Run `git diff --check`; do not stage or publish until the full diffs are reviewed.
+
+2. **Audit (#5):** Own the separate read-only review of connector/contact validation proposal `MB-20261015-1154-01` against current source and baseline evidence, as identified in `MB-20261016-1813-01`. Report ACCEPTABLE or BLOCKED with concrete evidence and remaining gaps. This review is separate from the accepted SKR EXP1 slice.
+
+3. **Controller/Board (#3):** Retain responsibility for retrieving the installed Promega SD-card files and confirming physical P9/P11 harness identity and variant-specific H2/H4/S8/S6 mapping when the relevant materials are available. Public historical source alone does not close this evidence gap.
+
+4. **Routing (#4):** Retain follow-through on manual GUI acceptance evidence for connector-cone rendering and Function-to-Detailed presentation. Do not claim visual acceptance complete until that evidence has been reviewed.
+
+5. Before any later publication, refresh the actual worktree and remote state. Preserve all other workstream modifications and untracked files; stage only explicitly selected Planning-owned paths after full path and diff review.
 
 ### Scope and evidence status
 
@@ -861,3 +845,129 @@ The outstanding Planning-owned documentation paths remain:
 - `machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
 
 Review and publish only these paths after the state and remote checkpoint are reconfirmed. Keep the modified Board handoff and untracked `.vscode/launch.json` out of the Planning commit.
+
+## Planning Replacement Checkpoint — 2026-10-12
+
+**Historical checkpoint notice (2026-10-12):** This section preserves the recovery state and next-action list as recorded on that date; it is not the current status. Use the reconciled current summaries above, updated 2026-10-17, for current ownership, acceptance, blockers, and next actions. Recheck the live checkout before acting on any historical instructions below.
+
+**Purpose:** Preserve Planning state during replacement of this chat after the user encountered a ChatGPT usage-limit pause.
+
+### Verified repository checkpoint
+
+- Local branch, local HEAD, fetched `origin/main`, and live remote `main` were verified at `bca612ed3ae6c1b3da8f09f9ec9a5c173ec8dd3a`.
+- Checkpoint subject: `Clarify directed fluid-transfer contract`.
+- The commit advances the Research documentation and handoff. Its exact contract content still needs to be considered alongside the actual reply from #2 before Planning decides whether the previous review blockers are resolved.
+- The latest verification is supplied by the user's PowerShell output. A replacement chat must recheck repository state before taking further action.
+
+### Working-tree state at this checkpoint
+
+- `CHAT_WORKFLOW.md`: unstaged Planning change adding `### Rendered copy-block presentation` under Section 34. The user supplied successful subsection verification and `git diff --check` results. This change remains uncommitted and unpushed.
+- `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`: unstaged Board changes.
+- `machine-structure-editor/src/machine_builder/controller_board_fixtures.py`: unstaged Board changes.
+- `machine-structure-editor/tests/test_controller_board_fixtures.py`: unstaged Board changes.
+- No files were staged at the reported checkpoint.
+- Preserve all these changes. Do not blanket-stage, discard, overwrite, or publish another workstream's changes.
+
+### Incoming workstream reports
+
+The user has sent instructions to workstream chats #2 through #5 and intends to provide their replies to the replacement Planning chat. These replies have not been included in this checkpoint.
+
+Review each actual reply before deciding what to do. Distinguish verified repository evidence from claims supplied by a workstream. Do not infer that a commit subject alone proves the requested technical criteria are satisfied.
+
+### Research / Architecture (#2)
+
+The last Planning review requested clarification of the proposed `fluid_transfer` contract:
+
+- Specify where medium-scoped `fluid_role` (inlet/outlet) is represented and how across-connection and within-component roles are validated.
+- Distinguish synthetic acceptance-fixture assumptions from manufacturer-verified coolant topology.
+
+A commit titled `Clarify directed fluid-transfer contract` is now present at the verified shared checkpoint. Inspect the committed change and the incoming #2 report before recording a final Planning disposition.
+
+### Controller / Board (#3)
+
+The Board handoff and controller-board fixture source/test currently have unstaged changes. Preserve them. Review the actual #3 report and its stated tests and boundary before deciding the next Planning action. Do not assume uncommitted fixture work is complete or accepted.
+
+### Routing / Connections (#4)
+
+Promega remains the known routing priority. Review the actual incoming #4 message and current evidence before assigning further work or claiming publication.
+
+### Efficiency / Modularization / Audit (#5)
+
+Preserve the read-only audit/acceptance boundary. Formal acceptance reviews must state `ACCEPTABLE` or `BLOCKED`, grounded in explicit criteria and evidence. Missing evidence is not a pass.
+
+### Communication convention
+
+- For cross-workstream prose, use one dedicated styled writing/draft block with a copy control when supported. The complete message, beginning `From #N -> To #M - Topic`, must be inside the block.
+- Use a separate plain `powershell`-labeled code block for complete executable PowerShell, without fence metadata.
+- Standardize the block type and copy boundary, not exact colors or fonts, which can vary by interface.
+- The user has already sent the formatting instruction to the labeled chats; do not unnecessarily ask them to repeat it.
+
+### Immediate next action
+
+1. Re-establish the live repository state read-only.
+2. Read current `CHAT_WORKFLOW.md`, `DOCUMENTATION_AUTHORITY.md`, `MASTER_PLAN.md`, `PROJECT_CURRENT_STATE.md`, and this Planning handoff before editing any project file.
+3. Review the actual replies from #2, #3, #4, and #5 as supplied by the user.
+4. Resolve concrete Planning decisions against current evidence. Provide an actionable, copy-ready command whenever the next step is clear.
+5. Preserve all existing staged/unstaged work and workstream authority. Do not commit or push the formatting-rule change merely because this chat is being replaced.
+
+### Platform warning
+
+The user saw a pause message citing usage limits for chats that include files or images. The cause has not been established; do not attribute it to a particular file or action without evidence.
+
+## Planning Review of Incoming Workstream Reports - 2026-10-12
+
+**Evidence basis:** User-supplied #2, #3, #4, and #5 reports; supplied local diff and committed Research specification; bounded inspection of the cited public Duet 2 Maestro PCB source. No local tests were rerun as part of this Planning review.
+
+### Research / Architecture (#2) - ACCEPTABLE, documentation-only
+
+The directed fluid-transfer specification is accepted as a bounded proposed contract. Port roles scoped by medium, explicit directed relationships, and separate across-connection/within-component rules fit the existing model. The specification correctly identifies the current validation gap and labels the Cooling Unit/LCX path synthetic rather than manufacturer-verified or as-built. No implementation or ontology change is authorized.
+
+### Controller / Board and Routing (#3 / #4) - architecture accepted; correction required before publication
+
+The property-based PCB identity design is consistent with current SemanticPort and Provenance concepts. Preserve existing identity and compatibility fields and keep PCB pad identity separate from PCB-view, guide-view, and cable-cavity coordinates.
+
+The current shared fixture diff still uses a mutable master URL and a revision string that says an immutable SHA is not pinned. The reported immutable snapshot `56958640c73c7febf3bce6e1eefbbdffd5a2db1b` is accessible and identifies the Duet 2 Maestro PCB V1.0 title block dated 2018-02-20. Spot checks support the J9 pad mapping and J36/J7 shared-Z net arrangement. This is a fixed repository snapshot, not a commit specifically changing the PCB layout.
+
+Before publication, #3 and #4 must coordinate to pin the exact source URL/SHA in metadata, assert it in regression coverage, and accurately describe the tests as checks against the manually reviewed expected crosswalk. The full bounded crosswalk must be checked against the pinned source. The Board handoff must also state that connectors absent from this subset are outside its inventory, not thereby disconnected or known to have unknown PCB identity.
+
+The reported 33 focused and 842 full-suite passes belong to #4's prior checkpoint and do not validate the pending source-pin correction. Rerun the focused and full suites and `git diff --check` after the correction. No new canonical fields, separate provenance system, guide-view positions, cavity mapping, or E0/E1 motor expansion is authorized.
+
+### Efficiency / Audit (#5) - ACKNOWLEDGED
+
+#5 adopted the rendered copy-block convention. No repository inspection or change was reported or required by that formatting-only acknowledgement.
+
+### Project priority and next action
+
+The Promega source-supported wiring vertical slice remains the active implementation priority. Continue the bounded Board identity correction above without displacing Promega work, expanding V0.2 ontology, or beginning the deferred catalog loader. Preserve all concurrent shared-checkout changes and keep implementation paths separate from Planning and Board handoffs.
+
+## Planning Validation Checkpoint - PCB Identity and Promega Guide-View Validation (2026-10-12)
+
+**Verification baseline:** The user's supplied output confirmed local `main`, `HEAD`, and `origin/main` at `83d30c8cd60f0335cdf7b89757fba506e3cc2a3e`. The implementation and test modifications below were uncommitted; results apply to that tested working tree, not to the HEAD commit alone.
+
+### Controller / Board - bounded PCB identity correction
+
+The current fixture implementation pins its source URL to repository commit `56958640c73c7febf3bce6e1eefbbdffd5a2db1b` and records the source file path separately from PCB title-block revision `V1.0` and date `2018-02-20`. PCB pad identity and exact source net spelling are stored in existing `SemanticPort.properties`, with source evidence recorded through the existing `Provenance` type.
+
+The manually reviewed expected crosswalk covers J9/J8 motor connectors, J36/J7 shared-Z nets, J32/J33 endstops, J28 probe contacts, and J37 including pad 10's unassigned-in-reference-PCB state. Regression assertions protect the immutable URL/SHA and explicitly state that the test does not automatically parse the external PCB source. Connectors outside the reviewed subset remain outside this inventory; missing metadata does not establish disconnection or unknown PCB design state.
+
+### Promega - source-qualified J28 guide positions
+
+The bounded reference fixture now records J28 guide-view positions separately from PCB pad numbers. The Promega helper requires explicit source-qualified guide-view identity instead of deriving it from legacy `pin_id` or the port-ID suffix. This describes the cited manufacturer's reference guide, not the physical mating orientation, cable cavity positions, or actual wiring on the user's installed printer.
+
+### Validation result
+
+The user's supplied PowerShell output reports the following results using `machine-structure-editor\.venv\Scripts\python.exe`:
+
+- Focused Board fixture and Promega IR-probe tests: **31 passed in 3.75 seconds**.
+- Full repository suite: **842 passed in 8.05 seconds**.
+- `git diff --check`: passed.
+
+These results were obtained after the current PCB source-pinning and guide-position changes were present. They do not prove the installed printer's as-built wiring or a complete Promega connection graph.
+
+### Disposition and next actions
+
+The property-based PCB identity architecture remains ACCEPTABLE. The earlier mutable source-reference defect is corrected in the current working diff and has passing regression evidence. No new canonical entity or parallel provenance system is justified.
+
+The two staged Research documents separately record Planning's coolant-contract acceptance and the DYZE cooling-loop follow-up. Their staged whitespace check passed. The Planning workflow/handoff changes, Board-owned source/test/handoff changes, and Promega source/test changes remain uncommitted. Keep ownership boundaries intact and do not combine unrelated paths into a cross-workstream commit.
+
+The Promega source-supported wiring vertical slice remains the active project priority. These reference fixtures do not establish a complete or as-built machine model.

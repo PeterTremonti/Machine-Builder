@@ -208,23 +208,16 @@ There is no separate routing worktree.
 
 ## Current verified status
 
-The latest verified full-suite result in the current working tree is:
+The latest workstream-reported validation for the current bounded implementation work is:
 
-```text
-781 passed in 3.73s
-```
+- Dedicated SKR Mini E3 V3.0 EXP1 tests: 6 passed in 0.14 seconds.
+- Focused regression tests: 96 passed in 4.17 seconds.
+- Full repository suite: 853 passed in 36.85 seconds.
+- Targeted and full-worktree `git diff --check`: reported passing by #4.
 
-The test run was performed in the active working tree containing the current Controller/Board Y-motor implementation. It was completed before the subsequent Research handoff commit `ef39acd` and is therefore best read as a verification of the active working tree, not as a commit-attributed test result.
+These results were reported by #4 for the working tree based on checkpoint `a84526b28237d1e678a044c534cc9e8ad6a80444`, including the uncommitted fixture/test changes and other concurrent changes. They are not test results attributable to the base commit alone. Research reviewed the supplied evidence but did not independently rerun the tests. No code tests were run as part of this current-state documentation refresh.
 
-The working-tree result is not attributed to a single committed HEAD because the verification included active uncommitted Controller/Board work.
-
-The working tree was not clean at the time of verification.
-
-Earlier routing-specific checkpoints remain useful as historical information:
-
-* **695** = earlier routing workstream full-suite result
-* **38** = earlier directly targeted `tests/test_connection_routing.py` result
-* **54 / 694** = earlier broader focused-routing checkpoint
+Earlier counts (including 781 and the routing-specific historical results below) are historical checkpoints, not the latest reported full-suite result.
 
 ---
 
@@ -416,29 +409,28 @@ This is currently a **WATCH** item, not a decision.
 
 ## Git status
 
-Controller/Board is an active workstream on the shared `main` branch.
+Controller/Board is an active workstream on the shared `main` branch. All workstreams use the same checkout and index; there is no separate Board worktree.
+
 
 The former `wip-controller-board-breakout` branch was merged into `main` and retired.
 
-There is no separate board worktree.
+The initial Board experiment was published in commit `5ba33fc` (`Link controllers to hardware definitions`).
 
-The initial board experiment has already been merged into `main` as commit:
+The Board workstream continues to cover controller-board creation, board/node presentation, controller resources, ports/connectors/pins, resource-assignment presentation, and related board functionality.
 
-`5ba33fc — Link controllers to hardware definitions`
+## Current verified status (2026-10-17)
 
-Its continuing purpose is to investigate and implement:
+- **SKR Mini E3 V3.0 EXP1: ACCEPTABLE for the bounded implementation and test evidence.** Research disposition is recorded in `MB-20261017-0009-01`; Routing's corresponding handoff update is `MB-20261017-0115-01`. This acceptance does not verify physical connector orientation, mating geometry, continuity, or as-built wiring.
+- **Promega public configuration research (checkpoint `MB-20261017-0953-01`):** #3 reported snapshot `fa72508fd221f9238521f33b0bcdc43c0f5d8332`. `config.g` specifies `M208 X0:360`, while `config.g.bak` specifies `M208 X0:380`; the listed X/Y/Z `M92` values match. The backup's purpose is uncertain.
+- **Static includes:** six of seven `M98` calls resolve in that public snapshot. `sys/resurrect.g` references `resurrect-prologue.g`, absent from the collected snapshot. This does not establish whether the file exists on the installed printer or is used at runtime.
+- **Scan limitation:** the original scan script was not recovered. The reported targeted replacement scan covered 22 top-level configuration candidates; its 99 line occurrences include four supplemental `M92` occurrences and are not 99 independent configuration statements.
+- **Machine-specific evidence remains missing:** direct retrieval of the installed SD-card files and confirmation of physical P9/P11 harness identity and variant-specific H2/H4/S8/S6 mapping. #3 retains ownership of collecting that evidence when available.
 
-* controller-board creation
-* board/node presentation
-* controller resources
-* ports / connectors / pins
-* resource assignment presentation
-* related board functionality
+The Controller-to-Hardware-Definition relationship is resolved for the current model through the typed `hardware_definition_id` relationship, with validation and persistence tests. Do not reopen it without concrete contrary evidence.
 
-The workstream remains logically separate from routing and other areas in terms of responsibility, but all implementation now uses the same `main` branch and local checkout.
+Separate unresolved issues remain: Octopus Driver 2 contact 6 `SLEEP` / `DRIVER2_SLP` versus TMC5160T Pro V1.0 J1 contact 6 `CLK`, and the general integer-keyed persistence limitation. Do not infer electrical compatibility.
 
 ---
-
 
 # 9. Controller / board architecture currently supported
 
@@ -1033,58 +1025,46 @@ This is the current project strategy.
 
 ### Research / Architecture
 
-Continue evaluating concrete implementation findings without unnecessarily reopening V0.2.
-
-Current focus:
-
-* route topology vs route geometry
-* board/resource/port boundaries
-* maintaining project-wide architectural coherence
+Maintain source-qualified research, terminology, ontology, and evidence assumptions. The bounded SKR EXP1 implementation is ACCEPTABLE; do not reopen that scope without contrary evidence. Support Planning's disposition decisions for any separate connector/contact validation work.
 
 ### Controller / Board
 
-Work on the shared `main` branch.
-
-Continue with one real documented board and test whether the existing concepts compose cleanly.
-
-Record implementation discoveries in the appropriate board handoff documentation and report any project-level architectural implications back to Planning / Architecture.
+Continue source-backed board and controller research. When materials are available, collect the installed Promega SD-card configuration and confirm the actual P9/P11 harness identity and variant-specific H2/H4/S8/S6 assignments. Keep public configuration, live firmware reports, installed files, and physical wiring as separate evidence sources.
 
 ### Routing / Diagnostics
 
-Work on the shared `main` branch.
+The Promega source-supported wiring vertical slice remains the active implementation priority. The X Motor functional-interface workflow and bounded SKR EXP1 fixture/test evidence have accepted, limited scopes. Keep manual GUI acceptance for the connector cone and Function-to-Detailed presentation open until actual GUI evidence is reviewed. Do not imply complete Promega wiring readiness.
 
-Routing Checkpoint 20 is complete. No current production Routing implementation task is assigned. Do not reopen or generalize the preferred-spacing repair without new evidence.
+### Efficiency / Modularization / Audit
 
-Record implementation discoveries in the appropriate routing handoff documentation and report any project-level architectural implications back to Planning / Architecture.
+Maintain the read-only audit boundary. The X Motor functional-interface workflow is ACCEPTABLE for its seven stated criteria only. The next separate audit task is the read-only connector/contact proposal review described in `MB-20261016-1813-01`, using proposal `MB-20261015-1154-01` and current source/baseline evidence. Report ACCEPTABLE or BLOCKED with concrete evidence and gaps.
+
+### Planning / Architecture
+
+Coordinate bounded work, retain ownership boundaries, and reconcile project-level records when meaningful evidence changes. Preserve the Action-Ready Work Rule in `CHAT_WORKFLOW.md`: every substantive response should give the next actionable step when one is available, name the owner, and explicitly say whether the user needs to act, forward a message, run a command, or do nothing.
 
 ### All workstreams
 
-All implementation work currently shares the same `main` branch and local checkout.
-
-Chats remain specialized by responsibility, but they should inspect the current shared codebase before making assumptions about another workstream's state.
-
-When a durable project-level discovery occurs, report it back to Planning / Architecture and consider updating `PROJECT_CURRENT_STATE.md` at the next meaningful checkpoint.
-
-The purpose of this document is to keep the workstreams synchronized without turning every implementation detail into architecture.
-
+All implementation work shares one `main` branch and local checkout. Inspect actual current state before acting, preserve concurrent changes, and do not equate a report or historical test count with a fresh independent verification.
 
 ---
 
 # 22. Last known cross-workstream synchronization
 
-As of this document:
+**Current synthesis as of 2026-10-17.** This summary combines workstream reports with Planning's last supplied local preflight; it is not a fresh independent test run or physical-machine inspection.
 
-* V0.2 architecture remains intact.
-* Routing provides concrete evidence supporting a topology/geometry distinction in visual route state.
-* Routing's current failure mode appears to involve invalidation of the previous route followed by fresh path selection.
-* A topology-preserving route-repair mechanism is a promising implementation experiment, not yet an architectural requirement.
-* Controller-board work is now part of the shared `main` branch.
-* The former `wip-controller-board-breakout` and `wip-routing-diagnostics` branches have been merged into `main` and retired.
-* There is now one normal local checkout and one active Git branch: `main`.
-* Existing controller, resource, assignment, hardware-definition, semantic-port, controller-visual, `exposed_through`, and `mated_with` infrastructure provides a substantial foundation for board work.
-* The Controller-to-Hardware Definition relationship is resolved and reinforced through typed `hardware_definition_id`, validation, and persistence tests.
-* The Maestro and Octopus experiments have not justified a new canonical Board ontology.
-* The project should continue using implementation evidence to reinforce or refine architecture rather than allowing implementation complexity alone to trigger redesign.
+- V0.2's machine-model-first architecture remains coherent. The Controller-to-Hardware-Definition relationship is resolved through the typed reference, validation, and persistence coverage. No new canonical ontology entity is justified by the recent bounded work.
+- **Routing (#4):** the X Motor functional-interface workflow is ACCEPTABLE for its seven criteria. The bounded SKR Mini E3 V3.0 EXP1 fixture/test work is also ACCEPTABLE following Research's review. These are scoped acceptances, not general approval of Promega wiring. Manual GUI acceptance for connector-cone rendering and Function-to-Detailed presentation remains pending.
+- **Research (#2):** reviewed the supplied SKR implementation evidence and accepted that bounded slice. Research did not independently rerun its reported tests. General connector/contact validation remains a separate open item.
+- **Controller/Board (#3):** the public Promega snapshot uses `M208 X0:360` in `config.g` and `M208 X0:380` in `config.g.bak`; the listed X/Y/Z `M92` values match. Six of seven static `M98` calls resolve in that snapshot; `resurrect-prologue.g` is absent from the snapshot, not proven absent from the installed machine. The original scan script was not recovered; a targeted scan covered 22 candidates. Installed SD-card files and actual P9/P11 plus H2/H4/S8/S6 harness mapping remain unverified.
+- **Efficiency/Audit (#5):** the X Motor acceptance remains bounded to its defined criteria. The next separate audit task is a read-only review of the general connector/contact proposal, using current source and baseline evidence. #5 retains its read-only boundary.
+- **Open engineering evidence:** Octopus Driver 2 contact 6 `SLEEP` / `DRIVER2_SLP` versus TMC5160T Pro V1.0 J1 contact 6 `CLK` remains unresolved. The integer-keyed persistence limitation is separate. Firmware mapping is not physical orientation, mating geometry, continuity, or as-built wiring.
+- **Latest workstream-reported tests:** 6 dedicated SKR tests, 96 focused regression tests, and 853 full-suite tests passed in #4's reported working tree based on `a84526b28237d1e678a044c534cc9e8ad6a80444`. These results were reported by #4; Research reviewed the supplied evidence but did not independently rerun tests. No code tests were run for this documentation refresh.
+- The most recent supplied repository preflight showed local `main`, `HEAD`, and fetched `origin/main` at `a84526b28237d1e678a044c534cc9e8ad6a80444`. The shared worktree contains concurrent unstaged implementation/documentation changes and untracked files; no other workstream's changes may be swept into a Planning update.
+
+The dated snapshots below preserve historical evidence. Their old task lists and test totals must not supersede the current synthesis above where they conflict.
+
+---
 
 ## Cross-Workstream Snapshot — Promega Integration (2026-10-10)
 
