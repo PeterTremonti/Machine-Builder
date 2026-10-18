@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
+
 from .controller_resource import ControllerResource
 from .hardware_catalog import (
     BTT_OCTOPUS_BOARD_REVISION_EVIDENCE,
@@ -977,3 +979,338 @@ def add_octopus_tmc5160t_mating_experiment(
         socket_port,
         module_port,
     )
+
+# Bounded firmware-reference fixture; not a production hardware-catalog entry.
+BTT_SKR_MINI_E3_V3_0_KLIPPER_REFERENCE_COMMIT = (
+    "6e6ad7b5201d3452aa605f4ae852c51239c2c7d8"
+)
+BTT_SKR_MINI_E3_V3_0_MARLIN_SNAPSHOT_COMMIT = (
+    "eacdb5f6a3f5d184ef29f017157948dc6f213e84"
+)
+BTT_SKR_MINI_E3_V3_0_MARLIN_SNAPSHOT_SHA256 = (
+    "C8650BB4F55558CBDD85CFEB79CB49006957860E9F2826DE3B23B15E64A002DE"
+)
+BTT_SKR_MINI_E3_V3_0_KLIPPER_SOURCE = (
+    "https://github.com/Klipper3d/klipper/blob/"
+    "6e6ad7b5201d3452aa605f4ae852c51239c2c7d8/"
+    "config/generic-bigtreetech-skr-mini-e3-v3.0.cfg"
+)
+BTT_SKR_MINI_E3_V3_0_MARLIN_SOURCE = (
+    "firmware_sources/marlin/src/pins/stm32g0/"
+    "pins_BTT_SKR_MINI_E3_V3_0.h"
+)
+
+# The canonical sample is intentionally sparse. The separate inventory below
+# retains all ten logical positions, including positions absent from this sample.
+BTT_SKR_MINI_E3_V3_0_EXP1_SAMPLE_POSITIONS = (
+    1, 2, 3, 4, 8, 9, 10,
+)
+
+# Source layers are deliberately independent:
+# - Klipper logical-position alias;
+# - Marlin EXP1_nn_PIN macro name and value;
+# - Marlin diagram/comment role;
+# - downstream Marlin peripheral macro assignment observed in one conditional
+#   block. That block is not asserted to be the active configuration.
+#
+# String keys keep the inventory JSON-safe and avoid integer-key round-trip
+# ambiguity. Values are manually reviewed claims and are tested against the
+# checked-in firmware sources by test_skr_mini_e3_exp1.py.
+BTT_SKR_MINI_E3_V3_0_EXP1_SOURCE_INVENTORY = {
+    "1": {
+        "connector_position": 1,
+        "klipper_alias": "PB5",
+        "marlin_mcu_pin_macro_name": "EXP1_01_PIN",
+        "marlin_mcu_pin_macro_value": "PB5",
+        "marlin_diagram_role_label": "BEEPER",
+        "marlin_downstream_peripheral_assignments_in_reviewed_conditional_block": [
+            {"macro": "BTN_ENC", "expression": "EXP1_01_PIN"},
+        ],
+    },
+    "2": {
+        "connector_position": 2,
+        "klipper_alias": "PA15",
+        "marlin_mcu_pin_macro_name": "EXP1_02_PIN",
+        "marlin_mcu_pin_macro_value": "PA15",
+        "marlin_diagram_role_label": "BTN_ENC",
+        "marlin_downstream_peripheral_assignments_in_reviewed_conditional_block": [
+            {"macro": "BEEPER_PIN", "expression": "EXP1_02_PIN"},
+        ],
+    },
+    "3": {
+        "connector_position": 3,
+        "klipper_alias": "PA9",
+        "marlin_mcu_pin_macro_name": "EXP1_03_PIN",
+        "marlin_mcu_pin_macro_value": "PA9",
+        "marlin_diagram_role_label": "BTN_EN1",
+        "marlin_downstream_peripheral_assignments_in_reviewed_conditional_block": [],
+    },
+    "4": {
+        "connector_position": 4,
+        "klipper_alias": "<RST>",
+        "marlin_mcu_pin_macro_name": "EXP1_04_PIN",
+        "marlin_mcu_pin_macro_value": "-1",
+        "marlin_diagram_role_label": "RESET",
+        "marlin_downstream_peripheral_assignments_in_reviewed_conditional_block": [],
+    },
+    "5": {
+        "connector_position": 5,
+        "klipper_alias": "PA10",
+        "marlin_mcu_pin_macro_name": "EXP1_05_PIN",
+        "marlin_mcu_pin_macro_value": "PA10",
+        "marlin_diagram_role_label": "BTN_EN2",
+        "marlin_downstream_peripheral_assignments_in_reviewed_conditional_block": [],
+    },
+    "6": {
+        "connector_position": 6,
+        "klipper_alias": "PB9",
+        "marlin_mcu_pin_macro_name": "EXP1_06_PIN",
+        "marlin_mcu_pin_macro_value": "PB9",
+        "marlin_diagram_role_label": "LCD_D4",
+        "marlin_downstream_peripheral_assignments_in_reviewed_conditional_block": [],
+    },
+    "7": {
+        "connector_position": 7,
+        "klipper_alias": "PB8",
+        "marlin_mcu_pin_macro_name": "EXP1_07_PIN",
+        "marlin_mcu_pin_macro_value": "PB8",
+        "marlin_diagram_role_label": "LCD_RS",
+        "marlin_downstream_peripheral_assignments_in_reviewed_conditional_block": [
+            {"macro": "BTN_EN2", "expression": "EXP1_07_PIN"},
+        ],
+    },
+    "8": {
+        "connector_position": 8,
+        "klipper_alias": "PD6",
+        "marlin_mcu_pin_macro_name": "EXP1_08_PIN",
+        "marlin_mcu_pin_macro_value": "PD6",
+        "marlin_diagram_role_label": "LCD_EN",
+        "marlin_downstream_peripheral_assignments_in_reviewed_conditional_block": [
+            {"macro": "BTN_EN1", "expression": "EXP1_08_PIN"},
+        ],
+    },
+    "9": {
+        "connector_position": 9,
+        "klipper_alias": "<GND>",
+        "marlin_mcu_pin_macro_name": "EXP1_09_PIN",
+        "marlin_mcu_pin_macro_value": "-1",
+        "marlin_diagram_role_label": "GND",
+        "marlin_downstream_peripheral_assignments_in_reviewed_conditional_block": [],
+    },
+    "10": {
+        "connector_position": 10,
+        "klipper_alias": "<5V>",
+        "marlin_mcu_pin_macro_name": "EXP1_10_PIN",
+        "marlin_mcu_pin_macro_value": "-1",
+        "marlin_diagram_role_label": "5V",
+        "marlin_downstream_peripheral_assignments_in_reviewed_conditional_block": [],
+    },
+}
+
+
+def add_btt_skr_mini_e3_v3_0_exp1_physical_interfaces(
+    model: CanonicalMachineModel,
+    machine_id: str,
+    controller_id: str = "btt-skr-mini-e3-v3-0-controller",
+    label: str = "BIGTREETECH SKR Mini E3 V3.0",
+) -> tuple[Controller, tuple[SemanticPort, ...]]:
+    """Add the bounded SKR EXP1 firmware-reference specimen.
+
+    Each sampled logical connector position becomes a distinct controller-owned
+    SemanticPort. `connector_id` groups the ports; `pin_id` intentionally
+    remains None, and numeric connector position is stored as independent data.
+
+    The ten-position evidence inventory is retained on the controller, apart
+    from the seven instantiated sample contacts. This fixture does not establish
+    physical orientation, PCB pad/net identity, cable cavity identity,
+    continuity, active Marlin configuration, or as-built wiring.
+    """
+    source_inventory = deepcopy(
+        BTT_SKR_MINI_E3_V3_0_EXP1_SOURCE_INVENTORY
+    )
+    sample_positions = tuple(
+        BTT_SKR_MINI_E3_V3_0_EXP1_SAMPLE_POSITIONS
+    )
+
+    unresolved_physical_status = {
+        "physical_orientation_status": "unverified",
+        "pcb_pad_net_crosswalk_status": "unverified",
+        "cable_mating_face_cavity_status": "unverified",
+        "contact_continuity_status": "unverified",
+        "as_built_harness_wiring_status": "unverified",
+    }
+
+    controller = Controller(
+        id=controller_id,
+        name=label,
+        controller_type="motion_controller",
+        version="V3.0",
+        properties={
+            "board_family": "BIGTREETECH SKR Mini E3 V3.0",
+            "exp1_connector_id": "exp1",
+            "exp1_sample_positions": list(sample_positions),
+            "exp1_source_inventory_scope": (
+                "All ten logical EXP1 positions from the reviewed firmware "
+                "sources; separate from the sparse instantiated sample."
+            ),
+            "exp1_source_inventory": source_inventory,
+            "klipper_upstream_reference_commit": (
+                BTT_SKR_MINI_E3_V3_0_KLIPPER_REFERENCE_COMMIT
+            ),
+            "marlin_local_snapshot_commit": (
+                BTT_SKR_MINI_E3_V3_0_MARLIN_SNAPSHOT_COMMIT
+            ),
+            "marlin_local_snapshot_sha256": (
+                BTT_SKR_MINI_E3_V3_0_MARLIN_SNAPSHOT_SHA256
+            ),
+            "marlin_upstream_origin_status": "unknown",
+            "marlin_downstream_assignment_configuration_status": (
+                "conditional_active_configuration_not_established"
+            ),
+            "marlin_role_configuration_relationship_status": "unresolved",
+            "firmware_mapping_claim_scope": (
+                "Logical connector-position mapping only; not physical "
+                "layout, electrical continuity, or as-built wiring."
+            ),
+            **unresolved_physical_status,
+        },
+        provenance=[
+            Provenance(
+                source=BTT_SKR_MINI_E3_V3_0_KLIPPER_SOURCE,
+                evidence_type="firmware_source",
+                method="pinned upstream source inspection",
+                context=(
+                    "EXP1 logical-position aliases for SKR Mini E3 V3.0."
+                ),
+                date="2026-10-16",
+                notes=(
+                    "Reference commit "
+                    f"{BTT_SKR_MINI_E3_V3_0_KLIPPER_REFERENCE_COMMIT}. "
+                    "Firmware aliases do not establish physical connector "
+                    "orientation, PCB pad identity, cable cavity, continuity, "
+                    "or as-built wiring."
+                ),
+            ),
+            Provenance(
+                source=BTT_SKR_MINI_E3_V3_0_MARLIN_SOURCE,
+                evidence_type="checked_in_firmware_source_snapshot",
+                method="reviewed local source snapshot",
+                context=(
+                    "EXP1 position macros, diagram/comment labels, and a "
+                    "conditional downstream peripheral macro block."
+                ),
+                date="2026-10-16",
+                notes=(
+                    "Local source-move commit "
+                    f"{BTT_SKR_MINI_E3_V3_0_MARLIN_SNAPSHOT_COMMIT}; SHA-256 "
+                    f"{BTT_SKR_MINI_E3_V3_0_MARLIN_SNAPSHOT_SHA256}. "
+                    "Exact upstream Marlin origin is unknown. The diagram/"
+                    "comment labels and downstream conditional assignments "
+                    "remain distinct and unreconciled; active configuration "
+                    "is not established. No physical layout or as-built "
+                    "wiring claim is made."
+                ),
+            ),
+        ],
+    )
+
+    model.add_controller(
+        machine_id,
+        controller,
+    )
+
+    ports: list[SemanticPort] = []
+
+    for position in sample_positions:
+        record = source_inventory[str(position)]
+        marlin_macro_value = record["marlin_mcu_pin_macro_value"]
+
+        port_properties: dict[str, object] = {
+            "connector_position": position,
+            "connector_position_count": 10,
+            "source_inventory_key": str(position),
+            "klipper_alias": record["klipper_alias"],
+            "marlin_mcu_pin_macro_name": (
+                record["marlin_mcu_pin_macro_name"]
+            ),
+            "marlin_mcu_pin_macro_value": marlin_macro_value,
+            "marlin_mcu_pin_mapping_status": (
+                "not_a_gpio_mapping_in_marlin_macro"
+                if marlin_macro_value == "-1"
+                else "source_supported_gpio_mapping"
+            ),
+            "marlin_diagram_role_label": (
+                record["marlin_diagram_role_label"]
+            ),
+            "marlin_downstream_peripheral_assignments_in_reviewed_conditional_block": (
+                deepcopy(
+                    record[
+                        "marlin_downstream_peripheral_assignments_in_reviewed_conditional_block"
+                    ]
+                )
+            ),
+            "marlin_downstream_assignment_configuration_status": (
+                "conditional_active_configuration_not_established"
+            ),
+            "marlin_role_configuration_relationship_status": "unresolved",
+            "firmware_mapping_claim_scope": (
+                "Logical connector-position mapping only; not physical "
+                "layout, electrical continuity, or as-built wiring."
+            ),
+            **unresolved_physical_status,
+        }
+
+        port_provenance = [
+            Provenance(
+                source=BTT_SKR_MINI_E3_V3_0_KLIPPER_SOURCE,
+                evidence_type="firmware_source",
+                method="pinned upstream source inspection",
+                context=(
+                    f"EXP1 logical position {position}: "
+                    f"Klipper alias {record['klipper_alias']}."
+                ),
+                date="2026-10-16",
+                notes=(
+                    "This supports the firmware alias for a logical "
+                    "connector position only, not the physical orientation, "
+                    "PCB pad, cable cavity, continuity, or as-built wiring."
+                ),
+            ),
+            Provenance(
+                source=BTT_SKR_MINI_E3_V3_0_MARLIN_SOURCE,
+                evidence_type="checked_in_firmware_source_snapshot",
+                method="reviewed local source snapshot",
+                context=(
+                    f"EXP1 logical position {position}: "
+                    f"{record['marlin_mcu_pin_macro_name']}="
+                    f"{marlin_macro_value}; diagram role "
+                    f"{record['marlin_diagram_role_label']}."
+                ),
+                date="2026-10-16",
+                notes=(
+                    "The downstream assignment list is from a reviewed "
+                    "conditional block and does not establish the active "
+                    "configuration or resolve the diagram-role relationship. "
+                    "Marlin upstream origin is unknown. Physical and as-built "
+                    "claims remain unverified."
+                ),
+            ),
+        ]
+
+        port = SemanticPort(
+            id=f"{controller_id}-exp1-position-{position}",
+            component_id=None,
+            purpose=(
+                f"EXP1 connector contact at logical position {position}"
+            ),
+            direction="unknown",
+            connector_id="exp1",
+            pin_id=None,
+            properties=port_properties,
+            provenance=port_provenance,
+            controller_id=controller_id,
+        )
+        model.add_port(port)
+        ports.append(port)
+
+    return controller, tuple(ports)

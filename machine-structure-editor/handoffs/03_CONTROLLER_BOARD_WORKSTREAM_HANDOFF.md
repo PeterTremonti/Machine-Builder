@@ -1,8 +1,8 @@
 # Machine Builder — Controller / Board Workstream Handoff
 
-Updated: 2026-10-12
+Updated: 2026-10-17
 
-Current repository checkpoint: `e4c8d6e` — `Correct Promega J28 guide-view and PCB pad identities`
+Current repository checkpoint: `3d8c24f` — `Clarify console output and handoff formatting rules`
 
 Current branch: `main`
 
@@ -51,41 +51,43 @@ Planning separately authorizes archival disposition.
 
 ## 3. Repository / workflow state
 
-The repository uses one shared active `main` branch.
+**Latest inspected local checkpoint (2026-10-17):**
+- Branch: `main`.
+- HEAD and `origin/main` matched at `3d8c24f10e0cdbe30db2e0a8c7a96c601f95afa2` before this handoff-only edit.
+- The shared Git index was empty. Worktree status captured for this refresh:
+- ` M machine-builder-research/standards/STANDARDS_INDEX.md`
+- ` M machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
+- ` M machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
+- ` M machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`
+- ` M machine-structure-editor/src/machine_builder/canvas_scene.py`
+- ` M machine-structure-editor/src/machine_builder/canvas_ui.py`
+- ` M machine-structure-editor/src/machine_builder/controller_board_fixtures.py`
+- ` M machine-structure-editor/src/machine_builder/graphics/connection.py`
+- ` M machine-structure-editor/src/machine_builder/graphics/node.py`
+- ` M machine-structure-editor/tests/test_functional_interface_connection.py`
+- `?? machine-structure-editor/tests/test_skr_mini_e3_exp1.py`
+- `?? "machine-structure-editor/wiring test machines/Maestro and motor test.machine.json"`
 
-Repository state is authoritative over stale handoffs or memory.
+**Board-owned proposed publication scope:**
+- `machine-structure-editor/src/machine_builder/controller_board_fixtures.py` — the current diff appends a bounded SKR Mini E3 V3.0 EXP1 firmware-reference specimen. It retains all ten logical source positions and instantiates positions 1, 2, 3, 4, 8, 9, and 10. The fixture separates Klipper aliases, Marlin macro names/values, diagram roles, and conditional downstream assignments. It marks physical orientation, PCB pad/net crosswalk, cable cavity identity, continuity, active configuration, and as-built wiring as unverified.
+- `machine-structure-editor/tests/test_skr_mini_e3_exp1.py` — the new paired regression test. Its content was inspected and the focused test was run for this refresh; the observed outcome is recorded below.
+- `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md` — this existing handoff.
 
-Current verified repository checkpoint:
+**Ownership boundaries:**
+- Research-owned changes remain outside this Board commit: `machine-builder-research/standards/STANDARDS_INDEX.md` and `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`.
+- Routing/visual integration changes remain outside this Board commit: `machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`, `machine-structure-editor/src/machine_builder/canvas_scene.py`, `machine-structure-editor/src/machine_builder/canvas_ui.py`, `machine-structure-editor/src/machine_builder/graphics/connection.py`, `machine-structure-editor/src/machine_builder/graphics/node.py`, and `machine-structure-editor/tests/test_functional_interface_connection.py`.
+- `machine-structure-editor/wiring test machines/Maestro and motor test.machine.json` is untracked and is excluded from the Board commit pending explicit ownership confirmation. The name suggests visual integration test scaffolding, but the file content was not inspected in the supplied diff output.
 
-`25d8268 Record hardware catalog research and handoff checkpoint`
+**Implemented versus validated:**
+- The SKR EXP1 fixture addition is present in the working tree; prior file history shows this path has been used for Board-specific fixtures, and the current delta itself is Board-reference modeling. The paired test's focused result for this refresh: PASS (pytest exit 0; 36 passed in 0.16s). This is focused coverage, not a full-suite result.
+- The supplied inspection's `git diff --check HEAD` passed with line-ending warnings. The post-edit whitespace-check result is recorded in the console output for this refresh.
+- The previous handoff's `30 passed` Board-fixture result and `843 passed` full-suite result predate this uncommitted addition; they do not validate the current SKR fixture. No full-suite run is claimed here.
+- The existing X Motor and SKR EXP1 dispositions are preserved. This documentation refresh does not reclassify either disposition and does not assert that firmware-logical positions establish physical orientation or wiring.
 
-Verified at 2026-10-11 12:33:29 -04:00 against local main and fetched origin/main at full SHA 25d8268600c0979ecfccfccb8a1b0b04bcf89014. Before this documentation update, the Board handoff had existing unstaged documentation corrections; three Research-owned files had staged changes. This update preserves those other changes.
-
-Current branch and remote:
-
-`main...origin/main`
-
-At the start of this update, local main and fetched origin/main matched at 25d8268600c0979ecfccfccb8a1b0b04bcf89014. Existing staged Research-owned changes and the prior unstaged Board handoff correction are being preserved.
-
-Board work should use:
-
-* PowerShell / terminal;
-* Git;
-* existing project tooling;
-* direct source/test inspection.
-
-Do not use Python/Jupyter/pandas/data-analysis workflows for ordinary
-repository inspection, implementation, or testing.
-
-For tracked-file edits:
-
-* prefer small guarded edits;
-* preserve UTF-8 and line endings;
-* run Board-scoped `git diff --check`;
-* inspect the relevant diff;
-* run focused tests before the broader suite;
-* do not commit/push until the appropriate Planning authorization exists;
-* use GitHub Desktop for commits and pushes.
+- **SKR EXP1 source-integrity regression (reported validation):** added `test_checked_in_marlin_source_matches_pinned_sha256` for the repository-root-relative source `firmware_sources/marlin/src/pins/stm32g0/pins_BTT_SKR_MINI_E3_V3_0.h`. With `core.autocrlf=true`, the reported raw working-tree byte digest and CRLF-normalized UTF-8 digest both matched the recorded SHA-256 `C8650BB4F55558CBDD85CFEB79CB49006957860E9F2826DE3B23B15E64A002DE`; the LF-normalized digest differed. The regression explicitly normalizes to CRLF before hashing.
+- **Focused validation reported from the local console:** from `machine-structure-editor`, `.venv\Scripts\python.exe -m pytest -q --tb=short tests/test_skr_mini_e3_exp1.py` returned **7 passed in 0.15s**, exit code 0; the enclosing PowerShell stopwatch measured 0.64 seconds. Tracked-path `git diff --check HEAD` passed with exit code 0; the separate untracked-test whitespace check also passed. Git emitted LF-to-CRLF advisories only.
+- **Evidence boundary preserved:** the digest test establishes source-snapshot integrity only. It does not establish manufacturer diagram orientation, physical PCB pad/net identity, cable mating-face/cavity correspondence, continuity, or as-built harness wiring. The separate Octopus/TMC5160T contact-6 discrepancy remains unresolved.
+**Publication state at pre-publication handoff edit (2026-10-17):** the three Board paths had not yet been staged, committed, or pushed when this entry was written. Planning has since authorized owner-scoped publication after Research completed. No Routing/visual paths or the untracked Maestro/motor test-machine JSON belong in this Board commit. Proposed subject: `Add SKR Mini E3 EXP1 firmware-reference fixture`.
 
 ## 4. Established semantic vocabulary
 
@@ -1731,7 +1733,7 @@ The separate Compound tool definitions use H2 for the Compound mixing tool and i
 
 The current manufacturer Tool Definitions page contains contradictory left/right statements for Compound T1 and T2: T1 is labeled Single Left and assigned Extruder 0 (Left), but its prose says it extrudes with only the right extruder; T2 is labeled Single Right and assigned Extruder 1 (Right), but its prose says it extrudes with only the left. The commit-pinned historical v1.0.1 `machine_compound_tools.g` clarifies the intent in that release: `M563 P1 D0 ... S"Mixing as Single Left"` is commented as using the left extruder motor, and `M563 P2 D1 ... S"Mixing as Single Right"` is commented as using the right extruder motor. The page prose therefore appears reversed relative to the pinned historical configuration and its tool/drive assignments. Promega's Help! My Extruders Are Backwards troubleshooting guide independently states that drive 0 should move the left extruder and drive 1 the right, and repeats the M563 P1 D0 / M563 P2 D1 assignments. This corroborates the intended logical mapping in those sources but does not prove which drive the installed physical harness actually moves; physical wiring or the applicable as-built configuration must still be verified. Treat this as historical logical configuration evidence only; the actual installed `machine_compound_tools.g` and physical harness terminations still need verification before confirming the as-built left/right mapping.
 
-The public 2018 PrintM3D release is not a verified active RepRapFirmware 3.5.4 configuration. The RRF 3.x changelog says `M667` is no longer supported from RRF 3.5.3 and `M669 K1` selects CoreXY; its 3.5.3 notes also document removal of the `I` parameter from `M558`. RRF3 sensor setup uses `M308`, and heater/fan setup commonly uses `M950`. The project context reports RRF 3.5.4 / ConfigTool 3.5.12 as its target baseline, but those installed files were not retrieved in this research pass.
+The public 2018 PrintM3D release is not a verified active RepRapFirmware 3.5.4 configuration. The RRF 3.x changelog says `M667` is no longer supported from RRF 3.5.3 and `M669 K1` selects CoreXY; its 3.5.3 notes also document removal of the `I` parameter from `M558`. RRF3 sensor setup uses `M308`, and heater/fan setup commonly uses `M950`. The project context reports RRF 3.5.4 / ConfigTool 3.5.12 as the target baseline. The installed SD-card files were not retrieved directly in this public-source research pass; live-controller runtime output is separate evidence and does not identify the exact source file for each setting.
 
 A reliable active-configuration audit requires the applicable installed `sys/config.g` and the files it calls through `M98`. Promega's SD Card Structure guide identifies separate machine files including `machine_axisdimensions.g`, `machine_axissteps.g`, `machine_maxtemp.g`, `machine_zendstop.g`, and `machine_zprobe.g`, as well as the `homex.g`, `homey.g`, `homez.g`, and `homeall.g` homing macros. Inspect the actual include targets and any nested includes; do not assume `config.g` alone defines the active assignments. Check motor and axis mapping (`M584`, `M569`, `M92`, `M350`, `M208`, `M669`), sensors/heaters/fans (`M308`, `M950`, `M558`, `G31`, `M307`, `M106`), endstops (`M574`), and tool definitions (`M563`, `M568`, `M567`). Include any files under `macros` that are actually called. Do not describe historical assignments as active machine facts without reading those files.
 
@@ -2043,13 +2045,59 @@ Validation performed on the working tree after adding the J34 / E0 STOP PCB iden
 
 The J34 expected pad/net values were manually reviewed against the pinned KiCad PCB source. The tests validate fixture metadata and provenance; they do not parse the external PCB file. The mapping establishes reference-board pad/net identity only, not installed-board revision, cable orientation/cavities, actual wiring, or firmware STOP configuration.
 
+### Promega RRF 3.5.4 Configuration-Source Investigation Refresh
+From #3 -> To #3 - Promega RRF 3.5.4 Research Check Results
+Prepared: 2026-10-17 09:40 EDT | Message ID: MB-20261017-0940-01
+Relationship: Follow-up to MB-20261017-0928-01
+
+**Owner and current task.** Controller/Board (#3) owns the bounded Promega configuration-source closeout and maintenance of the controller-side hardware evidence. This is research/documentation only; it does not authorize model, fixture, or source-code changes.
+
+**Public source locations and checkpoint — historical evidence.**
+- Repository: `https://github.com/PeterTremonti/M3D-Promega`, under `SD Contents/`. The inspected tree snapshot is commit `fa72508fd221f9238521f33b0bcdc43c0f5d8332` (2026-04-11), containing 171 files.
+- Inspected candidates include `SD Contents/sys/config.g`, `sys/config.g.bak`, `sys/config-override.g`, `sys/homeall.g`, `sys/homex.g`, `sys/homey.g`, `sys/homez.g`, `sys/machine_zprobe.g`, `sys/machine_compound_tools.g`, tool macros, and the firmware/sys ConfigTool JSON files.
+- `SD Contents/promega_rrf_354_irprobe_bundle.zip` contains five members: `configtool.json`, `sys/homez.g`, `sys/homeall.g`, `sys/bed.g`, and `sys/deployprobe.g`.
+- The public `config.g.bak` is not identical to `config.g`. After normalizing line endings, their only content difference is line 31: `config.g` has `M208 X0:360 Y0:380 Z0:380`, while `config.g.bak` has `M208 X0:380 Y0:380 Z0:380`. Their `M92` lines match at lines 30 and 40. The base file identifies ConfigTool 3.5.12 and is dated 2025-06-20; `config-override.g` is dated 2025-06-28 and contains heater-model and G10 workplace-offset settings. The base configuration invokes M501.
+- The inspected candidate-file history queries completed and trace to the single SD-card upload commit `8d8385d2efce` (2025-09-21). This is an uploaded snapshot, not an active configuration-change history.
+
+**What the historical public configuration establishes.**
+- The snapshot records assignments such as `M584 X0 Y1 Z2`, `M584 E3:4`, CoreXY via `M669 K1`, probe settings, sensors, heaters, fans, and tool definitions.
+- The public configuration has `G31 ... Z1.10`, defines sensor S2 as PT1000, and maps the tools to fan index F1. These are historical values only; they are not proof of current installed files or physical wiring.
+
+**Separate live-controller evidence.**
+- Live `M115` reported RRF 3.5.4, build date 2024-11-24. Live `M503` differed from the public snapshot, including `G31 ... Z1.50` before later temporary calibration and S2 on `e1temp` as a 100 kΩ B4138 thermistor rather than PT1000. Live heater models also differed. Controller runtime output does not identify the exact SD-card file that supplied each setting.
+- Live fan inventory identified F0 as the thermostatically controlled nozzle-heatsink fan associated with heater H2 and a 45°C threshold, F2 as part cooling, and F1 as unconfigured. Physical inspection found wires on FAN0 and FAN2, not FAN1 or the always-on output. `M106 P2 S255` ran both side-mounted part-cooling fans.
+- Temporary tool remapping to F2 made part cooling respond during a print, but those temporary `M563` changes were lost at power-off. No permanent tool-mapping edit has been made.
+- P9/P11 fan harness identity and variant-specific H2/H4 heater and S8/S6 sensor-side assignments remain physically unverified. Do not infer them from historical diagrams for a different assembly.
+
+**Research-process check results (public snapshot; 2026-10-17).**
+- **M98 path-resolution check — completed against the pinned snapshot.** The prior executable research script was not recovered. The batch read public archive commit `fa72508fd221f9238521f33b0bcdc43c0f5d8332` in memory and indexed 171 files, including 34 G-code-like text files. It found seven static `M98` calls; six targets exist exactly, with no case mismatches, dynamic targets, or unparsed includes reported.
+- **Existing targets:** `sys/homeall.g:10` -> `sys/homey.g`; `sys/homeall.g:11` -> `sys/homex.g`; `sys/homeall.g:12` -> `sys/homez.g`; `sys/homex.g:5` -> `sys/homey.g`; `sys/homez.g:3` -> `sys/homex.g`; `sys/homez.g:6` -> `sys/homey.g`.
+- **Missing target in the public snapshot:** `sys/resurrect.g:9` calls `M98 P"resurrect-prologue.g"`, resolving to `sys/resurrect-prologue.g`, which is absent from that snapshot. This does not establish whether `resurrect.g` is used during normal startup, nor whether the file exists on the installed printer. The full set of static `M98` lines found in the scanned text sources is listed above.
+- **Configuration-line inventory — completed as a targeted substitute; original skipped block not recovered.** The executable research script and exact skipped section were not recovered, so this is not represented as a replay of the original script.
+- Scope: 22 top-level `SD Contents/sys/*.g` and `*.g.bak` candidates were scanned. Generated `gcodes/*.gcode` and nested subdirectories were excluded.
+- The initial configuration scan found 95 command-line occurrences; a separate `M92` supplement found four lines, bringing the total to 99 occurrences across 21 command families. Counts include the backup file and therefore are not 99 independent configuration statements.
+- **Exact M92 evidence:** `config.g:30` — `M92 X79.48 Y80.44 Z283.92`; `config.g:40` — `M92 E208.25:208.25`. The same two lines occur in `config.g.bak`.
+- **Backup comparison and user-reported reason for the X-limit change:** Raw-byte and normalized-text comparisons both differ. After normalizing line endings, line 31 is the only content difference: `config.g` uses `M208 X0:360 Y0:380 Z0:380`; `config.g.bak` uses `M208 X0:380 Y0:380 Z0:380`. The user confirms they have not modified `config.g.bak` and are unsure of its intended purpose; they tentatively believe it represents earlier/original settings. The user attributes reducing the X maximum in `config.g` from 380 mm to 360 mm to the dual part-cooling fan setup protruding about 20 mm farther and needing clearance. This is user-reported context consistent with the file difference, not independently established file history.
+- This scoped scan found no `M581`, `M581.1`, or `M500` command lines in the inspected candidates. `M501` occurs at line 91 in both `config.g` and the backup; the duplicate is not independent evidence. These are public-snapshot findings only.
+- **Public configuration-line inventory completed as a targeted substitute:** 22 top-level `sys/*.g` / `sys/*.g.bak` files scanned, excluding generated G-code. The first pass omitted `M92`; the supplemental query verified both M92 statements at lines 30 and 40 in `config.g` and its backup. The backup differs only at M208 line 31, as recorded above. Do not rerun this inventory or claim that the unrecovered original skipped script block was replayed. If further file-level attribution is needed, obtain the installed printer SD-card files separately.
+- **History and evidence boundaries:** the earlier candidate-file history queries remain complete and converge on upload commit `8d8385d2efce` (2025-09-21). No history queries were run in the latest batch. Public historical configuration, live controller reports, installed SD-card files, physical board evidence, and physical harness assignments remain distinct evidence classes. The installed files and P9/P11/H2/H4/S8/S6 harness assignments remain unverified.
+
+**Latest physical diagnostic — separate from firmware-source attribution.**
+On 2026-10-15/16, IR-probe calibration did not reach a verified conclusion. Repeated `G30 S-1` trigger-height readings drifted systematically, reaching 1.236 mm down to 0.990 mm on 2026-10-16 after repeated Z cycles. The user observed that the bed appeared slightly lower at the same commanded Z position. Live Z settings were reduced to `M201 Z75` and `M203 Z600`; a rail lubricant was later applied, but the mechanical cause remains unresolved. No final calibrated `G31` offset or post-adjustment `G32` mesh is verified. Do not turn these drifting readings into a saved offset or recommend a faster print before Z-position repeatability is established.
+
+**Repository state before this documentation refresh.**
+Branch `main`, HEAD and `origin/main` both `a84526b28237d1e678a044c534cc9e8ad6a80444` (`Close X motor functional interface acceptance gaps`). This handoff had no local or staged changes. The shared checkout had ten other modified tracked paths and one untracked test-machine JSON file, with nothing staged. Preserve all of them. This refresh is documentation-only and must remain unstaged/uncommitted unless a later, separately authorized publication step is requested.
+
+**Acceptance gate.** The public-source checks are complete to the extent supported by recoverable evidence: seven static M98 calls were examined (six targets exist and `sys/resurrect-prologue.g` is absent from the pinned snapshot), and a configuration-only inventory covered 22 top-level `sys` `.g` / `.g.bak` files, including the supplemental M92 check. The exact original skipped script block was not recovered, so this is a documented targeted substitute rather than a claim that the original skipped code ran. The public backup's single normalized content difference is the M208 X lower bound on line 31. Installed SD-card configuration and physical harness assignments remain unverified.
+
 ### Concrete next research steps
 
-1. Preserve the validated X/Y board-plug reference mating slice. Do not add cable-to-coil connections until the internal wire/contact order is supported by manufacturer evidence or physical inspection.
-2. Use the manufacturer-reference mapping X-labeled limit-switch harness to J33 / X STOP and Y-labeled harness to J32 / Y STOP. Keep installed wiring and active M574/homing configuration unverified until checked; do not infer conductor-to-contact pin order. Keep the mechanical Z endstop distinct from the IR-probe path.
-3. Expand bed and extruder temperature connections when physical sensor/harness roles are established. Use S8/S6 side facts only after confirming the old assembly or resolving the new assembly with a source or physical trace.
-4. Keep E0/E1 heater wiring provisional until the appropriate assembly's H2/H4 side mapping is established. Retain J11/J13 as known screw-terminal reference endpoints and J16/J17 as unverified populated physical endpoints.
-5. Resolve P9/P11 by tracing or continuity-testing the installed leads, then confirm the board output and jumper state. Preserve the 5 V nozzle versus 24 V cold-section distinction.
-6. Obtain the actual RRF 3.5.4 SD-card configuration set for the applicable machine and record its files and assignments as observed, separate from the pinned historical baseline.
+1. **Immediate next action — #3:** complete the rendered manufacturer-PDF visual verification of the SKR Mini E3 V3.0 EXP1 diagram. This public-source check can proceed independently of Promega SD-card evidence and other workstream publication. Preserve the existing X Motor and SKR EXP1 dispositions; do not infer a physical cavity map from MCU aliases.
+
+2. **Independent Board research — #3:** continue the reference-board coverage and geometry work from manufacturer/KiCad sources, including connector locations/orientation and mounting-hole relationships where source evidence supports them. This does not depend on the installed Promega harness.
+
+3. **Promega configuration comparison — blocked only on installed-file evidence:** when back at work, the user plans to add the current SD-card contents to a second, clearly named folder in the Promega-specific repository, leaving the existing historical `SD Contents/` snapshot untouched. #3 will compare the installed configuration and its `M98` include tree after that repository update. No direct upload, photo, or new artifact is requested here.
+
+4. **Promega physical harness facts remain unresolved:** P9/P11 fan identity and the applicable H2/H4 heater and S8/S6 sensor mappings must not be asserted from a historical configuration alone. Continue using available public sources; retain unknown status for facts those sources cannot establish.
 
 The existing IR-probe reference connections and corrected J4 mapping remain established project context. No duplicate implementation is proposed here. No new ontology, fixtures or source changes are authorized by this research update.
