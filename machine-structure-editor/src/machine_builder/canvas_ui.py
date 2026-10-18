@@ -303,6 +303,92 @@ class CanvasUIMixin:
         self._apply_controller_connector_focus()
         self._update_controller_focus_help()
 
+    def _build_connector_group_info(
+        self,
+        node,
+        controller_id: str,
+        connector_id: str,
+    ) -> dict | None:
+        """Resolve existing connector/contact semantics for presentation only."""
+        model = self.store.semantic_model
+        group_matches = [
+            port
+            for port in model.ports.values()
+            if port.controller_id == controller_id
+            and port.component_id is None
+            and port.connector_id == connector_id
+            and port.pin_id is None
+            and port.properties.get("interface_granularity") == "connector_level"
+        ]
+        if len(group_matches) != 1:
+            return None
+
+        group_port = group_matches[0]
+        pins = {}
+        for visual_port in node.ports.values():
+            port = model.ports.get(visual_port.semantic_reference)
+            if (
+                port is None
+                or port.controller_id != controller_id
+                or port.component_id is not None
+                or port.connector_id != connector_id
+                or port.pin_id is None
+            ):
+                continue
+            pins[visual_port.id] = {
+                "pin_label": port.properties.get("pin_label") or port.label,
+                "purpose": getattr(port, "purpose", "") or "",
+            }
+
+        connected = False
+        direction = "right"
+        for connection in model.connections.values():
+            endpoints = (connection.endpoint_a_id, connection.endpoint_b_id)
+            if group_port.id not in endpoints:
+                continue
+            other_id = (
+                connection.endpoint_b_id
+                if connection.endpoint_a_id == group_port.id
+                else connection.endpoint_a_id
+            )
+            other_port = model.ports.get(other_id)
+            if (
+                other_port is None
+                or other_port.properties.get("interface_granularity")
+                != "functional_interface"
+                or other_port.properties.get("interface_role")
+                != "motor_electrical_interface"
+            ):
+                continue
+
+            connected = True
+            target_node = next(
+                (
+                    candidate
+                    for candidate in self.store.model.nodes.values()
+                    if any(
+                        visual_port.semantic_reference == other_id
+                        for visual_port in candidate.ports.values()
+                    )
+                ),
+                None,
+            )
+            if target_node is not None and target_node.x < node.x:
+                direction = "left"
+            break
+
+        return {
+            "endpoint_port_id": group_port.id,
+            "title": (
+                group_port.properties.get("connector_label")
+                or group_port.label
+                or connector_id
+            ),
+            "pins": pins,
+            "connected": connected,
+            "direction": direction,
+        }
+
     def _apply_controller_connector_focus(self) -> None:
         """Filter port graphics by detail level without editing the model."""
         focus = self._controller_port_focus
@@ -362,7 +448,25 @@ class CanvasUIMixin:
                 if not visible_ids:
                     visible_ids.update(node.ports)
 
-            graphics.set_controller_port_focus(visible_ids)
+            connector_group_info = None
+            if (
+                focus is not None
+                and not all_details
+                and node.node_type == "controller"
+            ):
+                controller_id, connector_id, mode = focus
+                if (
+                    mode == "contacts"
+                    and node.semantic_reference == controller_id
+                ):
+                    connector_group_info = self._build_connector_group_info(
+                        node, controller_id, connector_id
+                    )
+
+            graphics.set_controller_port_focus(
+                visible_ids,
+                connector_group_info,
+            )
 
         self._scene_controller.update_connection_graphics()
         self.view.viewport().update()
@@ -521,6 +625,11 @@ class CanvasUIMixin:
         bounds = frame_items[0].sceneBoundingRect()
         for item in frame_items[1:]:
             bounds = bounds.united(item.sceneBoundingRect())
+
+        for node_graphics in self._node_items.values():
+            overlay_bounds = node_graphics.connector_group_overlay_bounds()
+            if overlay_bounds is not None:
+                bounds = bounds.united(overlay_bounds)
 
         if bounds.isNull():
             return

@@ -117,6 +117,54 @@ class CanvasSceneController:
 
             start = endpoint_a_item.scenePos()
             end = endpoint_b_item.scenePos()
+            endpoint_side_overrides = {}
+
+            for endpoint_id, endpoint_item, endpoint_name in (
+                (connection.endpoint_a_id, endpoint_a_item, "start"),
+                (connection.endpoint_b_id, endpoint_b_item, "end"),
+            ):
+                node_graphics = endpoint_item.parentItem()
+                anchor_getter = getattr(
+                    node_graphics,
+                    "connector_group_anchor_for_port",
+                    None,
+                )
+                visual_port = getattr(node_graphics, "_visual_ports", {}).get(
+                    getattr(endpoint_item, "port_id", None)
+                )
+                semantic_endpoint_id = (
+                    getattr(visual_port, "semantic_reference", None)
+                    or endpoint_id
+                )
+                anchor = (
+                    anchor_getter(semantic_endpoint_id)
+                    if callable(anchor_getter)
+                    else None
+                )
+                if anchor is None:
+                    continue
+
+                if endpoint_name == "start":
+                    start = anchor
+                else:
+                    end = anchor
+
+                side_getter = getattr(
+                    node_graphics,
+                    "connector_group_endpoint_side_for_port",
+                    None,
+                )
+                side = (
+                    side_getter(semantic_endpoint_id)
+                    if callable(side_getter)
+                    else None
+                )
+                if side in {"left", "right", "top", "bottom"}:
+                    endpoint_side_overrides[endpoint_id] = side
+
+            set_overrides = getattr(graphics, "set_endpoint_side_overrides", None)
+            if callable(set_overrides):
+                set_overrides(endpoint_side_overrides)
 
             graphics.setLine(
                 start.x(),

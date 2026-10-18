@@ -8,15 +8,17 @@ from __future__ import annotations
 
 from typing import Any
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import (
     QBrush,
     QColor,
     QFont,
+    QPainterPath,
     QPen,
 )
 from PySide6.QtWidgets import (
     QGraphicsItem,
+    QGraphicsPathItem,
     QGraphicsRectItem,
     QGraphicsSimpleTextItem,
 )
@@ -101,6 +103,47 @@ class NodeGraphicsItem(QGraphicsRectItem):
         self._visual_ports = dict(node.ports)
         self._controller_focus_active = False
         self._focused_port_ids: set[str] = set()
+
+        self._connector_group_info: dict[str, Any] | None = None
+        self._connector_group_original_labels: dict[str, str] = {}
+        self._connector_group_anchor_local: QPointF | None = None
+        self._connector_group_endpoint_port_id: str | None = None
+
+        self._connector_group_cone = QGraphicsPathItem(self)
+        self._connector_group_cone.setBrush(
+            QBrush(QColor(165, 178, 196, 75))
+        )
+        self._connector_group_cone.setPen(
+            QPen(QColor(185, 198, 215, 130), 1.0)
+        )
+        self._connector_group_cone.setZValue(4.0)
+        self._connector_group_cone.setAcceptedMouseButtons(
+            Qt.MouseButton.NoButton
+        )
+        self._connector_group_cone.setVisible(False)
+
+        self._connector_group_box = QGraphicsPathItem(self)
+        self._connector_group_box.setBrush(
+            QBrush(QColor(47, 55, 68, 205))
+        )
+        self._connector_group_box.setPen(
+            QPen(QColor(183, 197, 216, 220), 1.3)
+        )
+        self._connector_group_box.setZValue(5.0)
+        self._connector_group_box.setAcceptedMouseButtons(
+            Qt.MouseButton.NoButton
+        )
+        self._connector_group_box.setVisible(False)
+
+        self._connector_group_title = QGraphicsSimpleTextItem("", self)
+        self._connector_group_title.setBrush(
+            QBrush(QColor("#f0f0f0"))
+        )
+        self._connector_group_title.setZValue(7.0)
+        self._connector_group_title.setAcceptedMouseButtons(
+            Qt.MouseButton.NoButton
+        )
+        self._connector_group_title.setVisible(False)
 
         self.setFlag(
             QGraphicsItem.GraphicsItemFlag.ItemIsMovable,
@@ -342,14 +385,16 @@ class NodeGraphicsItem(QGraphicsRectItem):
     def set_controller_port_focus(
         self,
         visible_port_ids: set[str],
+        connector_group_info: dict[str, Any] | None = None,
     ) -> None:
-        """Apply transient port-detail focus to a node's graphics only."""
+        """Apply presentation-only port focus and optional connector grouping."""
         self._controller_focus_active = True
         self._focused_port_ids = set(visible_port_ids)
+        self._connector_group_info = connector_group_info
         self._apply_controller_port_focus()
 
     def _apply_controller_port_focus(self) -> None:
-        """Hide off-focus port graphics and expand the box for contacts."""
+        """Hide off-focus ports and lay out the selected contact group."""
         if not self._controller_focus_active:
             return
 
@@ -364,6 +409,7 @@ class NodeGraphicsItem(QGraphicsRectItem):
         ]
         if not focused_ports:
             self.setRect(0.0, 0.0, self._base_width, self._base_height)
+            self._update_connector_group_overlay()
             return
 
         by_side = {
@@ -401,6 +447,142 @@ class NodeGraphicsItem(QGraphicsRectItem):
         self._layout_side(by_side["right"], "right", width, height)
         self._layout_side(by_side["top"], "top", width, height)
         self._layout_side(by_side["bottom"], "bottom", width, height)
+        self._update_connector_group_overlay()
+
+    def _hide_connector_group_overlay(self) -> None:
+        for port_id, original_text in self._connector_group_original_labels.items():
+            item = self._port_items.get(port_id)
+            label_item = getattr(item, "_label_item", None) if item else None
+            if label_item is not None:
+                label_item.setText(original_text)
+
+        self._connector_group_original_labels.clear()
+        self._connector_group_box.setVisible(False)
+        self._connector_group_title.setVisible(False)
+        self._connector_group_cone.setVisible(False)
+        self._connector_group_anchor_local = None
+        self._connector_group_endpoint_port_id = None
+
+    def _update_connector_group_overlay(self) -> None:
+        """Draw one connector enclosure and, if connected, one neutral cone."""
+        info = self._connector_group_info
+        if not info or not self._controller_focus_active:
+            self._hide_connector_group_overlay()
+            return
+
+        pins = info.get("pins", {})
+        bounds = None
+        for port_id, pin_info in pins.items():
+            item = self._port_items.get(port_id)
+            if item is None or not item.isVisible():
+                continue
+
+            label_item = getattr(item, "_label_item", None)
+            if label_item is not None:
+                if port_id not in self._connector_group_original_labels:
+                    self._connector_group_original_labels[port_id] = (
+                        label_item.text()
+                    )
+                pin_label = str(pin_info.get("pin_label") or "Contact")
+                purpose = str(pin_info.get("purpose") or "").strip()
+                label_item.setText(
+                    f"{pin_label} — {purpose}" if purpose else pin_label
+                )
+
+            item_bounds = item.mapRectToParent(item.boundingRect())
+            bounds = (
+                item_bounds
+                if bounds is None
+                else bounds.united(item_bounds)
+            )
+            if label_item is not None:
+                label_bounds = label_item.mapRectToItem(
+                    self, label_item.boundingRect()
+                )
+                bounds = bounds.united(label_bounds)
+
+        if bounds is None:
+            self._hide_connector_group_overlay()
+            return
+
+        title = str(info.get("title") or "Connector")
+        self._connector_group_title.setText(title)
+        box = bounds.adjusted(-14.0, -30.0, 14.0, 12.0)
+        minimum_width = self._connector_group_title.boundingRect().width() + 24.0
+        if box.width() < minimum_width:
+            box.setWidth(minimum_width)
+
+        enclosure_path = QPainterPath()
+        enclosure_path.addRect(box)
+        self._connector_group_box.setPath(enclosure_path)
+        self._connector_group_title.setPos(
+            box.left() + 12.0,
+            box.top() + 5.0,
+        )
+        self._connector_group_box.setVisible(True)
+        self._connector_group_title.setVisible(True)
+
+        connected = bool(info.get("connected"))
+        direction = "left" if info.get("direction") == "left" else "right"
+        center_y = box.center().y()
+        base_top = min(box.bottom() - 8.0, box.top() + 28.0)
+        base_bottom = max(box.top() + 28.0, box.bottom() - 8.0)
+        base_x = box.left() if direction == "left" else box.right()
+        tip_x = base_x - 112.0 if direction == "left" else base_x + 112.0
+
+        path = QPainterPath()
+        path.moveTo(QPointF(tip_x, center_y))
+        path.lineTo(QPointF(base_x, base_top))
+        path.lineTo(QPointF(base_x, base_bottom))
+        path.closeSubpath()
+        self._connector_group_cone.setPath(path)
+        self._connector_group_cone.setVisible(connected)
+
+        self._connector_group_anchor_local = (
+            QPointF(tip_x, center_y) if connected else None
+        )
+        self._connector_group_endpoint_port_id = (
+            info.get("endpoint_port_id") if connected else None
+        )
+
+    def connector_group_anchor_for_port(
+        self,
+        semantic_port_id: str,
+    ) -> QPointF | None:
+        """Return the scene-space cone tip for a connected group endpoint."""
+        if (
+            semantic_port_id != self._connector_group_endpoint_port_id
+            or self._connector_group_anchor_local is None
+            or not self._connector_group_cone.isVisible()
+        ):
+            return None
+        return self.mapToScene(self._connector_group_anchor_local)
+
+    def connector_group_endpoint_side_for_port(
+        self,
+        semantic_port_id: str,
+    ) -> str | None:
+        if semantic_port_id != self._connector_group_endpoint_port_id:
+            return None
+        if not self._connector_group_cone.isVisible():
+            return None
+        return (
+            "left"
+            if self._connector_group_info
+            and self._connector_group_info.get("direction") == "left"
+            else "right"
+        )
+
+    def connector_group_overlay_bounds(self):
+        """Return scene bounds for visible group graphics, if any."""
+        if not self._connector_group_box.isVisible():
+            return None
+        bounds = self._connector_group_box.path().boundingRect()
+        if self._connector_group_cone.isVisible():
+            bounds = bounds.united(
+                self._connector_group_cone.path().boundingRect()
+            )
+        return self.mapRectToScene(bounds)
 
     def _layout_side(
         self,

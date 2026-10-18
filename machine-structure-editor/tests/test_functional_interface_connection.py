@@ -197,6 +197,22 @@ def test_interface_focus_preserves_contacts_and_persistence(tmp_path):
         for port in contacts.values()
     ]
     assert all(item.isVisible() for item in contact_items)
+    assert controller_graphics._connector_group_box.isVisible()
+    assert controller_graphics._connector_group_title.text() == "J9 / X Motor"
+    assert not controller_graphics._connector_group_cone.isVisible()
+    group_id = f"{controller_id}-x-motor-interface"
+    assert controller_graphics.connector_group_anchor_for_port(group_id) is None
+
+    for visual_port in contacts.values():
+        semantic_port = model.ports[visual_port.semantic_reference]
+        expected_label = (
+            f"{semantic_port.properties['pin_label']} — {semantic_port.purpose}"
+        )
+        assert (
+            controller_graphics._port_items[visual_port.id]._label_item.text()
+            == expected_label
+        )
+
     assert controller_graphics.rect().height() >= 48.0 + 34.0 * 4
     ys = sorted(item.pos().y() for item in contact_items)
     assert all(right - left >= 30.0 for left, right in zip(ys, ys[1:]))
@@ -394,6 +410,45 @@ def test_interface_drag_creates_reference_scoped_connection(monkeypatch, tmp_pat
         controller_visual.id
     ].isVisible()
     assert graphics_connection.isVisible()
+
+    controller_graphics = canvas._node_items[controller_node.id]
+    assert controller_graphics._connector_group_box.isVisible()
+    assert controller_graphics._connector_group_title.text() == "J9 / X Motor"
+    assert controller_graphics._connector_group_cone.isVisible()
+    anchor = controller_graphics.connector_group_anchor_for_port(
+        controller_port_id
+    )
+    assert anchor is not None
+
+    # The routed path must terminate at the cone tip, not merely expose an
+    # anchor while leaving the visible connection attached to the hidden port.
+    path = graphics_connection.path()
+    assert path.elementCount() >= 2
+    if graphics_connection.endpoint_a_id == controller_visual.id:
+        endpoint_fraction = 0.0
+    else:
+        assert graphics_connection.endpoint_b_id == controller_visual.id
+        endpoint_fraction = 1.0
+
+    rendered_endpoint = graphics_connection.mapToScene(
+        path.pointAtPercent(endpoint_fraction)
+    )
+    assert abs(rendered_endpoint.x() - anchor.x()) <= 1e-6
+    assert abs(rendered_endpoint.y() - anchor.y()) <= 1e-6
+
+    assert (
+        graphics_connection._endpoint_side_overrides[controller_visual.id]
+        in {"left", "right"}
+    )
+
+    for position in range(1, 5):
+        contact_id = f"{controller_id}-x-motor-pin-{position}"
+        contact_visual = _visual_port(controller_node, contact_id)
+        contact_semantic = canvas.store.semantic_model.ports[contact_id]
+        assert (
+            controller_graphics._port_items[contact_visual.id]._label_item.text()
+            == f"{contact_semantic.properties['pin_label']} — {contact_semantic.purpose}"
+        )
 
     # Focus changes must not affect undo history. Undo/redo must remove and
     # restore the functional relationship while preserving J9 contacts.

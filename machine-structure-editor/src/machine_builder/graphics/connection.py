@@ -1075,6 +1075,13 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
 
         return "\n".join(lines)
 
+    def set_endpoint_side_overrides(
+        self,
+        overrides: dict[str, str],
+    ) -> None:
+        """Set transient visual escape directions for grouped endpoints."""
+        self._endpoint_side_overrides = dict(overrides)
+
     def setLine(
         self,
         x1: float,
@@ -1244,6 +1251,9 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
                 "_side",
                 "",
             )
+        )
+        side = getattr(self, "_endpoint_side_overrides", {}).get(
+            port_id, side
         )
 
         ignored_obstacles: list[Any] = []
