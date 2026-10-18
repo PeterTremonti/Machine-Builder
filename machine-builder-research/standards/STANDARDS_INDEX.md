@@ -1486,6 +1486,54 @@ Use real, revision-identified cases that challenge different parts of the propos
 
 These are pilot candidates, not declarations that every detail has already been verified. Record exact source revisions and unresolved claims before using examples as schema acceptance fixtures.
 
+#### Bounded connector/contact validation - SKR Mini E3 V3.0 EXP1 (2026-10-15)
+
+**Initial disposition (2026-10-15): NEEDS A BOUNDED REVISION. Final bounded-review disposition (2026-10-17): ACCEPTABLE.** This records the existing proposal and its scoped review (`MB-20261015-1154-01`, review messages `MB-20261017-0009-01` and `MB-20261017-0009-02`); it is not a new proposal or production-standard approval.
+
+**Canonical sample and logical source evidence**
+
+- The sparse canonical sample covers logical EXP1 positions **1, 2, 3, 4, 8, 9, and 10**, using `connector_id="exp1"` and `pin_id=None`.
+- Keep a separate evidence inventory for all ten logical EXP1 positions, including positions 5-7. Omitting positions 5-7 from the sparse sample does not mean absent, disconnected, or NC.
+- Logical EXP1 position 8 -> MCU pin `PD6` is supported by the pinned Klipper firmware source. Firmware-source mapping does not establish physical connector orientation or as-built wiring.
+
+**Source references and revision provenance**
+
+- Klipper aliases: `firmware_sources/klipper/config/generic-bigtreetech-skr-mini-e3-v3.0.cfg`, lines 122-123; Git blob `b6a98bb0224bda632560294078a50ab3616bcf5c`; pinned reference commit `6e6ad7b5201d3452aa605f4ae852c51239c2c7d8`.
+- Marlin diagram/comment labels: `firmware_sources/marlin/src/pins/stm32g0/pins_BTT_SKR_MINI_E3_V3_0.h`, lines 159-163. Marlin `EXP1_nn_PIN` definitions are at lines 167-176, and downstream peripheral macros at lines 208-211; recorded Git blob `11f8e7642f0b11c8271b418fae045017e6535876`.
+- The reported local Marlin source snapshot identifier is `eacdb5f6a3f5d184ef29f017157948dc6f213e84`, with SHA256 `C8650BB4F55558CBDD85CFEB79CB49006957860E9F2826DE3B23B15E64A002DE`. Its exact upstream origin remains unknown; the identifier establishes only the reported local source snapshot.
+
+**Ten-position source inventory**
+
+| Logical position | Klipper alias / role | Marlin `EXP1_nn_PIN` | Marlin diagram/comment label | Association in the cited downstream macro block |
+|---:|---|---|---|---|
+| 1 | `PB5` | `PB5` | `BEEPER` | `BTN_ENC` -> `EXP1_01_PIN` |
+| 2 | `PA15` | `PA15` | `BTN_ENC` | `BEEPER_PIN` -> `EXP1_02_PIN` |
+| 3 | `PA9` | `PA9` | `BTN_EN1` | - |
+| 4 | `<RST>` | `-1` | `RESET` | - |
+| 5 | `PA10` | `PA10` | `BTN_EN2` | - |
+| 6 | `PB9` | `PB9` | `LCD_D4` | - |
+| 7 | `PB8` | `PB8` | `LCD_RS` | `BTN_EN2` -> `EXP1_07_PIN` |
+| 8 | `PD6` | `PD6` | `LCD_EN` | `BTN_EN1` -> `EXP1_08_PIN` |
+| 9 | `<GND>` | `-1` | `GND` | - |
+| 10 | `<5V>` | `-1` | `5V` | - |
+
+For positions 1-3 and 5-8, the Klipper aliases and Marlin `EXP1_nn_PIN` definitions agree on logical position-to-MCU-pin mapping. For positions 4, 9, and 10, Klipper identifies reset, ground, and 5V roles while Marlin uses `-1` rather than assigning MCU GPIOs. Marlin's `-1` entries do not establish that a physical position is absent or NC.
+
+**Mapping-layer reconciliation**
+
+Keep three layers distinct: logical position-to-MCU pin or special role; drawing/comment labels; and downstream firmware peripheral-function assignments. In the cited Marlin block, `BEEPER_PIN` maps to `EXP1_02_PIN`, `BTN_EN1` to `EXP1_08_PIN`, `BTN_EN2` to `EXP1_07_PIN`, and `BTN_ENC` to `EXP1_01_PIN`. These associations do not directly reproduce the drawing labels. #4 reported alternative conditional definitions, so this remains an unresolved role/configuration relationship rather than a universal mapping or proof of as-built wiring.
+
+**Physical evidence gaps**
+
+Physical connector orientation, manufacturer drawing/silkscreen identity, PCB pad/net crosswalk, cable mating-face/cavity mapping, and actual contact continuity remain unverified. Firmware mapping does not establish physical layout or installed wiring.
+
+**Separate unresolved discrepancy and persistence limit**
+
+- Octopus V1.1 Driver 2 contact 6 remains `SLEEP` / `DRIVER2_SLP`; TMC5160T Pro V1.0 J1 contact 6 remains `CLK`. The electrical explanation remains unresolved. Do not normalize the names or assert an established electrical connection.
+- The integer-keyed-map persistence limitation is separate from the SKR identity/mapping checks. A serialization failure is not a successful save/reopen round-trip; do not silently rewrite existing catalog data to make the bounded test pass.
+
+**Bounded review outcome (2026-10-17): ACCEPTABLE for the scoped SKR EXP1 implementation and test evidence, based on #4's supplied source, fixture, tests, and validation report (`MB-20261016-2125-01`).** #4 reported 6 dedicated tests passing (0.14 s), 96 focused regression tests passing (4.17 s), 853 full-suite tests passing (36.85 s), and `git diff --check` passing. Research reviewed that evidence and communicated ACCEPTABLE to Planning (`MB-20261017-0009-01`) and Routing (`MB-20261017-0009-02`); Research did not independently rerun those commands. This closes only the bounded SKR EXP1 evidence/test gap. It does not approve a new canonical entity or production standard, nor establish physical layout or as-built wiring.
+
 ### Gap analysis
 
 Candidate capability gaps to evaluate after the Promega milestone:

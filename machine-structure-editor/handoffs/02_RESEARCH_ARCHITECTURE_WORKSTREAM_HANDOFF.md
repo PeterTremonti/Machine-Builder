@@ -860,6 +860,12 @@ These broader machine-model questions remain intentionally secondary to the imme
 
 ---
 
+## CAD / Geometry
+
+### Accepted future CAD candidate: SolidCraft (2026-10-17)
+
+Planning accepted SolidCraft via `MB-20261017-1121-01` as an optional future CAD geometry-authoring/import candidate, not a V0.2 requirement or project dependency. SolidCraft owns the CAD document and parametric geometry; Machine Builder's canonical model remains authoritative for installed component identity/role, HardwareDefinition, SemanticPort/SemanticConnection, provenance, and firmware requirements/mapping. CAD geometry or a successful STEP import must not be treated as evidence of electrical connectivity, physical wiring, or firmware correctness. Future evaluation gates: (1) repeatable bracket/enclosure STEP round-trip and component placement; (2) verify units, coordinate frame, orientation, geometry fidelity, component association, and traceable source/revision metadata; (3) evaluate CLI/JSON/MCP only after the manual boundary proves useful and repeatable. Planning owns later roadmap placement and evaluation authorization; no immediate action is assigned.
+
 # Research-to-Planning Protocol
 
 When reporting a research result to Chat 01, use:
@@ -931,7 +937,7 @@ Planning / Architecture decides whether to incorporate it.
 
 # Current State
 
-Updated: 2026-10-09
+Updated: 2026-10-17
 
 Research role:
 
@@ -998,10 +1004,29 @@ Preserve source provenance and research conclusions so that replacement chats do
 
 Next Action:
 
-The bounded Promega functional/configuration research is complete. Planning is coordinating the first Promega implementation. Await Planning's next assignment; do not begin additional research independently.
+**Bounded SKR Mini E3 V3.0 EXP1 review — ACCEPTABLE (2026-10-17).** Research reviewed #4's implementation and validation evidence under proposal `MB-20261015-1154-01`. Acceptance was sent to Planning (`MB-20261017-0009-01`) and Routing (`MB-20261017-0009-02`). This closes only the bounded fixture/test evidence gap, not general connector/contact validation or physical wiring.
 
+**Validation evidence and attribution.** #4 reported 6 dedicated SKR tests passing in 0.14 s, 96 focused regression tests passing in 4.17 s, 853 full-suite tests passing in 36.85 s, and `git diff --check` passing at its earlier checkpoint. Research reviewed the supplied results and did not independently rerun those tests. This documentation pass runs no pytest, firmware-source/hash, external-source, or hardware tests.
 
----
+**Latest inspected checkout (2026-10-17 20:06:57 -04:00).** Branch `main`; `HEAD=3d8c24f10e0cdbe30db2e0a8c7a96c601f95afa2`; upstream `origin/main` resolves to `3d8c24f10e0cdbe30db2e0a8c7a96c601f95afa2` (`HEAD equals upstream`). The current staged set is constrained to the two Research paths listed below.
+
+**Intended publication paths (only).**
+- `machine-builder-research/standards/STANDARDS_INDEX.md`
+- `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
+
+**Publication status: STAGED FOR REVIEW; UNCOMMITTED / NOT PUBLISHED.** Proposed commit subject: `Refresh Research handoff and reconcile bounded validation disposition`. This correction does not authorize a commit or push.
+
+**Unresolved evidence and limits.** EXP1 position 8 -> `PD6` is source-supported, but physical orientation, PCB pad/net identity, mating-face/cavity mapping, continuity, and as-built wiring remain unverified. The local Marlin snapshot's upstream origin remains unknown. Conditional peripheral-macro interpretation is not a universal mapping. The Octopus Driver 2 contact-6 `SLEEP` / `DRIVER2_SLP` versus TMC5160T Pro J1 contact-6 `CLK` discrepancy remains unresolved. General integer-keyed-map persistence and group-level `mated_with` limitations remain separate. Do not normalize uncertain facts or alter catalog data merely to force a passing test.
+
+**Evidence record and coordination trail.** The ten-position source inventory, source locators, mapping-layer reconciliation, and bounded test outcome are retained in the single Standards Index entry above, not duplicated in a second appendix here. Message trail: proposal `MB-20261015-1154-01`; Planning disposition and authorization `MB-20261015-2142-01` / `MB-20261015-2142-02`; implementation request `MB-20261016-0024-01`; source-inventory/recovery direction `MB-20261016-0025-01`; source-locator note `MB-20261016-1753-01`; Research source inventory `MB-20261016-1755-01`; mapping-layer direction `MB-20261016-1806-01`; documentation-refresh direction `MB-20261016-1808-01`; #4 source/test report `MB-20261016-1833-01`; #4 implementation evidence `MB-20261016-2125-01`; Research acceptance messages `MB-20261017-0009-01` and `MB-20261017-0009-02`. The stated follow-up relationship between the 17:53 and 17:55 IDs conflicts with their timestamp order. Planning has not reconciled that discrepancy; do not infer chronology from those timestamps alone.
+
+**General Research priority.** Promega source-supported wiring remains the general project priority. The separate cooling investigation remains open and is not a prerequisite for Promega wiring.
+
+**Accepted future CAD candidate.** Planning accepted SolidCraft via `MB-20261017-1121-01` as an optional future CAD candidate, not a V0.2 requirement or dependency. SolidCraft owns CAD documents and parametric geometry; Machine Builder remains authoritative for canonical component identity/role, HardwareDefinition, SemanticPort/SemanticConnection, provenance, and firmware requirements/mapping. Geometry or STEP import does not prove electrical connectivity or firmware correctness. Evaluation gates and deferred status are recorded in the existing **CAD / Geometry** section above. No evaluation is authorized now.
+
+**Validation performed in this correction.** The saved files and staged blobs were checked directly as UTF-8. The suspected display-corruption marker was absent before editing, so encoding conversion was not needed. The established baseline and cooling evidence remain in their existing sections. Target-only working-tree and staged `git diff --check` are run after this correction.
+
+**Next action and owners.** The corrected two-file diff is staged for Planning's publication review but remains uncommitted and unpublished. #2 completed the bounded documentation correction and staging pass. #1 Planning owns the final publication decision and commit authorization. Do not commit or push yet. Proposed commit subject: `Refresh Research handoff and reconcile bounded validation disposition`.
 
 # Documentation Reconciliation Checkpoint
 
@@ -1405,10 +1430,12 @@ The original catalog documentation edit recorded pre-edit HEAD `7316c22ae09fed95
 
 ## Current checkpoint
 
-- The catalog/interchange research proposal is recorded in `machine-builder-research/standards/STANDARDS_INDEX.md` under **Hardware Catalog and Interchange Formats — Research Proposal (2026-10-11)**.
-- The proposal remains research, not implementation authorization. Catalog implementation is deferred until the Promega milestone and a separate Planning decision.
-- `MASTER_PLAN.md` Section 13 remains the canonical register for future problems and deferred ideas.
-- The catalog research record and its corresponding Research handoff checkpoint were published in commit `25d8268600c0979ecfccfccb8a1b0b04bcf89014`. Catalog implementation remains deferred pending the separate Planning decision.
+- The catalog/interchange proposal remains documented in `machine-builder-research/standards/STANDARDS_INDEX.md` as research, not implementation authorization. `MASTER_PLAN.md` Section 13 remains the canonical register for future problems and deferred ideas. The existing catalog research record was published in commit `25d8268600c0979ecfccfccb8a1b0b04bcf89014`; catalog implementation remains deferred unless Planning separately authorizes it.
+- The bounded SKR Mini E3 V3.0 EXP1 review is ACCEPTABLE within the limited scope as of 2026-10-17. #4 reported 6 dedicated, 96 focused-regression, and 853 full-suite tests passing at its earlier checkpoint; Research reviewed the supplied evidence but did not rerun those tests.
+- Latest local inspection: 2026-10-17 20:06:57 -04:00; branch `main`; HEAD `3d8c24f10e0cdbe30db2e0a8c7a96c601f95afa2`; upstream `origin/main` resolves to `3d8c24f10e0cdbe30db2e0a8c7a96c601f95afa2` (`HEAD equals upstream`). Only the two intended Research paths are in the publication set.
+- **Publication status: STAGED FOR REVIEW; UNCOMMITTED / NOT PUBLISHED.** Intended paths are `machine-builder-research/standards/STANDARDS_INDEX.md` and `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`. Target-only working-tree and staged `git diff --check` must pass. No pytest, source-hash, external-source, or hardware tests were run during this documentation correction.
+- SolidCraft is an optional future geometry-authoring/import candidate (`MB-20261017-1121-01`), not a V0.2 requirement or dependency. Planning owns future roadmap placement and evaluation authorization.
+- **Next owner:** #1 Planning reviews the revised staged diff and owns the publication decision and commit authorization. Proposed subject: `Refresh Research handoff and reconcile bounded validation disposition`.
 
 ## Current Research focus
 
@@ -1416,7 +1443,7 @@ The original catalog documentation edit recorded pre-edit HEAD `7316c22ae09fed95
 - **Model fit:** Existing records can represent much of the installed coolant-loop topology, but the inspected contracts/tests do not demonstrate a validated query contract for connection medium and directed fluid flow. Treat this as a contract/query limitation, not automatic authorization to add ontology entities.
 - **Unresolved evidence:** The detector and signal path behind the documented kink/blockage print pause; conflicting 50 mm bend-radius instructions in the mutable cooling guide; and the exact installed cooling kit, hose/fitting arrangement, wiring, and firmware integration. These remain unknown unless separately verified.
 - **Planning decision received (2026-10-11):** Adopt the bounded shared documentation/encoding/display standard. The root `.editorconfig` scope and explicit deferrals are recorded in the checkpoint below; Planning retains ownership of the eventual `CHAT_WORKFLOW.md` edit.
-- **Next Research action:** Continue bounded source-evidence work on the coolant-loop detector/signal path, conflicting 50 mm bend-radius guidance, and the exact installed cooling kit, hose/fitting arrangement, wiring, and firmware integration. Record evidence and uncertainty in the existing standards index; do not make this work a prerequisite for Promega wiring.
+- **Queued next Research evidence work (after this handoff/publication-coordination checkpoint):** Continue bounded source-evidence work on the coolant-loop detector/signal path, the conflicting 50 mm bend-radius guidance, and the exact installed cooling kit, hose/fitting arrangement, wiring, and firmware integration. Record evidence and uncertainty in the existing Standards Index; do not make this work a prerequisite for Promega wiring.
 - **Queued Research follow-up:** Planning accepts the bounded Option B contract as proposed design/documentation only. Implementation, tests, production-validation claims, and ontology expansion remain deferred unless separately authorized.
 
 # Shared Documentation, Encoding, and Display Standard Checkpoint -- 2026-10-11
