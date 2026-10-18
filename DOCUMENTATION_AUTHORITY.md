@@ -54,6 +54,7 @@ For project knowledge questions, use the authority map below.
 | What research questions remain open?                                 | `machine-builder-research/questions/OPEN_QUESTIONS.md`             |
 | What is the current research/architecture checkpoint?                | `machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md` |
 | What is the current state of a particular implementation workstream? | That workstream's living handoff                                   |
+| Which files and references should a workstream inspect first? | `WORKSTREAM_FOCUS_INDEX.md` (navigation only) |
 | What retired/superseded documents existed and why?                   | `HISTORICAL_DOCUMENT_ARCHIVE.md`                                   |
 
 ---

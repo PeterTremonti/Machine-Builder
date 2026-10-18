@@ -222,6 +222,15 @@ These are not substitutes for canonical machine meaning.
 
 The editor should allow different levels of detail without creating multiple semantic representations of the same machine.
 
+### Progressive visual detail and individual-wire inspection
+
+**Long-term intent:** let the user progressively inspect the same canonical machine model from a broader machine or functional view through components, connectors and harnesses, individual ports, and eventually individual wires. Detail and zoom are presentation/navigation mechanisms; they must not create separate semantic models or imply unverified electrical relationships.
+
+**Current exploration (2026-10-18):** #4 is investigating a cone from a harness/connector group toward its ports, currently selected through the Port detail dropdown. This is a per-port/detail-selection experiment, not yet an implemented or accepted true zoom mode. Whether the eventual interaction uses camera zoom, explicit detail selection, or a combination remains an open design decision.
+
+**Design authority:** the long-term intent belongs here. Concrete user observations, preferred label/cone layout, view-transition behavior, GUI acceptance criteria, and implementation findings belong in #4's living handoff. Preserve unknown physical connectivity as unknown; rendered geometry does not prove wiring or firmware correctness.
+
+
 ---
 
 # 10. Firmware direction

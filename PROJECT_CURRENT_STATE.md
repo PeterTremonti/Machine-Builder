@@ -1051,7 +1051,7 @@ All implementation work shares one `main` branch and local checkout. Inspect act
 
 # 22. Last known cross-workstream synchronization
 
-**Current synthesis as of 2026-10-17.** This summary combines workstream reports with Planning's last supplied local preflight; it is not a fresh independent test run or physical-machine inspection.
+**Current synthesis as of 2026-10-18.** This summary combines workstream reports with Planning's last supplied local preflight; it is not a fresh independent test run or physical-machine inspection.
 
 - V0.2's machine-model-first architecture remains coherent. The Controller-to-Hardware-Definition relationship is resolved through the typed reference, validation, and persistence coverage. No new canonical ontology entity is justified by the recent bounded work.
 - **Routing (#4):** the X Motor functional-interface workflow is ACCEPTABLE for its seven criteria. The bounded SKR Mini E3 V3.0 EXP1 fixture/test work is also ACCEPTABLE following Research's review. These are scoped acceptances, not general approval of Promega wiring. Manual GUI acceptance for connector-cone rendering and Function-to-Detailed presentation remains pending.
@@ -1216,7 +1216,7 @@ This is a tested and published implementation milestone based on the supplied co
 
 ### Current workstream direction
 
-- **#4 — Routing/Visual Integration:** Continue the authorized Promega source-supported wiring vertical slice from the newly published fixture. Keep the actual machine's harness variant, cable endpoints, firmware settings, and port-layout usability qualified until directly established.
+- **#4 Routing/Visual Integration:** Current user-directed focus is progressive visual detail: the harness/connector-to-ports cone and a per-port selection in the Port detail dropdown, with individual-wire inspection as the longer-term goal. This remains exploratory and is not yet a completed true zoom mode. Preserve GUI acceptance gaps and the detailed user preferences in #4's handoff. The broader Promega evidence boundaries and previously accepted X Motor/SKR EXP1 scopes remain unchanged.
 - **#3 — Controller/Board:** Continue the Promega cable-assembly and Maestro evidence inventory, preserving distinctions between older and newer harness variants, manufacturer references, firmware examples, and as-built observations. Keep detailed source evidence in the Board workstream's durable records.
 - **#2 — Research/Architecture:** Preserve the future catalog/file-format research in durable research documentation. The schema/loader pilot remains deferred until after the Promega milestone and a separate Planning decision.
 - **#1 — Planning:** Maintain the shared priority, authoritative feature register in `MASTER_PLAN.md` Section 13, and cross-workstream synthesis. The former immediate SKR spike priority is superseded by the Promega direction.

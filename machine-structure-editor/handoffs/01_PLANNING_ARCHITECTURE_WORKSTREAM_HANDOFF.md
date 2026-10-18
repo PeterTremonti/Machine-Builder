@@ -747,14 +747,13 @@ Before committing, verify the actual branch, HEAD, working-tree status, intended
 
 ### Current Planning Next Action
 
-The cross-workstream documentation refresh is reconciled in this handoff and `PROJECT_CURRENT_STATE.md`, based on the supplied workstream reports and Planning's pre-publication review. The implementation/test results remain attributed to #4; Research reviewed the bounded SKR EXP1 evidence without independently rerunning tests. Physical/as-built wiring and complete Promega readiness remain unverified.
+**Current checkpoint (2026-10-18):** Planning is introducing a curated Workstream Focus Index and a single-publication-slot protocol. `CHAT_WORKFLOW.md` owns the operating rules; `MASTER_PLAN.md` owns long-term feature direction; `PROJECT_CURRENT_STATE.md` is the project snapshot; each living handoff owns detailed implementation, evidence, and next actions.
 
-**Next actions and owners**
+**Queue coordination:** Workstreams may continue editing, validating, and refreshing their own handoffs while queued, but only the explicitly named slot holder may stage, commit, and push. Planning assigns queue positions based on readiness, dependencies, project priority, and age of the complete readiness report. The shared Git index and live remote must still be checked immediately before publication. #5 may edit and publish its own files; its read-only boundary applies when auditing other workstreams' changes.
 
-1. **Audit (#5):** Conduct the separate read-only review of general connector/contact validation proposal `MB-20261015-1154-01` against current source and baseline evidence, as proposed in `MB-20261016-1813-01`. Report ACCEPTABLE or BLOCKED with concrete evidence and remaining gaps.
-2. **Controller/Board (#3):** Collect the installed Promega SD-card files and confirm physical P9/P11 harness identity and variant-specific H2/H4/S8/S6 mapping when the relevant materials are available.
-3. **Routing (#4):** Complete and report manual GUI acceptance evidence for connector-cone rendering and Function-to-Detailed presentation; do not claim visual acceptance before that evidence is reviewed.
-4. **Planning (#1):** Coordinate any resulting scope/disposition decisions and refresh cross-project records when materially new evidence arrives. Preserve workstream ownership and use the Action-Ready Work Rule for every substantive handoff.
+**Current visual direction:** The user's current #4 task is to explore progressive visual detail, beginning with a harness/connector cone toward individual ports and a per-port Port detail dropdown selection. Individual-wire inspection is a longer-term goal; this is not yet a completed true zoom mode. Planning records the overarching intent, while #4 must preserve the detailed design preferences and GUI acceptance observations in its own handoff.
+
+**Next action:** Finish validating and publishing this Planning-owned documentation package. Then use each workstream's readiness report to assign the next explicit publication slot. #4 may continue its visual implementation and update its handoff while queued; no other workstream should stage during the active Planning publication slot.
 
 ## Planning Coordination Update — 2026-10-10
 

@@ -642,6 +642,7 @@ Read the universal recovery documents together:
 * `MASTER_PLAN.md`.
 * `PROJECT_CURRENT_STATE.md`.
 * The receiving workstream's current living handoff.
+* The matching WORKSTREAM_FOCUS_INDEX.md entry (navigation only; the handoff remains authoritative for detailed technical state).
 
 Also read `DOCUMENTATION_AUTHORITY.md` for Planning, plus any workstream-specific or task-specific authorities required by the handoff.
 
@@ -1329,6 +1330,19 @@ The sender, recipient, and topic must be inside the copy-ready block. The user m
 - Replies intended to be forwarded to another chat must follow the same rule, including reports returned to Planning. A report from #2 to #1 must carry the label "From #2 -> To #1" inside its own block.
 - Do not force ordinary responses intended only for the user into cross-workstream blocks.
 
+## Publication queue and shared Git index
+
+All workstreams share one local checkout and one Git index. Editing and publication are separate activities.
+
+- Workstreams may inspect and edit their own files, run tests, and update their own handoffs while another workstream holds the publication slot. They must preserve ownership boundaries and leave other owners' staged content untouched.
+- A report that work has started is not a publication request. To enter the queue as READY, an owner reports the exact intended paths, an updated handoff, actual validation results, a proposed commit subject, and any unresolved ownership questions.
+- Planning (#1) assigns explicit queue positions and grants exactly one active publication slot. Prioritize blockers and dependencies first; among equally ready requests, use the oldest complete READY report. State each owner's status and whether the user needs to act.
+- Only the active slot holder may stage, commit, and push. Other workstreams may continue editing, testing, investigating, and updating their handoffs, but must not stage, commit, or push until their slot is granted.
+- Immediately before staging, the slot holder must fetch and verify the branch, local HEAD, origin/main, and live remote main; inspect git status --short and git diff --cached --name-only. If any paths are already staged, stop and report them to Planning. Never unstage, reset, discard, stash, or commit another workstream's staged content.
+- If the index is empty, stage only the explicitly approved owner-scoped paths. Verify the exact staged list, inspect the complete staged diff, run staged whitespace checks, commit with the reported subject, push normally, and verify HEAD equals origin/main and live main. Recheck immediately before git add; if the state changed, stop.
+- Other workstreams should not infer a slot from old output or from being listed first in a document. A publication slot is granted explicitly in Planning's latest coordination message and remains exclusive until remote verification or an explicit release.
+- If a workstream completes its assigned task, it should continue with the next already-authorized in-scope action. If none is clear, it should ask Planning for the next focus with its completed work and possible in-scope candidates, rather than silently waiting or beginning unauthorized work.
+
 ## Copy completeness
 
 Before sending a cross-workstream message, verify that its block is complete, correctly addressed, and contains the entire handoff. Do not require the user to reconstruct, shorten, relabel, or combine content from different parts of a response.
@@ -1444,6 +1458,12 @@ Repository documentation is the durable project record. Chat responses are not a
 Unless an assignment explicitly prohibits repository writes, research-only work may update workstream-owned research notes and its handoff while remaining prohibited from changing production code, catalog data, or tests. An explicit no-repository-write boundary must be honored; in that case provide a complete, actionable handoff to the authorized owner.
 
 At meaningful milestones, each workstream must update its own handoff and appropriate research or implementation records. Preserve useful source links and revisions, decisions and rationale, evidence status, uncertainty, remaining questions, completed work, checkpoint, and next actions. Do not leave important findings only in chat history or downloadable files.
+
+A material cross-workstream message is also a continuity checkpoint when it records a new design preference, decision, scope or ownership change, evidence result, validation result, blocker, dependency, or publication state. The sending workstream updates its own handoff in the same work session, before or immediately after sending the message. Routine acknowledgments that add no state do not require a documentation rewrite.
+
+At those checkpoints, include the exact paths, purpose of the changes, checks actually run, publication state, unresolved questions, and one concrete next action with its owner. Planning maintains WORKSTREAM_FOCUS_INDEX.md from the updated handoffs and verified checkpoint reports; individual workstreams provide the information for their entries but do not rewrite another workstream's handoff.
+
+An exact warning threshold for conversation length cannot be relied upon. Keep the handoff current throughout the work rather than waiting for a length-limit warning. When replacing a chat, provide a dated, copy-ready startup prompt based on the latest handoff and focus-index entry. The prompt is a generated convenience, not a second history archive.
 
 When work must be performed in the user's local checkout, provide complete, guarded, copy-ready PowerShell commands. Do not claim local execution unless the returned results establish it. Do not use a downloadable artifact as a substitute for durable repository documentation.
 
