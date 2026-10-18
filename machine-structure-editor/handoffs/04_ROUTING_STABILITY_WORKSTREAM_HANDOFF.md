@@ -2402,33 +2402,182 @@ Source:
 
 ## X Motor Functional-Interface Acceptance Closeout (2026-10-15)
 
-**Base checkpoint:** `5e235be1232d9b42f2c50a4018160e9740205798` — Add generic motor functional interface workflow.
+**Implementation base checkpoint:** `5e235be1232d9b42f2c50a4018160e9740205798` — Add generic motor functional interface workflow.
+
+**Formal acceptance:** #5 reported **ACCEPTABLE for all seven acceptance criteria** at checkpoint `a84526b28237d1e678a044c534cc9e8ad6a80444`. Acceptance report: `MB-20261015-1553-02`. This is the bounded X Motor functional-interface workflow; it is not approval of complete Promega wiring readiness. The acceptance report must not be described as evidence that #5 independently reran #4's automated tests.
 
 ### Criterion 4 — Preserve existing J9 contact connections
 
-`tests/test_functional_interface_connection.py::test_interface_drag_creates_reference_scoped_connection` creates four existing X-motor cable-to-J9 reference connections before adding the functional-interface relationship. It snapshots the complete semantic and visual connection maps, the four J9 contact records, and the four existing J9 connection records. After creation it verifies that the only addition is the new functional relationship and that the existing contact and connection records are unchanged.
+`tests/test_functional_interface_connection.py::test_interface_drag_creates_reference_scoped_connection` creates the four existing X-motor cable-to-J9 reference connections before adding the functional-interface relationship. It verifies that adding the relationship does not replace or mutate the existing contact or connection records.
 
 ### Criterion 6 — Presentation-only focus and undo/redo
 
-`test_interface_focus_preserves_contacts_and_persistence` verifies connector-focus changes preserve canonical ports and connections, visual connections, undo/redo stack depths, and the modified flag. The functional-connection test separately verifies that undo restores the complete prior semantic and visual connection maps, and redo restores the same records and endpoints while preserving all four J9 contacts and the existing J9 connections.
+`test_interface_focus_preserves_contacts_and_persistence` verifies that connector-focus changes preserve canonical ports and connections, visual connections, undo/redo stack depths, and the modified flag. The functional-connection test separately verifies restoration of the prior semantic and visual records during undo/redo.
 
-### Criterion 7 — GUI acceptance status and limits
+### Criterion 7 — Acceptance and subsequent visual follow-up
 
-**User-reported manual observations; not independently reproduced during this closeout:**
+#5's recorded disposition remains ACCEPTABLE for the bounded workflow. The following GUI observations are user-reported; they are not independent reproductions and do not silently redefine the historical acceptance decision.
+
+**Earlier observations retained from the original closeout:**
 
 - The user dragged between the controller functional endpoint and generic Motor endpoint, confirmed the UNKNOWN-compatibility prompt, accepted the physical-connection details dialog, and observed a visible functional relationship.
 - In J9 contact focus, the four individual contacts were visible while the functional relationship remained anchored at the hidden connector-level endpoint and appeared detached.
 - Detailed-port view made the Maestro node very tall and repeated labels crowded.
 - After saving and reopening, the machine nodes/data returned, but viewport pan/zoom did not. Viewport persistence remains separate work.
 
-**Outstanding GUI acceptance:** Recheck endpoint presentation in contact focus and detailed-view legibility after the connector-group visual work. This closeout does not implement or accept enclosure/cone rendering. Automated test results do not constitute independent manual GUI verification.
+**Latest follow-up observations:**
 
-### Automated validation
+- The user sees `Motor electrical interface` as the motor-side port to which the Maestro connection goes.
+- When switching from Function to Detailed view, the single visible Maestro-side port on the right still appears connected to one of the many motor-side ports on the left that match by function.
+- GUI verification still needs to confirm that the wire lands at the tip of the highlighted Maestro connector cone while retaining the intended motor functional-interface attachment, and that the connector labels and cone restore correctly after focus changes.
+- Whether the detailed-view edge presentation misleadingly suggests an arbitrary one-to-many motor-port choice remains unresolved.
+- The connector-group/enclosure/cone visual changes are published in commit `58301ceca0f1788f4b44aa08ee4ca0f2cb4fdd6a`; GUI verification remains outstanding. Automated tests do not substitute for this GUI verification.
 
-The commands below were run against the worktree based on the base checkpoint, before this closeout publication:
+### Connector-group cone and Function-to-Detailed visual integration (2026-10-17)
 
-- Focused tests: `.venv\Scripts\python.exe -m pytest -q --tb=short tests/test_functional_interface_connection.py tests/test_promega_xy_motor_reference.py` — 6 passed in 10.21s
-- Full suite: `.venv\Scripts\python.exe -m pytest -q --tb=short` — 847 passed in 31.76s
-- `git diff --check` — required to pass before publication.
+**Scope and implementation:** Commit `58301ceca0f1788f4b44aa08ee4ca0f2cb4fdd6a` adds connector-group presentation and routing integration in `src/machine_builder/canvas_scene.py`, `src/machine_builder/canvas_ui.py`, `src/machine_builder/graphics/connection.py`, and `src/machine_builder/graphics/node.py`, with assertions in `tests/test_functional_interface_connection.py`. The node graphics render a connector enclosure/title and an optional directional cone, annotate visible contact labels, expose the cone tip as a scene-space anchor, and supply endpoint-side overrides to connection routing. These are presentation changes; they do not establish physical contact mapping, continuity, or firmware correctness.
 
-This is a bounded X Motor acceptance closeout. It does not accept the complete Promega wiring graph, connector mating, as-built wiring, contact mapping, or firmware assignment.
+**Test coverage and actual checks performed during this review:**
+
+- `tests/test_functional_interface_connection.py`: **4 passed in 8.69s** (earlier run).
+- Follow-up rerun after adding an assertion that the rendered connection path terminates at the connector-group cone anchor: **4 passed in 7.60s**, exit code 0.
+- `tests/test_functional_interface_connection.py tests/test_promega_xy_motor_reference.py`: **6 passed in 10.23s** (earlier run).
+- Latest rerun before visual-integration publication: **6 passed in 10.39s**, exit code 0.
+- Pre-commit rerun for commit `58301ceca0f1788f4b44aa08ee4ca0f2cb4fdd6a`: **6 passed in 11.07s**, exit code 0.
+- `git diff --check`: **exit code 0**; Git emitted line-ending warnings for some modified files, but the check passed.
+- The full test suite was not run during this review. Older full-suite counts in this handoff are historical and must not be represented as a fresh result for this working tree.
+
+**Acceptance gaps:** Automated assertions cover enclosure/title visibility, connected versus unconnected cone visibility, anchor availability, endpoint-side overrides, contact labels, and focus/persistence invariants. The tests reviewed do not establish that the rendered connection line remains exactly attached to the cone tip through Function-to-Detailed transitions, that labels and cone geometry restore correctly through every focus transition, or that Detailed view avoids implying an arbitrary one-to-many motor-port selection. GUI verification remains outstanding.
+
+**Disposition and next action:** The visual implementation is published in commit `58301ceca0f1788f4b44aa08ee4ca0f2cb4fdd6a`. The rendered endpoint-to-cone-anchor regression now passes in the connected-focus test state. Remaining GUI verification must confirm Function-to-Detailed presentation, label/cone restoration across focus transitions, and that Detailed view does not imply an unsupported one-to-many motor-port choice. Do not reopen the accepted bounded X Motor workflow or the separately accepted SKR EXP1 revision without contradictory evidence. This visual follow-up does not approve broader connector/contact mappings.
+
+### Automated validation — results reported by #4
+
+**Original closeout validation (historical; implementation base `5e235be1232d9b42f2c50a4018160e9740205798`, before the closeout publication):** focused tests — 6 passed in 10.21s; full suite — 847 passed in 31.76s. These original timings are retained as historical records, not as validation of the later connector-group visual changes and not as independent test runs by #5.
+These historical validation results were measured against a working tree based on `a84526b28237d1e678a044c534cc9e8ad6a80444`, before visual-integration commit `58301ceca0f1788f4b44aa08ee4ca0f2cb4fdd6a`. They are #4's results, not independent #5 test runs.
+
+- Visual-focused command: `.venv\Scripts\python.exe -m pytest -q --tb=short tests/test_functional_interface_connection.py tests/test_promega_xy_motor_reference.py` — previously reported 6 passed in 11.57s.
+- Latest bounded source/controller/mating/persistence baseline — 96 passed in 4.34s across `test_controller_board_fixtures.py`, `test_hardware_catalog.py`, `test_octopus_driver_mating.py`, `test_semantic_relationship.py`, `test_semantic_relationship_queries.py`, `test_persistence.py`, `test_store_persistence.py`, and `test_promega_xy_motor_reference.py`.
+- Latest full-suite command: `.venv\Scripts\python.exe -m pytest -q --tb=short` — 847 passed in 38.91s.
+
+These results document the tested working tree. They do not constitute the still-missing SKR-specific identity and persistence tests, and automated results do not substitute for GUI inspection.
+
+## Bounded Connector/Contact Validation — SKR EXP1 Revision Accepted; Independent Evidence Gates Open (2026-10-17)
+
+**Disposition:** Research's review of the requested bounded SKR Mini E3 V3.0 EXP1 revision is **ACCEPTABLE** (`MB-20261017-0009-02`). This acceptance is limited to the bounded fixture, source inventory, identity, evidence-preservation, and persistence scope. The original proposal is `MB-20261015-1154-01`. The review and disposition lineage is:
+
+- Planning's bounded-work assignment: `MB-20261015-2142-02` and `MB-20261016-0024-01`.
+- #4's evidence review to #2: `MB-20261015-1836-01`; #4's disposition to #1: `MB-20261015-1836-02`.
+- Research's corrected source inventory: `MB-20261016-1755-01`.
+- Research implementation review: `MB-20261017-0009-02` — ACCEPTABLE for the requested bounded revision.
+- Planning's reconciled source instructions: `MB-20261016-1806-01`.
+- Planning's Routing-handoff recovery request: `MB-20261016-1808-03`.
+
+### Existing API and implementation paths
+
+- `machine-structure-editor/src/machine_builder/semantic_model.py`: `SemanticPort` already supports controller ownership, connector grouping, `pin_id`, properties, and provenance; this bounded implementation requires no ontology expansion.
+- `machine-structure-editor/src/machine_builder/controller_board_fixtures.py`: added `add_btt_skr_mini_e3_v3_0_exp1_physical_interfaces()` and the reviewed ten-position `BTT_SKR_MINI_E3_V3_0_EXP1_SOURCE_INVENTORY`.
+- `machine-structure-editor/tests/test_skr_mini_e3_exp1.py`: added six dedicated tests for independent source mapping, the full ten-position inventory, sparse sample identity, deterministic endpoint IDs, evidence-layer separation, unresolved status preservation, and save/reopen persistence.
+- `machine-structure-editor/src/machine_builder/persistence.py` provides the existing `save_editor_state()` and `load_editor_state()` APIs. The new test exercises the JSON round trip using `EditorState`, `VisualModel()`, and the canonical model.
+
+### Implemented bounded sample
+
+The fixture instantiates only logical EXP1 positions **1, 2, 3, 4, 8, 9, and 10**. The source inventory separately records all ten logical positions, including 5–7. Omission from the sample does not mean those contacts are absent, disconnected, or NC.
+
+Each sample endpoint uses a stable ID derived from controller ID, connector ID, and numeric position. Contacts use `connector_id="exp1"`, `pin_id=None`, and an independent numeric `connector_position`. Repeated construction with a different display label or reversed sample order preserves the position-to-ID mapping.
+
+The controller-level inventory and sampled ports keep these layers separate:
+
+- Logical connector position to Klipper alias and Marlin `EXP1_nn_PIN` value.
+- Marlin diagram/comment role label.
+- Downstream Marlin peripheral macro assignment observed in the reviewed conditional block.
+
+Marlin conditional assignments are not asserted to be active. The fixture records `marlin_downstream_assignment_configuration_status="conditional_active_configuration_not_established"`, `marlin_role_configuration_relationship_status="unresolved"`, and `marlin_upstream_origin_status="unknown"`. Physical orientation, PCB pad/net crosswalk, cable mating-face/cavity identity, continuity, and as-built harness wiring remain `unverified`.
+
+### The latest bounded SKR EXP1 implementation run
+
+**Tested checkpoint:** `HEAD` and `origin/main` both equalled `a84526b28237d1e678a044c534cc9e8ad6a80444`. Tests ran against the dirty working tree with the new fixture and dedicated test file plus other concurrent changes present. No files were staged or committed.
+
+**Dedicated source, identity, and persistence tests**
+
+Command: `.venv\Scripts\python.exe -m pytest -q --tb=short tests/test_skr_mini_e3_exp1.py`
+
+Result: **6 passed in 0.14s**.
+
+The six tests cover:
+
+- `test_checked_in_firmware_sources_support_ten_position_inventory`
+- `test_ten_position_inventory_matches_sources_and_stays_separate_from_sample`
+- `test_sparse_fixture_uses_distinct_stable_controller_owned_endpoints`
+- `test_endpoint_ids_do_not_depend_on_label_or_sample_order`
+- `test_sample_preserves_separate_mapping_layers_and_unresolved_values`
+- `test_sparse_fixture_save_reopen_preserves_identity_evidence_and_unknowns`
+
+**Focused regression tests**
+
+Command: `.venv\Scripts\python.exe -m pytest -q --tb=short tests/test_controller_board_fixtures.py tests/test_hardware_catalog.py tests/test_octopus_driver_mating.py tests/test_semantic_relationship.py tests/test_semantic_relationship_queries.py tests/test_persistence.py tests/test_store_persistence.py tests/test_promega_xy_motor_reference.py`
+
+Result: **96 passed in 4.17s**.
+
+**Full test suite**
+
+Command: `.venv\Scripts\python.exe -m pytest -q --tb=short`
+
+Result: **853 passed in 36.85s**.
+
+**Whitespace checks:** `git diff --check` returned 0 for the fixture source and for the full worktree. The new test file had no trailing whitespace. Git emitted line-ending warnings for existing concurrent files; the checks succeeded.
+
+### Remaining blockers and disposition
+
+Research returned **ACCEPTABLE for the requested bounded revision** in `MB-20261017-0009-02`. The review accepts the bounded source inventory and sparse sample, mapping-layer separation, stable endpoint IDs, provenance, unresolved-status preservation, deterministic construction, and JSON save/reopen behavior. The separate physical-evidence gaps and other unresolved issues below remain open; this is not broader production-standard approval.
+
+- Marlin's precise upstream source origin remains unknown; the local source-move commit is not an upstream revision.
+- The downstream peripheral assignments are evidence from a conditional code block. The active firmware configuration and its relationship to the diagram labels remain unresolved.
+- Applicable manufacturer drawing/orientation, PCB pad/net identity, cable mating-face/cavity correspondence, actual continuity, and as-built harness evidence remain open.
+- The Octopus/TMC5160T contact-6 discrepancy and known integer-keyed persistence limitation remain separate unresolved issues. Passing SKR persistence tests does not resolve Octopus persistence.
+
+**Next action:** No additional change is requested within the accepted bounded SKR EXP1 scope. Keep physical orientation, PCB pad/net identity, cable mating-face/cavity correspondence, continuity, as-built wiring, Marlin upstream provenance, and the conditional role/configuration interpretation unresolved. Keep the Octopus/TMC5160T contact-6 discrepancy and integer-key persistence limitation separate. Any work beyond this accepted bounded slice requires its own evidence and scope decision.
+
+## SKR Mini E3 V3.0 EXP1 — Source and Mapping Gate
+
+**Source inventory and scope:** Research inventory `MB-20261016-1755-01`; Planning reconciliation `MB-20261016-1806-01`. The source evidence was inspected at checkpoint `a84526b28237d1e678a044c534cc9e8ad6a80444`, and the two checked-in source-file SHA-256 hashes were captured during #4's review.
+
+- Klipper file: `firmware_sources/klipper/config/generic-bigtreetech-skr-mini-e3-v3.0.cfg`, lines 122-123. Research records upstream reference commit `6e6ad7b5201d3452aa605f4ae852c51239c2c7d8`; the checked-in snapshot hash is `55517A544978655DB010BF5C920389B39CF03475BE1D9AB5A0060A64F7C786C0`.
+- Marlin file: `firmware_sources/marlin/src/pins/stm32g0/pins_BTT_SKR_MINI_E3_V3_0.h`, diagram/comment lines 159-163, position macros lines 167-176, and downstream peripheral macros lines 208-211. The checked-in local snapshot hash is `C8650BB4F55558CBDD85CFEB79CB49006957860E9F2826DE3B23B15E64A002DE`. Local commit `eacdb5f6a3f5d184ef29f017157948dc6f213e84` records the source-file move; it does not identify Marlin's upstream revision. Its precise upstream origin remains unknown.
+
+### Ten-position mapping inventory
+
+| Logical position | Klipper alias | Marlin MCU pin macro | Interpretation |
+|---:|---|---|---|
+| 1 | `PB5` | `PB5` | GPIO mapping |
+| 2 | `PA15` | `PA15` | GPIO mapping |
+| 3 | `PA9` | `PA9` | GPIO mapping |
+| 4 | `<RST>` | `-1` | Reset/special role, not an MCU GPIO mapping |
+| 5 | `PA10` | `PA10` | GPIO mapping |
+| 6 | `PB9` | `PB9` | GPIO mapping |
+| 7 | `PB8` | `PB8` | GPIO mapping |
+| 8 | `PD6` | `PD6` | Source-supported firmware mapping |
+| 9 | `<GND>` | `-1` | Ground/special role, not an MCU GPIO mapping |
+| 10 | `<5V>` | `-1` | Supply/special role, not an MCU GPIO mapping |
+
+The logical position-to-MCU mapping agrees for positions 1-3 and 5-8. Position 8 → `PD6` is directly supported by both firmware sources. The `-1` Marlin macros for positions 4, 9, and 10 do not imply the connector contacts are absent.
+
+### Keep three evidence layers separate
+
+- **Logical connector position to MCU/special-function mapping:** source-backed at the positions above.
+- **Marlin diagram/comment role labels:** lines 159-163 label positions with roles such as `BEEPER`, `BTN_ENC`, `BTN_EN1`, `RESET`, `BTN_EN2`, `LCD_D4`, `LCD_RS`, and `LCD_EN`.
+- **Downstream Marlin firmware peripheral assignments:** lines 208-211 include `BEEPER_PIN -> EXP1_02_PIN`, `BTN_EN1 -> EXP1_08_PIN`, `BTN_EN2 -> EXP1_07_PIN`, and `BTN_ENC -> EXP1_01_PIN` in that conditional code section.
+
+The diagram/comment labels and downstream peripheral assignments are not a single reconciled mapping. The header also contains alternative conditional display configurations with their own macro definitions; a global first/last-match scan does not establish which configuration is active. Keep the role-label/configuration relationship unresolved rather than reconciling it implicitly.
+
+**Physical-evidence blockers remain:** applicable manufacturer drawing and silkscreen/orientation identification; PCB pad/net crosswalk; cable mating-face/cavity correspondence; and actual contact continuity or as-built harness evidence. Firmware mappings do not establish those facts.
+
+## Separate Octopus / TMC5160T unresolved issue
+
+Do not merge the Octopus/TMC5160T contact-6 issue with the SKR EXP1 evidence gate.
+
+- Octopus Driver 2 contact 6 remains `SLEEP` / `DRIVER2_SLP`; TMC5160T Pro V1.0 J1 contact 6 remains `CLK`.
+- The discrepancy remains explicitly unresolved, with no asserted electrical equivalence or contact continuity. The fixture relationship is interface-level `mated_with`.
+- The known integer-keyed persistence limitation is still unresolved. Successful persistence for another fixture is not evidence that this exact experiment can be saved and reopened. Reproduce and address that limitation separately without silently changing the catalog or claiming it is fixed by the SKR tests.
+
+**Current recovery boundary:** no complete Promega wiring graph, as-built harness, contact mapping, firmware assignment, physical mating, or production-standard approval is inferred by this handoff. The existing J28/XY references and held Z-A contact-correspondence gate remain unchanged.
