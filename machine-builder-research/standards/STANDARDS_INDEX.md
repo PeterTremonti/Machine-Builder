@@ -1572,6 +1572,18 @@ Candidate capability gaps to evaluate after the Promega milestone:
 Record deferred ideas in `MASTER_PLAN.md` Section 13, the canonical future-problem/future-feature register. Do not create a competing backlog or interpret this research as implementation approval. V0.2 remains the working ontology boundary unless a real case demonstrates a representation blocker.
 
 ### Follow-on research: liquid-cooled hotend and coolant loop
+#### Current public-source recheck - 2026-10-18
+
+**Source and version qualification.** The live [DYZE DESIGN Liquid Cooling guide](https://docs.dyzedesign.com/liquid-cooling.html), checked on 2026-10-18, displays `Last Updated: 10/13/2026, 5:11:12 PM`. This is a mutable online page, not a numbered, frozen revision.
+
+**Bend-radius finding.** The current page's "First setup of your cooling unit" and "Mounting" sections both say the rubber tubing's bend radius should not be smaller than 2 in (50 mm). Its separate "Build your own liquid cooling system > Tubing" section says "Low bend radius to prevent kinking" but gives no numeric limit. Treat the generic wording as ambiguous, not as an explicit numeric maximum of 50 mm. Earlier project checkpoints recorded conflicting bend-radius instructions; without a retained, revision-identified copy of the earlier page, this pass cannot establish precisely which published page version contained the conflicting inequality or when the wording changed. Do not claim that DYZE corrected the conflict without stronger evidence.
+
+**Fault-detection finding.** The current rendered Liquid Cooling guide does not state that coolant kinks or blockages are automatically detected and trigger a print pause. It warns that unsafe routing can cause kinks and blockages, and its wiring section says 12 V powers the pump, fans, sensors and circuit board. It identifies the supply terminals (bottom V+, top V-), but does not identify a coolant-fault sensor type, named fault-output interface, communications protocol, printer-controller input or firmware setting for a pause. The 2026-10-11 checkpoint recorded a system-level detection/pause claim, and a subsequent project note recorded a manufacturer-support clarification as user-reported. Preserve those as historical and attributed evidence; this current page read alone cannot determine when or why the wording differed. The original support response and exact date remain unavailable in the research record.
+
+**Cross-checks and kit scope.** The current Liquid Cooling guide lists an 800 L/h pump, 300 ml reservoir, 360 x 120 mm radiator, three 120 x 120 mm fans, and 8 m of 1/4 in ID x 3/8 in OD high-temperature tubing. The [Typhoon product guide](https://docs.dyzedesign.com/typhoon.html) labels revision R002 as dated 2026-06-12; the [product changelog](https://docs.dyzedesign.com/general-support/changelog.html) records PCN-00006 for the transition from the original Typhoon to Typhoon LCX/Air, including new elbow fittings. These are product-level references, not proof of the fitted assembly in any particular printer. The separate [Orthus filament monitor guide](https://docs.dyzedesign.com/orthus.html) documents filament-motion sensing and firmware-integrated pauses for filament-related faults; it is not evidence of coolant-fault detection.
+
+**Remaining uncertainty.** The current public evidence does not identify the Cooling Unit's alleged kink/blockage detection mechanism or a printer-facing pause interface. The installed Cooling Unit revision, hose and fitting variants, exact routing, electrical integration and firmware configuration remain unverified. Do not infer them from product specifications.
+
 
 **Checkpoint and source-access date:** 2026-10-11.
 
