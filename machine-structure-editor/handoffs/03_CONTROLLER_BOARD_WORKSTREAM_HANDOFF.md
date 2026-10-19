@@ -2101,3 +2101,67 @@ Branch `main`, HEAD and `origin/main` both `a84526b28237d1e678a044c534cc9e8ad6a8
 4. **Promega physical harness facts remain unresolved:** P9/P11 fan identity and the applicable H2/H4 heater and S8/S6 sensor mappings must not be asserted from a historical configuration alone. Continue using available public sources; retain unknown status for facts those sources cannot establish.
 
 The existing IR-probe reference connections and corrected J4 mapping remain established project context. No duplicate implementation is proposed here. No new ontology, fixtures or source changes are authorized by this research update.
+
+## 35. Octopus V1.1 / TMC5160T Pro V1.0 Contact-6 Source Investigation
+
+**Date:** October 18, 2026
+
+**Classification:** Independent manufacturer-source investigation
+**Publication state:** Planning granted the publication slot on October 18, 2026 (MB-20261018-1043-01). This record documents an unresolved investigation and does not close it.
+
+**Disposition:** UNRESOLVED — documented pin/function labels do not establish the complete electrical path or configured-state behavior.
+
+### Question and established facts
+
+The open question concerns Octopus V1.1 Driver 2 connector contact 6, documented as `SLEEP` on net `DRIVER2_SLP`, versus BIGTREETECH TMC5160T Pro V1.0 module J1-6, documented as `CLK`. These are different documented function labels. Matching contact numbers or labels alone do not establish continuity, electrical equivalence, physical mating, or the as-built connection.
+
+The official BIGTREETECH Octopus schematic PDF is available at this immutable repository snapshot:
+
+- https://github.com/bigtreetech/BIGTREETECH-OCTOPUS-V1.0/blob/9526ff16f68839626cb8875a299e73f99f2e57e8/Hardware/BIGTREETECH%20Octopus%20-%20SCH.pdf
+
+The manufacturer hardware README states that the V1.0 and V1.1 schematics are the same, while V1.1 changes include corrections to fan/SPI3/UART2 silkscreen and a power-supply IC package change:
+
+- https://github.com/bigtreetech/BIGTREETECH-OCTOPUS-V1.0/tree/master/Hardware
+
+That README URL uses mutable `master`; its exact commit revision still needs to be captured before treating it as a revision-pinned bridge between hardware versions.
+
+The official Octopus guide cautions that its simplified step/dir pin table is not the actual pinout and describes driver jumper settings, including the SPI-related arrangement. This reinforces that an abbreviated pin table or silkscreen is not a substitute for tracing the schematic and the applicable jumper configuration:
+
+- https://github.com/bigtreetech/docs/blob/master/docs/Octopus.md
+
+The TMC5160T Pro V1.0 manufacturer documentation distinguishes module J1-6 `CLK` (external clock input) from J1-3 `SCK/CFG2` (SPI serial clock); it identifies SPI as the operating mode:
+
+- https://github.com/bigtreetech/docs/blob/master/docs/TMC5160T%20Pro%20V1.0.md
+
+This documentation also uses mutable `master`; its exact repository revision was not captured in this investigation.
+
+The Analog Devices/Trinamic TMC5160A datasheet, Rev. 1.18 dated March 1, 2023, describes IC CLK as a clock input, explains that grounding CLK selects the internal oscillator, and describes external-clock behavior:
+
+- https://www.analog.com/media/en/technical-documentation/data-sheets/tmc5160a_datasheet_rev1.18.pdf
+
+That datasheet establishes the IC-level meaning of `CLK`, but does not prove that the specific TMC5160T Pro V1.0 module's J1-6 connects to the IC CLK pin through its PCB and associated components.
+
+### Additional manufacturer-repository finding
+
+The official BIGTREETECH-Stepper-Motor-Driver repository exposes separate version-named directories. At repository snapshot `9f9680040e7f696f132b1c0d75a6f79c9f288b13`, the `TMC5160_Pro V1.0/Hardware` directory lists `TMC5160_Pro V1.0-PIN.pdf` but no schematic in that directory. The separate `TMC5160(T) Pro V1.1/Hardware` directory lists `BIGTREETECH TMC5160T_Pro-SCH.pdf`, `BIGTREETECH TMC5160_Pro-SCH.pdf`, and V1.1 pin/layout files.
+
+Revision-pinned manufacturer directory listings:
+- https://github.com/bigtreetech/BIGTREETECH-Stepper-Motor-Driver/tree/9f9680040e7f696f132b1c0d75a6f79c9f288b13/TMC5160_Pro%20V1.0/Hardware
+- https://github.com/bigtreetech/BIGTREETECH-Stepper-Motor-Driver/tree/9f9680040e7f696f132b1c0d75a6f79c9f288b13/TMC5160%28T%29%20Pro%20V1.1/Hardware
+
+The naming difference between `TMC5160_Pro V1.0` and `TMC5160T Pro V1.0` is not reconciled by these directory names alone. The presence of a V1.1 schematic therefore does not prove its internal electrical path applies to the V1.0 module under investigation. This narrows the source gap but does not close it: no revision-qualified V1.0 schematic or manufacturer statement bridging the relevant versions has been verified. No continuity claim is inferred from these file listings.
+
+### Evidence gap and disposition
+
+The available evidence does not yet demonstrate the full electrical route from Octopus connector contact 6 through the relevant board-side jumper/configuration network in the applicable SPI arrangement. Nor has a revision-qualified TMC5160T Pro V1.0 schematic or PCB trace been verified to establish J1-6 continuity to the module IC CLK input and clock-selection circuitry.
+
+A generic TMC5160 module schematic, a third-party schematic transcription, or an unpinned documentation page is not sufficient by itself to close these revision-specific gaps. No conclusion is made about the final electrical state, compatibility, or the user's as-built hardware.
+
+### Next evidence avenue
+
+1. Capture immutable commit IDs for the official Octopus guide and TMC5160T Pro V1.0 manufacturer documentation.
+2. Inspect the revision-pinned Octopus schematic around the exact Driver 2 connector contact and SPI/jumper network. Record the drawn nets and applicable jumper states without inferring connections from visual proximity or silkscreen alone.
+3. Locate a manufacturer-issued, revision-qualified TMC5160T Pro V1.0 schematic or PCB design and trace J1-6 to the IC CLK node and clock-selection circuitry.
+4. If either physical path or configured state cannot be established from those sources, retain the unresolved disposition and state precisely which evidence remains unavailable.
+
+**User action required:** None for this public-source investigation.
