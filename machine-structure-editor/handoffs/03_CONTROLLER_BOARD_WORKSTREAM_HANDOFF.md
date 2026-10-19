@@ -2157,11 +2157,38 @@ The available evidence does not yet demonstrate the full electrical route from O
 
 A generic TMC5160 module schematic, a third-party schematic transcription, or an unpinned documentation page is not sufficient by itself to close these revision-specific gaps. No conclusion is made about the final electrical state, compatibility, or the user's as-built hardware.
 
+### Revision-qualified contact-5/contact-6 evidence checkpoint - 2026-10-19
+
+**Immutable manufacturer-source references**
+- `bigtreetech/docs`: `bc29be3812cf1615633705a5e946f5500ea3780c`.
+- `bigtreetech/BIGTREETECH-Stepper-Motor-Driver`: `9f9680040e7f696f132b1c0d75a6f79c9f288b13`, matching the previous investigation snapshot.
+- Regular Octopus schematic file: `https://github.com/bigtreetech/BIGTREETECH-OCTOPUS-V1.0/blob/9526ff16f68839626cb8875a299e73f99f2e57e8/Hardware/BIGTREETECH%20Octopus%20-%20SCH.pdf`. It is published in the V1.0-named repository, not as a separately identified regular Octopus V1.1 schematic.
+- Octopus guide: `https://github.com/bigtreetech/docs/blob/bc29be3812cf1615633705a5e946f5500ea3780c/docs/Octopus.md`.
+- TMC5160T Pro V1.0 pin description: `https://github.com/bigtreetech/docs/blob/bc29be3812cf1615633705a5e946f5500ea3780c/docs/TMC5160T%20Pro%20V1.0.md`.
+- Driver repository V1.0 directory: `https://github.com/bigtreetech/BIGTREETECH-Stepper-Motor-Driver/tree/9f9680040e7f696f132b1c0d75a6f79c9f288b13/TMC5160_Pro%20V1.0`.
+
+**Manufacturer-listed pairing.** BIQU's Octopus V1.1 product page offers bundles with six or eight TMC5160T V1.0 drivers: `https://biqu.equipment/products/bigtreetech-octopus-v1-1`. This is evidence of intended commercial pairing, not a netlist or proof of every contact's electrical path.
+
+**Octopus guide revision limitation.** The pinned guide describes the first-column lower-row jumper as connecting SLP and RST and warns that microstepping configuration pins are shared with SPI. Its product profile calls the board Octopus V1.0 while its product link points to Octopus V1.1. It therefore does not independently establish revision-qualified Driver 2 contact-5/contact-6 routing on regular Octopus V1.1.
+
+**Module pin assignment and orientation.** The pinned TMC5160T Pro V1.0 documentation lists J1-5 as SDO/CFG0 and J1-6 as CLK (external clock input). Its pin diagram marks the EN corner for orientation. The pin table and illustration do not establish the complete PCB trace from J1-6 to the IC CLK pad, nor do they by themselves establish which physical Octopus socket contacts mate with J1-5 and J1-6.
+
+**Manual-version cross-link.** The BIQU TMC5160T Pro V1.0 product page links a user manual titled TMC5160 PRO-V1.1. That explains the available V1.1 documentation lead, but does not establish identical V1.0 pad layout or routing. The separate `TMC5160(T) Pro V1.1` directory's schematics are not substituted for missing V1.0 evidence. BIGTREETECH driver repository issue #25 contains user reports, not manufacturer confirmation of the electrical path.
+- Product page: `https://biqu.equipment/collections/motor-driver/products/tmc5160-pro-v1-0`
+- Linked manual: `https://cdn.shopify.com/s/files/1/1619/4791/files/BIGTREETECH_TMC5160_PRO-V1.1_user_manual_1.pdf?v=1699435321`
+- Issue #25: `https://github.com/bigtreetech/BIGTREETECH-Stepper-Motor-Driver/issues/25`
+
+**Separate Pro-board warning.** The official `BIGTREETECH-OCTOPUS-Pro` repository has a schematic named `BIGTREETECH Octopus Pro V1.1-sch.pdf`. It is explicitly the Pro variant and cannot fill the regular Octopus V1.1 schematic gap: `https://github.com/bigtreetech/BIGTREETECH-OCTOPUS-Pro/blob/master/Hardware/BIGTREETECH%20Octopus%20Pro%20V1.1-sch.pdf`.
+
+**SPI-mode jumper evidence.** At the pinned manufacturer documentation revision `bc29be3812cf1615633705a5e946f5500ea3780c`, the `Octopus.md` guide places the lower-row first-column SLP/RST bridging instruction in its STEP/DIR MODE section and separately directs users to the `Octopus_DRI4.webp` illustration for SPI MODE jumper configuration. Source image: `https://raw.githubusercontent.com/bigtreetech/docs/bc29be3812cf1615633705a5e946f5500ea3780c/docs/img/Octopus/Octopus_DRI4.webp`. The STEP/DIR instruction alone does not establish an SLP/RST bridge in the intended SPI configuration. The guide identifies its product profile as Octopus V1.0 while linking to the V1.1 product page, so it does not establish revision-qualified regular Octopus V1.1 routing or the as-built jumper state.
+
+**Conditional hypothesis only.** A possible bridge involving module J1-5 (SDO/CFG0) and J1-6 (CLK) cannot be inferred from the STEP/DIR jumper note alone. The regular Octopus V1.1 Driver 2 contact-5/contact-6 net mapping, module mating orientation, applicable SPI jumper routing, and installed jumper state remain unverified. This is not a confirmed short, incompatibility, or as-built path.
+
+**Disposition remains UNRESOLVED.**
+
 ### Next evidence avenue
 
-1. Capture immutable commit IDs for the official Octopus guide and TMC5160T Pro V1.0 manufacturer documentation.
-2. Inspect the revision-pinned Octopus schematic around the exact Driver 2 connector contact and SPI/jumper network. Record the drawn nets and applicable jumper states without inferring connections from visual proximity or silkscreen alone.
-3. Locate a manufacturer-issued, revision-qualified TMC5160T Pro V1.0 schematic or PCB design and trace J1-6 to the IC CLK node and clock-selection circuitry.
-4. If either physical path or configured state cannot be established from those sources, retain the unresolved disposition and state precisely which evidence remains unavailable.
-
-**User action required:** None for this public-source investigation.
+1. Continue searching manufacturer-published sources for a revision-qualified regular Octopus V1.1 schematic, netlist, or board-trace evidence for Driver 2 contacts 5 and 6 and their SLP/RST/SPI-related paths.
+2. Seek a manufacturer-issued TMC5160T Pro V1.0 schematic or reliable revision-specific PCB trace from J1-6 to IC CLK. Do not infer V1.0 routing from the Pro V1.1 manual or schematic.
+3. Cross-check the module's EN-corner orientation against an official, revision-matched Octopus socket drawing or photograph; preserve the distinction between intended product pairing and proven contact mapping.
+4. If no new primary public evidence exists, record that limitation and request Planning's direction before expanding beyond the bounded public-source investigation.
