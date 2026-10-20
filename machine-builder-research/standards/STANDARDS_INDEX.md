@@ -1371,7 +1371,7 @@ The catalog informs the canonical model; it must not silently replace the instal
 - Physical `SemanticPort` endpoints and `SemanticConnection` objects describe installed topology. `ControllerResource` describes a controller resource and is not itself a physical connector.
 - Firmware resource assignment is distinct from wiring. Board resource IDs, firmware channel names, connector labels, cable labels, and physical contact identities must not be conflated.
 - Catalog connector facts do not establish the identity or contact-to-contact connectivity of the actual installed cable.
-- Represent connector contacts as records with numeric `position` fields. Avoid integer dictionary keys in catalog records: the current persistence layer has a string-key restriction, and a serialization `TypeError` demonstrates that limitation rather than successful persistence.
+- Represent connector contacts as records with numeric `position` fields. The Octopus receiving-interface specification uses integer contact-position keys, while source inspection confirms `persistence.py` rejects non-string dictionary keys in `_encode()`. This establishes a source-level compatibility risk only: no runtime test was run, the exact first nested map encountered was not confirmed, and a complete Octopus save/reopen failure has not been demonstrated.
 - Geometry, board artwork, contact locations, and drawing references are supporting data, distinct from electrical meaning and installed topology.
 
 ### Format and interchange comparison
@@ -1530,7 +1530,12 @@ Physical connector orientation, manufacturer drawing/silkscreen identity, PCB pa
 **Separate unresolved discrepancy and persistence limit**
 
 - Octopus V1.1 Driver 2 contact 6 remains `SLEEP` / `DRIVER2_SLP`; TMC5160T Pro V1.0 J1 contact 6 remains `CLK`. The electrical explanation remains unresolved. Do not normalize the names or assert an established electrical connection.
-- The integer-keyed-map persistence limitation is separate from the SKR identity/mapping checks. A serialization failure is not a successful save/reopen round-trip; do not silently rewrite existing catalog data to make the bounded test pass.
+- The integer-key persistence concern is separate from the SKR identity/mapping checks. Source confirms `_encode()` rejects non-string dictionary keys, but no runtime save/reopen test was run and the Octopus round-trip failure has not been demonstrated. Keep this as an untested runtime hypothesis; do not silently stringify keys, rewrite catalog data, or change the generic serializer. The preferred representation remains contact records with numeric `position` fields.
+- **Accepted integer-key persistence checkpoint (2026-10-19; Planning `MB-20261019-1547-01`, following `MB-20261019-1450-01`):**
+  - **Source-confirmed mechanism:** `machine-structure-editor/src/machine_builder/persistence.py` `_encode()` rejects non-string dictionary keys before JSON encoding. `serialize_editor_state()` invokes `_encode(state)`, and `save_editor_state()` serializes before temporary-file creation.
+  - **Source-confirmed data shape:** `BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC["contacts"]` uses integer contact-position keys. The specification is embedded in `machine-structure-editor/src/machine_builder/controller_board_fixtures.py` by `add_octopus_tmc5160t_mating_experiment()`.
+  - **Runtime evidence limit:** no runtime test was run; the exact first nested map encountered was not confirmed; a complete Octopus save/reopen failure was not demonstrated. Do not report the runtime hypothesis as reproduced.
+  - **Preferred representation and disposition:** use contact records with numeric `position` fields. Do not silently stringify keys or change the generic serializer. Planning will route the bounded runtime regression to the implementation owner; #2 needs no further investigation unless contradictory evidence appears.
 
 **Bounded review outcome (2026-10-17): ACCEPTABLE for the scoped SKR EXP1 implementation and test evidence, based on #4's supplied source, fixture, tests, and validation report (`MB-20261016-2125-01`).** #4 reported 6 dedicated tests passing (0.14 s), 96 focused regression tests passing (4.17 s), 853 full-suite tests passing (36.85 s), and `git diff --check` passing. Research reviewed that evidence and communicated ACCEPTABLE to Planning (`MB-20261017-0009-01`) and Routing (`MB-20261017-0009-02`); Research did not independently rerun those commands. This closes only the bounded SKR EXP1 evidence/test gap. It does not approve a new canonical entity or production standard, nor establish physical layout or as-built wiring.
 
@@ -1545,7 +1550,7 @@ Candidate capability gaps to evaluate after the Promega milestone:
 - Revision, option, assembly, and harness variants must be representable without flattening disagreement into a universal pinout.
 - Source adapters need semantic validation; conversion to YAML/JSON alone does not preserve correct meaning.
 - Geometry and asset coordinates need source, revision, and coordinate context.
-- Persistence compatibility must be tested with actual records; numeric-position contact arrays avoid the known integer-dictionary-key problem.
+- Persistence compatibility should be verified with actual records. Represent contacts as records carrying numeric `position` fields rather than as an integer-keyed map; do not treat this preferred representation as runtime-validated until a bounded save/reopen regression is executed by the implementation owner.
 - Firmware import must preserve provider/version boundaries and source evidence.
 - Catalog data must not become an asserted as-built connection without evidence.
 
