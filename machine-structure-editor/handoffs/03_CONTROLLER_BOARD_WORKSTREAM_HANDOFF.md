@@ -2192,3 +2192,49 @@ A generic TMC5160 module schematic, a third-party schematic transcription, or an
 2. Seek a manufacturer-issued TMC5160T Pro V1.0 schematic or reliable revision-specific PCB trace from J1-6 to IC CLK. Do not infer V1.0 routing from the Pro V1.1 manual or schematic.
 3. Cross-check the module's EN-corner orientation against an official, revision-matched Octopus socket drawing or photograph; preserve the distinction between intended product pairing and proven contact mapping.
 4. If no new primary public evidence exists, record that limitation and request Planning's direction before expanding beyond the bounded public-source investigation.
+
+## 36. Octopus Receiving-Interface Persistence Regression Checkpoint
+
+**Date:** October 20, 2026
+
+**Classification:** Bounded runtime persistence implementation and regression validation. This is separate from the manufacturer-source investigation in section 35.
+
+**Planning authorization:** `MB-20261020-1639-01`; scope clarification `MB-20261020-1722-01`. Planning did not authorize conversion of the separate TMC5160T module-interface contact map or changes to the generic persistence encoder.
+
+### Reproduced failure and isolation
+
+- The initial save/reopen regression used `add_octopus_tmc5160t_mating_experiment`, which adds the TMC5160T hardware definition to the model. Its first failure occurred in `save_editor_state()` on the TMC5160T module-interface map, whose integer-keyed contacts included labels such as `EN`, `SDI/CFG1`, `SCK/CFG2`, and `CSN/CFG3`. This full-fixture result did not isolate the Octopus receiving-interface map.
+- Following Planning's scope decision, the regression setup was narrowed to a minimal Octopus V1.1 controller and a socket `SemanticPort` carrying only `BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC`. It excludes `build_btt_tmc5160t()` and the separate module hardware definition.
+- Before the catalog change, this isolated test also failed in `save_editor_state()` with `TypeError: Persistence currently requires string dictionary keys.` The traceback showed the Octopus receiving-interface `contacts` map itself had integer keys 1 through 18.
+
+### Implementation and assertions
+
+`machine-structure-editor/src/machine_builder/hardware_catalog.py` now represents the Octopus receiving-interface `contacts` as a list of 18 records. Every record carries a numeric `position` plus its original `label` and `classification`; positions 1-16 remain active, position 17 remains `NC`/`not_connected`, and position 18 remains `DIAG`/`diagnostic`.
+
+`machine-structure-editor/tests/test_octopus_driver_mating.py` updates the contact assertions to check ordered positions and the final two contact records. The new `test_octopus_receiving_interface_contacts_survive_save_reopen` saves and reloads an `EditorState` through the actual persistence APIs, then verifies that all contact records and positions survive the round trip.
+
+No change was made to `persistence.py` or to the separate TMC5160T module-interface catalog.
+
+### Focused validation
+
+Exact command run from `machine-structure-editor`:
+
+`python -m pytest -q tests/test_octopus_driver_mating.py tests/test_persistence.py tests/test_store_persistence.py tests/test_controller_board_fixtures.py`
+
+**Publication-slot validation result (2026-10-20):** `65 passed in 0.46s`; pytest exit code `0`. Earlier focused reruns also passed (`0.50s` and `0.37s`).
+
+Whitespace validation:
+
+`git diff --check -- machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md machine-structure-editor/src/machine_builder/hardware_catalog.py machine-structure-editor/tests/test_octopus_driver_mating.py`
+
+**Result at publication-slot pre-stage validation:** exit code `0`.
+
+These are local runtime test results. They are not manufacturer-source evidence and do not resolve any electrical path.
+
+### Local-only status and boundary
+
+The source change is limited to the Octopus receiving-interface contact list; the regression is limited to that receiving-interface save/reopen path. The generic persistence encoder and the separate TMC5160T module-interface catalog remain unchanged. Planning granted the bounded publication slot in MB-20261020-1845-01 for the authorized Octopus source, regression-test, and this persistence-checkpoint update only. The canonical Board replacement prompt remains local/untracked and excluded. The supplemental contact-6 source-note hunk above section 36 is outside this slot and must remain unstaged; all other workstream paths are also outside this slot.
+
+The Octopus V1.1 Driver 2 contact-6 / `DRIVER2_SLP` versus TMC5160T Pro V1.0 J1-6 / `CLK` question remains **UNRESOLVED**. The persistence regression is independent of that electrical investigation.
+
+**Publication-slot baseline:** `f5c02430496ebb5afb406ac7783a7d746c09c503` (Document publication throughput and recovery conventions). Local HEAD, `origin/main`, and live remote `main` matched this baseline before the authorized publication work.

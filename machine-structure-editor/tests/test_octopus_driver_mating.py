@@ -1,11 +1,15 @@
 """Tests for the Octopus driver-module mating experiment."""
 
-from machine_builder.controller_fixtures import (
-    add_generic_octopus_controller,
-)
+from pathlib import Path
+
+from machine_builder.controller import Controller
 from machine_builder.controller_board_fixtures import (
     add_octopus_tmc5160t_mating_experiment,
 )
+from machine_builder.controller_fixtures import (
+    add_generic_octopus_controller,
+)
+from machine_builder.editor_state import EditorState
 from machine_builder.hardware_catalog import (
     BTT_OCTOPUS_BOARD_REVISION_EVIDENCE,
     BTT_OCTOPUS_DOCUMENTATION_SOURCE,
@@ -15,10 +19,16 @@ from machine_builder.hardware_catalog import (
     BTT_TMC5160T_HARDWARE_SOURCE,
     build_btt_tmc5160t,
 )
+from machine_builder.persistence import (
+    load_editor_state,
+    save_editor_state,
+)
 from machine_builder.semantic_model import (
     CanonicalMachineModel,
     Machine,
+    SemanticPort,
 )
+from machine_builder.visual_model import VisualModel
 
 
 def make_test_model() -> CanonicalMachineModel:
@@ -230,17 +240,21 @@ def test_octopus_receiving_interface_evidence_is_explicit() -> None:
     assert spec["contact_count"] == 18
     assert spec["active_contact_count"] == 16
 
-    for contact in range(1, 17):
-        assert spec["contacts"][contact][
-            "classification"
-        ] == "active"
+    contacts = spec["contacts"]
+    assert isinstance(contacts, list)
+    assert [contact["position"] for contact in contacts] == list(range(1, 19))
 
-    assert spec["contacts"][17] == {
+    for contact in contacts[:16]:
+        assert contact["classification"] == "active"
+
+    assert contacts[16] == {
+        "position": 17,
         "label": "NC",
         "classification": "not_connected",
     }
 
-    assert spec["contacts"][18] == {
+    assert contacts[17] == {
+        "position": 18,
         "label": "DIAG",
         "classification": "diagnostic",
     }
@@ -274,6 +288,63 @@ def test_octopus_receiving_interface_evidence_is_explicit() -> None:
     )
     assert BTT_TMC5160T_HARDWARE_SOURCE in (
         provenance_sources
+    )
+
+
+def test_octopus_receiving_interface_contacts_survive_save_reopen(
+    tmp_path: Path,
+) -> None:
+    model = make_test_model()
+    controller = Controller(
+        id="btt-octopus-v1-1-controller",
+        name="BTT Octopus V1.1",
+        controller_type="motion_controller",
+        version="V1.1",
+        properties={"family": "Octopus"},
+    )
+    model.add_controller(
+        "machine-1",
+        controller,
+    )
+    socket_port = SemanticPort(
+        id="btt-octopus-v1-1-controller-z-driver-socket-interface",
+        component_id=None,
+        purpose="Z stepper driver receiving interface",
+        direction="unknown",
+        connector_id="z-driver-socket",
+        pin_id=None,
+        properties={
+            "interface_role": "driver_module_receiving_interface",
+            "interface_spec": (
+                BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC
+            ),
+        },
+        controller_id=controller.id,
+    )
+    model.add_port(
+        socket_port,
+    )
+    state = EditorState(
+        visual_model=VisualModel(),
+        semantic_model=model,
+    )
+    path = tmp_path / "octopus-contact-round-trip.json"
+
+    save_editor_state(state, path)
+    reopened = load_editor_state(path)
+
+    reopened_socket_port = reopened.semantic_model.ports[
+        socket_port.id
+    ]
+    contacts = reopened_socket_port.properties[
+        "interface_spec"
+    ]["contacts"]
+
+    assert contacts == (
+        BTT_OCTOPUS_MOTOR_DRIVER_RECEIVING_INTERFACE_SPEC["contacts"]
+    )
+    assert [contact["position"] for contact in contacts] == list(
+        range(1, 19)
     )
 
 
