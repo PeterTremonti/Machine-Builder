@@ -970,3 +970,23 @@ The property-based PCB identity architecture remains ACCEPTABLE. The earlier mut
 The two staged Research documents separately record Planning's coolant-contract acceptance and the DYZE cooling-loop follow-up. Their staged whitespace check passed. The Planning workflow/handoff changes, Board-owned source/test/handoff changes, and Promega source/test changes remain uncommitted. Keep ownership boundaries intact and do not combine unrelated paths into a cross-workstream commit.
 
 The Promega source-supported wiring vertical slice remains the active project priority. These reference fixtures do not establish a complete or as-built machine model.
+
+## Planning Coordination Checkpoint — Publication Throughput and Recovery Freshness (2026-10-20)
+
+**Verified baseline at inspection:** `29c2e54412c6621b112ccfee710e79e6fba46c91` — `Record integer-key persistence investigation findings`; branch `main`, local `HEAD`, stored `origin/main`, and live remote `main` agreed at 2026-10-20 18:38:16 -04:00. The shared index was empty at inspection. This is a historical snapshot, not a lock. No application tests were run for this documentation-only checkpoint.
+
+### Queue ownership and next actions
+
+- **#2 Research:** The three-file integer-key checkpoint is published at `29c2e54412c6621b112ccfee710e79e6fba46c91`. Planning received closeout `MB-20261020-1149-01` (`PUBLISHED — SLOT RELEASED`). The source-level rejection of non-string dictionary keys is confirmed; that Research investigation did not demonstrate runtime save/reopen failure. Later Research handoff/prompt refreshes remain local-only.
+- **#3 Controller/Board:** Published `9b3013d1cbecebbc32e6e17909a8ea09885a4833` for the Board handoff. Contact-6 remains **UNRESOLVED**. #3 isolated the receiving-interface test from the TMC5160T module definition and converted only Octopus contacts to 18 numeric-position records. The save/reopen regression and focused 65-test suite are reported passing, as is scoped whitespace validation. Board changes remain local-only pending review and their own future slot; the generic serializer and TMC5160T map remain unchanged.
+- **#4 Routing/Visual:** Yielded `NOT READY — SLOT RELEASED`. It reported 73 focused tests passing and compilation/whitespace checks passing, while GUI acceptance remains open. Its implementation, tests, handoff, and recovery prompt are outside this Planning batch.
+- **#5 Efficiency/Audit:** The read-only editor/store state, undo/redo, and persistence audit is accepted as backlog guidance only; no tests or GUI validation were run for that audit.
+- **#1 Planning:** The five-path Planning batch is local and unpublished. Planning's current slot covers exactly these paths at the verified baseline. After scoped validation, publish this batch only; keep all other workstream paths separate.
+
+### Operating rules recorded
+
+`CHAT_WORKFLOW.md` now records the publish-and-yield throughput rule, explicit closeout outcomes, baseline-specific grants, and the requirement to keep canonical recovery prompts and detailed handoffs current at material checkpoints. A prompt in chat is not proof of a repository write. Local recovery-file changes do not independently authorize publication.
+
+### Next action
+
+Review the complete Planning-only diff; verify strict UTF-8 read-back and the Planning-scoped whitespace check. #2's explicit closeout has been received. After validation, request a fresh Planning publication slot against the actual current baseline. Preserve every other workstream's staged, unstaged, and untracked changes.

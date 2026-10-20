@@ -677,6 +677,18 @@ After the required reading and local-state check, continue from the workstream h
 
 This process reduces user effort without weakening ownership boundaries, test requirements, or implementation and commit authorization gates.
 
+### Canonical replacement prompts and checkpoint freshness
+
+Each workstream maintains one canonical, in-repository recovery prompt, owned by that workstream and updated in place. The standard path is `machine-structure-editor/handoffs/NN_WORKSTREAM_REPLACEMENT_PROMPT.md`; Planning uses `machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_REPLACEMENT_PROMPT.md`.
+
+The **living handoff** is the detailed history of evidence, decisions, validation, and remaining gaps. The **replacement prompt** is the concise, self-contained recovery snapshot: mission, latest verified published commit, unpublished local work, actual validation state, unresolved criteria, current queue/slot state, ownership boundaries, and the exact next action.
+
+Refresh both documents at material checkpoints, especially after a research or implementation result, changed next action, failed operation affecting recovery, publication or slot release, or before ending a substantial work session. Do not wait for an expected length-limit warning. Keep one canonical prompt; do not create a new file for every revision.
+
+A prompt pasted into chat is not proof the repository file was saved. When the chat cannot directly write to the local checkout, provide one guarded command to update only the workstream-owned file, then verify its read-back and whitespace/encoding results from actual output. Report clearly if the file is missing, stale, local-only, or unverified. Do not repeatedly dump the same prompt as a substitute for confirming the file state.
+
+The recovery prompt may remain local and unpublished while still being usable. It must distinguish the published baseline from all local-only changes and must not claim a write, validation, commit, or push that was only attempted. Refreshing a prompt does not itself require replacing the active chat, staging the file, or expanding a publication grant.
+
 ## Required on every replacement chat
 
 1. Read `CHAT_WORKFLOW.md`, including its current operating constraints and this recovery section.
@@ -1342,6 +1354,22 @@ All workstreams share one local checkout and one Git index. Editing and publicat
 - If the index is empty, stage only the explicitly approved owner-scoped paths. Verify the exact staged list, inspect the complete staged diff, run staged whitespace checks, commit with the reported subject, push normally, and verify HEAD equals origin/main and live main. Recheck immediately before git add; if the state changed, stop.
 - Other workstreams should not infer a slot from old output or from being listed first in a document. A publication slot is granted explicitly in Planning's latest coordination message and remains exclusive until remote verification or an explicit release.
 - If a workstream completes its assigned task, it should continue with the next already-authorized in-scope action. If none is clear, it should ask Planning for the next focus with its completed work and possible in-scope candidates, rather than silently waiting or beginning unauthorized work.
+
+### Publish-and-yield throughput and mandatory slot closeout
+
+Treat a publication slot as permission to publish a specified coherent batch, not as a reason to hold the queue while unrelated work remains unfinished.
+
+When the slot arrives, publish the smallest **complete, coherent, validated unit** within the exact grant as soon as practical. Include dependent implementation, tests, and documentation needed to make that unit sound. Leave unfinished or unrelated changes local. Do not split mutually dependent changes merely to reduce a batch, and do not publish an incomplete unit to increase throughput.
+
+If no safe, complete batch fits the grant or a guard fails, stop before staging and release the slot with a concrete `NOT READY — SLOT RELEASED` or `BLOCKED — SLOT RELEASED` report. Continue permitted research, editing, and validation while queued; queued workstreams are not expected to sit idle.
+
+Every slot holder must send Planning a separate, explicit closeout immediately after publishing or yielding. A successful closeout must say `PUBLISHED — SLOT RELEASED` and include the full commit hash, subject, exact committed paths, actual validation, post-push verification of local `HEAD`, fetched `origin/main`, and live remote `main`, plus remaining local work. A non-publication closeout must say `NOT READY — SLOT RELEASED` or `BLOCKED — SLOT RELEASED` and state the failed guard, exact staged/index state, remaining local changes, and next action. Do not bury slot release in a research update and expect Planning to infer it.
+
+A grant is scoped to its named paths and baseline. If branch or remote main advances after the grant, stop before staging. Verify ancestry and request explicit renewal against the actual baseline; never assume the old grant automatically covers a new baseline. Never revert an intentional intervening commit merely to restore an earlier baseline.
+
+If yielding with staged work, first inspect the full index. Unstage only the slot holder's own paths when they are the only staged paths and doing so is necessary to release the slot. If any other owner's paths are staged, do not touch the index; stop and report the conflict.
+
+Refresh your handoff and canonical recovery prompt at material checkpoints, including after a publication or yield. Do not delay an otherwise valid publication just to bundle a recovery prompt that is outside the grant. Such a prompt update may remain local-only and must be reported as such. After explicit closeout, do not publish again until Planning grants a new slot.
 
 ## Copy completeness
 

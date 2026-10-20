@@ -1230,3 +1230,28 @@ The Planning documentation edits themselves have not been test-validated by the 
 ### Next action
 
 Finish review and publication of Planning's five owned documentation paths separately. Then continue coordinating the Promega milestone through material progress reports, not routine intermediate approvals. Do not resume the SKR spike or start the catalog loader as an implicit consequence of the research reports.
+
+## Planning Coordination Update — Publication Throughput and Recovery Freshness (2026-10-20)
+
+**Inspection snapshot:** 2026-10-20 18:38:16 -04:00. Branch `main`; local `HEAD`, stored `origin/main`, and live remote `main` matched at `29c2e54412c6621b112ccfee710e79e6fba46c91` (`Record integer-key persistence investigation findings`). The shared index was empty at inspection. This is a snapshot, not a lock. No application tests were run for this documentation-only update.
+
+### Operating decisions
+
+- Publication slots are exclusive and tied to the exact named paths and published baseline.
+- Publish the smallest complete, coherent, validated batch within the grant promptly. Do not hold a slot for unfinished unrelated work.
+- If no safe batch can be published, or any guard fails, stop before staging and send an explicit `NOT READY — SLOT RELEASED` or `BLOCKED — SLOT RELEASED` closeout.
+- Every slot holder must send a separate closeout: `PUBLISHED — SLOT RELEASED`, `BLOCKED — SLOT RELEASED`, or `NOT READY — SLOT RELEASED`. Include evidence, index state, and remaining local work.
+- If remote `main` advances after a grant, stop before staging and request explicit renewal against the new baseline.
+- Maintain one canonical replacement prompt per workstream, updated in place with its handoff at material checkpoints. Verify read-back and clearly distinguish local, committed, and remotely published state.
+
+### Queue and workstream state at this snapshot
+
+- **#2 Research:** Published checkpoint `29c2e54412c6621b112ccfee710e79e6fba46c91` (`Record integer-key persistence investigation findings`) contains the Standards Index, Research handoff, and Research replacement prompt. Planning received closeout `MB-20261020-1149-01` (`PUBLISHED — SLOT RELEASED`). The serializer rejection of non-string dictionary keys is source-confirmed; the Research investigation did not demonstrate a runtime save/reopen failure. Later Research handoff/prompt refreshes remain local-only.
+- **#3 Board:** Published checkpoint `9b3013d1cbecebbc32e6e17909a8ea09885a4833` (`Document revision-pinned TMC5160T routing evidence`). Contact-6 remains **UNRESOLVED**. #3 isolated the test to an Octopus V1.1 controller and receiving-interface socket, excluding the TMC5160T module definition. The Octopus-only contact representation now contains 18 position-bearing records; #3 reports the save/reopen regression and focused suite passing (65 tests), with scoped whitespace validation passing. Board changes remain local-only, pending review and a separate publication slot. The generic serializer and separate TMC5160T map were not changed.
+- **#4 Routing/Visual:** Released its slot as `NOT READY — SLOT RELEASED`. It reported 73 focused tests passing and compilation/whitespace checks passing; manual GUI acceptance remains open. Its implementation, tests, handoff, and recovery prompt remain outside this Planning batch.
+- **#5 Audit:** The read-only editor/store, undo/redo, and persistence audit is accepted as backlog guidance. It ran no tests or GUI validation; follow-up candidates are not implementation authorization.
+- **#1 Planning:** Planning's current slot covers its five documentation paths at the verified baseline. Complete review and scoped validation, then publish only this batch; keep all other workstream paths local.
+
+### Concurrent-state qualification
+
+The current supplied worktree status contains 29 changed/untracked paths: five Planning-owned paths and 24 paths owned by other workstreams. Keep those paths outside this Planning batch. The Research checkpoint is published; its later handoff/prompt refreshes remain local-only. Recheck current status, refs, and the shared index before publication.
