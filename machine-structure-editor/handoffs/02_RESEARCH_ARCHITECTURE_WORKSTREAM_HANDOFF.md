@@ -1,5 +1,25 @@
 # Chat 02 — Research / Architecture Workstream Handoff
 
+<!-- BEGIN VERIFIED POST-PUBLICATION STATUS: MB-20261020-1622-02 -->
+## Current verified Research checkpoint — 2026-10-20
+
+- **Latest shared baseline:** `ae5a9a1672d151c37e392e9bff4f2421f0a465f2` — `Fix Octopus receiving-interface persistence`. Fresh preflight confirmed local HEAD, fetched `origin/main`, and live remote `main` match.
+- **Latest earlier Research publication:** `29c2e54412c6621b112ccfee710e79e6fba46c91` — `Record integer-key persistence investigation findings`.
+- **Board persistence follow-up:** #3 published the Octopus receiving-interface persistence fix in `ae5a9a1672d151c37e392e9bff4f2421f0a465f2`. Planning reports the 65-test focused suite passed; Research did not independently rerun it. The generic serializer and separate TMC5160T module map were not changed.
+- **Separate unresolved hardware question:** Octopus V1.1 contact 6 versus TMC5160T Pro V1.0 J1-6 remains **UNRESOLVED**. Do not conflate it with the receiving-interface persistence fix or duplicate #3 investigation.
+- **Research source finding:** `_encode()` rejects non-string dictionary keys; the earlier Octopus specification used integer contact-position keys. The Board fix is scoped to the Octopus receiving interface. Do not silently stringify keys or change the generic serializer.
+- **Previous closeout:** `MB-20261020-1149-01` (`PUBLISHED — SLOT RELEASED`) was sent to Planning, as confirmed by the user.
+- **Current publication grant:** `MB-20261020-1900-01` authorizes exactly these two paths at baseline `ae5a9a1672d151c37e392e9bff4f2421f0a465f2`:
+  - `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
+  - `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md`
+- **Validation:** strict UTF-8 readback, `git diff --check`, exact staged path set, full staged diff review, staged/worktree blob equality, normal push, and post-push ref verification are required.
+- **Local-state boundary:** the Standards Index is clean. Preserve all other workstream changes and untracked paths. Only the two grant-authorized files may enter this commit.
+- **Next action:** finish staged review, commit with `Refresh Research recovery handoff and replacement prompt`, push normally, verify local/fetched/live remote refs, then send Planning a separate `PUBLISHED — SLOT RELEASED` closeout.
+
+Older status text below this checkpoint is historical wherever it conflicts with these verified facts.
+<!-- END VERIFIED POST-PUBLICATION STATUS: MB-20261020-1622-02 -->
+
+
 ## Purpose
 
 This is the living continuity document for Chat 02 — Research / Architecture.
@@ -1432,13 +1452,13 @@ The original catalog documentation edit recorded pre-edit HEAD `7316c22ae09fed95
 
 - The catalog/interchange proposal remains documented in `machine-builder-research/standards/STANDARDS_INDEX.md` as research, not implementation authorization. `MASTER_PLAN.md` Section 13 remains the canonical register for future problems and deferred ideas. The existing catalog research record was published in commit `25d8268600c0979ecfccfccb8a1b0b04bcf89014`; catalog implementation remains deferred unless Planning separately authorizes it.
 - The bounded SKR Mini E3 V3.0 EXP1 review is ACCEPTABLE within the limited scope as of 2026-10-17. #4 reported 6 dedicated, 96 focused-regression, and 853 full-suite tests passing at its earlier checkpoint; Research reviewed the supplied evidence but did not rerun those tests.
-- **Latest verified shared baseline (2026-10-19):** `9b3013d1cbecebbc32e6e17909a8ea09885a4833` - `Document revision-pinned TMC5160T routing evidence`. Fresh preflight confirmed local HEAD, `origin/main`, and live remote `main` match at this commit. Recheck immediately before any later Git write.
-- **Current local checkpoint (2026-10-19):** shared baseline is `9b3013d1cbecebbc32e6e17909a8ea09885a4833` (`Document revision-pinned TMC5160T routing evidence`). The three Research targets remain modified and unstaged. Active publication slot `MB-20261019-1819-01` authorizes this exact three-file batch; nothing has been staged for it yet.
-- **Local Research work:** the Standards Index, #2 handoff, and #2 replacement prompt have unstaged changes recording the accepted integer-key persistence finding and current recovery state.
-- **Authorization:** previous grant `MB-20261018-2347-01` is consumed. Grant `MB-20261019-1815-02` was superseded by active grant `MB-20261019-1819-01`, which authorizes only the Standards Index, this Research handoff, and this replacement prompt. Approved commit subject: `Record integer-key persistence investigation findings`. No runtime regression test is authorized.
-- **Shared-index preservation:** fresh preflight confirmed that the shared index was empty before staging. Preserve every other workstream modification and untracked file; stage only the three paths authorized by `MB-20261019-1819-01`.
+- **Latest verified shared baseline (2026-10-20):** `ae5a9a1672d151c37e392e9bff4f2421f0a465f2` — `Fix Octopus receiving-interface persistence`.
+- **Current local checkpoint (2026-10-20):** publication baseline `ae5a9a1672d151c37e392e9bff4f2421f0a465f2`; this two-file Research batch is authorized under `MB-20261020-1900-01` and awaits final staged review.
+- **Local Research work:** the Standards Index is clean. This handoff and replacement prompt are the exact two files authorized for publication under `MB-20261020-1900-01`.
+- **Authorization:** grant `MB-20261019-1819-01` is consumed. Current grant `MB-20261020-1900-01` authorizes only the two Research handoff files at baseline `ae5a9a1672d151c37e392e9bff4f2421f0a465f2`.
+- **Shared-index preservation:** the slot preflight confirmed an empty index before staging. The index now contains only the two paths authorized by `MB-20261020-1900-01`; preserve all unrelated worktree changes.
 - SolidCraft is an optional future geometry-authoring/import candidate (`MB-20261017-1121-01`), not a V0.2 requirement or dependency. Planning owns future roadmap placement and evaluation authorization.
-- **Next action:** complete publication under `MB-20261019-1819-01`. Immediately before staging, recheck branch, local HEAD, fetched `origin/main`, live remote `main`, empty shared index, and prior Research ancestry. Strictly validate UTF-8 and target-only whitespace; inspect the full three-file diff; stage only the three authorized paths; verify the exact staged list and complete staged diff; run `git diff --cached --check`; commit with subject `Record integer-key persistence investigation findings`; and push normally. Verify local, fetched, and live remote references agree. If any guard fails, stop and send Planning a distinct `BLOCKED — SLOT RELEASED` closeout; after publication, send `PUBLISHED — SLOT RELEASED`.
+- **Next action:** publish the two authorized Research files under `MB-20261020-1900-01` after final staged-diff review. Then verify refs and send a separate `PUBLISHED — SLOT RELEASED` closeout.
 
 ## Current Research focus
 ### Accepted integer-key persistence checkpoint (Planning acceptance: 2026-10-19)
@@ -1453,7 +1473,7 @@ Planning accepted the read-only Research finding under `MB-20261019-1547-01`, fo
 
 **Preferred representation:** contact records carrying numeric `position` fields. Do not change the generic serializer or silently stringify keys.
 
-**Disposition and owner:** Planning will route the bounded runtime regression to the implementation owner. #2 needs no further investigation unless new evidence contradicts this finding. These documentation files are included in active grant `MB-20261019-1819-01`; do not run the runtime regression under this grant.
+**Disposition and owner:** #3 subsequently published the Octopus receiving-interface persistence fix in `ae5a9a1672d151c37e392e9bff4f2421f0a465f2`. Planning reports the focused 65-test suite passed; Research did not rerun it. The separate contact-6 discrepancy remains unresolved; do not duplicate #3 investigation.
 
 **Current-source update (2026-10-18; reconciled with DYZE support email and historical capture).** DYZE Technical Support's full email supplied by the user confirms that the supplied 1/4-inch ID x 3/8-inch OD soft, high-temperature rubber tube must have a bend radius no smaller than 50 mm, measured to the tube OD as support specifies, in stationary and moving conditions. Support states the automatic kink/blockage detection and print-pause feature is unavailable in the current version; it was carried over from a prototype and removed because of false positives and inadequate consistency for a reliable safeguard. Support replied at 11:30 AM on October 13 and promised a documentation update; the current Liquid Cooling guide displays an October 13, 2026, 5:11:12 PM update timestamp. The inspected September 14, 2025 Wayback capture, whose own footer says it was last updated September 4, 2025, directly shows the old conflicting minimum/maximum bend-radius instructions and the earlier automatic-pause claim. The same-day sequence and matching content strongly support attributing the correction to the questions submitted on October 12, although the internal edit history is unavailable. The all-time Wayback query returned 21 rows after digest collapsing; a 2026 exact-date-window query returned no rows, one wildcard query returned HTTP 503, and five Common Crawl exact-URL attempts returned HTTP 504. Those service failures are not evidence of empty collections. Installed Cooling Unit revision, actual tubing/fittings, routing, wiring, and firmware configuration remain unverified.
 
@@ -1462,10 +1482,10 @@ Planning accepted the read-only Research finding under `MB-20261019-1547-01`, fo
 - **Publish and yield (`MB-20261019-1749-01`):** when an explicit publication slot is active, publish a complete, validated, coherent batch within its exact authorized paths as soon as ready. Do not hold a slot for unrelated work. If no safe authorized batch is ready, do not stage or publish; report the blocker and yield. This standing convention does not create or extend a grant.
 - **Recovery freshness (`MB-20261019-1752-01`):** refresh this detailed handoff and the canonical replacement prompt in place after material findings, test or audit results, blockers, ownership/dependency/readiness changes, recovery-relevant failures, publication changes, and yield decisions. The handoff retains detailed evidence and history; the prompt provides a concise, self-contained verified snapshot.
 - **Preflight and preservation:** immediately before any Git write, verify branch, local HEAD, `origin/main`, live remote `main`, shared index, and worktree. Stage only paths in the active grant; inspect the full staged diff and run `git diff --cached --check`; commit and push normally; verify the resulting remote checkpoint. Never stage another workstream, disturb unrelated index entries, use broad staging/reset/discard/unstage operations, or force-push.
-- **Current disposition:** previous grant `MB-20261018-2347-01` is consumed; grant `MB-20261019-1815-02` was superseded by active slot `MB-20261019-1819-01`. The active slot covers only the three Research paths. Current baseline is `9b3013d1cbecebbc32e6e17909a8ea09885a4833`; fresh preflight confirmed the shared index empty. Preserve all unrelated workstream changes.
-- **Publication action:** complete the exact three-file batch under `MB-20261019-1819-01`. If any guard fails, stop and send Planning a separate `BLOCKED — SLOT RELEASED` message. After successful push and remote verification, send a separate `PUBLISHED — SLOT RELEASED` message. Do not run runtime tests under this documentation-only grant.
+- **Current disposition:** the two-file recovery refresh is authorized under `MB-20261020-1900-01`; the earlier three-file grant is consumed. No Research implementation or additional investigation is authorized by this slot.
+- **Publication action:** stage only the Research handoff and replacement prompt, inspect the complete staged diff, commit with the approved subject, push normally, verify refs, and send a separate closeout.
 
-**Concrete next action (2026-10-19; grant `MB-20261019-1819-01`):** publish the exact three authorized Research paths with approved subject `Record integer-key persistence investigation findings`. Preserve the accepted DYZE findings and describe integer-key persistence as source-confirmed but not runtime-reproduced. Do not run runtime tests under this grant. Immediately after publishing or stopping on a guard failure, send Planning a separate closeout stating `PUBLISHED — SLOT RELEASED` or `BLOCKED — SLOT RELEASED`.
+**Concrete next action (2026-10-20; grant `MB-20261020-1900-01`):** finish final staged review and publish only the two authorized files. After successful push verification, send a separate `PUBLISHED — SLOT RELEASED` closeout and refresh local recovery state as needed.
 
 
 - **Completed liquid-cooling checkpoint (initial source check: 2026-10-11; current-source recheck: 2026-10-18):** DYZE DESIGN Typhoon LCX and Liquid Cooling source findings, ISO applicability and model-fit assessment remain recorded in `machine-builder-research/standards/STANDARDS_INDEX.md`. The earlier bend-radius conflict is a historical source observation; the current public guide explicitly states a 50 mm minimum. The V0.2 architecture assessment is cross-referenced in Section 14 of `machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md`.
