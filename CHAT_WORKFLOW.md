@@ -731,6 +731,18 @@ Chat 01 owns:
 
 Chat 01 should not independently rewrite implementation-owned handoffs.
 
+## Prior-Art Review During Feature Planning
+
+Before assigning implementation for a new or materially nontrivial problem, define the requirement and inspect the current Machine Builder implementation when practical. Planning then decides whether a bounded prior-art review is likely to reduce uncertainty, duplicated effort, or risk.
+
+Consider review proportionally for unfamiliar algorithms; persistent or repeated problems; major features or interaction patterns; scaling/performance concerns; and significant architectural, interoperability, or dependency decisions. Routine, well-understood local fixes must remain fast; research is not mandatory for every change.
+
+When warranted, assign bounded research into established solutions and relevant source/tests. Record precise sources and versions where practical, observed behavior and known limitations, mapping to current Machine Builder responsibilities, alternatives and trade-offs, estimated benefit/effort/risk, testable acceptance criteria, and licensing/dependency considerations where relevant. Negative findings are valid; preserve a concise rationale when it will prevent repeated investigation.
+
+Return recommendations to Planning. Planning sets priority, owner, scope, and authorization before implementation. Research findings alone do not authorize implementation, source-code reuse, dependency adoption, or repository publication. Feed implementation and regression evidence back into Planning.
+
+Preserve the canonical-model boundary: the editor authors actual canonical state through established mutation, validation, and persistence paths; semantic connections remain distinct from presentation geometry and view state.
+
 ---
 
 # 19. Research / Architecture (#2)
