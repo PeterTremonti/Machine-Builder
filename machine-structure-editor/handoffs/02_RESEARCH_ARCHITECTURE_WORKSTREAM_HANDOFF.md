@@ -1,23 +1,25 @@
 # Chat 02 — Research / Architecture Workstream Handoff
 
-<!-- BEGIN VERIFIED POST-PUBLICATION STATUS: MB-20261020-1622-02 -->
-## Current verified Research checkpoint — 2026-10-20
+<!-- BEGIN VERIFIED RESEARCH CONTINUITY CHECKPOINT: MB-20261021-1640-01 -->
+## Current Research continuity checkpoint - 2026-10-21
 
-- **Latest shared baseline:** `ae5a9a1672d151c37e392e9bff4f2421f0a465f2` — `Fix Octopus receiving-interface persistence`. Fresh preflight confirmed local HEAD, fetched `origin/main`, and live remote `main` match.
-- **Latest earlier Research publication:** `29c2e54412c6621b112ccfee710e79e6fba46c91` — `Record integer-key persistence investigation findings`.
-- **Board persistence follow-up:** #3 published the Octopus receiving-interface persistence fix in `ae5a9a1672d151c37e392e9bff4f2421f0a465f2`. Planning reports the 65-test focused suite passed; Research did not independently rerun it. The generic serializer and separate TMC5160T module map were not changed.
-- **Separate unresolved hardware question:** Octopus V1.1 contact 6 versus TMC5160T Pro V1.0 J1-6 remains **UNRESOLVED**. Do not conflate it with the receiving-interface persistence fix or duplicate #3 investigation.
-- **Research source finding:** `_encode()` rejects non-string dictionary keys; the earlier Octopus specification used integer contact-position keys. The Board fix is scoped to the Octopus receiving interface. Do not silently stringify keys or change the generic serializer.
-- **Previous closeout:** `MB-20261020-1149-01` (`PUBLISHED — SLOT RELEASED`) was sent to Planning, as confirmed by the user.
-- **Current publication grant:** `MB-20261020-1900-01` authorizes exactly these two paths at baseline `ae5a9a1672d151c37e392e9bff4f2421f0a465f2`:
-  - `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
-  - `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md`
-- **Validation:** strict UTF-8 readback, `git diff --check`, exact staged path set, full staged diff review, staged/worktree blob equality, normal push, and post-push ref verification are required.
-- **Local-state boundary:** the Standards Index is clean. Preserve all other workstream changes and untracked paths. Only the two grant-authorized files may enter this commit.
-- **Next action:** finish staged review, commit with `Refresh Research recovery handoff and replacement prompt`, push normally, verify local/fetched/live remote refs, then send Planning a separate `PUBLISHED — SLOT RELEASED` closeout.
+Planning grant `MB-20261021-1640-01` authorizes a documentation-only refresh of this handoff and `02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md`.
 
-Older status text below this checkpoint is historical wherever it conflicts with these verified facts.
-<!-- END VERIFIED POST-PUBLICATION STATUS: MB-20261020-1622-02 -->
+- **Authorized parent:** `41dcb7bcaf1c879c4d23fe5c1107f0444501c774`
+- **Commit subject:** `Refresh Research continuity handoff and replacement prompt`
+- **Previous closeout:** the user confirmed that `MB-20261020-1934-01` was sent to Planning.
+- **Prior-art workflow:** published in `CHAT_WORKFLOW.md` by `7d4fc6c0378ffd4de455c8db05dcd636034711c1`.
+- **Comparative study:** `MB-20261021-1115-01` examined KiCad, QElectroTech, WireViz, LibrePCB, libavoid, and Qt Graphics View. Findings are design references, not proof of missing features and not authorization for a routing rewrite or dependency adoption.
+- **Integer-key persistence:** `_encode()` rejects non-string dictionary keys. #3 published a scoped receiving-interface correction; Planning reported 65 focused tests passing. Research did not rerun them.
+- **Unresolved Board question:** Octopus V1.1 / TMC5160T Pro contact 6 remains disputed between `SLEEP` and `CLK`. This is separate from persistence.
+- **DYZE research:** the historical bend-radius wording and prototype-era automatic-pause questions were accepted as answered under `MB-20261018-2038-01`. Avoid repeating broad archive searches without a new evidence target.
+- **Promega:** active firmware configuration and as-built variant remain unverified. Open mappings include E0/E1, H2/H4, S8/S6, P9/P11, cold-section fan assignment, and M307 versus M301 documentation.
+- **#4 Routing/Visual:** Planning's supplied snapshot reported native Qt/PySide6 teardown aborts after pytest summaries; the controlled QApplication-retention comparison was inconclusive, and Experiment B was not authorized in that snapshot. Follow #4's live handoff and later Planning decisions.
+- **Other-workstream changes:** #3's handoff addition, #4's source and tests, #5's documentation, and other untracked prompts/tests/fixture were present at preflight. Preserve all non-target paths.
+- **Scope limit:** this grant authorizes no implementation changes, tests, new investigation, or changes to other workstreams.
+
+After the two-document publication is independently verified through Git, send Planning a separate closeout and yield. This note is not proof of its own publication commit.
+<!-- END VERIFIED RESEARCH CONTINUITY CHECKPOINT: MB-20261021-1640-01 -->
 
 
 ## Purpose
@@ -957,96 +959,54 @@ Planning / Architecture decides whether to incorporate it.
 
 # Current State
 
-Updated: 2026-10-18
+Updated: 2026-10-21
 
-Research role:
+## Research role and architecture
 
-Evidence and external precedent for Planning and Implementation.
+Research provides source-grounded evidence, external precedent, and bounded comparisons to Planning. Durable architecture and implementation decisions remain Planning-controlled.
 
-Current major research themes:
+Current research themes include real-board representation, connector/interface semantics, mating relationships, replaceable-driver compatibility, routing architecture, modular machine/process architecture, and validating the boundary between the canonical model and visual editor.
 
-* real hardware / Board representation
-* connector and interface semantics
-* mating relationships
-* replaceable driver/module compatibility
-* orthogonal routing architecture
-* modular machine/process architecture
-* real-data validation of the canonical hardware/visual boundary
+The Duet 2 Maestro V1.0 remains the first real hardware specimen used for canonical-model and visual integration. Planning's V0.2 assessment found the ontology broadly sufficient; remaining gaps should be demonstrated against actual implementation behavior before proposing new canonical entities. A physical contact-level endpoint can involve multiple SemanticPorts; do not introduce a Contact entity merely to encode a board-specific observation.
 
-Current Board state:
+## Accepted research and validation findings
 
-```text
-Duet 2 Maestro V1.0
+- **SKR Mini E3 V3.0 EXP1:** the bounded review was ACCEPTABLE on 2026-10-17 under proposal `MB-20261015-1154-01`; acceptance messages were `MB-20261017-0009-01` to Planning and `MB-20261017-0009-02` to Routing. #4 reported 6 dedicated tests, 96 focused regression tests, and 853 full-suite tests passing at that earlier checkpoint. Research reviewed the supplied evidence and did not independently rerun the tests. This does not establish physical wiring or validate every connector/contact.
+- **Integer-key persistence:** source inspection confirmed that `_encode()` rejects non-string dictionary keys while the earlier Octopus receiving-interface specification used integer contact-position keys. #3 subsequently published a scoped receiving-interface correction; Planning reported 65 focused tests passing. Research did not rerun them. Do not silently stringify keys or generalize the fix to the serializer without evidence.
+- **Separate unresolved hardware discrepancy:** Octopus V1.1 Driver 2 contact 6 `SLEEP` / `DRIVER2_SLP` versus TMC5160T Pro V1.0 J1 contact 6 `CLK` remains unresolved. Keep it distinct from the persistence correction and do not duplicate #3's investigation without a new assignment or evidence.
+- **DYZE liquid cooling:** the historical bend-radius wording and prototype-era automatic-pause questions were accepted as ANSWERED under `MB-20261018-2038-01`. The current public guide specifies a 50 mm minimum for the supplied tubing; the prototype pause feature is unavailable in the current version. The installed cooling-unit revision, actual tubing/fittings, routing, wiring, and firmware remain machine-specific unknowns. Avoid broad archive searches without a new evidence target.
+- **SolidCraft:** Planning accepted it as an optional future CAD candidate under `MB-20261017-1121-01`, not a V0.2 requirement or dependency. Geometry or STEP import does not prove electrical connectivity or firmware correctness. No evaluation is authorized by the current Research slot.
 
-COMPLETE
-```
+## Promega integration research
 
-Most recent Board checkpoint (accepted; electrical discrepancy retained as unresolved history):
+Planning accepted six bounded research deliverables: Installed-Hardware Inventory; Component-Side Endpoint Evidence Matrix; Compound Extruder Harness Mapping Matrix; Extruder-Harness Physical-Inspection Checklist; Functional-Relationship Evidence Matrix; and Firmware Resource-Binding Matrix.
 
-```text
-Octopus V1.1 ↔ TMC5160T Pro V1.0
-Planning accepted the evidence checkpoint on 2026-10-09.
-The contact-6 SLEEP-versus-CLK electrical explanation remains unresolved.
-```
+The official Promega v1.0.1 Compound configuration is version-qualified reference evidence only. The user's active firmware configuration and as-built machine variant remain unverified.
 
-Current Promega integration status:
+Open mappings and discrepancies include:
+- P4/P2 to physical E0/E1 drive mapping.
+- Compound heater H2/H4 and PT1000 S8/S6 harness mapping.
+- Printer-specific P9/P11 fan mapping.
+- Cold-section fan logical-output assignment versus the documented Always On connection.
+- Legacy M307 settings versus current Promega documentation's M301 settings.
 
-Planning accepted all six bounded Promega integration research deliverables: Installed-Hardware Inventory; Component-Side Endpoint Evidence Matrix; Compound Extruder Harness Mapping Matrix; Extruder-Harness Physical-Inspection Checklist; Functional-Relationship Evidence Matrix; and Firmware Resource-Binding Matrix.
+Keep installed physical components, functional relationships, versioned firmware configuration, and verified physical connections separate. Evidence in one category does not establish facts in another.
 
-Keep documented physical components, functional relationships, versioned firmware configuration, and verified physical connections distinct. Evidence in one category does not by itself establish facts in another.
+## Comparative prior-art study and Planning workflow
 
-The official Promega v1.0.1 Compound configuration is version-qualified reference evidence only. The user's active firmware configuration and physical machine variant remain unverified.
+Comparative study `MB-20261021-1115-01` examined KiCad, QElectroTech, WireViz, LibrePCB, libavoid, and Qt Graphics View. The findings are design references, not proof that a particular capability is absent from Machine Builder and not authorization for a routing rewrite or dependency adoption.
 
-Unresolved mappings and discrepancies:
-* P4/P2 to physical E0/E1 drive mapping.
-* Compound heater H2/H4 and PT1000 S8/S6 harness mapping.
-* Printer-specific P9/P11 fan mapping.
-* Cold-section fan logical-output assignment versus the documented Always On connection.
-* Legacy M307 settings versus current Promega documentation's M301 settings.
+Planning's proportional Prior-Art Review decision point is published in `CHAT_WORKFLOW.md` at `7d4fc6c0378ffd4de455c8db05dcd636034711c1`. Planning decides when bounded prior-art review is useful; routine local fixes remain fast, and findings return to Planning before implementation authorization. Check exact source revisions, licenses, compatibility, and distribution implications before code reuse or dependency adoption.
 
-Current architecture disposition:
+## Current authorization and workstream boundaries
 
-```text
-No new canonical hardware entity is currently justified.
+Planning grant `MB-20261021-1640-01` authorizes only this Research handoff and `02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md`, from parent `41dcb7bcaf1c879c4d23fe5c1107f0444501c774`, with commit subject `Refresh Research continuity handoff and replacement prompt`.
 
-Research should be evidence-driven and case-driven.
+Planning's supplied snapshot reports that #4's native Qt/PySide6 teardown aborts block the full-suite process-exit gate. The controlled QApplication-retention comparison was inconclusive, and Experiment B was not authorized in that snapshot. Follow the live #4 handoff and subsequent Planning directions; this Research slot authorizes no tests or changes to #4's work.
 
-Maestro is complete enough to serve as the first real
-hardware specimen for canonical-model and visual integration.
+Preserve #3's separate handoff changes, #4's implementation and tests, #5's documentation, and all other non-target paths. Do not infer the current repository state from historical commit references; verify it through Git.
 
-The next major implementation question is accurate
-instantiation of the actual Promega machine.
-```
-
-Current documentation priority:
-
-Preserve source provenance and research conclusions so that replacement chats do not have to reconstruct the research history from conversation memory.
-
-Next Action:
-
-**Bounded SKR Mini E3 V3.0 EXP1 review — ACCEPTABLE (2026-10-17).** Research reviewed #4's implementation and validation evidence under proposal `MB-20261015-1154-01`. Acceptance was sent to Planning (`MB-20261017-0009-01`) and Routing (`MB-20261017-0009-02`). This closes only the bounded fixture/test evidence gap, not general connector/contact validation or physical wiring.
-
-**Validation evidence and attribution.** #4 reported 6 dedicated SKR tests passing in 0.14 s, 96 focused regression tests passing in 4.17 s, 853 full-suite tests passing in 36.85 s, and `git diff --check` passing at its earlier checkpoint. Research reviewed the supplied results and did not independently rerun those tests. This documentation pass runs no pytest, firmware-source/hash, external-source, or hardware tests.
-
-**Publication preflight (2026-10-18).** Before staging, branch `main`, local `HEAD`, fetched `origin/main`, and live remote `main` matched at `0700c3f61bb47d186756b704f89b80ed280c8915`. This is the pre-publication baseline; use Git to establish the current repository state.
-
-**Intended publication paths (only).**
-- `machine-builder-research/standards/STANDARDS_INDEX.md`
-- `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
-
-**Publication result (2026-10-18).** The authorized two-file source-recheck checkpoint was published as `bd5afc14d818264216796bee7d98640422211851` (`Record cooling-loop source recheck findings`). Post-push verification showed local `HEAD`, fetched `origin/main`, and live remote `main` matched at that commit. The archive follow-up is separate local research and has no publication slot.
-
-**Unresolved evidence and limits.** EXP1 position 8 -> `PD6` is source-supported, but physical orientation, PCB pad/net identity, mating-face/cavity mapping, continuity, and as-built wiring remain unverified. The local Marlin snapshot's upstream origin remains unknown. Conditional peripheral-macro interpretation is not a universal mapping. The Octopus Driver 2 contact-6 `SLEEP` / `DRIVER2_SLP` versus TMC5160T Pro J1 contact-6 `CLK` discrepancy remains unresolved. Integer-key persistence is source-confirmed at the mechanism level but remains an untested runtime hypothesis: `persistence.py` rejects non-string dictionary keys, while the Octopus receiving-interface specification uses integer contact-position keys; no runtime test was run, the exact first nested map was not confirmed, and a complete save/reopen failure was not demonstrated. This remains separate from group-level `mated_with` limitations. Do not normalize uncertain facts or alter catalog data merely to force a passing test.
-
-**Evidence record and coordination trail.** The ten-position source inventory, source locators, mapping-layer reconciliation, and bounded test outcome are retained in the single Standards Index entry above, not duplicated in a second appendix here. Message trail: proposal `MB-20261015-1154-01`; Planning disposition and authorization `MB-20261015-2142-01` / `MB-20261015-2142-02`; implementation request `MB-20261016-0024-01`; source-inventory/recovery direction `MB-20261016-0025-01`; source-locator note `MB-20261016-1753-01`; Research source inventory `MB-20261016-1755-01`; mapping-layer direction `MB-20261016-1806-01`; documentation-refresh direction `MB-20261016-1808-01`; #4 source/test report `MB-20261016-1833-01`; #4 implementation evidence `MB-20261016-2125-01`; Research acceptance messages `MB-20261017-0009-01` and `MB-20261017-0009-02`. The stated follow-up relationship between the 17:53 and 17:55 IDs conflicts with their timestamp order. Planning has not reconciled that discrepancy; do not infer chronology from those timestamps alone.
-
-**General Research priority.** Promega source-supported wiring remains the general project priority. The separate cooling investigation remains open and is not a prerequisite for Promega wiring.
-
-**Accepted future CAD candidate.** Planning accepted SolidCraft via `MB-20261017-1121-01` as an optional future CAD candidate, not a V0.2 requirement or dependency. SolidCraft owns CAD documents and parametric geometry; Machine Builder remains authoritative for canonical component identity/role, HardwareDefinition, SemanticPort/SemanticConnection, provenance, and firmware requirements/mapping. Geometry or STEP import does not prove electrical connectivity or firmware correctness. Evaluation gates and deferred status are recorded in the existing **CAD / Geometry** section above. No evaluation is authorized now.
-
-**Validation performed in this correction.** The saved files and staged blobs were checked directly as UTF-8. The suspected display-corruption marker was absent before editing, so encoding conversion was not needed. The established baseline and cooling evidence remain in their existing sections. Target-only working-tree and staged `git diff --check` are run after this correction.
-
-**Historical result (updated 2026-10-19).** Planning accepted the DYZE historical wording conflict and current prototype-feature status as ANSWERED under `MB-20261018-2038-01`. The earlier Research publication completed as `e210c92af2edac5b8a5e92df122225622ff4f007` (`Reconcile DYZE cooling source evidence`). The branch subsequently advanced through the screenshot update and #3 Board evidence work; the current verified shared baseline is `9b3013d1cbecebbc32e6e17909a8ea09885a4833` (`Document revision-pinned TMC5160T routing evidence`). The prior publication grant is consumed; the active Research publication grant and next action are recorded in the Live-State Summary below.
+After the two-document publication is verified, send Planning a separate closeout and yield. This slot authorizes no implementation changes, tests, or new investigation.
 
 # Documentation Reconciliation Checkpoint
 
@@ -1450,15 +1410,14 @@ The original catalog documentation edit recorded pre-edit HEAD `7316c22ae09fed95
 
 ## Current checkpoint
 
-- The catalog/interchange proposal remains documented in `machine-builder-research/standards/STANDARDS_INDEX.md` as research, not implementation authorization. `MASTER_PLAN.md` Section 13 remains the canonical register for future problems and deferred ideas. The existing catalog research record was published in commit `25d8268600c0979ecfccfccb8a1b0b04bcf89014`; catalog implementation remains deferred unless Planning separately authorizes it.
-- The bounded SKR Mini E3 V3.0 EXP1 review is ACCEPTABLE within the limited scope as of 2026-10-17. #4 reported 6 dedicated, 96 focused-regression, and 853 full-suite tests passing at its earlier checkpoint; Research reviewed the supplied evidence but did not rerun those tests.
-- **Latest verified shared baseline (2026-10-20):** `ae5a9a1672d151c37e392e9bff4f2421f0a465f2` — `Fix Octopus receiving-interface persistence`.
-- **Current local checkpoint (2026-10-20):** publication baseline `ae5a9a1672d151c37e392e9bff4f2421f0a465f2`; this two-file Research batch is authorized under `MB-20261020-1900-01` and awaits final staged review.
-- **Local Research work:** the Standards Index is clean. This handoff and replacement prompt are the exact two files authorized for publication under `MB-20261020-1900-01`.
-- **Authorization:** grant `MB-20261019-1819-01` is consumed. Current grant `MB-20261020-1900-01` authorizes only the two Research handoff files at baseline `ae5a9a1672d151c37e392e9bff4f2421f0a465f2`.
-- **Shared-index preservation:** the slot preflight confirmed an empty index before staging. The index now contains only the two paths authorized by `MB-20261020-1900-01`; preserve all unrelated worktree changes.
-- SolidCraft is an optional future geometry-authoring/import candidate (`MB-20261017-1121-01`), not a V0.2 requirement or dependency. Planning owns future roadmap placement and evaluation authorization.
-- **Next action:** publish the two authorized Research files under `MB-20261020-1900-01` after final staged-diff review. Then verify refs and send a separate `PUBLISHED — SLOT RELEASED` closeout.
+- **Catalog/interchange:** retained as research in `machine-builder-research/standards/STANDARDS_INDEX.md`. `MASTER_PLAN.md` Section 13 remains the canonical register for future problems and deferred ideas. The catalog proposal does not authorize implementation.
+- **SKR Mini E3 V3.0 EXP1:** the bounded review remains ACCEPTABLE within its stated scope as of 2026-10-17. #4 reported 6 dedicated tests, 96 focused regression tests, and 853 full-suite tests passing at that earlier checkpoint. Research reviewed the supplied evidence and did not rerun the tests. This does not establish physical wiring or universal connector/contact validity.
+- **Comparative prior-art study:** `MB-20261021-1115-01` examined KiCad, QElectroTech, WireViz, LibrePCB, libavoid, and Qt Graphics View. The results identify patterns to compare against current code; they do not prove a capability is missing or authorize a routing rewrite or dependency adoption.
+- **Published workflow:** `CHAT_WORKFLOW.md` contains the proportional Prior-Art Review decision point, published in `7d4fc6c0378ffd4de455c8db05dcd636034711c1`. Planning decides when a bounded review is useful; routine local fixes remain fast, and recommendations return to Planning before implementation authorization.
+- **Current Research authorization:** Planning grant `MB-20261021-1640-01` authorizes only this handoff and `02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md`, from parent `41dcb7bcaf1c879c4d23fe5c1107f0444501c774`, with commit subject `Refresh Research continuity handoff and replacement prompt`.
+- **Pre-publication snapshot:** at checkpoint preparation, these two files had local edits awaiting review and the grant had not yet been published. Verify the branch, local and remote refs, shared index, and full worktree again immediately before staging.
+- **Workstream preservation:** #3's separate handoff changes, #4's implementation and tests, #5's documentation, and all other non-target paths remain outside this grant. Stage only the two authorized Research files after the complete diff is reviewed.
+- **Deferred candidate:** SolidCraft remains an optional future geometry-authoring/import candidate under `MB-20261017-1121-01`, not a V0.2 requirement or dependency. Planning controls any future evaluation.
 
 ## Current Research focus
 ### Accepted integer-key persistence checkpoint (Planning acceptance: 2026-10-19)
@@ -1482,10 +1441,10 @@ Planning accepted the read-only Research finding under `MB-20261019-1547-01`, fo
 - **Publish and yield (`MB-20261019-1749-01`):** when an explicit publication slot is active, publish a complete, validated, coherent batch within its exact authorized paths as soon as ready. Do not hold a slot for unrelated work. If no safe authorized batch is ready, do not stage or publish; report the blocker and yield. This standing convention does not create or extend a grant.
 - **Recovery freshness (`MB-20261019-1752-01`):** refresh this detailed handoff and the canonical replacement prompt in place after material findings, test or audit results, blockers, ownership/dependency/readiness changes, recovery-relevant failures, publication changes, and yield decisions. The handoff retains detailed evidence and history; the prompt provides a concise, self-contained verified snapshot.
 - **Preflight and preservation:** immediately before any Git write, verify branch, local HEAD, `origin/main`, live remote `main`, shared index, and worktree. Stage only paths in the active grant; inspect the full staged diff and run `git diff --cached --check`; commit and push normally; verify the resulting remote checkpoint. Never stage another workstream, disturb unrelated index entries, use broad staging/reset/discard/unstage operations, or force-push.
-- **Current disposition:** the two-file recovery refresh is authorized under `MB-20261020-1900-01`; the earlier three-file grant is consumed. No Research implementation or additional investigation is authorized by this slot.
-- **Publication action:** stage only the Research handoff and replacement prompt, inspect the complete staged diff, commit with the approved subject, push normally, verify refs, and send a separate closeout.
+- **Historical disposition (2026-10-20):** the two-file recovery refresh is published and verified at `dfefa9df337bc431a0056554d5c72843075132cf`; the publication slot is released.
+- **Historical publication action (2026-10-20):** the authorized batch is published. Do not repeat publication without a new Planning grant.
 
-**Concrete next action (2026-10-20; grant `MB-20261020-1900-01`):** finish final staged review and publish only the two authorized files. After successful push verification, send a separate `PUBLISHED — SLOT RELEASED` closeout and refresh local recovery state as needed.
+**Historical concrete next action (2026-10-20):** send the separate Planning closeout and await further direction. The `MB-20261020-1900-01` grant is consumed; this is historical status. The active grant is `MB-20261021-1640-01` for these two Research documents only; publication remains pending.
 
 
 - **Completed liquid-cooling checkpoint (initial source check: 2026-10-11; current-source recheck: 2026-10-18):** DYZE DESIGN Typhoon LCX and Liquid Cooling source findings, ISO applicability and model-fit assessment remain recorded in `machine-builder-research/standards/STANDARDS_INDEX.md`. The earlier bend-radius conflict is a historical source observation; the current public guide explicitly states a 50 mm minimum. The V0.2 architecture assessment is cross-referenced in Section 14 of `machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md`.
