@@ -2221,7 +2221,7 @@ Exact command run from `machine-structure-editor`:
 
 `python -m pytest -q tests/test_octopus_driver_mating.py tests/test_persistence.py tests/test_store_persistence.py tests/test_controller_board_fixtures.py`
 
-**Publication-slot validation result (2026-10-20):** `65 passed in 0.46s`; pytest exit code `0`. Earlier focused reruns also passed (`0.50s` and `0.37s`).
+**Published implementation validation (2026-10-20):** `65 passed in 0.33s`; pytest exit code `0`. The staged whitespace check passed, and post-push local `HEAD`, `origin/main`, and live remote `main` converged on the published commit.
 
 Whitespace validation:
 
@@ -2231,9 +2231,13 @@ Whitespace validation:
 
 These are local runtime test results. They are not manufacturer-source evidence and do not resolve any electrical path.
 
-### Local-only status and boundary
+### Published implementation and current dependency status
 
-The source change is limited to the Octopus receiving-interface contact list; the regression is limited to that receiving-interface save/reopen path. The generic persistence encoder and the separate TMC5160T module-interface catalog remain unchanged. Planning granted the bounded publication slot in MB-20261020-1845-01 for the authorized Octopus source, regression-test, and this persistence-checkpoint update only. The canonical Board replacement prompt remains local/untracked and excluded. The supplemental contact-6 source-note hunk above section 36 is outside this slot and must remain unstaged; all other workstream paths are also outside this slot.
+The Octopus receiving-interface contact-list persistence correction and its save/reopen regression were published in commit `ae5a9a1672d151c37e392e9bff4f2421f0a465f2` (`Fix Octopus receiving-interface persistence`). Published paths were `machine-structure-editor/src/machine_builder/hardware_catalog.py`, `machine-structure-editor/tests/test_octopus_driver_mating.py`, and this handoff. Publication validation passed `65 passed in 0.33s`; the staged whitespace check and post-push ref convergence checks passed. The generic persistence encoder and the separate TMC5160T module-interface contact map were not changed.
+
+**Stepper-terminal dependency hold (Planning messages `MB-20261020-2045-03` and `MB-20261021-1618-01`).** The local-only `machine-structure-editor/tests/test_stepper_motor_terminal_profile.py` and `tests/test_controller_board_fixtures.py` passed together with `34 passed in 0.20s` on 2026-10-20 in the combined working tree. That result depends on `UpdateMachineComponentWithStepperTerminalProfile`, which is present in the modified local `machine-structure-editor/src/machine_builder/semantic_component_mutations.py` but absent from the published baseline. The result therefore does not demonstrate that the test passes against published code. Planning directed #3 to hold the test until #4 publishes its semantic/routing dependency, after which Planning will reassess the baseline and authorize a separate Board slot. The current documentation-only slot authorizes these two documents only; it does not authorize the test or #4 product code.
+
+**Local-change boundary.** The additional section 35 V1.0 manual/source-note hunk was already local before this refresh. It is intentionally separate from the continuity edit and must remain unstaged in this slot. Its third-party/manual and issue-tracker leads do not prove the disputed electrical path. Preserve it and all other #2/#4/#5 paths without staging, discarding, or rewriting them. Contact-6 remains **UNRESOLVED**.
 
 The Octopus V1.1 Driver 2 contact-6 / `DRIVER2_SLP` versus TMC5160T Pro V1.0 J1-6 / `CLK` question remains **UNRESOLVED**. The persistence regression is independent of that electrical investigation.
 
