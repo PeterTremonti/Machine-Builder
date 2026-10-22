@@ -331,6 +331,10 @@ These remain future/candidate areas unless promoted by evidence and architecture
 
 - **Data-driven hardware catalog architecture - research proposal.** On 2026-10-11, #2 recommended a staged, declarative, revision-qualified hardware catalog with validation, explicit source evidence, uncertainty, and adapters into the existing canonical model. Candidate authoring formats include restricted YAML validated with JSON Schema Draft 2020-12, with JSON as a lower-dependency alternative. Prefer string-keyed objects and contact arrays with explicit numeric positions. This remains a research proposal, not a format decision or implementation authorization. Defer a schema/loader pilot and broad catalog migration until after the Promega milestone and a separate Planning decision. No ontology expansion is implied.
 
+### Future-feature intake entries - 2026-10-22
+
+- **Live digital twin for runtime printer monitoring and fault detection.** Explore a virtual representation that stays synchronized while a physical 3D printer operates. Connect virtual machine state and print/G-code progress to available firmware telemetry and sensor measurements; compare expected behavior with observed behavior; highlight suspected anomalies on affected virtual components or toolpath locations; and preserve evidence for diagnosis. Initial research leads are the [Ender 3 Hotend Twin project](https://github.com/batu63562/ender3-hotend-twin) and its [r/3Dprinting discussion](https://www.reddit.com/r/3Dprinting/s/ZBYaj6KqB4). This is a focused example to investigate, not evidence of complete machine-wide fault detection. **Status:** deferred future opportunity, with no implementation commitment. Revisit after the Promega vertical slice through a separate feasibility/scope decision covering firmware-specific telemetry, mapping live observations to canonical components, fault validation and false-positive rates, operator alerts, and safe pause/recovery behavior. Supporting context: `machine-builder-research/future/DEFERRED_RESEARCH.md`, Sections 13 and 34.
+
 # 14. Modularity and code health
 
 The project should favor cohesive modules with clear responsibilities.

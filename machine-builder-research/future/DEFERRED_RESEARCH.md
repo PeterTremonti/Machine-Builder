@@ -941,6 +941,23 @@ The project should not claim to be a full digital twin simply because it contain
 
 The requirements of a digital-twin system should be researched separately if that direction becomes important.
 
+Concrete Research Lead: Live Printer Twin with Runtime Fault Monitoring
+
+The [Ender 3 Hotend Twin project](https://github.com/batu63562/ender3-hotend-twin) and the [associated r/3Dprinting discussion](https://www.reddit.com/r/3Dprinting/s/ZBYaj6KqB4) are concrete leads for this deferred direction. The concept described there pairs a virtual printer/toolpath view with runtime measurements and a focused hotend thermal model that compares expected and observed behavior to flag anomalies. This illustrates one fault-detection slice, not a complete digital twin or proof of broad failure coverage. Revisit the source materials before relying on specific implementation details or creator-reported performance claims.
+
+Potential Future Direction
+
+- Synchronize virtual machine state and print progress with the physical printer using available firmware telemetry and sensors.
+- Map measurements and anomaly events to canonical components and relevant toolpath locations so the operator can see where a deviation may be occurring.
+- Preserve timestamped events and measurements to support diagnosis and maintenance.
+- Begin with observable state and advisory alerts. Consider a requested or automatic print pause only after fault conditions, false-positive behavior, firmware response, and safe recovery have been validated.
+
+Evidence and Safety Gate
+
+Before implementation, identify the supported firmware telemetry sources, define how runtime observations map to versioned machine and component identities, and validate detection during both known-good operation and deliberately introduced faults. Record the evidence, detection limits, confidence, and false-positive behavior. Do not treat an illustrative project as validated machine-wide fault detection, and do not conflate the static canonical model with runtime state.
+
+This remains deferred research. The Promega vertical slice retains priority. This entry does not authorize a runtime subsystem or automated machine control.
+
 35. Formal Requirement Engineering
 Status
 
