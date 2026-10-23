@@ -744,3 +744,437 @@ The #5 Planning documentation-currency audit was conversation-only. It recommend
 ### Remaining review boundary
 
 Continue the standing #5 audit mission. Do not reopen completed reviews without material new evidence or a material state change. For a complete Promega wiring claim, review a new integrated evidence package when available; do not promote reported progress to locally inspected, tested, or published status without the corresponding evidence.
+## 2026-10-18 - Bounded Visual-Builder Modularity Review
+
+**Planning disposition:** Planning accepted two findings as future backlog candidates. No implementation authorization was granted.
+
+**Published checkpoint reviewed:** `0700c3f61bb47d186756b704f89b80ed280c8915` - `Add workstream focus index and publication continuity rules`.
+
+**Source files inspected:** `machine-structure-editor/src/machine_builder/canvas_scene.py`, `canvas_ui.py`, `graphics/connection.py`, and `graphics/node.py`.
+
+**Tests inspected, not run:** `machine-structure-editor/tests/test_canvas_scene.py`, `test_canvas_ui.py`, `test_node_graphics.py`, `test_connection_routing.py`, and `test_functional_interface_connection.py`. Related documentation inspected: `CHAT_WORKFLOW.md`, `MASTER_PLAN.md`, and `WORKSTREAM_FOCUS_INDEX.md`.
+
+**Finding 1 - Future backlog candidate: route-stability/diagnostics boundary.** `ConnectionGraphicsItem` combines persistent route-selection and hysteresis state, route scoring, geometry-repair behavior, endpoint/obstacle handling, and diagnostics with Qt graphics-item responsibilities. Pathfinding already has a separate engine, so a wholesale routing split is not recommended. If prioritized, isolate a small route-stability policy/state or diagnostics boundary. The principal risk is changing tuned routing behavior. Acceptance evidence should include the existing routing suite and characterization tests for previous/candidate/selected routes, route decisions and diagnostics, and stable rendered paths across representative node-movement, obstacle, and endpoint fixtures.
+
+**Finding 2 - Future backlog candidate: focus-projection boundary.** `canvas_ui.py` combines canonical-model connector/contact grouping, focus-choice construction, visibility policy, connector-group presentation data, and Qt updates. `canvas_scene.py` invokes optional focus-refresh/apply callbacks during scene synchronization. After the visual interaction model settles, consider a small Qt-independent helper for focus choices and connector-group presentation data. Do not introduce a generalized zoom framework as a consequence. Acceptance evidence should cover interface/contact grouping, missing or ambiguous connector-level interfaces, focus retention across model refreshes, and preservation of canonical and visual connections, save/reopen state, and undo/redo state.
+
+**Explicit deferral - `graphics/node.py`.** Base port layout and styling coexist with overlay label restoration, enclosure/cone geometry, and endpoint-anchor reporting. This seam overlaps #4's active cone/focus work. Do not refactor it until that work stabilizes and the presentation contract is clearer.
+
+**Risks and dependencies:** Both accepted candidates are future structure-only opportunities that depend on stable current behavior and characterization coverage. The node-overlay seam is explicitly deferred because it overlaps active #4 work. These findings identify maintainability seams, not confirmed functional defects.
+
+**Audit validation:** Read-only source, documentation, and test-coverage inspection at the published checkpoint. #5 did not run tests or GUI validation. Existing test coverage was inspected, not independently executed. No source or implementation files were changed by this audit.
+
+**Coordination and publication:** This entry records Planning's disposition in the #5-owned handoff. No implementation was authorized. Do not stage, commit, or push until Planning grants the publication slot. The existing `Next Action` section remains authoritative; this history entry does not replace it.
+
+**Continuity procedure (Planning directive MB-20261018-1035-01):** At meaningful checkpoints, update this owned handoff before starting another substantial operation and provide a dated, copy-ready replacement-chat prompt. Record the verified published baseline, local unpublished paths, validations actually run, open gaps, publication state, owner, and next action. Do not rely on a near-limit warning or a final message after the hard length limit. Send material status changes to Planning in a complete copy-ready report. Continue authorized audit and owned-handoff work while queued, but do not stage, commit, or push until Planning grants the publication slot.
+
+## 2026-10-18 - Editor State, Undo/Redo, and Persistence Boundary Audit
+
+**Prepared:** 2026-10-18 13:05 EDT | Message ID: MB-20261018-1305-01
+Relationship: Read-only audit assigned by Planning in MB-20261018-1241-01. This checkpoint supplements the standing #5 audit mission and does not grant implementation or publication authority.
+**Documentation edit timestamp:** 2026-10-18 13:10:48 -04:00.**
+
+### Scope and disposition
+
+The assigned review examined where canonical and visual state is created and changed, transaction and rollback behavior, undo/redo, persistence, separation from view state, and the tests substantiating those paths.
+
+**Audit disposition:** The inspected normal paths have substantial source and test support. No confirmed blocker was demonstrated in the reviewed paths. The findings below identify boundary-hardening and failure-path coverage candidates, not proof that those failures occur during normal use.
+
+### Local repository checkpoint
+
+- Branch: main
+- HEAD: bd5afc14d818264216796bee7d98640422211851 - Record cooling-loop source recheck findings
+- Local origin/main tracking reference: bd5afc14d818264216796bee7d98640422211851; matches HEAD. No remote fetch was performed.
+- The core source and tests listed in this audit were checked for changes against HEAD immediately before this documentation update.
+
+**Shared worktree status observed immediately before this update:**
+
+```text
+ M machine-builder-research/standards/STANDARDS_INDEX.md
+ M machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md
+M  machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/src/machine_builder/canvas_ui.py
+ M machine-structure-editor/src/machine_builder/graphics/port.py
+ M machine-structure-editor/tests/test_functional_interface_connection.py
+?? machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/handoffs/03_CONTROLLER_BOARD_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_REPLACEMENT_PROMPT.md
+```
+
+This status includes other workstreams. In particular, the Board handoff is already staged; the Research and Routing handoffs, Routing source/test files, standards index, and their replacement prompts have their own unpublished state. Those paths and the shared Git index were preserved.
+
+### Source and tests inspected
+
+Source: machine-structure-editor/src/machine_builder/store.py; editor_state.py; document_controller.py; persistence.py; and canvas_editing.py.
+
+Tests inspected, not run: tests/test_store.py; test_store_persistence.py; test_store_document_state.py; test_document_controller.py; test_persistence.py; test_connection_details.py; test_app_rebuilt_integration.py. The published baseline test name test_interface_focus_preserves_contacts_and_persistence was confirmed through git show origin/main, rather than relying on the concurrently modified working-tree copy.
+
+### Confirmed state and transaction behavior
+
+- EditorState contains both VisualModel and CanonicalMachineModel. ModelStore creates and owns the combined state object.
+- ModelStore.commit() deep-copies the state before mutation.apply(). If apply raises, the store restores the snapshot and rethrows. A successful apply adds the prior snapshot to undo history, clears redo history, marks the document modified, and notifies listeners.
+- Undo and redo restore complete EditorState snapshots. test_create_machine_component_undo_removes_both and test_create_machine_component_redo_restores_both explicitly check canonical component and corresponding visual-node behavior.
+- test_failed_machine_component_creation_rolls_back_everything checks rejected creation against both model representations and history. test_failed_mutation_leaves_existing_undo_history_intact checks that an earlier undo remains usable after a subsequent failure.
+- The component-details and controller-details handlers inspected in canvas_editing.py commit UpdateMachineComponent and UpdateController mutations only after dialog acceptance. The cancellation branches return before committing.
+- The connection-details, compatibility-warning, and visual-only prompt cancellation tests check model and undo/redo history invariants.
+- Document path and modified state are outside the undo snapshots. Tests cover path establishment, load resetting modified state, undo/redo marking the document modified, and save preserving history.
+
+### Persistence and view-state boundary
+
+- The persistence encoder serializes registered dataclass fields recursively and supports explicit enum, dictionary, list, tuple, and scalar representations. The serialized envelope carries format and version metadata.
+- Saving writes a temporary sibling file and uses os.replace for destination replacement, with temporary-file cleanup. Loading decodes to a separate EditorState before ModelStore installs it and clears history.
+- Tests cover normal round-trips for both models, semantic relationships and assignments, visual geometry and semantic references, metadata/version rejection, invalid JSON rejection, parent-directory creation, replacement of an existing file, and temporary-file cleanup.
+- EditorState contains the visual and canonical models, not transient canvas selection or interface focus. The published baseline includes a focus/persistence test.
+- The app-level undo/redo integration test currently asserts the visual node result; store-level tests provide the stronger explicit cross-model assertions.
+
+### Risks and prioritized follow-ups
+
+1. **Failure-injection coverage:** Add tests for a failed write or os.replace and for a failed load of an existing document. Assert that content, file path, modified flag, history, notifications, original destination, and temporary-file cleanup stay consistent with the intended contract.
+2. **Listener exception semantics:** commit(), undo(), redo(), and load() change store state/history before listener notification. If a listener raises, the caller can receive an exception after the transition has already occurred, and later listeners are skipped. Define the intended policy and add focused tests for it.
+3. **Live mutable accessors:** store.state, store.model, and store.semantic_model expose live mutable objects. This is an API-boundary risk because callers can in principle mutate without commit(), history, dirty-state updates, or notification. It was not established as a bypass in the reviewed ordinary dialog-edit paths. Consider documenting or tightening the boundary as a separately authorized follow-up.
+4. **Integration assertion:** Consider extending the application-level undo/redo integration test to assert the matching canonical state, complementing existing store-level cross-model coverage.
+
+### Explicit correction to the read-only search
+
+The expressions self.store.semantic_model.machines[machine_id] at canvas_editing.py lines 109 and 300 are indexed reads for obtaining the machine name, not assignments. They are withdrawn as evidence of a transaction bypass. The reviewed component/controller acceptance handlers use store.commit(). No ordinary UI mutation bypass was confirmed by this inspection.
+
+### Validation and ownership
+
+Tests and GUI behavior were not run by #5. This checkpoint reflects source and test assertion inspection only. No implementation file was edited. This documentation update changes only the #5-owned handoff and recovery prompt. Nothing was staged, committed, or pushed. Planning retains genuine scope and publication control.
+
+## Planning Disposition - 2026-10-18 - Editor State and Persistence Audit Accepted
+
+Planning acceptance: MB-20261018-1312-01, prepared 2026-10-18 13:12 EDT, accepts the completed read-only audit reported in MB-20261018-1305-01.
+
+Accepted disposition: no confirmed blocking defect was demonstrated in the reviewed normal paths. The canvas_editing.py indexed expressions previously flagged were reads, not writes; the suspected transaction bypass is withdrawn.
+
+Accepted backlog priorities; not implementation authorization:
+1. Persistence failure-path tests: inject save/write-replacement and load failures into an existing document. Cover model contents, path, modified flag, undo/redo history, listener notifications, destination preservation, and temporary-file cleanup.
+2. Listener-exception semantics: define and test the result when a listener throws after a state/history transition, including whether later listeners run.
+3. Mutable store access: assess whether live state/model/semantic_model exposure is intentional or should be constrained. Keep this as a potential risk unless a concrete bypass is demonstrated.
+4. App-level undo/redo assertions: consider asserting canonical-model effects in the integration test; store-level cross-model coverage already exists.
+
+Validation limitation: #5 inspected source and test assertions only. No tests were run and no GUI validation was performed. Do not claim full verification beyond the inspected evidence.
+
+Publication boundary: the #5 handoff and recovery prompt remain unpublished. Preserve #3 active publication scope and the shared staged index. Do not stage, commit, push, or implement these candidates without applicable Planning authorization.
+
+Next action: no further audit operation is required for this checkpoint. Continue maintaining the #5 handoff and recovery prompt, and await the next bounded review assignment.
+
+## 2026-10-19 - Planning Queue and Recovery Freshness Rules
+
+Prepared: 2026-10-19 18:01 EDT | Message ID: MB-20261019-1801-01
+Relationship: Records Planning directives MB-20261019-1749-01 (publish-and-yield queue) and MB-20261019-1752-01 (handoff and recovery freshness). These rules preserve exact publication scopes.
+
+### Standing publication procedure
+
+At each publication turn, verify branch, HEAD, local origin/main, live remote main, working-tree changes, and shared staging-index state. Select the smallest coherent, complete, validated batch within the exact grant. Stage only authorized paths, inspect the full staged diff, commit and push normally, verify the remote checkpoint, and yield. If no safe authorized batch is ready or any guard fails, do not stage or publish; report the specific blocker and release the slot.
+
+Queued work may continue under existing permissions. Keep this handoff and the canonical replacement prompt current at material checkpoints, after publication, before yielding, and before ending substantial work. Do not replace the canonical files with a series of new checkpoint files.
+
+These standing rules do not expand existing grants. Planning states #3 active scope remains limited to machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md. Preserve the shared index and every other workstream path.
+
+### Fresh repository snapshot before this documentation update
+
+- Branch: main
+- HEAD: bf82ca9f43f6ddb6f09350e45e244f2dadbc8708 Create Screenshot 2026-10-19 170905.png
+- Local origin/main: bf82ca9f43f6ddb6f09350e45e244f2dadbc8708 Create Screenshot 2026-10-19 170905.png
+- Live remote main: bf82ca9f43f6ddb6f09350e45e244f2dadbc8708
+- Remote comparison: Live remote main matches the local origin/main tracking reference.
+- The live remote query was read-only. No fetch, stage, commit, or push was performed.
+
+Staged paths before this update:
+```text
+machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md
+
+```
+
+Working-tree status before this update:
+```text
+ M machine-builder-research/standards/STANDARDS_INDEX.md
+ M machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md
+ M machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md
+M  machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/src/machine_builder/canvas_editing.py
+ M machine-structure-editor/src/machine_builder/canvas_scene.py
+ M machine-structure-editor/src/machine_builder/canvas_ui.py
+ M machine-structure-editor/src/machine_builder/graphics/connection.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing_endpoint.py
+ M machine-structure-editor/src/machine_builder/graphics/node.py
+ M machine-structure-editor/src/machine_builder/graphics/port.py
+ M machine-structure-editor/src/machine_builder/semantic_component_mutations.py
+ M machine-structure-editor/tests/test_connection_routing.py
+ M machine-structure-editor/tests/test_functional_interface_connection.py
+?? machine-structure-editor/handoffs/03_CONTROLLER_BOARD_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/tests/test_connection_wire_color.py
+?? machine-structure-editor/tests/test_stepper_motor_terminal_profile.py
+?? "machine-structure-editor/wiring test machines/Maestro and 4 port motor test.machine.json"
+```
+
+### #5 audit state and backlog
+
+Planning accepted the read-only editor-state/undo-redo/persistence audit in MB-20261018-1312-01. No confirmed blocking defect was demonstrated in the reviewed normal paths. #5 inspected source and test assertions only; no tests or GUI validation were performed.
+
+Backlog only; no implementation authorization:
+1. Persistence failure-injection tests for save/write replacement and failed load into an existing document, covering model contents, path, modified flag, undo/redo history, listener notifications, destination preservation, and temporary-file cleanup.
+2. Define and test listener-exception semantics after state/history changes, including whether later listeners are notified.
+3. Assess live mutable state/model/semantic_model access as a potential risk unless a concrete bypass is demonstrated.
+4. Consider canonical-model assertions in app-level undo/redo integration coverage; store-level cross-model coverage already exists.
+
+Correction retained: the previously flagged canvas_editing.py expressions were dictionary reads, not writes. No ordinary UI transaction bypass was demonstrated in the inspected paths.
+
+Earlier accepted modularity backlog remains: a narrow route-stability/diagnostics seam in graphics/connection.py after characterization coverage; a small Qt-independent focus-projection helper for canvas_ui.py/canvas_scene.py after #4 visual interaction work settles; and deferral of graphics/node.py overlay separation while it overlaps active #4 work.
+
+### Exact next action
+
+No #5 publication slot or implementation authorization is granted by these rules. Continue the standing #5 audit mission, maintain these two owned files, and await the next bounded review assignment. At any future publication turn, preflight afresh, then publish a ready batch within the exact grant or report the blocker and yield.
+
+Documentation-only checkpoint. No tests or GUI validation were performed. Do not edit, stage, commit, or push other workstreams files.
+
+## 2026-10-19 - Mandatory Publication Slot Closeout Signal
+
+Prepared: 2026-10-19 18:19 EDT | Message ID: MB-20261019-1819-01
+Relationship: Planning directive MB-20261019-1815-01; enforcement of MB-20261019-1749-01 and MB-20261019-1752-01.
+
+### Mandatory closeout after every publication turn
+
+Immediately after publishing or deciding not to publish, send Planning a distinct closeout message. Do not bury slot status in an ongoing work update.
+
+**PUBLISHED - SLOT RELEASED:** report full commit hash and subject, exact committed paths, validations, agreement of local HEAD/local origin/main/live remote main, remaining local work, and next action.
+
+**BLOCKED - SLOT RELEASED:** report the failed guard/blocker, whether anything is staged, which files remain modified, and the safe next action.
+
+**NOT READY - SLOT RELEASED:** explain why no coherent, complete batch can safely publish, what would make it ready, and the next development action.
+
+After either a publication or a decision not to publish on an assigned turn, report and release the slot. Do not begin another publication without a new Planning grant.
+
+Before unstaging any of #5 own paths, verify that the shared index contains only paths authorized to #5. If it contains another workstream path, stop and report the conflict. Never disturb another workstream staged/unstaged files or force-push.
+
+This rule does not expand publication scope. Recovery files remain outside a grant unless explicitly included. Continue authorized work while queued.
+
+### Fresh repository snapshot before this documentation update
+
+- Prepared: 2026-10-19 18:19 EDT
+- Branch: main
+- HEAD: 9b3013d1cbecebbc32e6e17909a8ea09885a4833 Document revision-pinned TMC5160T routing evidence
+- Local origin/main: 9b3013d1cbecebbc32e6e17909a8ea09885a4833 Document revision-pinned TMC5160T routing evidence
+- Live remote main: 9b3013d1cbecebbc32e6e17909a8ea09885a4833
+- Comparison: Live remote main matches local origin/main.
+- No fetch, stage, commit, or push was performed.
+
+Staged paths before update:
+```text
+(none)
+
+```
+
+Working-tree status before update:
+```text
+ M machine-builder-research/standards/STANDARDS_INDEX.md
+ M machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md
+ M machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/src/machine_builder/canvas_editing.py
+ M machine-structure-editor/src/machine_builder/canvas_scene.py
+ M machine-structure-editor/src/machine_builder/canvas_ui.py
+ M machine-structure-editor/src/machine_builder/graphics/connection.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing_endpoint.py
+ M machine-structure-editor/src/machine_builder/graphics/node.py
+ M machine-structure-editor/src/machine_builder/graphics/port.py
+ M machine-structure-editor/src/machine_builder/semantic_component_mutations.py
+ M machine-structure-editor/tests/test_connection_routing.py
+ M machine-structure-editor/tests/test_functional_interface_connection.py
+?? machine-structure-editor/handoffs/03_CONTROLLER_BOARD_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/tests/test_connection_wire_color.py
+?? machine-structure-editor/tests/test_stepper_motor_terminal_profile.py
+?? "machine-structure-editor/wiring test machines/Maestro and 4 port motor test.machine.json"
+```
+
+### #5 accepted audit and current authority
+
+Planning accepted the editor-state/undo-redo/persistence audit in MB-20261018-1312-01. Its four follow-ups remain backlog only: persistence failure-injection tests; listener-exception semantics; assessment of live mutable store access as a potential risk unless a concrete bypass is demonstrated; and possible canonical assertions in app-level undo/redo integration coverage.
+
+The audit inspected source and test assertions only. #5 ran no tests and performed no GUI validation. The suspected canvas_editing.py bypass was withdrawn because the referenced machine dictionary expressions were reads, not writes.
+
+No #5 publication slot is currently granted. Planning stated #3 active scope remains limited to the Board handoff. Preserve its staged path and the shared index.
+
+### Exact next action
+
+Continue authorized #5 audit work while queued. Await the next bounded review assignment or explicit publication grant. When a publication turn arrives, preflight afresh and, immediately afterward, send Planning a distinct PUBLISHED, BLOCKED, or NOT READY closeout as applicable.
+
+## Repository Snapshot Refresh - 20261019-183732
+
+Prepared: 2026-10-19 18:37 EDT | Message ID: MB-20261019-183732-01
+Relationship: Fresh local-state checkpoint after Planning directives MB-20261019-1749-01, MB-20261019-1752-01, and MB-20261019-1815-01.
+
+Branch: main
+HEAD: 9b3013d1cbecebbc32e6e17909a8ea09885a4833	Document revision-pinned TMC5160T routing evidence
+Local origin/main: 9b3013d1cbecebbc32e6e17909a8ea09885a4833	Document revision-pinned TMC5160T routing evidence
+Live remote main: 9b3013d1cbecebbc32e6e17909a8ea09885a4833
+Remote comparison: Live remote main matches local origin/main.
+
+Staged paths before this documentation update:
+```text
+(none)
+
+```
+
+Working-tree status before this documentation update:
+```text
+ M machine-builder-research/standards/STANDARDS_INDEX.md
+ M machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md
+ M machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/src/machine_builder/canvas_editing.py
+ M machine-structure-editor/src/machine_builder/canvas_scene.py
+ M machine-structure-editor/src/machine_builder/canvas_ui.py
+ M machine-structure-editor/src/machine_builder/graphics/connection.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing_endpoint.py
+ M machine-structure-editor/src/machine_builder/graphics/node.py
+ M machine-structure-editor/src/machine_builder/graphics/port.py
+ M machine-structure-editor/src/machine_builder/semantic_component_mutations.py
+ M machine-structure-editor/tests/test_connection_routing.py
+ M machine-structure-editor/tests/test_functional_interface_connection.py
+?? machine-structure-editor/handoffs/03_CONTROLLER_BOARD_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/tests/test_connection_wire_color.py
+?? machine-structure-editor/tests/test_stepper_motor_terminal_profile.py
+?? "machine-structure-editor/wiring test machines/Maestro and 4 port motor test.machine.json"
+```
+
+The live remote query was read-only. This records repository state only; it does not attribute the latest commit or release any other workstream publication slot.
+No tests or GUI validation were run by this documentation refresh. No stage, commit, or push was attempted.
+The working tree contains concurrent unpublished work; preserve every other workstream file and the shared index.
+Current #5 action remains: maintain the owned handoff and recovery prompt, continue authorized audit work, and await the next bounded review assignment or explicit publication grant.
+
+## Commit/Push Preparation Checkpoint - 2026-10-20
+
+Prepared: 2026-10-20 18:33:24 EDT | Message ID: MB-20261020-183324-01
+Relationship: Current commit/push preparation snapshot under Planning directives MB-20261019-1749-01, MB-20261019-1752-01, and MB-20261019-1815-01.
+
+### Fresh Git snapshot before this documentation update
+
+- Branch: main
+- HEAD: 29c2e54412c6621b112ccfee710e79e6fba46c91	Record integer-key persistence investigation findings
+- Local origin/main: 29c2e54412c6621b112ccfee710e79e6fba46c91	Record integer-key persistence investigation findings
+- Live remote main: 29c2e54412c6621b112ccfee710e79e6fba46c91
+- Alignment: HEAD, local origin/main, and live remote main agree.
+- Live remote was queried read-only. No fetch, stage, commit, or push was performed.
+
+Staged paths before this update:
+```text
+CHAT_WORKFLOW.md
+PROJECT_CURRENT_STATE.md
+WORKSTREAM_FOCUS_INDEX.md
+machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_REPLACEMENT_PROMPT.md
+machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_WORKSTREAM_HANDOFF.md
+```
+
+Working-tree status before this update:
+```text
+M  CHAT_WORKFLOW.md
+M  PROJECT_CURRENT_STATE.md
+M  WORKSTREAM_FOCUS_INDEX.md
+A  machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_REPLACEMENT_PROMPT.md
+M  machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md
+ M machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/src/machine_builder/canvas_editing.py
+ M machine-structure-editor/src/machine_builder/canvas_scene.py
+ M machine-structure-editor/src/machine_builder/canvas_ui.py
+ M machine-structure-editor/src/machine_builder/graphics/connection.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing_endpoint.py
+ M machine-structure-editor/src/machine_builder/graphics/node.py
+ M machine-structure-editor/src/machine_builder/graphics/port.py
+ M machine-structure-editor/src/machine_builder/hardware_catalog.py
+ M machine-structure-editor/src/machine_builder/semantic_component_mutations.py
+ M machine-structure-editor/tests/test_connection_routing.py
+ M machine-structure-editor/tests/test_functional_interface_connection.py
+ M machine-structure-editor/tests/test_octopus_driver_mating.py
+?? machine-structure-editor/handoffs/03_CONTROLLER_BOARD_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/tests/test_connection_wire_color.py
+?? machine-structure-editor/tests/test_stepper_motor_terminal_profile.py
+?? "machine-structure-editor/wiring test machines/Maestro and 4 port motor test.machine.json"
+```
+
+### #5 files prepared
+
+- machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_WORKSTREAM_HANDOFF.md
+- machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_REPLACEMENT_PROMPT.md
+
+These are the only files changed by this preparation operation. The handoff retains the detailed audit and governance history; the recovery prompt is the concise current startup snapshot.
+
+### Accepted audit and open backlog
+
+Planning accepted the read-only editor-state/undo-redo/persistence audit in MB-20261018-1312-01. No confirmed blocking defect was demonstrated in the inspected normal paths. #5 inspected source and existing test assertions only; no tests or GUI validation were run.
+
+Backlog only; no implementation authorization:
+1. Persistence failure-injection tests for save/write replacement and failed load into an existing document, covering models, path, modified flag, history, listener notifications, destination preservation, and temporary-file cleanup.
+2. Define and test listener-exception semantics after state/history transitions, including whether later listeners are notified.
+3. Assess live mutable state/model/semantic_model access as a potential risk unless a concrete bypass is demonstrated.
+4. Consider canonical-model assertions in app-level undo/redo integration coverage; store-level cross-model coverage already exists.
+
+The suspected canvas_editing.py transaction bypass was withdrawn: the cited machine dictionary expressions are reads, and no ordinary UI bypass was demonstrated in the reviewed paths.
+
+Previously accepted modularity backlog: consider a narrow route-stability/diagnostics boundary in graphics/connection.py after characterization coverage; consider a small Qt-independent focus-projection helper for canvas_ui.py/canvas_scene.py after #4 interaction work stabilizes; continue deferring graphics/node.py overlay separation while it overlaps active #4 work.
+
+### Publication readiness and exact next action
+
+This operation prepares the #5-owned documentation only; it does not exercise a publication slot. No #5 publication slot is granted. Do not stage, commit, or push without a new, explicit Planning grant.
+
+Before a granted publication, repeat fresh preflight and choose only a coherent, complete, validated batch within the exact grant. Inspect the full staged diff. After publishing or deciding not to publish on an assigned turn, send Planning a distinct PUBLISHED, BLOCKED, or NOT READY closeout and release the slot.
+
+Do not disturb other workstreams paths or the shared staged index. Recovery files remain outside another workstream publication grant unless explicitly included.
+
+## Planning Disposition - 2026-10-23 - Large-File Audit Accepted
+
+Prepared: 2026-10-23 15:15 EDT | Message ID: MB-20261023-1515-01
+Relationship: Records Planning handoff MB-20261023-1136-01; supplements prior audit and workflow history without superseding it.
+
+### Scope and disposition
+
+The read-only large-file audit is complete. Planning disposition: AUDIT ACCEPTED; BROAD REFACTORS DEFERRED. Findings below are recommendations and ownership boundaries, not implementation authorization. No source or test changes and no test execution were part of this audit.
+
+### Accepted findings and future candidates
+
+1. Pathfinder efficiency: in machine-structure-editor/src/machine_builder/graphics/connection_routing_pathfinder.py, evaluate hoisting repeated sorted(coordinates_y) out of the X-coordinate loop. Before implementation, confirm the Y-coordinate set remains unchanged during that loop, measure representative before/after performance, and verify route-output regressions. Keep this optimization separate from grid/adjacency extraction. This is #4 routing-owned code; #5 will not edit it.
+
+2. Pathfinder modularity: separately consider extracting grid and adjacency construction from _find_grid_route(). Defer until routing stabilizes and Planning assigns the work.
+
+3. Controller fixtures: consider extracting board-specific builders from machine-structure-editor/src/machine_builder/controller_board_fixtures.py. #3 active Promega/Maestro work takes precedence; do not touch #3-owned files.
+
+4. Hardware catalog: consider future modularization of machine-structure-editor/src/machine_builder/hardware_catalog.py by generic hardware and controller-board family, preserving compatible public imports. This is maintainability work; do not add a database solely because the module is large. Do not touch #3-owned files.
+
+5. Connection graphics and canvas interaction: defer refactoring graphics/connection.py and canvas_interaction.py until #4 completes routing and GUI acceptance. Possible boundaries include route selection, geometry repair, endpoint escapes, diagnostics, node manipulation, and connection-drag lifecycles. Do not reorganize #4-owned files.
+
+6. Canonical model: retain CanonicalMachineModel as the central aggregate. Do not split it merely to reduce line count; extraction requires a concrete independent responsibility and preservation of canonical invariants.
+
+7. Large test modules: test-file organization remains deferred cleanup. Preserve behavioral coverage, hardware-evidence assertions, and regression checks. Do not reorganize tests overlapping active #3/#4 work, particularly tests/test_connection_routing.py, tests/test_functional_interface_connection.py, tests/test_connection_details.py, and tests/test_controller_board_fixtures.py.
+
+8. Heater-builder estimate correction: the heater builder itself spans approximately 96 lines, not hundreds. The earlier larger estimate incorrectly included following data constants.
+
+### Authority and next action
+
+The audit is complete and accepted; implementation remains deferred or unassigned. The last recorded queue context has #2 Research first for publication, #3 on bounded Promega fan-assignment work, and #4 on routing/GUI remediation. This is historical context, not a verified current queue state.
+
+No #5 publication slot is granted. Preserve concurrent work and the shared index. Make no source/test changes and do not stage, commit, or push without separate explicit authorization.
