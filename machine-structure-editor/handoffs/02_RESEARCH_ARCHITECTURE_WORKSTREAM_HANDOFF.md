@@ -1,25 +1,21 @@
 # Chat 02 — Research / Architecture Workstream Handoff
 
-<!-- BEGIN VERIFIED RESEARCH CONTINUITY CHECKPOINT: MB-20261021-1640-01 -->
-## Current Research continuity checkpoint - 2026-10-21
+<!-- BEGIN VERIFIED RESEARCH CONTINUITY CHECKPOINT: MB-20261023-1050-01 -->
+## Research continuity checkpoint - 2026-10-23
 
-Planning grant `MB-20261021-1640-01` authorizes a documentation-only refresh of this handoff and `02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md`.
-
-- **Authorized parent:** `41dcb7bcaf1c879c4d23fe5c1107f0444501c774`
-- **Commit subject:** `Refresh Research continuity handoff and replacement prompt`
-- **Previous closeout:** the user confirmed that `MB-20261020-1934-01` was sent to Planning.
-- **Prior-art workflow:** published in `CHAT_WORKFLOW.md` by `7d4fc6c0378ffd4de455c8db05dcd636034711c1`.
+- **Previously published refresh:** Commit `22cefa8f8909058c050ee7d1a7a7569fe60e1e23` published this handoff and `02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md`, consuming grant `MB-20261021-1640-01`.
+- **Authorization record for this reconciliation:** Planning grant `MB-20261023-1050-01` was issued solely for this publication-status reconciliation. Commit subject: `Reconcile Research continuity status after publication`. Verify its publication and grant consumption through Git history and matching refs, not from this record. No further Research publication slot or technical assignment is authorized after this batch unless Planning issues a new grant.
+- **Verified pre-edit state:** On 2026-10-23, branch `main`, local HEAD, fetched `origin/main`, and live remote `main` matched `a87aa67445efff0f4967a9adfd87ce6e200861fa`; the shared index was empty and both authorized files were clean. No intervening commit since `22cefa8` changed either target.
+- **Post-publication disposition:** After the reconciliation commit is pushed and its local, fetched, and live refs are verified to match, grant `MB-20261023-1050-01` is consumed. No active Research publication slot or new technical Research assignment remains. This checkpoint does not prove its own publication; verify the actual commit through Git.
+- **Prior-art workflow:** Published in `CHAT_WORKFLOW.md` by `7d4fc6c0378ffd4de455c8db05dcd636034711c1`.
 - **Comparative study:** `MB-20261021-1115-01` examined KiCad, QElectroTech, WireViz, LibrePCB, libavoid, and Qt Graphics View. Findings are design references, not proof of missing features and not authorization for a routing rewrite or dependency adoption.
 - **Integer-key persistence:** `_encode()` rejects non-string dictionary keys. #3 published a scoped receiving-interface correction; Planning reported 65 focused tests passing. Research did not rerun them.
 - **Unresolved Board question:** Octopus V1.1 / TMC5160T Pro contact 6 remains disputed between `SLEEP` and `CLK`. This is separate from persistence.
-- **DYZE research:** the historical bend-radius wording and prototype-era automatic-pause questions were accepted as answered under `MB-20261018-2038-01`. Avoid repeating broad archive searches without a new evidence target.
-- **Promega:** active firmware configuration and as-built variant remain unverified. Open mappings include E0/E1, H2/H4, S8/S6, P9/P11, cold-section fan assignment, and M307 versus M301 documentation.
-- **#4 Routing/Visual:** Planning's supplied snapshot reported native Qt/PySide6 teardown aborts after pytest summaries; the controlled QApplication-retention comparison was inconclusive, and Experiment B was not authorized in that snapshot. Follow #4's live handoff and later Planning decisions.
-- **Other-workstream changes:** #3's handoff addition, #4's source and tests, #5's documentation, and other untracked prompts/tests/fixture were present at preflight. Preserve all non-target paths.
-- **Scope limit:** this grant authorizes no implementation changes, tests, new investigation, or changes to other workstreams.
-
-After the two-document publication is independently verified through Git, send Planning a separate closeout and yield. This note is not proof of its own publication commit.
-<!-- END VERIFIED RESEARCH CONTINUITY CHECKPOINT: MB-20261021-1640-01 -->
+- **DYZE research:** The historical bend-radius wording and prototype-era automatic-pause questions were accepted as answered under `MB-20261018-2038-01`. Avoid repeating broad archive searches without a new evidence target.
+- **Promega:** Active firmware configuration and as-built variant remain unverified. Open mappings include E0/E1, H2/H4, S8/S6, P9/P11, cold-section fan assignment, and M307 versus M301 documentation.
+- **Routing/visual work:** Use the current #4 handoff and Planning decisions for live implementation and acceptance status; older GUI diagnostics in this handoff are historical context only.
+- **Preservation and scope:** Preserve all other workstream edits, including `CHAT_WORKFLOW.md`, Board and Routing files, tests, prompts, and fixtures. This grant authorizes no implementation changes, application tests, new research, or edits to other paths.
+<!-- END VERIFIED RESEARCH CONTINUITY CHECKPOINT: MB-20261023-1050-01 -->
 
 
 ## Purpose
@@ -998,15 +994,15 @@ Comparative study `MB-20261021-1115-01` examined KiCad, QElectroTech, WireViz, L
 
 Planning's proportional Prior-Art Review decision point is published in `CHAT_WORKFLOW.md` at `7d4fc6c0378ffd4de455c8db05dcd636034711c1`. Planning decides when bounded prior-art review is useful; routine local fixes remain fast, and findings return to Planning before implementation authorization. Check exact source revisions, licenses, compatibility, and distribution implications before code reuse or dependency adoption.
 
-## Current authorization and workstream boundaries
+## Authorization history and workstream boundaries
 
-Planning grant `MB-20261021-1640-01` authorizes only this Research handoff and `02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md`, from parent `41dcb7bcaf1c879c4d23fe5c1107f0444501c774`, with commit subject `Refresh Research continuity handoff and replacement prompt`.
+The two-document refresh was published at commit `22cefa8f8909058c050ee7d1a7a7569fe60e1e23`, consuming grant `MB-20261021-1640-01`. This status-reconciliation batch was authorized under Planning grant `MB-20261023-1050-01`, with commit subject `Reconcile Research continuity status after publication`. Its publication and grant consumption must be established through Git history and matching refs, not inferred from this paragraph. After that commit is independently verified, no active Research publication slot or new technical Research assignment remains unless Planning issues a new grant.
 
-Planning's supplied snapshot reports that #4's native Qt/PySide6 teardown aborts block the full-suite process-exit gate. The controlled QApplication-retention comparison was inconclusive, and Experiment B was not authorized in that snapshot. Follow the live #4 handoff and subsequent Planning directions; this Research slot authorizes no tests or changes to #4's work.
+Planning's earlier snapshot reported that #4's native Qt/PySide6 teardown aborts blocked the full-suite process-exit gate. The controlled QApplication-retention comparison was inconclusive, and Experiment B was not authorized in that historical snapshot. This is historical context only; follow the live #4 handoff and later Planning directions for current status. The present Research documentation grant authorizes no tests or changes to #4's work.
 
 Preserve #3's separate handoff changes, #4's implementation and tests, #5's documentation, and all other non-target paths. Do not infer the current repository state from historical commit references; verify it through Git.
 
-After the two-document publication is verified, send Planning a separate closeout and yield. This slot authorizes no implementation changes, tests, or new investigation.
+After this status-reconciliation publication is independently verified through Git, send Planning a separate closeout and yield. This documentation-only slot authorizes no implementation changes, application tests, or new investigation.
 
 # Documentation Reconciliation Checkpoint
 
@@ -1414,8 +1410,8 @@ The original catalog documentation edit recorded pre-edit HEAD `7316c22ae09fed95
 - **SKR Mini E3 V3.0 EXP1:** the bounded review remains ACCEPTABLE within its stated scope as of 2026-10-17. #4 reported 6 dedicated tests, 96 focused regression tests, and 853 full-suite tests passing at that earlier checkpoint. Research reviewed the supplied evidence and did not rerun the tests. This does not establish physical wiring or universal connector/contact validity.
 - **Comparative prior-art study:** `MB-20261021-1115-01` examined KiCad, QElectroTech, WireViz, LibrePCB, libavoid, and Qt Graphics View. The results identify patterns to compare against current code; they do not prove a capability is missing or authorize a routing rewrite or dependency adoption.
 - **Published workflow:** `CHAT_WORKFLOW.md` contains the proportional Prior-Art Review decision point, published in `7d4fc6c0378ffd4de455c8db05dcd636034711c1`. Planning decides when a bounded review is useful; routine local fixes remain fast, and recommendations return to Planning before implementation authorization.
-- **Current Research authorization:** Planning grant `MB-20261021-1640-01` authorizes only this handoff and `02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md`, from parent `41dcb7bcaf1c879c4d23fe5c1107f0444501c774`, with commit subject `Refresh Research continuity handoff and replacement prompt`.
-- **Pre-publication snapshot:** at checkpoint preparation, these two files had local edits awaiting review and the grant had not yet been published. Verify the branch, local and remote refs, shared index, and full worktree again immediately before staging.
+- **Reconciliation authorization record:** This reconciliation was authorized under grant `MB-20261023-1050-01` for status reconciliation of these two Research continuity documents only, with commit subject `Reconcile Research continuity status after publication`. The prior refresh grant `MB-20261021-1640-01` was consumed by commit `22cefa8f8909058c050ee7d1a7a7569fe60e1e23`. Verify publication of this reconciliation and its grant consumption through Git history and matching refs, not from this record. No further Research publication slot or technical assignment is active after this batch unless Planning issues a new grant.
+- **Historical pre-publication snapshot:** At that earlier checkpoint, these two files had local edits awaiting review before the refresh was published at `22cefa8f8909058c050ee7d1a7a7569fe60e1e23`. This is historical context only; it does not describe the current authorization or publication state.
 - **Workstream preservation:** #3's separate handoff changes, #4's implementation and tests, #5's documentation, and all other non-target paths remain outside this grant. Stage only the two authorized Research files after the complete diff is reviewed.
 - **Deferred candidate:** SolidCraft remains an optional future geometry-authoring/import candidate under `MB-20261017-1121-01`, not a V0.2 requirement or dependency. Planning controls any future evaluation.
 
@@ -1444,7 +1440,7 @@ Planning accepted the read-only Research finding under `MB-20261019-1547-01`, fo
 - **Historical disposition (2026-10-20):** the two-file recovery refresh is published and verified at `dfefa9df337bc431a0056554d5c72843075132cf`; the publication slot is released.
 - **Historical publication action (2026-10-20):** the authorized batch is published. Do not repeat publication without a new Planning grant.
 
-**Historical concrete next action (2026-10-20):** send the separate Planning closeout and await further direction. The `MB-20261020-1900-01` grant is consumed; this is historical status. The active grant is `MB-20261021-1640-01` for these two Research documents only; publication remains pending.
+**Historical concrete next action (2026-10-20):** send the separate Planning closeout and await further direction. Grant `MB-20261020-1900-01` is consumed; that instruction is historical. The subsequent two-document refresh was published at `22cefa8f8909058c050ee7d1a7a7569fe60e1e23`, consuming grant `MB-20261021-1640-01`. The later status reconciliation is authorized separately under `MB-20261023-1050-01`; verify its actual publication through Git history. This historical paragraph does not establish the current publication state.
 
 
 - **Completed liquid-cooling checkpoint (initial source check: 2026-10-11; current-source recheck: 2026-10-18):** DYZE DESIGN Typhoon LCX and Liquid Cooling source findings, ISO applicability and model-fit assessment remain recorded in `machine-builder-research/standards/STANDARDS_INDEX.md`. The earlier bend-radius conflict is a historical source observation; the current public guide explicitly states a 50 mm minimum. The V0.2 architecture assessment is cross-referenced in Section 14 of `machine-builder-research/checkpoints/V0.2_RESEARCH_CHECKPOINT.md`.
