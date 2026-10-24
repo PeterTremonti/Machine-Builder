@@ -1178,3 +1178,48 @@ The read-only large-file audit is complete. Planning disposition: AUDIT ACCEPTED
 The audit is complete and accepted; implementation remains deferred or unassigned. The last recorded queue context has #2 Research first for publication, #3 on bounded Promega fan-assignment work, and #4 on routing/GUI remediation. This is historical context, not a verified current queue state.
 
 No #5 publication slot is granted. Preserve concurrent work and the shared index. Make no source/test changes and do not stage, commit, or push without separate explicit authorization.
+
+## Stable-Code Efficiency Audit - 2026-10-24 - Planning Disposition
+
+Prepared: 2026-10-24 12:03 EDT | Message ID: MB-20261024-1203-01
+Relationship: Records audit MB-20261024-1141-01 and report MB-20261024-1159-01. Planning accepted the findings and deferred implementation.
+
+### Historical audit preflight - 2026-10-24 11:58:58 EDT
+
+At audit time, branch main, local HEAD, fetched origin/main, and live remote main agreed at 2973f0798878484010d0a0a94daa30b03d31e330 (model Promega Z-motor driver assignment). The assigned baseline d976a90d7eed78fa11924baad9f6dc52cd882f11 was an ancestor, and the inspected history showed the Z-motor assignment as the intervening commit.
+
+The shared index was empty at that inspection. Concurrent unpublished work included #3 and #4 handoff, canvas, routing, store, test, and test-machine changes. Locally modified candidate files were treated as provisional. This is a dated snapshot, not proof of later repository state.
+
+### Follow-up snapshot - 2026-10-24 12:10:58 EDT
+
+A subsequent read-only check found local HEAD, fetched origin/main, and live remote main aligned at 7e25fe51c0f39f9e28ebfa063a813040949e679e (test Promega specimen round-trip acceptance). The shared index was empty. Unstaged work still included #3 and #4 handoff/source/test changes. This is a separate historical snapshot.
+
+### Latest pre-edit snapshot - 2026-10-24 17:35:59 EDT
+
+A fresh read-only check found local HEAD, origin/main, and live remote main aligned at 4b72c625d7103d5c04311f2ed6436191d19941b7 (screenshots of the current wiring issues). The shared index was empty. Unstaged concurrent edits remained in #3 and #4 handoffs, canvas/routing/store code, associated tests, and a wiring test-machine JSON. Both #5 documents were clean before this update. This snapshot does not claim any state later than the check time.
+
+### Candidate 1 - semantic-model ownership lookup
+
+Path: machine-structure-editor/src/machine_builder/semantic_model.py, CanonicalMachineModel._machine_for_canonical_object() and its controller-resource assignment callers.
+
+The helper repeatedly searches component port memberships to resolve ownership even though component-owned SemanticPort values carry component_id and the model has a ports dictionary. This is a likely inefficiency, not a proven runtime bottleneck; no before/after performance measurement was performed.
+
+Planning disposition: Reassess first only after #3 model/resource and combined specimen persistence work and #4 GUI work stabilize. The combined specimen round-trip acceptance was subsequently published in 7e25fe5, but the local #4 GUI/routing work was still changing at the latest pre-edit snapshot. No implementation is authorized now.
+
+Minimum acceptance evidence before any future implementation: focused tests for same-machine ownership, cross-machine rejection, controller-owned-port behavior, and assignment save/reopen; a small before/after timing comparison to assess material benefit.
+
+### Candidate 2 - store deep-copy snapshot cost
+
+Path: machine-structure-editor/src/machine_builder/store.py, published ModelStore.commit(), undo(), and redo() snapshot paths. The local store.py was modified during the audit and treated as provisional.
+
+Deep-copy snapshots may become costly as document state grows, but no measurements establish a user-visible bottleneck. Keep this measurement-first and deferred until the owning store/editor changes stabilize.
+
+Minimum acceptance evidence before any future implementation: benchmark commit, undo, and redo latency on the Promega specimen and a larger representative model; preserve rollback, undo/redo, and cross-model consistency regressions. Do not change snapshot behavior without evidence of material cost.
+
+### Explicit limits and authority
+
+Do not split modules merely because they are long. Do not reopen pathfinder, connection-graphics, or canvas refactoring while #4 owns active routing/GUI work; do not interfere with #3 controller/resource and specimen work. Both candidates remain advisory hypotheses. Planning accepted the audit and explicitly deferred implementation. This continuity update authorizes no source/test changes, staging, commit, or push.
+
+### Next action
+
+No #5 implementation action is pending. Reassess candidate 1 after #3/#4 changes stabilize; consider candidate 2 only after measurement. Await a new bounded Planning assignment before implementing either.

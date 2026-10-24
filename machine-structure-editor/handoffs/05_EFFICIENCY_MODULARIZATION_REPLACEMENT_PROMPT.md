@@ -128,3 +128,40 @@ The last recorded queue context gave #2 Research priority for publication, #3 bo
 Continue protecting all concurrent work. Finish validating the two #5-owned documentation updates, then report the exact paths, read-back results, focused diffs, whitespace validation, index state, and any blocker to Planning in a distinct timestamped message.
 
 No source or test edits are authorized by this task. No #5 publication slot is granted. Do not stage, commit, or push.
+
+## Latest Planning Disposition - Stable-Code Efficiency Audit - 2026-10-24
+
+Prepared: 2026-10-24 17:40 EDT | Message ID: MB-20261024-1740-01
+Relationship: Supersedes the stale repository snapshot above for current recovery; records Planning disposition MB-20261024-1203-01 for audit MB-20261024-1141-01.
+
+### Repository state and timestamp boundaries
+
+Audit snapshot at 2026-10-24 11:58:58 EDT: local HEAD, fetched origin/main, and live remote main were 2973f0798878484010d0a0a94daa30b03d31e330 (model Promega Z-motor driver assignment). The assigned baseline d976a90d7eed78fa11924baad9f6dc52cd882f11 was an ancestor. The shared index was empty at that inspection.
+
+Subsequent published advances observed: 7e25fe51c0f39f9e28ebfa063a813040949e679e (test Promega specimen round-trip acceptance), then 4b72c625d7103d5c04311f2ed6436191d19941b7 (screenshots of the current wiring issues). At the read-only check at 2026-10-24 17:40:34 EDT, local HEAD, origin/main, and live remote main all matched 4b72c625d7103d5c04311f2ed6436191d19941b7. The shared staged diff was empty and this prompt was clean before this edit.
+
+At 2026-10-24 17:35:59 EDT, concurrent unstaged work remained in #3 and #4 handoffs, canvas/routing/store code, associated tests, and a wiring test-machine JSON. The #5 handoff was subsequently updated locally and its focused diff/read-back/whitespace checks passed at 17:38:34 EDT. These are dated snapshots, not claims about later repository state.
+
+### Candidate 1 - semantic-model ownership lookup
+
+Path: machine-structure-editor/src/machine_builder/semantic_model.py, CanonicalMachineModel._machine_for_canonical_object() and controller-resource assignment callers.
+
+The ownership helper repeatedly searches component port memberships even though component-owned SemanticPort values carry component_id and the model has a ports dictionary. This is a likely inefficiency, not a demonstrated material runtime bottleneck; no before/after timing was performed.
+
+Planning decision: DEFER. Reassess only after #3 model/resource and combined specimen persistence work and #4 GUI work stabilize. No implementation is authorized.
+
+Future acceptance gate: focused tests for same-machine ownership, cross-machine rejection, controller-owned-port behavior, and assignment save/reopen, plus a small before/after timing comparison. Preserve all existing ownership semantics.
+
+### Candidate 2 - store deep-copy snapshot cost
+
+Path: machine-structure-editor/src/machine_builder/store.py, published ModelStore.commit(), undo(), and redo() snapshot paths. This file had concurrent local changes during the audit and was treated as provisional.
+
+Planning decision: MEASUREMENT FIRST; implementation deferred. After the owning store/editor changes stabilize, benchmark commit, undo, and redo latency on the Promega specimen and a larger representative model.
+
+Future acceptance gate: record representative timings and establish a material problem before proposing a change. Preserve rollback, undo/redo, and cross-model consistency regressions.
+
+### Authority and next action
+
+Planning accepted this audit and deferred both candidates. Do not split modules solely for line count. Do not interfere with #3 or #4 active files or revisit pathfinder/connection-graphics/canvas refactors during #4 work. No implementation is authorized. No source or test files were changed by this audit.
+
+Next action: no #5 implementation is pending. Reassess candidate 1 after #3/#4 changes stabilize; consider candidate 2 only if measurements justify it. Await a new bounded Planning assignment. This update is local continuity documentation only: do not stage, commit, or push.
