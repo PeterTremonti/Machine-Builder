@@ -4,7 +4,7 @@ from PySide6.QtCore import QPointF
 from PySide6.QtWidgets import QApplication
 
 from machine_builder.canvas import MachineCanvas
-from machine_builder.persistence import load_editor_state
+from machine_builder.persistence import load_editor_state, save_editor_state, serialize_editor_state
 from machine_builder.promega_fixtures import (
     PROMEGA_REPORTED_FIRMWARE_CONFIGURATION_COMMANDS,
     add_promega_firmware_configuration_evidence,
@@ -13,27 +13,11 @@ from machine_builder.promega_fixtures import (
     add_promega_xy_motor_reference_connections,
     add_promega_z_motor_resource_assignment,
 )
+from machine_builder.promega_specimen import PROMEGA_ROLES, build_promega_reference_specimen
 from machine_builder.semantic_component_mutations import UpdateMachineComponent
 from machine_builder.semantic_model import Provenance
 from machine_builder.semantic_port_mutations import UpdateSemanticPort
 
-
-PROMEGA_ROLES = (
-    ("X motion motor", "motor"),
-    ("Y motion motor", "motor"),
-    ("Z motion motor", "motor"),
-    ("Compound left-drive motor", "motor"),
-    ("Compound right-drive motor", "motor"),
-    ("Compound mixing nozzle/tool assembly", "component"),
-    ("Compound hotend heater", "component"),
-    ("Compound hotend temperature sensor", "temperature_sensor"),
-    ("Bed heater", "component"),
-    ("Bed temperature sensor", "temperature_sensor"),
-    ("Part-cooling/nozzle fan", "component"),
-    ("Hotend heatsink/cold-section fan", "component"),
-    ("X homing endstop", "sensor"),
-    ("IR Z probe", "sensor"),
-)
 
 
 def test_promega_roles_use_existing_authoring_and_persistence_paths(tmp_path):
@@ -844,72 +828,28 @@ def test_promega_combined_specimen_capabilities_round_trip_together(tmp_path):
     if QApplication.instance() is None:
         application = QApplication([])
 
-    canvas = MachineCanvas()
-    canvas.create_node_from_template(
-        "duet_2_maestro_v1_0", QPointF(100.0, 100.0)
-    )
-    model = canvas.store.semantic_model
+    state = build_promega_reference_specimen()
+    model = state.semantic_model
+    assert len(model.controllers) == 1
     controller = next(iter(model.controllers.values()))
-    component_ids = {}
-    role_evidence = {}
+    component_ids = {
+        component.role: component.id
+        for component in model.components.values()
+    }
 
-    def add_role(role, node_type, x, y):
-        previous = set(canvas.store.model.nodes)
-        canvas.create_node_from_template(node_type, QPointF(x, y))
-        added = [
-            node for node in canvas.store.model.nodes.values()
-            if node.id not in previous and node.node_type == node_type
-        ]
-        assert len(added) == 1
-        component_id = added[0].semantic_reference
-        assert component_id is not None
-        component = model.components[component_id]
-        evidence = Provenance(
-            source="Planning milestone: First Promega Reference Specimen",
-            evidence_type="authored",
-            method="manual transcription",
-            context=f"Planning-defined role only: {role}.",
-            date="2026-10-24",
-            notes=(
-                "Exact installed identity, physical variant, and wiring "
-                "remain unverified; no part number or endpoint is inferred."
-            ),
-        )
-        properties = dict(component.properties)
-        properties.update({
-            "specimen_scope": "promega_compound_reference",
-            "verification_status": "role_only_identity_unverified",
-            "physical_presence_status": "not_verified_as_built",
-            "physical_wiring_status": "not_verified_as_built",
-            "inventory_crosswalk_status": "not_established",
-            "firmware_assignment_status": "not_established",
-            "inventory_crosswalk_notes": (
-                "No product identity or inventory identifier inferred."
-            ),
-        })
-        canvas.store.commit(
-            UpdateMachineComponent(
-                component_id=component_id,
-                role=role,
-                label=role,
-                properties=properties,
-                provenance_entries=[evidence],
-            )
-        )
-        component_ids[role] = component_id
-        role_evidence[role] = evidence
-        return component_id
+    role_names = {role for role, _kind in PROMEGA_ROLES}
+    assert len(PROMEGA_ROLES) == 14
+    assert len(role_names) == 14
+    reference_roles = {"X motor cable reference", "Y motor cable reference"}
+    expected_roles = role_names | reference_roles
+    assert len(model.components) == 16
+    assert set(component_ids) == expected_roles
+    assert {component.role for component in model.components.values()} == expected_roles
 
-    for index, (role, node_type) in enumerate(PROMEGA_ROLES, start=1):
-        add_role(role, node_type, 100.0 + index * 65.0, 130.0 + index * 28.0)
-
-    x_cable_id = add_role("X motor cable reference", "component", 280.0, 110.0)
-    y_cable_id = add_role("Y motor cable reference", "component", 280.0, 260.0)
-    x_motor_id = component_ids["X motion motor"]
-    y_motor_id = component_ids["Y motion motor"]
-    z_motor_id = component_ids["Z motion motor"]
-    probe_id = component_ids["IR Z probe"]
-    endstop_id = component_ids["X homing endstop"]
+    role_evidence = {
+        role: model.components[component_ids[role]].provenance[0]
+        for role in expected_roles
+    }
     fan_ids = {
         role: component_ids[role]
         for role in (
@@ -917,41 +857,54 @@ def test_promega_combined_specimen_capabilities_round_trip_together(tmp_path):
             "Part-cooling/nozzle fan",
         )
     }
-
-    xy_ports, xy_expected = add_promega_xy_motor_reference_connections(
-        canvas, x_cable_id, y_cable_id, controller.id
-    )
-    probe_ports, probe_expected = add_promega_ir_probe_reference_connections(
-        canvas, probe_id, controller.id
-    )
-    fan_evidence = add_promega_operational_fan_assignments(
-        canvas, fan_ids, controller.id
-    )
-    configuration_evidence = add_promega_firmware_configuration_evidence(
-        canvas, controller.id
-    )
-    z_assignment = add_promega_z_motor_resource_assignment(
-        canvas, z_motor_id, controller.id
-    )
-
-    # The supported reference paths and resource assignments coexist.
-    expected_connections = set(xy_expected) | set(probe_expected)
-    assert len(xy_expected) == 8 and len(probe_expected) == 3
-    assert set(model.connections) == expected_connections
-    assert set(canvas.store.model.connections) == expected_connections
     expected_assignment_ids = {
         f"{component_id}-promega-operational-fan-assignment"
         for component_id in fan_ids.values()
-    } | {f"{z_motor_id}-promega-z-motor-driver-assignment"}
+    } | {f"{component_ids['Z motion motor']}-promega-z-motor-driver-assignment"}
     assert set(model.controller_resource_assignments) == expected_assignment_ids
-    assert len(model.components) == 16
-    assert len(model.controllers) == 1
-    expected_roles = {role for role, _kind in PROMEGA_ROLES} | {
-        "X motor cable reference", "Y motor cable reference"
-    }
-    assert {component.role for component in model.components.values()} == expected_roles
+    assert len(expected_assignment_ids) == 3
 
-    # Unit 1: FAN0/FAN2 are user-reported assignments, not inferred wiring.
+    fan_evidence = {
+        role: model.controller_resource_assignments[
+            f"{component_id}-promega-operational-fan-assignment"
+        ].provenance[0]
+        for role, component_id in fan_ids.items()
+    }
+    configuration_evidence = next(
+        evidence
+        for evidence in controller.provenance
+        if evidence.source == "User-reported working Promega firmware configuration"
+    )
+    z_motor_id = component_ids["Z motion motor"]
+    z_assignment = model.controller_resource_assignments[
+        f"{z_motor_id}-promega-z-motor-driver-assignment"
+    ]
+
+    x_cable_id = component_ids["X motor cable reference"]
+    y_cable_id = component_ids["Y motor cable reference"]
+    x_motor_id = component_ids["X motion motor"]
+    y_motor_id = component_ids["Y motion motor"]
+    probe_id = component_ids["IR Z probe"]
+    endstop_id = component_ids["X homing endstop"]
+
+    xy_expected_ids = {
+        f"{cable_id}-promega-{axis.lower()}-motor-reference-{position}"
+        for axis, cable_id in (("X", x_cable_id), ("Y", y_cable_id))
+        for position in range(1, 5)
+    }
+    probe_expected_ids = {
+        connection_id
+        for connection_id in model.connections
+        if connection_id.startswith(f"{probe_id}-ir-z-probe-connection-")
+    }
+    assert len(xy_expected_ids) == 8
+    assert len(probe_expected_ids) == 3
+    expected_connections = xy_expected_ids | probe_expected_ids
+    assert set(model.connections) == expected_connections
+    assert set(state.visual_model.connections) == expected_connections
+    assert len(model.connections) == 11
+
+    # FAN0/FAN2 remain user-reported resource assignments, not inferred wiring.
     fan_specs = {
         "Hotend heatsink/cold-section fan": ("fan-0", "FAN0/P0"),
         "Part-cooling/nozzle fan": ("fan-2", "FAN2/P2"),
@@ -972,7 +925,7 @@ def test_promega_combined_specimen_capabilities_round_trip_together(tmp_path):
             "not_established"
         )
 
-    # Unit 2: preserve every reported command, order, source, and qualification.
+    # Preserve all six reported commands and the SD-card verification qualification.
     expected_commands = [
         "M584 X0 Y1 Z2",
         "M350 X16 Y16 Z16 I1",
@@ -981,7 +934,6 @@ def test_promega_combined_specimen_capabilities_round_trip_together(tmp_path):
         "M669 K1",
         "G31 P500 X30.4 Y30.7 Z0.7",
     ]
-    controller = model.controllers[controller.id]
     expected_configuration = {
         "status": "user_reported_working_configuration",
         "commands": expected_commands,
@@ -993,8 +945,7 @@ def test_promega_combined_specimen_capabilities_round_trip_together(tmp_path):
     assert configuration_evidence.evidence_type == "user_report"
     assert configuration_evidence.method == "user report"
 
-    # Unit 3: logical Z resource only; the firmware evidence is distinct from
-    # the catalog resource evidence, and neither chooses an installed connector.
+    # Z is assigned to the logical driver resource only.
     assert z_assignment.resource_id == f"{controller.id}-z-stepper"
     assert z_assignment.properties["firmware_driver_index"] == 2
     assert z_assignment.properties["firmware_assignment_command"] == "M584 X0 Y1 Z2"
@@ -1010,12 +961,31 @@ def test_promega_combined_specimen_capabilities_round_trip_together(tmp_path):
     ):
         assert z_assignment.properties[key] == "not_established"
 
-    # Reference connections preserve their own evidence and unknowns.
-    for connection_id, values in xy_expected.items():
-        axis, cable_port_id, board_port_id, position, pin_label, evidence = values
+    # Every XY path is positional reference evidence, not wire-colour or winding mapping.
+    for connection_id in sorted(xy_expected_ids):
+        axis = "X" if connection_id.startswith(f"{x_cable_id}-") else "Y"
+        cable_component_id = x_cable_id if axis == "X" else y_cable_id
         connection = model.connections[connection_id]
-        assert connection.connects_same_ports(cable_port_id, board_port_id)
-        assert connection.provenance == evidence
+        endpoint_ports = [
+            model.ports[connection.endpoint_a_id],
+            model.ports[connection.endpoint_b_id],
+        ]
+        cable_port = next(
+            port for port in endpoint_ports
+            if port.component_id == cable_component_id
+        )
+        board_port = next(
+            port for port in endpoint_ports
+            if port.component_id is None and port.controller_id == controller.id
+        )
+        position = int(connection_id.rsplit("-", 1)[1])
+        expected_designator = "J9 / X MOT" if axis == "X" else "J8 / Y MOT"
+        assert connection.connects_same_ports(cable_port.id, board_port.id)
+        assert cable_port.properties["connector_position"] == str(position)
+        assert cable_port.properties["cable_contact_position"] == str(position)
+        assert cable_port.properties["reference_board_designator"] == expected_designator
+        assert connection.properties["reference_board_designator"] == expected_designator
+        assert connection.properties["mating_contact_position"] == str(position)
         assert connection.properties["mapping_basis"] == (
             "mated_connector_position_not_wire_colour"
         )
@@ -1026,18 +996,46 @@ def test_promega_combined_specimen_capabilities_round_trip_together(tmp_path):
             "not_established"
         )
         assert connection.properties["physical_wiring_status"] == "not_verified_as_built"
+        assert connection.provenance == cable_port.provenance
 
-    for connection_id, values in probe_expected.items():
-        probe_port_id, board_port_id, _position, _pin, cable_label, evidence = values
+    expected_probe_cable_labels = {
+        "signal": "S10",
+        "ground": "P5",
+        "power-3v3": "S9",
+    }
+    probe_connection_prefix = f"{probe_id}-ir-z-probe-connection-"
+
+    # IR-probe reference paths preserve each documented cable lead.
+    for connection_id in sorted(probe_expected_ids):
         connection = model.connections[connection_id]
-        assert connection.connects_same_ports(probe_port_id, board_port_id)
-        assert connection.provenance == evidence
-        assert connection.properties["documented_cable_label"] == cable_label
+        endpoint_ports = [
+            model.ports[connection.endpoint_a_id],
+            model.ports[connection.endpoint_b_id],
+        ]
+        probe_port = next(
+            port for port in endpoint_ports
+            if port.component_id == probe_id
+        )
+        board_port = next(
+            port for port in endpoint_ports
+            if port.component_id is None and port.controller_id == controller.id
+        )
+        assert connection.connects_same_ports(probe_port.id, board_port.id)
+        assert connection_id.startswith(probe_connection_prefix)
+        probe_suffix = connection_id[len(probe_connection_prefix):]
+        assert probe_suffix in expected_probe_cable_labels
+        assert connection.properties["documented_cable_label"] == (
+            expected_probe_cable_labels[probe_suffix]
+        )
         assert connection.properties["notes"] == (
             "Manufacturer-documented reference wiring, not verified as-built."
         )
+        assert probe_port.properties["physical_wiring_status"] == "not_verified_as_built"
+        assert probe_port.properties["firmware_assignment_status"] == "not_established"
+        assert any(p.evidence_type == "documentation" for p in connection.provenance)
+        assert any(p.evidence_type == "authored" for p in connection.provenance)
 
-    # No direct motor/endstop/heater/sensor connections or guessed Z-A/Z-B use.
+    # No motor, endstop, heater, sensor, or Z-A/Z-B physical connection is inferred.
     connected_component_ids = {
         model.ports[port_id].component_id
         for connection in model.connections.values()
@@ -1049,20 +1047,21 @@ def test_promega_combined_specimen_capabilities_round_trip_together(tmp_path):
     assert y_motor_id not in connected_component_ids
     assert z_motor_id not in connected_component_ids
     assert endstop_id not in connected_component_ids
+
+    connected_port_ids = {
+        port_id
+        for connection in model.connections.values()
+        for port_id in (connection.endpoint_a_id, connection.endpoint_b_id)
+    }
     z_board_ports = {
         port.id for port in model.ports.values()
         if port.controller_id == controller.id
         and port.component_id is None
         and port.connector_id in {"z-a-motor", "z-b-motor"}
     }
-    connected_port_ids = {
-        port_id
-        for connection in model.connections.values()
-        for port_id in (connection.endpoint_a_id, connection.endpoint_b_id)
-    }
+    assert z_board_ports
     assert z_board_ports.isdisjoint(connected_port_ids)
 
-    # Unresolved Compound/H2/H4/S8/S6-related inventory and wiring remain unknown.
     for role in (
         "Compound hotend heater",
         "Compound hotend temperature sensor",
@@ -1083,28 +1082,18 @@ def test_promega_combined_specimen_capabilities_round_trip_together(tmp_path):
         for assignment in model.controller_resource_assignments.values()
     )
 
-    # One combined save/reopen cycle.
-    path = tmp_path / "promega-combined-specimen-round-trip.machine.json"
-    canvas.store.save(path)
-    restored = load_editor_state(path)
-    restored_model = restored.semantic_model
-    restored_controller = restored_model.controllers[controller.id]
-
-    assert len(restored_model.components) == 16
-    assert {component.role for component in restored_model.components.values()} == expected_roles
-    assert len(restored_model.machines["machine-1"].component_ids) == 16
-    assert set(restored_model.connections) == expected_connections
-    assert set(restored.visual_model.connections) == expected_connections
-    assert set(restored_model.controller_resource_assignments) == expected_assignment_ids
-    assert restored_controller.properties["reported_firmware_configuration"] == expected_configuration
-    assert configuration_evidence in restored_controller.provenance
-    assert configuration_evidence.evidence_type == "user_report"
-    assert configuration_evidence.method == "user report"
-
+    # Keep the defined role-only evidence separate from unverified installed identity.
     for role, _kind in PROMEGA_ROLES:
-        component = restored_model.components[component_ids[role]]
+        component = model.components[component_ids[role]]
         assert component.role == role and component.label == role
-        expected_provenance = [role_evidence[role]]
+        assert component.properties["verification_status"] == "role_only_identity_unverified"
+        assert component.properties["physical_presence_status"] == "not_verified_as_built"
+        assert component.properties["physical_wiring_status"] == "not_verified_as_built"
+        assert component.properties["inventory_crosswalk_status"] == "not_established"
+        evidence = role_evidence[role]
+        assert evidence.evidence_type == "authored"
+        assert evidence.method == "manual transcription"
+        expected_provenance = [evidence]
         if role in fan_evidence:
             expected_provenance.append(fan_evidence[role])
         if role == "Z motion motor":
@@ -1112,19 +1101,60 @@ def test_promega_combined_specimen_capabilities_round_trip_together(tmp_path):
         assert component.provenance == expected_provenance
 
     for role in ("X motor cable reference", "Y motor cable reference"):
-        component = restored_model.components[component_ids[role]]
+        component = model.components[component_ids[role]]
         assert component.role == role
         assert component.provenance == [role_evidence[role]]
 
-    for connection_id, values in {**xy_expected, **probe_expected}.items():
+    # One full EditorState save/reopen cycle, comparing its complete serialized form.
+    path = tmp_path / "promega-combined-specimen-round-trip.machine.json"
+    save_editor_state(state, path)
+    restored = load_editor_state(path)
+    restored_model = restored.semantic_model
+    restored_controller = restored_model.controllers[controller.id]
+
+    assert serialize_editor_state(restored) == serialize_editor_state(state)
+    assert restored.view_state == state.view_state
+    assert len(restored_model.controllers) == 1
+    assert len(restored_model.components) == 16
+    assert len(restored_model.machines["machine-1"].component_ids) == 16
+    assert set(restored_model.connections) == expected_connections
+    assert set(restored.visual_model.connections) == expected_connections
+    assert set(restored_model.controller_resource_assignments) == expected_assignment_ids
+    assert restored_controller.properties["reported_firmware_configuration"] == expected_configuration
+    assert configuration_evidence in restored_controller.provenance
+    assert restored_controller.provenance == controller.provenance
+
+    for component_id, original in model.components.items():
+        component = restored_model.components[component_id]
+        assert component.role == original.role
+        assert component.label == original.label
+        assert component.properties == original.properties
+        assert component.provenance == original.provenance
+        assert component.port_ids == original.port_ids
+
+    for port_id, original in model.ports.items():
+        port = restored_model.ports[port_id]
+        assert port.component_id == original.component_id
+        assert port.controller_id == original.controller_id
+        assert port.purpose == original.purpose
+        assert port.direction == original.direction
+        assert port.connector_id == original.connector_id
+        assert port.pin_id == original.pin_id
+        assert port.properties == original.properties
+        assert port.provenance == original.provenance
+
+    for connection_id, original in model.connections.items():
         connection = restored_model.connections[connection_id]
-        assert connection.provenance == values[-1]
-        assert connection.properties == model.connections[connection_id].properties
-        assert connection.endpoint_a_id == model.connections[connection_id].endpoint_a_id
-        assert connection.endpoint_b_id == model.connections[connection_id].endpoint_b_id
+        assert connection.provenance == original.provenance
+        assert connection.properties == original.properties
+        assert connection.endpoint_a_id == original.endpoint_a_id
+        assert connection.endpoint_b_id == original.endpoint_b_id
+
+    for assignment_id, original in model.controller_resource_assignments.items():
+        assert restored_model.controller_resource_assignments[assignment_id] == original
 
     for role, (resource_suffix, output_label) in fan_specs.items():
-        component_id = fan_ids[role]
+        component_id = component_ids[role]
         assignment_id = f"{component_id}-promega-operational-fan-assignment"
         assignment = restored_model.controller_resource_assignments[assignment_id]
         assert assignment.resource_id == f"{controller.id}-{resource_suffix}"
