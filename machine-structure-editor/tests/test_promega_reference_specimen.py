@@ -5,6 +5,7 @@ from PySide6.QtWidgets import QApplication
 
 from machine_builder.canvas import MachineCanvas
 from machine_builder.persistence import load_editor_state
+from machine_builder.promega_fixtures import add_promega_operational_fan_assignments
 from machine_builder.semantic_component_mutations import UpdateMachineComponent
 from machine_builder.semantic_model import Provenance
 from machine_builder.semantic_port_mutations import UpdateSemanticPort
@@ -236,3 +237,273 @@ def test_promega_roles_use_existing_authoring_and_persistence_paths(tmp_path):
     assert restored_port.controller_id == restored_controller.id
     assert restored_port.component_id is None
     assert restored_port.provenance == expected_port_evidence
+
+def test_promega_operational_fan_assignments_are_provenanced_and_persisted(tmp_path):
+    application = QApplication.instance()
+    if application is None:
+        application = QApplication([])
+
+    canvas = MachineCanvas()
+    canvas.create_node_from_template(
+        "duet_2_maestro_v1_0", QPointF(100.0, 100.0)
+    )
+    model = canvas.store.semantic_model
+    controller = next(iter(model.controllers.values()))
+
+    fan_roles = (
+        "Hotend heatsink/cold-section fan",
+        "Part-cooling/nozzle fan",
+    )
+    fan_component_ids = {}
+
+    for index, role in enumerate(fan_roles, start=1):
+        old_node_ids = set(canvas.store.model.nodes)
+        canvas.create_node_from_template(
+            "component", QPointF(180.0 + index * 120.0, 220.0)
+        )
+        new_nodes = [
+            node for node in canvas.store.model.nodes.values()
+            if node.id not in old_node_ids and node.node_type == "component"
+        ]
+        assert len(new_nodes) == 1
+        component_id = new_nodes[0].semantic_reference
+        assert component_id is not None
+        component = model.components[component_id]
+
+        properties = dict(component.properties)
+        properties.update({
+            "specimen_scope": "promega_compound_reference",
+            "physical_presence_status": "not_verified_as_built",
+            "physical_wiring_status": "not_verified_as_built",
+            "inventory_crosswalk_status": "not_established",
+            "firmware_assignment_status": "not_established",
+        })
+        role_evidence = Provenance(
+            source="Planning milestone: First Promega Reference Specimen",
+            evidence_type="authored",
+            method="manual transcription",
+            context=f"Planning-defined role only: {role}.",
+            date="2026-10-23",
+            notes=(
+                "Exact installed identity and physical cable/contact mapping "
+                "remain unverified."
+            ),
+        )
+        canvas.store.commit(
+            UpdateMachineComponent(
+                component_id=component_id,
+                role=role,
+                label=role,
+                properties=properties,
+                provenance_entries=[role_evidence],
+            )
+        )
+        fan_component_ids[role] = component_id
+
+    semantic_connections_before = set(model.connections)
+    assignments = add_promega_operational_fan_assignments(
+        canvas, fan_component_ids, controller.id
+    )
+
+    assert set(assignments) == set(fan_roles)
+    assert set(model.connections) == semantic_connections_before
+
+    resource_suffixes = {
+        "fan0": "fan-0",
+        "fan1": "fan-1",
+        "fan2": "fan-2",
+        "always-on-fan": "always-on-fan",
+    }
+    for connector_id, suffix in resource_suffixes.items():
+        resource_id = f"{controller.id}-{suffix}"
+        resource = model.controller_resources[resource_id]
+        assert resource.controller_id == controller.id
+        assert resource.resource_type == "fan_output"
+        assert resource.properties["board_connector_id"] == connector_id
+
+        board_ports = [
+            port for port in model.ports.values()
+            if port.controller_id == controller.id
+            and port.component_id is None
+            and port.connector_id == connector_id
+        ]
+        assert len(board_ports) == 2
+        expected_roles = (
+            {"ground_reference", "always_on_fan_output"}
+            if connector_id == "always-on-fan"
+            else {"controlled_fan_output"}
+        )
+        assert {port.properties.get("electrical_role") for port in board_ports} == expected_roles
+        for port in board_ports:
+            relationship_id = f"{resource_id}-exposed-through-{port.id}"
+            relationship = model.relationships[relationship_id]
+            assert relationship.source_id == resource_id
+            assert relationship.target_id == port.id
+            assert relationship.relationship_type == "exposed_through"
+            assert relationship.properties["physical_conductor_mapping_status"] == (
+                "not_established"
+            )
+
+    source_ids = set(fan_component_ids.values())
+    fan_assignments = [
+        assignment for assignment in model.controller_resource_assignments.values()
+        if assignment.source_id in source_ids
+    ]
+    assert len(fan_assignments) == 2
+    assert {assignment.source_id for assignment in fan_assignments} == source_ids
+    inactive_resource_ids = {
+        f"{controller.id}-{resource_suffixes['fan1']}",
+        f"{controller.id}-{resource_suffixes['always-on-fan']}",
+    }
+    assert all(
+        assignment.resource_id not in inactive_resource_ids
+        for assignment in fan_assignments
+    )
+
+    expected = {
+        "Hotend heatsink/cold-section fan": ("fan0", "0", "FAN0/P0"),
+        "Part-cooling/nozzle fan": ("fan2", "2", "FAN2/P2"),
+    }
+    for role, (connector_id, fan_index, output_label) in expected.items():
+        component = model.components[fan_component_ids[role]]
+        evidence = assignments[role]
+        assignment_id = f"{component.id}-promega-operational-fan-assignment"
+        assignment = model.controller_resource_assignments[assignment_id]
+        assert assignment.source_id == component.id
+        assert assignment.resource_id == f"{controller.id}-fan-{fan_index}"
+        assert assignment.assignment_type == "controls"
+        assert assignment.properties["operational_assignment_status"] == (
+            "user_reported_operational"
+        )
+        assert assignment.properties["board_connector_id"] == connector_id
+        assert assignment.properties["output_label"] == output_label
+        assert assignment.properties["physical_cable_crosswalk_status"] == (
+            "not_established"
+        )
+        assert assignment.provenance == [evidence]
+
+        assert component.properties["operational_assignment_status"] == (
+            "user_reported_operational"
+        )
+        assert component.properties["operational_assignment_basis"] == (
+            "user_reported_working_installation"
+        )
+        assert component.properties["operational_controller_id"] == controller.id
+        assert component.properties["operational_output_connector_id"] == connector_id
+        assert component.properties["operational_output_index"] == fan_index
+        assert component.properties["operational_output_label"] == output_label
+        assert component.properties["physical_output_contact_mapping_status"] == (
+            "not_established"
+        )
+        assert component.properties["physical_cable_crosswalk_status"] == (
+            "not_established"
+        )
+        assert evidence.evidence_type == "user_report"
+        assert evidence.source == (
+            "User-reported installed Promega operational configuration"
+        )
+        assert evidence.method == "user report"
+        assert "P9/P11 cable-to-output crosswalk" in evidence.notes
+        assert component.provenance[-1] == evidence
+
+    inactive_port_ids = {
+        port.id for port in model.ports.values()
+        if port.controller_id == controller.id
+        and port.component_id is None
+        and port.connector_id in {"fan1", "always-on-fan"}
+    }
+    assert inactive_port_ids
+    assert all(
+        connection.endpoint_a_id not in inactive_port_ids
+        and connection.endpoint_b_id not in inactive_port_ids
+        for connection in model.connections.values()
+    )
+
+    path = tmp_path / "promega-fan-assignments.machine.json"
+    canvas.store.save(path)
+    restored = load_editor_state(path)
+    restored_model = restored.semantic_model
+
+    assert set(restored_model.connections) == semantic_connections_before
+    restored_roles = {
+        component.role: component
+        for component in restored_model.components.values()
+    }
+    for role, (connector_id, fan_index, output_label) in expected.items():
+        component = restored_roles[role]
+        evidence = assignments[role]
+        assignment_id = f"{component.id}-promega-operational-fan-assignment"
+        assignment = restored_model.controller_resource_assignments[assignment_id]
+        assert assignment.source_id == component.id
+        assert assignment.resource_id == f"{controller.id}-fan-{fan_index}"
+        assert assignment.assignment_type == "controls"
+        assert assignment.properties["operational_assignment_status"] == (
+            "user_reported_operational"
+        )
+        assert assignment.properties["board_connector_id"] == connector_id
+        assert assignment.properties["output_label"] == output_label
+        assert assignment.properties["physical_cable_crosswalk_status"] == (
+            "not_established"
+        )
+        assert assignment.provenance == [evidence]
+        assert component.properties["operational_assignment_status"] == (
+            "user_reported_operational"
+        )
+        assert component.properties["operational_controller_id"] == controller.id
+        assert component.properties["operational_output_connector_id"] == connector_id
+        assert component.properties["operational_output_index"] == fan_index
+        assert component.properties["operational_output_label"] == output_label
+        assert component.properties["physical_output_contact_mapping_status"] == (
+            "not_established"
+        )
+        assert component.properties["physical_cable_crosswalk_status"] == (
+            "not_established"
+        )
+        assert component.provenance[-1] == evidence
+
+    for connector_id, suffix in resource_suffixes.items():
+        resource_id = f"{controller.id}-{suffix}"
+        resource = restored_model.controller_resources[resource_id]
+        assert resource.controller_id == controller.id
+        assert resource.resource_type == "fan_output"
+        assert resource.properties["board_connector_id"] == connector_id
+        board_ports = [
+            port for port in restored_model.ports.values()
+            if port.controller_id == controller.id
+            and port.component_id is None
+            and port.connector_id == connector_id
+        ]
+        assert len(board_ports) == 2
+        for port in board_ports:
+            relationship_id = f"{resource_id}-exposed-through-{port.id}"
+            relationship = restored_model.relationships[relationship_id]
+            assert relationship.source_id == resource_id
+            assert relationship.target_id == port.id
+            assert relationship.relationship_type == "exposed_through"
+            assert relationship.properties["physical_conductor_mapping_status"] == (
+                "not_established"
+            )
+
+    restored_fan_assignments = [
+        assignment
+        for assignment in restored_model.controller_resource_assignments.values()
+        if assignment.source_id in source_ids
+    ]
+    assert len(restored_fan_assignments) == 2
+    assert {assignment.source_id for assignment in restored_fan_assignments} == source_ids
+    assert all(
+        assignment.resource_id not in inactive_resource_ids
+        for assignment in restored_fan_assignments
+    )
+    restored_inactive_port_ids = {
+        port.id for port in restored_model.ports.values()
+        if port.controller_id == controller.id
+        and port.component_id is None
+        and port.connector_id in {"fan1", "always-on-fan"}
+    }
+    assert restored_inactive_port_ids
+    assert all(
+        connection.endpoint_a_id not in restored_inactive_port_ids
+        and connection.endpoint_b_id not in restored_inactive_port_ids
+        for connection in restored_model.connections.values()
+    )

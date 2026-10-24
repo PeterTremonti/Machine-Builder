@@ -9,7 +9,11 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from .controller_resource import ControllerResource
+from .controller_resource_assignment import ControllerResourceAssignment
+from .semantic_relationship import SemanticRelationship
 from .mutations import CreateConnection
+from .semantic_component_mutations import UpdateMachineComponent
 from .semantic_model import Provenance, SemanticPort
 from .semantic_port_mutations import CreateSemanticPort
 
@@ -509,3 +513,253 @@ def add_promega_xy_motor_reference_connections(
             )
 
     return created_ports, expected
+
+
+PROMEGA_OPERATIONAL_FAN_ASSIGNMENTS = {
+    "Hotend heatsink/cold-section fan": (
+        "fan0",
+        "0",
+        "hotend heatsink/cold-section fan",
+    ),
+    "Part-cooling/nozzle fan": (
+        "fan2",
+        "2",
+        "paired side part-cooling fans",
+    ),
+}
+
+PROMEGA_FAN_OUTPUT_RESOURCE_SPECS = (
+    ("fan0", "fan-0", "Fan 0", "FAN0/P0", "controlled_fan_output", "controlled"),
+    ("fan1", "fan-1", "Fan 1", "FAN1/P1", "controlled_fan_output", "controlled"),
+    ("fan2", "fan-2", "Fan 2", "FAN2/P2", "controlled_fan_output", "controlled"),
+    ("always-on-fan", "always-on-fan", "Always-on fan", "Always-on fan output", "always_on_fan_output", "always_on"),
+)
+
+
+def add_promega_operational_fan_assignments(
+    canvas: Any,
+    fan_component_ids: dict[str, str],
+    controller_id: str,
+) -> dict[str, Provenance]:
+    """Record user-reported assignments to canonical controller fan resources."""
+    model = canvas.store.semantic_model
+    if controller_id not in model.controllers:
+        raise ValueError(f"Unknown controller: {controller_id}")
+
+    machine_ids = [
+        machine.id
+        for machine in model.machines.values()
+        if controller_id in machine.controller_ids
+    ]
+    if len(machine_ids) != 1:
+        raise ValueError(
+            f"Expected one owning machine for controller {controller_id!r}; "
+            f"found {len(machine_ids)}"
+        )
+    machine_id = machine_ids[0]
+
+    components = {}
+    for role in PROMEGA_OPERATIONAL_FAN_ASSIGNMENTS:
+        component_id = fan_component_ids.get(role)
+        component = model.components.get(component_id or "")
+        if component is None or component.role != role:
+            raise ValueError(f"Missing Promega fan component for role {role!r}")
+        if component.properties.get("operational_assignment_status") == "user_reported_operational":
+            raise ValueError(f"Operational fan assignment already recorded for {role!r}")
+        source_machine_id = model._machine_for_canonical_object(component.id)
+        if source_machine_id is not None and source_machine_id != machine_id:
+            raise ValueError(f"Fan component belongs to another machine: {component.id}")
+        components[role] = component
+
+    ports_by_connector = {}
+    for connector_id, _suffix, _name, _label, _electrical_role, mode in PROMEGA_FAN_OUTPUT_RESOURCE_SPECS:
+        ports = [
+            port
+            for port in model.ports.values()
+            if port.controller_id == controller_id
+            and port.component_id is None
+            and port.connector_id == connector_id
+        ]
+        if len(ports) != 2:
+            raise ValueError(
+                f"Expected two board contacts for {connector_id!r}; found {len(ports)}"
+            )
+        contact_roles = {
+            port.properties.get("electrical_role")
+            for port in ports
+        }
+        if mode == "controlled":
+            valid_roles = contact_roles == {"controlled_fan_output"}
+        else:
+            valid_roles = (
+                "always_on_fan_output" in contact_roles
+                and "ground_reference" in contact_roles
+            )
+        if not valid_roles:
+            raise ValueError(
+                f"Unexpected contact roles for {connector_id!r}: {contact_roles}"
+            )
+        ports_by_connector[connector_id] = ports
+
+    resource_ids = {}
+    for connector_id, suffix, _name, _label, _electrical_role, _mode in PROMEGA_FAN_OUTPUT_RESOURCE_SPECS:
+        resource_id = f"{controller_id}-{suffix}"
+        existing = model.controller_resources.get(resource_id)
+        if existing is not None and (
+            existing.controller_id != controller_id
+            or existing.resource_type != "fan_output"
+            or existing.properties.get("board_connector_id") != connector_id
+        ):
+            raise ValueError(f"Conflicting existing fan resource {resource_id!r}")
+        if existing is not None and model._machine_for_canonical_object(resource_id) != machine_id:
+            raise ValueError(f"Fan resource belongs to another machine: {resource_id}")
+        resource_ids[connector_id] = resource_id
+
+    assignment_ids = {
+        role: f"{components[role].id}-promega-operational-fan-assignment"
+        for role in PROMEGA_OPERATIONAL_FAN_ASSIGNMENTS
+    }
+    for assignment_id in assignment_ids.values():
+        if assignment_id in model.controller_resource_assignments:
+            raise ValueError(f"Fan assignment already exists: {assignment_id}")
+
+    for connector_id, suffix, name, output_label, electrical_role, mode in PROMEGA_FAN_OUTPUT_RESOURCE_SPECS:
+        resource_id = resource_ids[connector_id]
+        if resource_id not in model.controller_resources:
+            resource_evidence = Provenance(
+                source="Machine Builder Duet 2 Maestro reference-board definition",
+                evidence_type="authored",
+                method="board connector inventory",
+                context=(
+                    f"Controller resource for {output_label}, exposed through "
+                    f"the existing {connector_id!r} board connector contacts."
+                ),
+                date="2026-10-23",
+                notes=(
+                    "Board resource/contact exposure only. No fan, installed harness, "
+                    "or conductor-to-contact mapping is asserted."
+                ),
+            )
+            model.add_controller_resource(
+                machine_id,
+                ControllerResource(
+                    id=resource_id,
+                    name=name,
+                    resource_type="fan_output",
+                    controller_id=controller_id,
+                    properties={
+                        "board_connector_id": connector_id,
+                        "board_output_label": output_label,
+                        "electrical_role": electrical_role,
+                        "output_mode": mode,
+                        "physical_conductor_mapping_status": "not_established",
+                    },
+                    provenance=[resource_evidence],
+                ),
+            )
+
+        for port in ports_by_connector[connector_id]:
+            relationship_id = f"{resource_id}-exposed-through-{port.id}"
+            existing_relationship = model.relationships.get(relationship_id)
+            if existing_relationship is not None:
+                if (
+                    existing_relationship.source_id != resource_id
+                    or existing_relationship.target_id != port.id
+                    or existing_relationship.relationship_type != "exposed_through"
+                ):
+                    raise ValueError(f"Conflicting resource exposure {relationship_id!r}")
+                continue
+
+            model.add_relationship(
+                SemanticRelationship(
+                    id=relationship_id,
+                    source_id=resource_id,
+                    target_id=port.id,
+                    relationship_type="exposed_through",
+                    properties={
+                        "board_connector_id": connector_id,
+                        "physical_conductor_mapping_status": "not_established",
+                    },
+                    provenance=[
+                        Provenance(
+                            source="Machine Builder Duet 2 Maestro reference-board definition",
+                            evidence_type="authored",
+                            method="board connector inventory",
+                            context=(
+                                f"The {output_label} resource is exposed through "
+                                "this board contact; no fan conductor is assigned."
+                            ),
+                            date="2026-10-23",
+                            notes=(
+                                "Contact exposure does not verify a connected fan or "
+                                "the Promega P9/P11 physical cable crosswalk."
+                            ),
+                        )
+                    ],
+                )
+            )
+
+    assigned: dict[str, Provenance] = {}
+    for role, (connector_id, fan_index, description) in PROMEGA_OPERATIONAL_FAN_ASSIGNMENTS.items():
+        component = components[role]
+        resource_id = resource_ids[connector_id]
+        evidence = Provenance(
+            source="User-reported installed Promega operational configuration",
+            evidence_type="user_report",
+            method="user report",
+            context=(
+                f"User reports the {description} operates from the Duet 2 Maestro "
+                f"controlled output FAN{fan_index}/P{fan_index}."
+            ),
+            date="2026-10-23",
+            notes=(
+                "Operational assignment only; not independent physical inspection. "
+                "Promega P9/P11 cable-to-output crosswalk, conductor-to-contact "
+                "mapping, polarity, and installed SD-card configuration remain "
+                "unverified."
+            ),
+        )
+        model.add_controller_resource_assignment(
+            machine_id,
+            ControllerResourceAssignment(
+                id=assignment_ids[role],
+                source_id=component.id,
+                resource_id=resource_id,
+                assignment_type="controls",
+                properties={
+                    "semantic_role": "fan",
+                    "operational_assignment_status": "user_reported_operational",
+                    "operational_assignment_basis": "user_reported_working_installation",
+                    "board_connector_id": connector_id,
+                    "output_label": f"FAN{fan_index}/P{fan_index}",
+                    "physical_output_contact_mapping_status": "not_established",
+                    "physical_cable_crosswalk_status": "not_established",
+                },
+                provenance=[evidence],
+            ),
+        )
+
+        properties = dict(component.properties)
+        properties.update({
+            "operational_assignment_status": "user_reported_operational",
+            "operational_assignment_basis": "user_reported_working_installation",
+            "operational_controller_id": controller_id,
+            "operational_output_connector_id": connector_id,
+            "operational_output_index": fan_index,
+            "operational_output_label": f"FAN{fan_index}/P{fan_index}",
+            "operational_output_resource_id": resource_id,
+            "physical_output_contact_mapping_status": "not_established",
+            "physical_cable_crosswalk_status": "not_established",
+        })
+        canvas.store.commit(
+            UpdateMachineComponent(
+                component_id=component.id,
+                role=component.role,
+                label=component.label,
+                properties=properties,
+                provenance_entries=list(component.provenance) + [evidence],
+            )
+        )
+        assigned[role] = evidence
+
+    return assigned
