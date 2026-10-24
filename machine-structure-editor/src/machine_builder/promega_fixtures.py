@@ -834,3 +834,222 @@ def add_promega_firmware_configuration_evidence(
         )
     )
     return evidence
+
+
+def add_promega_z_motor_resource_assignment(
+    canvas: Any,
+    z_motor_component_id: str,
+    controller_id: str,
+) -> ControllerResourceAssignment:
+    """Assign the Promega Z motor to the logical Maestro Z driver resource.
+
+    The firmware index comes from user-reported M584 evidence. The resource
+    identity and its available board endpoints come from the existing
+    controller catalog. Neither source establishes the installed motor cable
+    path or an endstop assignment.
+    """
+    model = canvas.store.semantic_model
+
+    controller = model.controllers.get(controller_id)
+    if controller is None:
+        raise ValueError(f"Unknown controller: {controller_id}")
+
+    component = model.components.get(z_motor_component_id)
+    if component is None:
+        raise ValueError(f"Unknown Z-motor component: {z_motor_component_id}")
+    if component.role != "Z motion motor":
+        raise ValueError(
+            "Expected a component with role 'Z motion motor'; "
+            f"found {component.role!r}"
+        )
+
+    reported_configuration = controller.properties.get(
+        "reported_firmware_configuration"
+    )
+    if (
+        not isinstance(reported_configuration, dict)
+        or reported_configuration.get("status")
+        != "user_reported_working_configuration"
+        or not isinstance(reported_configuration.get("commands"), list)
+        or "M584 X0 Y1 Z2"
+        not in reported_configuration.get("commands", [])
+    ):
+        raise ValueError(
+            "Cannot assign the Z driver without recorded user-reported "
+            "'M584 X0 Y1 Z2' configuration evidence."
+        )
+
+    configuration_provenance = [
+        entry
+        for entry in controller.provenance
+        if (
+            entry.source
+            == "User-reported working Promega firmware configuration"
+            and entry.evidence_type == "user_report"
+        )
+    ]
+    if len(configuration_provenance) != 1:
+        raise ValueError(
+            "Expected exactly one user-report provenance entry for the "
+            "recorded firmware configuration."
+        )
+
+    resource_id = f"{controller_id}-z-stepper"
+    resource = model.controller_resources.get(resource_id)
+    if (
+        resource is None
+        or resource.controller_id != controller_id
+        or resource.name != "Z stepper driver"
+        or resource.resource_type != "stepper"
+    ):
+        raise ValueError(
+            "The expected existing Maestro logical Z stepper resource "
+            f"is missing or does not match the catalog: {resource_id}"
+        )
+
+    exposed_connector_ids = {
+        model.ports[relationship.target_id].connector_id
+        for relationship in model.relationships.values()
+        if (
+            relationship.source_id == resource_id
+            and relationship.relationship_type == "exposed_through"
+            and relationship.target_id in model.ports
+        )
+    }
+    if not {"z-a-motor", "z-b-motor"}.issubset(exposed_connector_ids):
+        raise ValueError(
+            "The catalog does not expose the logical Z resource through "
+            "both expected Z-A and Z-B endpoints."
+        )
+
+    machine_ids = [
+        machine.id
+        for machine in model.machines.values()
+        if controller_id in machine.controller_ids
+    ]
+    if len(machine_ids) != 1:
+        raise ValueError(
+            f"Expected one owning machine for controller {controller_id!r}; "
+            f"found {len(machine_ids)}"
+        )
+    machine_id = machine_ids[0]
+
+    firmware_evidence = Provenance(
+        source="User-reported working Promega firmware configuration",
+        evidence_type="user_report",
+        method="user-reported RepRapFirmware M584 command",
+        context=(
+            "The reported command 'M584 X0 Y1 Z2' assigns axis Z to "
+            "firmware driver index 2. This supports a logical Z-axis "
+            "resource assignment, not selection of a physical connector."
+        ),
+        date=configuration_provenance[0].date,
+        notes=(
+            "The installed SD-card configuration has not been independently "
+            "read. Driver-index evidence does not identify the installed "
+            "motor connector, cable, contact, conductor, motor winding, "
+            "or endstop assignment."
+        ),
+    )
+    catalog_evidence = Provenance(
+        source="Machine Builder Duet 2 Maestro reference-board definition",
+        evidence_type="authored",
+        method="canonical controller-resource catalog",
+        context=(
+            f"The assignment target is existing resource {resource_id!r}, "
+            "catalogued as 'Z stepper driver' with resource_type 'stepper'. "
+            "The catalog relates this logical driver resource to the Z-A "
+            "motor connector (J36) and Z-B motor connector (J7). These are "
+            "endpoints of the same logical resource; they do not establish "
+            "which connector, if either, is used by the installed motor cable."
+        ),
+        date="2026-10-24",
+        notes=(
+            "Catalog resource identity is distinct from the user-reported "
+            "firmware configuration. No physical cable, contact, conductor, "
+            "winding, or endstop mapping is inferred."
+        ),
+    )
+
+    assignment_id = f"{component.id}-promega-z-motor-driver-assignment"
+    assignment_properties = {
+        "semantic_role": "z_axis_motor",
+        "firmware_axis": "Z",
+        "firmware_driver_index": 2,
+        "firmware_assignment_status": "user_reported_logical_driver_assignment",
+        "firmware_assignment_command": "M584 X0 Y1 Z2",
+        "installed_firmware_configuration_verification_status": (
+            "not_independently_verified"
+        ),
+        "physical_motor_connector_mapping_status": "not_established",
+        "physical_cable_mapping_status": "not_established",
+        "physical_contact_and_conductor_mapping_status": "not_established",
+        "motor_winding_mapping_status": "not_established",
+        "endstop_assignment_status": "not_established",
+    }
+    assignment_provenance = [firmware_evidence, catalog_evidence]
+
+    existing_for_source = [
+        existing
+        for existing in model.controller_resource_assignments.values()
+        if existing.source_id == component.id
+    ]
+    if existing_for_source:
+        if (
+            len(existing_for_source) == 1
+            and existing_for_source[0].id == assignment_id
+            and existing_for_source[0].resource_id == resource_id
+            and existing_for_source[0].assignment_type == "controls"
+            and existing_for_source[0].properties == assignment_properties
+            and existing_for_source[0].provenance == assignment_provenance
+        ):
+            return existing_for_source[0]
+        raise ValueError(
+            "The Z-motor component already has a controller-resource "
+            "assignment; refusing to create a duplicate or conflicting one."
+        )
+
+    if assignment_id in model.controller_resource_assignments:
+        raise ValueError(
+            f"Assignment id already belongs to another source: {assignment_id}"
+        )
+
+    assignment = ControllerResourceAssignment(
+        id=assignment_id,
+        source_id=component.id,
+        resource_id=resource_id,
+        assignment_type="controls",
+        properties=assignment_properties,
+        provenance=assignment_provenance,
+    )
+    model.add_controller_resource_assignment(machine_id, assignment)
+
+    component_properties = dict(component.properties)
+    component_properties.update({
+        "firmware_assignment_status": (
+            "user_reported_logical_driver_assignment"
+        ),
+        "firmware_axis": "Z",
+        "firmware_driver_index": 2,
+        "firmware_driver_assignment_command": "M584 X0 Y1 Z2",
+        "controller_resource_assignment_id": assignment_id,
+        "controller_resource_id": resource_id,
+        "physical_motor_connector_mapping_status": "not_established",
+        "physical_cable_mapping_status": "not_established",
+        "physical_contact_and_conductor_mapping_status": "not_established",
+        "endstop_assignment_status": "not_established",
+    })
+    component_provenance = list(component.provenance)
+    if firmware_evidence not in component_provenance:
+        component_provenance.append(firmware_evidence)
+
+    canvas.store.commit(
+        UpdateMachineComponent(
+            component_id=component.id,
+            role=component.role,
+            label=component.label,
+            properties=component_properties,
+            provenance_entries=component_provenance,
+        )
+    )
+    return assignment

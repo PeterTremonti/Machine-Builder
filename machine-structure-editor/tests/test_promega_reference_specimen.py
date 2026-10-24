@@ -8,6 +8,7 @@ from machine_builder.persistence import load_editor_state
 from machine_builder.promega_fixtures import (
     add_promega_firmware_configuration_evidence,
     add_promega_operational_fan_assignments,
+    add_promega_z_motor_resource_assignment,
 )
 from machine_builder.semantic_component_mutations import UpdateMachineComponent
 from machine_builder.semantic_model import Provenance
@@ -614,3 +615,224 @@ def test_promega_reported_firmware_configuration_is_provenanced_and_persisted(tm
         set(restored_model.controller_resource_assignments)
         == assignment_ids_before
     )
+
+
+def test_promega_z_motor_assignment_is_provenanced_and_persisted(tmp_path):
+    application = QApplication.instance()
+    if application is None:
+        application = QApplication([])
+
+    canvas = MachineCanvas()
+    canvas.create_node_from_template(
+        "duet_2_maestro_v1_0", QPointF(100.0, 100.0)
+    )
+    model = canvas.store.semantic_model
+    controller = next(iter(model.controllers.values()))
+
+    add_promega_firmware_configuration_evidence(canvas, controller.id)
+    reported_configuration_before = dict(
+        controller.properties["reported_firmware_configuration"]
+    )
+    controller_properties_before = dict(controller.properties)
+    controller_provenance_before = list(controller.provenance)
+
+    old_node_ids = set(canvas.store.model.nodes)
+    canvas.create_node_from_template("motor", QPointF(260.0, 260.0))
+    new_nodes = [
+        node
+        for node in canvas.store.model.nodes.values()
+        if node.id not in old_node_ids and node.node_type == "motor"
+    ]
+    assert len(new_nodes) == 1
+    component_id = new_nodes[0].semantic_reference
+    assert component_id is not None
+    component = model.components[component_id]
+
+    role_evidence = Provenance(
+        source="Planning milestone: First Promega Reference Specimen",
+        evidence_type="authored",
+        method="manual transcription",
+        context="Planning-defined role only: Z motion motor.",
+        date="2026-10-24",
+        notes=(
+            "The role does not establish the exact installed motor identity "
+            "or physical cable/contact mapping."
+        ),
+    )
+    component_properties = dict(component.properties)
+    component_properties.update({
+        "specimen_scope": "promega_compound_reference",
+        "physical_presence_status": "not_verified_as_built",
+        "physical_wiring_status": "not_verified_as_built",
+        "inventory_crosswalk_status": "not_established",
+        "firmware_assignment_status": "not_established",
+    })
+    canvas.store.commit(
+        UpdateMachineComponent(
+            component_id=component.id,
+            role="Z motion motor",
+            label="Z motion motor",
+            properties=component_properties,
+            provenance_entries=list(component.provenance) + [role_evidence],
+        )
+    )
+
+    component = model.components[component_id]
+    connections_before = set(model.connections)
+    port_ids_before = set(model.ports)
+    resource_ids_before = set(model.controller_resources)
+    relationship_ids_before = set(model.relationships)
+    assignment_ids_before = set(model.controller_resource_assignments)
+
+    resource_id = f"{controller.id}-z-stepper"
+    resource = model.controller_resources[resource_id]
+    assert resource.name == "Z stepper driver"
+    assert resource.resource_type == "stepper"
+    exposed_connector_ids = {
+        model.ports[relationship.target_id].connector_id
+        for relationship in model.relationships.values()
+        if (
+            relationship.source_id == resource_id
+            and relationship.relationship_type == "exposed_through"
+            and relationship.target_id in model.ports
+        )
+    }
+    assert {"z-a-motor", "z-b-motor"}.issubset(exposed_connector_ids)
+
+    assignment = add_promega_z_motor_resource_assignment(
+        canvas, component_id, controller.id
+    )
+    assignment_id = f"{component_id}-promega-z-motor-driver-assignment"
+
+    assert assignment.id == assignment_id
+    assert assignment.source_id == component_id
+    assert assignment.resource_id == resource_id
+    assert assignment.assignment_type == "controls"
+    assert assignment.properties == {
+        "semantic_role": "z_axis_motor",
+        "firmware_axis": "Z",
+        "firmware_driver_index": 2,
+        "firmware_assignment_status": "user_reported_logical_driver_assignment",
+        "firmware_assignment_command": "M584 X0 Y1 Z2",
+        "installed_firmware_configuration_verification_status": (
+            "not_independently_verified"
+        ),
+        "physical_motor_connector_mapping_status": "not_established",
+        "physical_cable_mapping_status": "not_established",
+        "physical_contact_and_conductor_mapping_status": "not_established",
+        "motor_winding_mapping_status": "not_established",
+        "endstop_assignment_status": "not_established",
+    }
+    assert "board_connector_id" not in assignment.properties
+    assert len(assignment.provenance) == 2
+
+    firmware_evidence, catalog_evidence = assignment.provenance
+    assert firmware_evidence.source == (
+        "User-reported working Promega firmware configuration"
+    )
+    assert firmware_evidence.evidence_type == "user_report"
+    assert firmware_evidence.method == "user-reported RepRapFirmware M584 command"
+    assert "M584 X0 Y1 Z2" in firmware_evidence.context
+    assert "driver index 2" in firmware_evidence.context
+    assert "not been independently read" in firmware_evidence.notes
+
+    assert catalog_evidence.source == (
+        "Machine Builder Duet 2 Maestro reference-board definition"
+    )
+    assert catalog_evidence.evidence_type == "authored"
+    assert catalog_evidence.method == "canonical controller-resource catalog"
+    assert "Z stepper driver" in catalog_evidence.context
+    assert "J36" in catalog_evidence.context
+    assert "J7" in catalog_evidence.context
+    assert "do not establish" in catalog_evidence.context
+
+    component = model.components[component_id]
+    assert component.role == "Z motion motor"
+    assert component.properties["firmware_axis"] == "Z"
+    assert component.properties["firmware_driver_index"] == 2
+    assert component.properties["controller_resource_id"] == resource_id
+    assert component.properties["controller_resource_assignment_id"] == assignment_id
+    assert component.properties["physical_motor_connector_mapping_status"] == (
+        "not_established"
+    )
+    assert component.properties["physical_cable_mapping_status"] == "not_established"
+    assert component.properties["physical_contact_and_conductor_mapping_status"] == (
+        "not_established"
+    )
+    assert component.properties["endstop_assignment_status"] == "not_established"
+    assert component.provenance[-1] == firmware_evidence
+
+    # Assignment is semantic only: no ports, board resources, relationships,
+    # physical connections, or alternate connector assignments are created.
+    assert set(model.connections) == connections_before
+    assert set(model.ports) == port_ids_before
+    assert set(model.controller_resources) == resource_ids_before
+    assert set(model.relationships) == relationship_ids_before
+    assert set(model.controller_resource_assignments) == (
+        assignment_ids_before | {assignment_id}
+    )
+    source_assignments = [
+        item
+        for item in model.controller_resource_assignments.values()
+        if item.source_id == component_id
+    ]
+    assert source_assignments == [assignment]
+
+    # Repeating the same authoring operation must not duplicate the assignment.
+    assert (
+        add_promega_z_motor_resource_assignment(
+            canvas, component_id, controller.id
+        )
+        is assignment
+    )
+    assert set(model.controller_resource_assignments) == (
+        assignment_ids_before | {assignment_id}
+    )
+
+    controller = model.controllers[controller.id]
+    assert controller.properties == controller_properties_before
+    assert controller.properties["reported_firmware_configuration"] == (
+        reported_configuration_before
+    )
+    assert controller.properties["reported_firmware_configuration"]["commands"] == [
+        "M584 X0 Y1 Z2",
+        "M350 X16 Y16 Z16 I1",
+        "M92 X80 Y80 Z282.7",
+        "M208 X0:380 Y0:380 Z0:380",
+        "M669 K1",
+        "G31 P500 X30.4 Y30.7 Z0.7",
+    ]
+    assert controller.provenance == controller_provenance_before
+
+    component_properties_after = dict(component.properties)
+    component_provenance_after = list(component.provenance)
+    path = tmp_path / "promega-z-motor-resource-assignment.machine.json"
+    canvas.store.save(path)
+    restored = load_editor_state(path)
+    restored_model = restored.semantic_model
+
+    restored_assignment = restored_model.controller_resource_assignments[assignment_id]
+    restored_component = restored_model.components[component_id]
+    restored_controller = restored_model.controllers[controller.id]
+    assert restored_assignment == assignment
+    assert restored_component.role == component.role
+    assert restored_component.label == component.label
+    assert restored_component.properties == component_properties_after
+    assert restored_component.provenance == component_provenance_after
+    assert restored_controller.properties == controller_properties_before
+    assert restored_controller.provenance == controller_provenance_before
+    assert restored_controller.properties["reported_firmware_configuration"] == (
+        reported_configuration_before
+    )
+    assert set(restored_model.connections) == connections_before
+    assert set(restored_model.ports) == port_ids_before
+    assert set(restored_model.controller_resources) == resource_ids_before
+    assert set(restored_model.relationships) == relationship_ids_before
+    assert set(restored_model.controller_resource_assignments) == (
+        assignment_ids_before | {assignment_id}
+    )
+    assert {
+        item.source_id
+        for item in restored_model.controller_resource_assignments.values()
+        if item.source_id == component_id
+    } == {component_id}
