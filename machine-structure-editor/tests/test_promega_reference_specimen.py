@@ -5,7 +5,10 @@ from PySide6.QtWidgets import QApplication
 
 from machine_builder.canvas import MachineCanvas
 from machine_builder.persistence import load_editor_state
-from machine_builder.promega_fixtures import add_promega_operational_fan_assignments
+from machine_builder.promega_fixtures import (
+    add_promega_firmware_configuration_evidence,
+    add_promega_operational_fan_assignments,
+)
 from machine_builder.semantic_component_mutations import UpdateMachineComponent
 from machine_builder.semantic_model import Provenance
 from machine_builder.semantic_port_mutations import UpdateSemanticPort
@@ -506,4 +509,108 @@ def test_promega_operational_fan_assignments_are_provenanced_and_persisted(tmp_p
         connection.endpoint_a_id not in restored_inactive_port_ids
         and connection.endpoint_b_id not in restored_inactive_port_ids
         for connection in restored_model.connections.values()
+    )
+
+def test_promega_reported_firmware_configuration_is_provenanced_and_persisted(tmp_path):
+    application = QApplication.instance()
+    if application is None:
+        application = QApplication([])
+
+    canvas = MachineCanvas()
+    canvas.create_node_from_template(
+        "duet_2_maestro_v1_0", QPointF(100.0, 100.0)
+    )
+    model = canvas.store.semantic_model
+    controller = next(iter(model.controllers.values()))
+
+    expected_commands = [
+        "M584 X0 Y1 Z2",
+        "M350 X16 Y16 Z16 I1",
+        "M92 X80 Y80 Z282.7",
+        "M208 X0:380 Y0:380 Z0:380",
+        "M669 K1",
+        "G31 P500 X30.4 Y30.7 Z0.7",
+    ]
+
+    from machine_builder.promega_fixtures import (
+        PROMEGA_REPORTED_FIRMWARE_CONFIGURATION_COMMANDS,
+    )
+
+    assert list(PROMEGA_REPORTED_FIRMWARE_CONFIGURATION_COMMANDS) == (
+        expected_commands
+    )
+
+    original_properties = dict(controller.properties)
+    original_provenance = list(controller.provenance)
+    connection_ids_before = set(model.connections)
+    port_ids_before = set(model.ports)
+    resource_ids_before = set(model.controller_resources)
+    assignment_ids_before = set(model.controller_resource_assignments)
+
+    evidence = add_promega_firmware_configuration_evidence(
+        canvas, controller.id
+    )
+
+    controller = canvas.store.semantic_model.controllers[controller.id]
+    configuration = controller.properties["reported_firmware_configuration"]
+
+    assert configuration == {
+        "status": "user_reported_working_configuration",
+        "commands": expected_commands,
+        "installed_sd_card_verification_status": "not_independently_verified",
+    }
+    assert {
+        key: value
+        for key, value in controller.properties.items()
+        if key != "reported_firmware_configuration"
+    } == original_properties
+    assert controller.provenance == original_provenance + [evidence]
+
+    assert evidence.source == (
+        "User-reported working Promega firmware configuration"
+    )
+    assert evidence.evidence_type == "user_report"
+    assert evidence.method == "user report"
+    assert "supplied order are preserved" in evidence.context
+    assert "not been independently" in evidence.notes
+    assert "E-driver" in evidence.notes
+    assert "endstop mappings" in evidence.notes
+    assert "driver-index-to-physical-connector/contact mappings" in evidence.notes
+
+    # Firmware evidence alone must not assert new physical wiring or mappings.
+    assert set(model.connections) == connection_ids_before
+    assert set(model.ports) == port_ids_before
+    assert set(model.controller_resources) == resource_ids_before
+    assert set(model.controller_resource_assignments) == assignment_ids_before
+    assert set(controller.properties) - set(original_properties) == {
+        "reported_firmware_configuration"
+    }
+    assert set(configuration) == {
+        "status",
+        "commands",
+        "installed_sd_card_verification_status",
+    }
+
+    path = tmp_path / "promega-reported-firmware-configuration.machine.json"
+    canvas.store.save(path)
+    restored = load_editor_state(path)
+    restored_model = restored.semantic_model
+    restored_controller = restored_model.controllers[controller.id]
+
+    assert restored_controller.properties["reported_firmware_configuration"] == (
+        configuration
+    )
+    assert {
+        key: value
+        for key, value in restored_controller.properties.items()
+        if key != "reported_firmware_configuration"
+    } == original_properties
+    assert restored_controller.provenance == original_provenance + [evidence]
+
+    assert set(restored_model.connections) == connection_ids_before
+    assert set(restored_model.ports) == port_ids_before
+    assert set(restored_model.controller_resources) == resource_ids_before
+    assert (
+        set(restored_model.controller_resource_assignments)
+        == assignment_ids_before
     )

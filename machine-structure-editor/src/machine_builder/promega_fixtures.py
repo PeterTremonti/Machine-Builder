@@ -11,6 +11,7 @@ from typing import Any
 
 from .controller_resource import ControllerResource
 from .controller_resource_assignment import ControllerResourceAssignment
+from .controller_mutations import UpdateController
 from .semantic_relationship import SemanticRelationship
 from .mutations import CreateConnection
 from .semantic_component_mutations import UpdateMachineComponent
@@ -763,3 +764,73 @@ def add_promega_operational_fan_assignments(
         assigned[role] = evidence
 
     return assigned
+
+PROMEGA_REPORTED_FIRMWARE_CONFIGURATION_COMMANDS = (
+    "M584 X0 Y1 Z2",
+    "M350 X16 Y16 Z16 I1",
+    "M92 X80 Y80 Z282.7",
+    "M208 X0:380 Y0:380 Z0:380",
+    "M669 K1",
+    "G31 P500 X30.4 Y30.7 Z0.7",
+)
+
+
+def add_promega_firmware_configuration_evidence(
+    canvas: Any,
+    controller_id: str,
+) -> Provenance:
+    """Record user-reported working firmware commands on the controller."""
+    model = canvas.store.semantic_model
+    controller = model.controllers.get(controller_id)
+    if controller is None:
+        raise ValueError(f"Unknown controller: {controller_id}")
+
+    machine_ids = [
+        machine.id
+        for machine in model.machines.values()
+        if controller_id in machine.controller_ids
+    ]
+    if len(machine_ids) != 1:
+        raise ValueError(
+            f"Expected one owning machine for controller {controller_id!r}; "
+            f"found {len(machine_ids)}"
+        )
+
+    property_name = "reported_firmware_configuration"
+    if property_name in controller.properties:
+        raise ValueError(
+            f"Firmware configuration evidence already recorded for {controller_id!r}"
+        )
+
+    evidence = Provenance(
+        source="User-reported working Promega firmware configuration",
+        evidence_type="user_report",
+        method="user report",
+        context=(
+            "User reports these commands as the working Promega firmware "
+            "configuration. Command text and supplied order are preserved."
+        ),
+        date="2026-10-23",
+        notes=(
+            "The installed SD-card configuration has not been independently "
+            "inspected. No additional settings are inferred. E-driver "
+            "assignments, endstop mappings, and driver-index-to-physical-"
+            "connector/contact mappings remain unestablished by this record."
+        ),
+    )
+
+    properties = dict(controller.properties)
+    properties[property_name] = {
+        "status": "user_reported_working_configuration",
+        "commands": list(PROMEGA_REPORTED_FIRMWARE_CONFIGURATION_COMMANDS),
+        "installed_sd_card_verification_status": "not_independently_verified",
+    }
+
+    canvas.store.commit(
+        UpdateController(
+            controller_id=controller_id,
+            properties=properties,
+            provenance=evidence,
+        )
+    )
+    return evidence
