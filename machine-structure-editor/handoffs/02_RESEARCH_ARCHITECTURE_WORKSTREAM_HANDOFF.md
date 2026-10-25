@@ -1527,3 +1527,67 @@ The correct reference crosswalk is:
 **Evidence:** Board workstream checkpoint `12fc3dc0b4522a5efee03f68baf931f47a3c6d8f`; pinned Duet 2 Maestro V1.0 PCB source commit `56958640c73c7febf3bce6e1eefbbdffd5a2db1b`; Promega Duet Maestro Wiring guide https://promega.printm3d.com/documentation/electronics/duet-maestro-wiring; Routing reference slice `ec5c7381fe5624e94bb22c81740153ce260ab298`.
 
 Guide-view position, PCB pad, and physical cable cavity/mating orientation are distinct identities. The correction does not establish installed cable wiring or continuity. The three reference IR-probe relationships remain unchanged, and the P4/P2, H2/H4, S8/S6, and P9/P11 mapping uncertainties remain open.
+
+## Research continuity refresh - 2026-10-24 (Planning MB-20261024-2034-01)
+
+### Verified repository baseline
+- Composer commit: `a4c5ad9347ae56990f9de4049b78cc3cc591e22f`
+  (`add shared Promega specimen composer`, 2026-10-24 18:49:27 EDT).
+  It adds `promega_specimen.py` and updates the combined specimen test.
+- Initial preflight verified local, fetched, and live `main` at that composer commit.
+  The shared index was empty and both Research continuity files were clean then.
+- After #3's publication, a fresh preflight verified local HEAD, fetched
+  `origin/main`, and live `origin/main` at `0af85436140c713ff02e4634ebb5d8c66900fbb2`
+  (`docs: refresh Promega composer continuity`, 2026-10-24 22:35:46 EDT).
+- The shared index remained empty. This handoff contains the local continuity edit;
+  the replacement prompt was clean at the latest preflight. Other workstream files
+  are modified or untracked and must be preserved. This refresh was initially kept
+  local and unstaged; Planning later authorized publication of both continuity files
+  under `MB-20261024-2356-01`, subject `docs: refresh Research continuity after
+  Promega milestones`. Preserve all unrelated paths.
+
+### Completed research and accepted outcomes
+- **Promega physical harness crosswalk:** Accepted bounded research. Reference
+  documents and guide-position-to-PCB-pad mapping do not prove installed cable
+  identity or continuity. P9/P11 fan mapping and H2/H4 heater plus S8/S6 sensor
+  mappings remain unresolved pending the user's physical inspection of the printer.
+  Preserve the other recorded uncertainty, including P4/P2.
+- **Routing/cone diagnostics:** Separate visible stubs, endpoint fanout/escape
+  geometry, and missing direct stub-selection coverage are actionable diagnostic
+  findings, not a confirmed root cause. #4 retains implementation ownership.
+- **Application entry point:** The reviewed ordinary app workflow has no confirmed
+  dedicated Promega-specimen entry point. The published composer commit did not add
+  application-menu integration.
+- **Shared composer:** The accepted contract is
+  `build_promega_reference_specimen() -> EditorState`, returning a detached complete
+  state built through existing authoring paths. Commit `a4c5ad9` adds the composer
+  and updates `tests/test_promega_reference_specimen.py` with the combined specimen
+  composition/round-trip path. Verify current source afresh before future work.
+- **Future application integration:** Planning accepted atomic installation of the
+  complete state as a populated, unsaved document. Cancel must prevent composition
+  and installation. Composition/preparation failure must preserve the active
+  document, path, modified state, and history. Successful installation replaces
+  visual and semantic state together, clears history and path, marks the populated
+  document modified, and notifies listeners only after commitment. Retain normal
+  Save As/Open behavior. #3 owns the composer; #4 owns future UI integration after
+  its GUI acceptance work stabilizes. Coordinate with concurrent store/scene changes.
+- **Dragging lag:** Handoff `MB-20261024-1834-01` was sent to #4. Read-only source
+  inspection found that node-position callbacks invoke full connection updates even
+  though the node ID is available, with multiple potential full refreshes during
+  scene synchronization. These are optimization leads, not measured performance
+  results or a confirmed root cause. #4 owns instrumentation and implementation
+  after its current GUI acceptance work stabilizes. #2 changed no source and ran no
+  performance tests.
+- **Other accepted research:** DYZE historical bend-radius wording and prototype-era
+  pause-feature questions remain ANSWERED under `MB-20261018-2038-01`; do not
+  repeat archive probing without a distinct question or new primary evidence.
+  Octopus V1.1 / TMC5160T Pro contact 6 (`SLEEP` versus `CLK`) remains an unresolved
+  hardware discrepancy owned by #3.
+
+### Current disposition
+No further investigation or implementation is requested from #2 under this
+continuity assignment. Physical Promega mapping resolution awaits user inspection.
+Application integration and dragging-lag optimization remain future #4 work.
+Older dated sections remain historical evidence; this checkpoint is the current
+recovery summary, not a replacement for detailed source evidence or other
+workstream authorities.
