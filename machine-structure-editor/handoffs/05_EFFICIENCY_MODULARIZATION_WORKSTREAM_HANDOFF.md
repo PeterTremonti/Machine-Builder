@@ -1223,3 +1223,32 @@ Do not split modules merely because they are long. Do not reopen pathfinder, con
 ### Next action
 
 No #5 implementation action is pending. Reassess candidate 1 after #3/#4 changes stabilize; consider candidate 2 only after measurement. Await a new bounded Planning assignment before implementing either.
+
+<!-- MB-20261024-2034-02 CONTINUITY REFRESH -->
+
+## Audit Continuity Refresh After Promega Milestones
+
+Refresh applied: 2026-10-24 22:59:08 -04:00
+Planning instruction: MB-20261024-2240-02
+
+### Verified repository baseline
+
+At the preflight on 2026-10-24 22:55:39 EDT, local HEAD, local origin/main, and live remote main all matched 0af85436140c713ff02e4634ebb5d8c66900fbb2 (docs: refresh Promega composer continuity). Its parent is a4c5ad9347ae56990f9de4049b78cc3cc591e22f.
+
+- Published #5 audit: 93d94e1a7dbf0a75cd7e1a7acc814d50fb61142e; parent 4b72c625d7103d5c04311f2ed6436191d19941b7; verified ancestor of HEAD and live main.
+- Promega combined specimen round-trip test: 7e25fe51c0f39f9e28ebfa063a813040949e679e; parent 2973f0798878484010d0a0a94daa30b03d31e330; verified ancestor of HEAD and live main.
+- Shared Promega specimen composer: a4c5ad9347ae56990f9de4049b78cc3cc591e22f; parent 93d94e1a7dbf0a75cd7e1a7acc814d50fb61142e; verified ancestor of HEAD and live main.
+- #3 continuity checkpoint: 0af85436140c713ff02e4634ebb5d8c66900fbb2; parent a4c5ad9347ae56990f9de4049b78cc3cc591e22f; verified as the current live main commit at preflight.
+- These relationships were verified from the current local Git graph. No fetch or ref update was performed.
+
+### Concurrent local work at the preflight
+
+- The shared index was empty and both #5 documents were clean before this refresh.
+- Other unstaged edits remained in the #2 Research handoff, the #3 Board handoff, and #4 routing/GUI handoff, source, tests, and wiring test-machine JSON.
+- Untracked #4 files included its replacement prompt and two tests. These are concurrent local work, not part of the published history. None may be modified by this refresh.
+
+### Stable-code audit disposition
+
+- Candidate 1: semantic_model.py ownership lookup remains DEFERRED and unauthorized. Reconsideration requires same-machine ownership, cross-machine rejection, controller-owned-port behavior, and assignment save/reopen regressions, plus before/after timing evidence.
+- Candidate 2: store.py deep-copy snapshot optimization remains MEASUREMENT FIRST and unauthorized. After #4/store work stabilizes, benchmark commit/undo/redo on the Promega specimen and a larger model. Preserve rollback, undo/redo, and cross-model consistency.
+- No new audit or implementation work is assigned. This is documentation-only. Do not edit source or tests, stage, commit, or push.

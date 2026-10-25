@@ -165,3 +165,34 @@ Future acceptance gate: record representative timings and establish a material p
 Planning accepted this audit and deferred both candidates. Do not split modules solely for line count. Do not interfere with #3 or #4 active files or revisit pathfinder/connection-graphics/canvas refactors during #4 work. No implementation is authorized. No source or test files were changed by this audit.
 
 Next action: no #5 implementation is pending. Reassess candidate 1 after #3/#4 changes stabilize; consider candidate 2 only if measurements justify it. Await a new bounded Planning assignment. This update is local continuity documentation only: do not stage, commit, or push.
+
+<!-- MB-20261024-2034-02 CONTINUITY REFRESH -->
+
+## Latest #5 Continuity Checkpoint - 2026-10-24
+
+Planning instruction: MB-20261024-2240-02
+Updated after reported publication of #3 continuity checkpoint MB-20261024-2230-01.
+
+### Verified repository baseline
+
+Preflight captured 2026-10-24 22:55:39 EDT. Branch main; local HEAD, local origin/main, and live remote main all equal 0af85436140c713ff02e4634ebb5d8c66900fbb2 (docs: refresh Promega composer continuity). Its parent is a4c5ad9347ae56990f9de4049b78cc3cc591e22f.
+
+- #5 stable-code audit: 93d94e1a7dbf0a75cd7e1a7acc814d50fb61142e; verified ancestor of HEAD and live main.
+- Promega combined specimen round-trip test: 7e25fe51c0f39f9e28ebfa063a813040949e679e; verified ancestor of HEAD and live main.
+- Promega shared specimen composer: a4c5ad9347ae56990f9de4049b78cc3cc591e22f; verified ancestor of HEAD and live main.
+- #3 continuity checkpoint: 0af85436140c713ff02e4634ebb5d8c66900fbb2; verified as the current live main commit at preflight.
+- These ancestry and ref relationships were verified using the local Git graph and live remote lookup. No fetch or ref update was performed.
+
+### Concurrent local work and scope protection
+
+The pre-edit worktree showed local changes in #2 and #3 handoffs, #4 routing/GUI source, tests, handoff, and wiring test-machine JSON, plus untracked #4 files. The shared index was empty. Preserve all unrelated local work; do not edit #2, #3, or #4 files.
+
+### Efficiency audit status - no implementation authorization
+
+- Candidate 1: semantic_model.py ownership lookup remains DEFERRED. Require same-machine ownership, cross-machine rejection, controller-owned-port behavior, assignment save/reopen regressions, and before/after timing evidence before reconsideration.
+- Candidate 2: store.py deep-copy snapshot optimization remains MEASUREMENT FIRST. Revisit only after #4/store work stabilizes and commit/undo/redo are measured on the Promega specimen and a larger model. Preserve rollback, undo/redo, and cross-model consistency.
+- No new audit or implementation work is assigned. This is documentation-only; do not modify source or tests, stage, commit, or push.
+
+### Next-session startup
+
+Recheck branch, HEAD, local origin/main, live remote main, commit ancestry, full worktree status, and shared staged index before further work. Treat old snapshots as historical. Keep this update local and unstaged.
