@@ -1,65 +1,76 @@
-# Machine Builder — #3 Controller/Board Replacement Prompt
+# Machine Builder - #3 Controller/Board Replacement Prompt
 
-Prepared: 2026-10-21 16:30 EDT | Published baseline observed before this continuity refresh: `7d4fc6c0378ffd4de455c8db05dcd636034711c1` — `Add proportional prior-art review to planning workflow`.
+Prepared: 2026-10-24 20:03:57 -04:00 | Verified published baseline: `a4c5ad9347ae56990f9de4049b78cc3cc591e22f` - `add shared Promega specimen composer`.
 
 ## Startup and repository authority
 
 Use the existing checkout: `C:\Users\Peter\Documents\GitHub\Machine-Builder`.
 
-The checkout and Git index are shared by workstreams #1–#5. Local status is authoritative. Before resuming, fetch `origin`, verify branch, `HEAD`, `origin/main`, and live remote `main`; inspect `git status --short --untracked-files=all` and `git diff --cached --name-only`. Preserve all other staged, unstaged, and untracked changes. Never blanket-stage, reset, discard, stash, or unstage another workstream's work. Never force-push.
+Read `CHAT_WORKFLOW.md`, `MASTER_PLAN.md`, `PROJECT_CURRENT_STATE.md`, and `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`. Then verify branch, `HEAD`, `origin/main`, live remote `main`, `git status --short --untracked-files=all`, and `git diff --cached --name-only`. This prompt records a checkpoint; do not assume the baseline is still current.
 
-Required reading: `CHAT_WORKFLOW.md`, `MASTER_PLAN.md`, `PROJECT_CURRENT_STATE.md`, and `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`. Use their latest committed/local state rather than assuming this snapshot is current.
+The checkout and Git index are shared by workstreams #1-#5. Preserve other workstreams' staged, unstaged, and untracked changes. Never blanket-stage, reset, discard, stash, or unstage another workstream's work. Never force-push. Keep Board tasks within #3 ownership.
 
-## Published Board state
+## Latest published Board implementation: Promega reference specimen composer
 
-### Octopus receiving-interface persistence
+Published commit: `a4c5ad9347ae56990f9de4049b78cc3cc591e22f`
+Subject: `add shared Promega specimen composer`
+Parent: `93d94e1a7dbf0a75cd7e1a7acc814d50fb61142e`
 
-The Octopus receiving-interface contact-list correction and save/reopen regression are published in commit `ae5a9a1672d151c37e392e9bff4f2421f0a465f2`, subject `Fix Octopus receiving-interface persistence`.
+Published paths only:
+- `machine-structure-editor/src/machine_builder/promega_specimen.py`
+- `machine-structure-editor/tests/test_promega_reference_specimen.py`
 
-Published paths:
-- `machine-structure-editor/src/machine_builder/hardware_catalog.py`
-- `machine-structure-editor/tests/test_octopus_driver_mating.py`
-- `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
+Planning authorization: `MB-20261024-1746-01`; API clarification: `MB-20261024-1805-02`.
 
-The contact map is a list of 18 records containing numeric `position`, original `label`, and original `classification`: positions 1–16 are active, position 17 is NC/not-connected, and position 18 is DIAG/diagnostic. Publication validation passed `65 passed in 0.33s`. The staged whitespace check passed, and post-push `HEAD`, `origin/main`, and live remote `main` matched the published commit. The generic persistence encoder and separate TMC5160T module-interface contact map were not changed.
+The public contract is `build_promega_reference_specimen() -> EditorState`. It creates a fresh detached state via a private `MachineCanvas`, standard template/canonical mutation paths, and existing Promega fixture helpers. It does not mutate the active canvas/document.
 
-The Board investigation checkpoint `9b3013d1cbecebbc32e6e17909a8ea09885a4833` (`Document revision-pinned TMC5160T routing evidence`) is historical context; the Octopus persistence fix above is a later published commit.
+The specimen includes 14 uniquely role-labelled components, separate X/Y cable-reference endpoints, eight XY positional-reference connections, three IR Z-probe reference connections, FAN0/FAN2 assignments, reported firmware-command evidence, and the logical Z motor resource assignment supported by `M584`. Installed SD-card verification remains `not_independently_verified`.
 
-### Electrical discrepancy — UNRESOLVED
+Do not treat this reference specimen as proof of the physical machine. Component identity, physical presence/wiring, cable/contact correspondence, motor winding, endstop behavior, and the P9/P11/H2/H4/S8/S6 crosswalk remain unresolved where not independently evidenced.
 
-Octopus V1.1 Driver 2 contact 6 is documented as `SLEEP` / `DRIVER2_SLP`. TMC5160T Pro V1.0 module J1-6 is documented as `CLK` (external clock input); J1-3 `SCK/CFG2` is the SPI serial clock. Existing public artifacts, product pairing, third-party manual copies, and issue reports do not establish revision-qualified contact-to-contact continuity, exact module routing, the as-built jumper state, or electrical equivalence.
+### Published validation
 
-Do not infer a confirmed short, incompatibility, or installed electrical path without suitable evidence. Preserve the explicit **UNRESOLVED** disposition. The living handoff section 35 contains the detailed source investigation; verify whether its currently noted local-only source addition is actually present in the worktree or published revision before relying on it.
+- Composer and test `py_compile`: exit code 0.
+- `tests/test_promega_reference_specimen.py`: 5 passed in 2.08s.
+- Focused eight-file Promega/Maestro regression suite: 58 passed in 2.73s.
+- `git diff --check` and post-push local/remote reference convergence checks passed at implementation publication.
 
-## Stepper-terminal-profile test — blocked on #4
+The living handoff Section 37 records the eight regression-test filenames.
 
-The local-only file `machine-structure-editor/tests/test_stepper_motor_terminal_profile.py` exercises `UpdateMachineComponentWithStepperTerminalProfile` and terminal projection behavior.
+## Prior Board milestone: Octopus persistence
 
-Last reported combined-working-tree command on 2026-10-20:
+Commit `ae5a9a1672d151c37e392e9bff4f2421f0a465f2`, `Fix Octopus receiving-interface persistence`, changed the Octopus receiving-interface contact map to a list of 18 position-labelled records and added save/reopen coverage. Its published focused suite reported 65 passed in 0.33s. This is separate from the later Promega composer commit.
 
-`python -m pytest -q tests/test_stepper_motor_terminal_profile.py tests/test_controller_board_fixtures.py`
+## Electrical discrepancy - UNRESOLVED
 
-Result: `34 passed in 0.20s`. This result depends on the symbol being present in the modified local #4-owned `machine-structure-editor/src/machine_builder/semantic_component_mutations.py`. The symbol was absent from the published baseline `7d4fc6c0378ffd4de455c8db05dcd636034711c1`, so this was not a validation run against published code alone.
+Octopus V1.1 Driver 2 contact 6 is documented as `SLEEP` / `DRIVER2_SLP`. TMC5160T Pro V1.0 module J1-6 is documented as `CLK` (external clock input); J1-3 `SCK/CFG2` is the SPI serial clock.
 
-Planning message `MB-20261020-2045-03` accepted the blocker: #4 owns publication of the implementation dependency and received the next validation/publication slot. Keep the Board test local and unpublished; do not stage it alongside #4's code. After #4 reports verified publication, Planning will reassess the actual shared baseline and authorize a separate Board slot. Re-run the tests against that verified state rather than assuming the previous result is sufficient.
+Do not infer continuity, contact mating, electrical equivalence, a confirmed short, incompatibility, or the as-built jumper state from matching numbers, third-party manuals, product pairing, or issue reports. Section 35 of the living handoff contains the evidence. Keep this question **UNRESOLVED** unless revision-qualified evidence closes the circuit path.
 
-## Documentation publication boundary
+## Current local-worktree boundary
 
-Planning message `MB-20261021-1618-01` grants a documentation-only slot for these two paths:
+At the initial inspection on 2026-10-24:
+- Branch was `main`; `HEAD`, `origin/main`, and live remote `main` matched the composer commit.
+- The shared Git index was empty.
+- The #3 handoff already contained a local Section 35 manual/issue #25 research-note addition. Preserve it; this continuity refresh does not resolve the electrical question.
+- The replacement prompt was clean before this refresh. Both #3 documents are expected to be locally modified afterwards.
+- Routing/GUI (#4) has existing modified files across its handoff, canvas/editing/scene/UI/state modules, graphics/routing modules, `semantic_component_mutations.py`, `store.py`, and canvas/routing/functional-interface tests.
+- Existing untracked #4 files include `machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md`, `machine-structure-editor/tests/test_connection_wire_color.py`, and `machine-structure-editor/tests/test_stepper_motor_terminal_profile.py`.
+- The shared fixture `machine-structure-editor/wiring test machines/Maestro and 4 port motor 4 wires J9 contact view.machine.json` is locally modified.
 
-- `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
-- `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_REPLACEMENT_PROMPT.md`
+Recheck exact live status on every resume. Do not assume this snapshot is unchanged.
 
-It does not authorize the stepper-terminal-profile test, `semantic_component_mutations.py`, or any other product-code/test/workstream paths. Once this continuity refresh has been published and verified, that documentation slot is released; do not reuse it for further changes.
+## Stepper-terminal-profile test - HOLD
 
-At this prompt's preparation, the published baseline was `7d4fc6c0378ffd4de455c8db05dcd636034711c1`. That is the pre-refresh baseline, not a substitute for rechecking the live state on startup.
+`machine-structure-editor/tests/test_stepper_motor_terminal_profile.py` remains local-only. Its previously reported combined result of 34 passed in 0.20s depended on `UpdateMachineComponentWithStepperTerminalProfile` in the modified local #4-owned `machine-structure-editor/src/machine_builder/semantic_component_mutations.py`; that result did not establish a published-baseline pass.
 
-## Local worktree preservation
-
-At preflight, the shared index was empty. The Board handoff already had an unstaged section 35 source-note addition about the V1.0 manual and issue #25, separate from the continuity changes in section 36. That addition is intentionally not part of this refresh's staged handoff content; preserve it unstaged unless Planning grants a separate scope.
-
-Other worktree changes were present, including Research handoff/prompt edits, Routing/canvas and graphics edits, `semantic_component_mutations.py`, `store.py`, routing and functional-interface tests, the untracked stepper-terminal-profile test, other workstream replacement prompts, a connection-wire-color test, and a machine fixture. Recheck exact status on each resume and preserve all paths not explicitly authorized.
+Do not stage or publish this test or the #4 implementation. After #4 verifies publication of its dependency, recheck the shared state and follow Planning's explicit reassessment and separate Board-slot decision before resuming this test.
 
 ## Next action on resumption
 
-Check the latest Planning coordination message and actual published baseline. Do not stage or publish the stepper-terminal-profile test while its required implementation symbol is unpublished. Wait for #4's verified publication, then follow Planning's separate Board-slot decision. Keep contact-6 **UNRESOLVED** unless new revision-qualified electrical evidence resolves it.
+1. Read the latest Planning coordination and verify the actual shared repository state.
+2. Do not repeat or amend the completed Promega composer implementation.
+3. Keep File-menu/UI integration with #4.
+4. Keep the stepper-terminal-profile test on hold until its dependency is published and Planning reassesses.
+5. Preserve the unresolved TMC5160T contact-6 disposition.
+6. Planning authorized publication under `MB-20261024-2010-01` for the two continuity documents only. Keep the pre-existing Section 35 research-note/status hunk unstaged, honoring Section 36. Verify the exact staged diff, commit as `docs: refresh Promega composer continuity`, push normally, confirm ref convergence, then report `PUBLISHED — SLOT RELEASED` to Planning.

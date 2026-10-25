@@ -1,8 +1,8 @@
 # Machine Builder — Controller / Board Workstream Handoff
 
-Updated: 2026-10-17
+Updated: 2026-10-24
 
-Current repository checkpoint: `3d8c24f` — `Clarify console output and handoff formatting rules`
+Current repository checkpoint: `a4c5ad9` - `add shared Promega specimen composer`
 
 Current branch: `main`
 
@@ -51,43 +51,32 @@ Planning separately authorizes archival disposition.
 
 ## 3. Repository / workflow state
 
-**Latest inspected local checkpoint (2026-10-17):**
+**Latest verified published checkpoint (2026-10-24 20:03:57 -04:00):**
 - Branch: `main`.
-- HEAD and `origin/main` matched at `3d8c24f10e0cdbe30db2e0a8c7a96c601f95afa2` before this handoff-only edit.
-- The shared Git index was empty. Worktree status captured for this refresh:
-- ` M machine-builder-research/standards/STANDARDS_INDEX.md`
-- ` M machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
-- ` M machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
-- ` M machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`
-- ` M machine-structure-editor/src/machine_builder/canvas_scene.py`
-- ` M machine-structure-editor/src/machine_builder/canvas_ui.py`
-- ` M machine-structure-editor/src/machine_builder/controller_board_fixtures.py`
-- ` M machine-structure-editor/src/machine_builder/graphics/connection.py`
-- ` M machine-structure-editor/src/machine_builder/graphics/node.py`
-- ` M machine-structure-editor/tests/test_functional_interface_connection.py`
-- `?? machine-structure-editor/tests/test_skr_mini_e3_exp1.py`
-- `?? "machine-structure-editor/wiring test machines/Maestro and motor test.machine.json"`
+- `HEAD`, local `origin/main`, and live remote `main` matched at `a4c5ad9347ae56990f9de4049b78cc3cc591e22f` (`add shared Promega specimen composer`) during this inspection.
+- Published composer commit parent: `93d94e1a7dbf0a75cd7e1a7acc814d50fb61142e`.
+- The shared Git index was empty before this continuity edit. This edit does not stage, commit, or push.
 
-**Board-owned proposed publication scope:**
-- `machine-structure-editor/src/machine_builder/controller_board_fixtures.py` — the current diff appends a bounded SKR Mini E3 V3.0 EXP1 firmware-reference specimen. It retains all ten logical source positions and instantiates positions 1, 2, 3, 4, 8, 9, and 10. The fixture separates Klipper aliases, Marlin macro names/values, diagram roles, and conditional downstream assignments. It marks physical orientation, PCB pad/net crosswalk, cable cavity identity, continuity, active configuration, and as-built wiring as unverified.
-- `machine-structure-editor/tests/test_skr_mini_e3_exp1.py` — the new paired regression test. Its content was inspected and the focused test was run for this refresh; the observed outcome is recorded below.
-- `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md` — this existing handoff.
+**Latest published Board implementation:**
+- `machine-structure-editor/src/machine_builder/promega_specimen.py` provides `build_promega_reference_specimen() -> EditorState`, creating a fresh detached state without mutating an active canvas/document.
+- `machine-structure-editor/tests/test_promega_reference_specimen.py` covers the composed specimen and serialization.
+- These are the only paths in the published composer commit.
 
-**Ownership boundaries:**
-- Research-owned changes remain outside this Board commit: `machine-builder-research/standards/STANDARDS_INDEX.md` and `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`.
-- Routing/visual integration changes remain outside this Board commit: `machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`, `machine-structure-editor/src/machine_builder/canvas_scene.py`, `machine-structure-editor/src/machine_builder/canvas_ui.py`, `machine-structure-editor/src/machine_builder/graphics/connection.py`, `machine-structure-editor/src/machine_builder/graphics/node.py`, and `machine-structure-editor/tests/test_functional_interface_connection.py`.
-- `machine-structure-editor/wiring test machines/Maestro and motor test.machine.json` is untracked and is excluded from the Board commit pending explicit ownership confirmation. The name suggests visual integration test scaffolding, but the file content was not inspected in the supplied diff output.
+**Published composer validation:**
+- Composer/test `py_compile`: exit code 0.
+- `tests/test_promega_reference_specimen.py`: **5 passed in 2.08s**, exit code 0.
+- The focused eight-file Promega/Maestro suite listed in Section 37: **58 passed in 2.73s**, exit code 0.
+- `git diff --check` and post-push local/remote reference convergence checks passed at code publication.
 
-**Implemented versus validated:**
-- The SKR EXP1 fixture addition is present in the working tree; prior file history shows this path has been used for Board-specific fixtures, and the current delta itself is Board-reference modeling. The paired test's focused result for this refresh: PASS (pytest exit 0; 36 passed in 0.16s). This is focused coverage, not a full-suite result.
-- The supplied inspection's `git diff --check HEAD` passed with line-ending warnings. The post-edit whitespace-check result is recorded in the console output for this refresh.
-- The previous handoff's `30 passed` Board-fixture result and `843 passed` full-suite result predate this uncommitted addition; they do not validate the current SKR fixture. No full-suite run is claimed here.
-- The existing X Motor and SKR EXP1 dispositions are preserved. This documentation refresh does not reclassify either disposition and does not assert that firmware-logical positions establish physical orientation or wiring.
+**Pre-edit worktree snapshot (2026-10-24 20:03:57 -04:00):**
+- The pre-existing Section 35 TMC5160T V1.0 manual/issue #25 source-note and its associated local status hunk are outside this continuity publication and must remain unstaged, consistent with Section 36. Do not alter that pre-existing evidence hunk as part of this continuity commit; contact-6 remains **UNRESOLVED**.
+- The replacement prompt was clean before this edit and will become a local modification.
+- Existing Routing/GUI (#4) changes are preserved in its handoff, canvas/editing/scene/UI/state modules, graphics/routing modules, `semantic_component_mutations.py`, `store.py`, and canvas/routing/functional-interface tests.
+- The modified shared fixture is `machine-structure-editor/wiring test machines/Maestro and 4 port motor 4 wires J9 contact view.machine.json`.
+- Existing untracked #4 files include `machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md`, `machine-structure-editor/tests/test_connection_wire_color.py`, and `machine-structure-editor/tests/test_stepper_motor_terminal_profile.py`.
+- The local stepper-terminal-profile test remains on hold until its #4-owned dependency is published and Planning reassesses it. Do not stage or publish it with this continuity change.
 
-- **SKR EXP1 source-integrity regression (reported validation):** added `test_checked_in_marlin_source_matches_pinned_sha256` for the repository-root-relative source `firmware_sources/marlin/src/pins/stm32g0/pins_BTT_SKR_MINI_E3_V3_0.h`. With `core.autocrlf=true`, the reported raw working-tree byte digest and CRLF-normalized UTF-8 digest both matched the recorded SHA-256 `C8650BB4F55558CBDD85CFEB79CB49006957860E9F2826DE3B23B15E64A002DE`; the LF-normalized digest differed. The regression explicitly normalizes to CRLF before hashing.
-- **Focused validation reported from the local console:** from `machine-structure-editor`, `.venv\Scripts\python.exe -m pytest -q --tb=short tests/test_skr_mini_e3_exp1.py` returned **7 passed in 0.15s**, exit code 0; the enclosing PowerShell stopwatch measured 0.64 seconds. Tracked-path `git diff --check HEAD` passed with exit code 0; the separate untracked-test whitespace check also passed. Git emitted LF-to-CRLF advisories only.
-- **Evidence boundary preserved:** the digest test establishes source-snapshot integrity only. It does not establish manufacturer diagram orientation, physical PCB pad/net identity, cable mating-face/cavity correspondence, continuity, or as-built harness wiring. The separate Octopus/TMC5160T contact-6 discrepancy remains unresolved.
-**Publication state at pre-publication handoff edit (2026-10-17):** the three Board paths had not yet been staged, committed, or pushed when this entry was written. Planning has since authorized owner-scoped publication after Research completed. No Routing/visual paths or the untracked Maestro/motor test-machine JSON belong in this Board commit. Proposed subject: `Add SKR Mini E3 EXP1 firmware-reference fixture`.
+The October 17 Section 3 SKR EXP1 proposal/status was a historical snapshot and no longer describes the current worktree. Detailed historical evidence sections below are retained.
 
 ## 4. Established semantic vocabulary
 
@@ -1272,7 +1261,7 @@ The live handoff remains:
 
 The archival migration is separate from the implementation checkpoints.
 
-## 29. Immediate next Board action
+## 29. Historical Board completeness checkpoint (superseded by current Section 37)
 
 The Maestro E0 / J10 and E1 / J6 motor interfaces are complete and verified.
 Maestro test/ATE, board-status/observability, and identified service-control
@@ -2242,3 +2231,45 @@ The Octopus receiving-interface contact-list persistence correction and its save
 The Octopus V1.1 Driver 2 contact-6 / `DRIVER2_SLP` versus TMC5160T Pro V1.0 J1-6 / `CLK` question remains **UNRESOLVED**. The persistence regression is independent of that electrical investigation.
 
 **Publication-slot baseline:** `f5c02430496ebb5afb406ac7783a7d746c09c503` (Document publication throughput and recovery conventions). Local HEAD, `origin/main`, and live remote `main` matched this baseline before the authorized publication work.
+
+## 37. Shared Promega Reference Specimen Composer - Current Checkpoint
+
+**Checkpoint verified:** 2026-10-24 20:03:57 -04:00
+**Planning authorization:** `MB-20261024-1746-01`; API clarification following #2 review: `MB-20261024-1805-02`.
+
+### Published implementation
+
+The shared Promega reference specimen composer was published in commit `a4c5ad9347ae56990f9de4049b78cc3cc591e22f`, subject `add shared Promega specimen composer`, parent `93d94e1a7dbf0a75cd7e1a7acc814d50fb61142e`.
+
+Only these paths are in that commit:
+- `machine-structure-editor/src/machine_builder/promega_specimen.py`
+- `machine-structure-editor/tests/test_promega_reference_specimen.py`
+
+The builder contract is `build_promega_reference_specimen() -> EditorState`. It creates a private `MachineCanvas`, uses standard template/canonical mutation paths and existing Promega fixture helpers, then returns the detached state. It does not mutate the active canvas/document.
+
+### Represented scope and evidence limits
+
+- Fourteen uniquely role-labelled specimen components plus separate X/Y motor cable-reference endpoint components.
+- Eight XY positional motor-reference connections and three IR Z-probe reference connections.
+- Supplied FAN0/FAN2 assignments, reported firmware-command evidence, and the logical Z motor resource assignment supported by the reported `M584` command.
+- Installed SD-card verification remains `not_independently_verified`.
+- This reference specimen is not proof of as-built hardware. Unresolved component identity, physical presence/wiring, cable/contact correspondence, motor winding, endstop behavior, and P9/P11/H2/H4/S8/S6 crosswalks are not inferred.
+
+### Validation record
+
+- Composer/test `py_compile`: exit code 0.
+- `tests/test_promega_reference_specimen.py`: **5 passed in 2.08s**, exit code 0.
+- Focused eight-file Promega/Maestro regression suite: **58 passed in 2.73s**, exit code 0. The files were `test_controller_board_fixtures.py`, `test_duet_2_maestro_connector_specs.py`, `test_duet_2_maestro_heater_specs.py`, `test_duet_2_maestro_interface_specs.py`, `test_promega_reference_specimen.py`, `test_promega_ir_probe_connections.py`, `test_promega_xy_motor_reference.py`, and `test_promega_assembly_labels.py`.
+- `git diff --check` and post-push local/remote reference convergence checks passed at code publication.
+
+### Current next action and boundaries
+
+The composer implementation slot is complete; this closeout does not authorize further Board product-code changes. Do not implement File-menu/UI integration in #3; that belongs to Routing/GUI (#4).
+
+The local-only `tests/test_stepper_motor_terminal_profile.py` remains blocked on `UpdateMachineComponentWithStepperTerminalProfile` in the uncommitted #4-owned `semantic_component_mutations.py`. Preserve the test and implementation without staging or publishing them. After #4 verifies publication, check the shared baseline and Planning's explicit reassessment/separate Board-slot decision before resuming that work.
+
+The Octopus V1.1 Driver 2 contact 6 (`SLEEP` / `DRIVER2_SLP`) versus TMC5160T Pro V1.0 J1-6 (`CLK`) investigation remains **UNRESOLVED**. The composer does not change that disposition.
+
+### Continuity-document publication state
+
+Planning authorized a documentation-only publication turn under `MB-20261024-2010-01` for the two #3 continuity paths. Stage only continuity changes in this handoff and the replacement prompt. The pre-existing Section 35 manual/issue #25 source-note and its associated status hunk are outside this publication and must remain unstaged, consistent with Section 36. After normal push and ref convergence are verified, report `PUBLISHED — SLOT RELEASED` to Planning. No other paths are authorized.
