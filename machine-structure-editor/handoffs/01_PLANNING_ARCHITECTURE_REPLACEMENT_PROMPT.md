@@ -1,119 +1,87 @@
 # Machine Builder #1 - Planning / Architecture Replacement Prompt
 
-**Prepared:** 2026-10-21 15:23 EDT
+**Prepared:** 2026-10-25 22:38 -04:00
 
 ## Mission
 
-Coordinate cross-workstream priorities, scope, dependencies, architectural decisions, project documentation, and serialized publication. Planning owns project-level state synthesis and decides what work is authorized, by whom, and against which baseline.
+Coordinate cross-workstream priorities, scope, dependencies, architectural decisions, project documentation, and serialized publication. Planning decides what work is authorized, by whom, and against which verified baseline.
 
 ## Latest verified published baseline at snapshot
 
-- Commit: `dfefa9df337bc431a0056554d5c72843075132cf`
-- Subject: `Refresh Research recovery handoff and replacement prompt`
-- At the last reported preflight (2026-10-21 11:16 EDT), branch `main`, local HEAD, fetched `origin/main`, and live remote `main` matched; the shared index was empty.
-- This is a checkpoint, not a lock. Recheck all refs, index state, and worktree changes before acting.
+- Commit: `207e8f433bc1cfec29554cde89491fe32981d53c`
+- Subject: `docs: add console command failure avoidance log`
+- The current pre-edit preflight verified branch `main`, local `HEAD`, fetched `origin/main`, and live remote `main` at this commit; the shared index was empty.
+- This is a checkpoint, not a lock. Recheck refs, index state, and the complete worktree before acting.
 
 ## Read first
 
-`CHAT_WORKFLOW.md`; `MASTER_PLAN.md`; `PROJECT_CURRENT_STATE.md`; `DOCUMENTATION_AUTHORITY.md`; `WORKSTREAM_FOCUS_INDEX.md`; this handoff; this replacement prompt.
+`CHAT_WORKFLOW.md`; `MASTER_PLAN.md`; `PROJECT_CURRENT_STATE.md`; `DOCUMENTATION_AUTHORITY.md`; `WORKSTREAM_FOCUS_INDEX.md`; this Planning handoff; this replacement prompt.
 
-Follow Section 17 of `CHAT_WORKFLOW.md` for universal workstream recovery and repository preflight.
+Follow Section 17 of `CHAT_WORKFLOW.md` for universal recovery and local-state verification.
 
 ## Architecture and authority invariants
 
 - The canonical machine model is authoritative.
-- The visual editor is both an inspection view and an authoring surface: user edits must change the actual canonical machine through the appropriate mutation and persistence paths.
+- The visual editor is both an inspection view and an authoring surface: edits must change canonical state through the appropriate mutation, validation, and persistence paths.
 - Semantic connections and endpoint identities are distinct from visual route geometry and styling.
 - Reusable `HardwareDefinition`, installed `MachineComponent`, `SemanticPort`, and `SemanticConnection` remain separate concepts.
-- Do not invent missing hardware/evidence or apply electrical-specific rules indiscriminately to fluid, mechanical, or other relationship types.
-- Use one authoritative document per primary question and preserve separate implementation ownership.
+- Do not invent missing hardware evidence or apply electrical-specific rules indiscriminately to fluid, mechanical, or other relationship types.
+- Keep one authoritative document per primary question and preserve implementation ownership.
 
 ## Published checkpoints
 
 - Planning workflow/continuity rules: `f5c02430496ebb5afb406ac7783a7d746c09c503` - `Document publication throughput and recovery conventions`.
 - Octopus receiving-interface persistence: `ae5a9a1672d151c37e392e9bff4f2421f0a465f2` - `Fix Octopus receiving-interface persistence`.
-- Research recovery refresh: `dfefa9df337bc431a0056554d5c72843075132cf` - `Refresh Research recovery handoff and replacement prompt`.
+- Research recovery refresh: `e4d2387bbde9b67f664f49c9bc7ef777518160b3`.
+- Latest published workflow checkpoint: `207e8f433bc1cfec29554cde89491fe32981d53c` - `docs: add console command failure avoidance log`.
 
-Research has made later local-only edits to its two handoff files. Those edits are not part of `dfefa9d` and have not been authorized for publication.
-
-## Current workstream status
+## Current workstream state
 
 ### #1 Planning
 
-This continuity refresh was prepared against baseline `dfefa9df337bc431a0056554d5c72843075132cf`. Verify actual refs and repository status before acting. This snapshot records the pre-publication base; do not repeat a publication that is already complete.
+This handoff and replacement prompt are being refreshed against `207e8f433bc1cfec29554cde89491fe32981d53c`. They are local-only in this update; no staging or publication is performed.
 
-The proposal to add a lightweight `Prior-Art Review?` decision point to `CHAT_WORKFLOW.md` has been approved in principle. The edit should make research proportional to complexity, novelty, risk, and expected benefit; routine fixes should remain fast. It is a separate documentation task and has not yet been published.
+`CHAT_WORKFLOW.md` already contains Section 18, `Prior-Art Review During Feature Planning`. It calls for proportional review according to uncertainty and risk, while keeping routine fixes fast. Do not assume a separate future edit is still needed; identify a concrete gap before adding duplicate guidance.
 
 ### #2 Research
 
-The comparative study reported in `MB-20261021-1115-01` is complete and read-only. It examined KiCad, QElectroTech, WireViz, LibrePCB, libavoid, and Qt Graphics View, and recommended future bounded improvements rather than a rewrite or immediate dependency adoption. No tests, code edits, or repository publication came from the study.
-
-The later Research handoff/prompt refresh remains local-only and needs its own explicit publication slot.
+The published baseline includes the Research continuity refresh at `e4d2387bbde9b67f664f49c9bc7ef777518160b3`. The previous 2026-10-25 inventory contained no #2-owned modified or untracked file. The command-failure evidence contribution and publication notification are complete. Do not invent a new Research task from the notice alone.
 
 ### #3 Controller / Board
 
-The Octopus receiving-interface persistence fix is published as `ae5a9a1`. Driver 2 contact-6 `SLEEP` versus TMC5160T Pro J1-6 `CLK` remains **UNRESOLVED**.
+The Board handoff was reported modified and `tests/test_stepper_motor_terminal_profile.py` untracked. Preserve their ownership. The test depends on `UpdateMachineComponentWithStepperTerminalProfile`, previously reported present only in #4's uncommitted `semantic_component_mutations.py`. Verify the current implementation and publication prerequisite before reopening the test or authorizing a Board publication slot. Driver 2 contact-6 `SLEEP` versus TMC5160T Pro J1-6 `CLK` remains **UNRESOLVED**.
 
-The Board handoff is modified locally and its replacement prompt is untracked. Both require accurate baseline and published-state references. `tests/test_stepper_motor_terminal_profile.py` imports `UpdateMachineComponentWithStepperTerminalProfile`, which was reported present only in #4's uncommitted `semantic_component_mutations.py`. Keep the Board test unpublished until the implementation prerequisite is published and validated. Then authorize a separate Board batch.
+### #4 Routing / Diagnostics / Visual Integration
 
-### #4 Routing / Visual
+The initial-neighbor diagnostic confirmed that `contact-cone-landing-4` had no legal initial move at delta `(30.0, 15.0)`: the required leftward move intersected the protected vertical segment owned by `contact-cone-landing-3`.
 
-#4's complete-suite gate remains blocked by native Qt/PySide6 teardown aborts after pytest reports passing tests. Reverse-order runs were inconsistent. The selection-inspector whole-file and subset experiments did not establish a stable minimal reproducer. Source inspection did not establish a causal defect.
+In closeout `MB-20261025-FANOUT-CLOSEOUT-07`, #4 reports the bounded fan-out/core-route geometry correction passed acceptance. All four sibling routes were present at the moved state with eight-unit vertical lane spacing, and route-separation/crossing checks passed. The corrected cone-stub boundary remained valid. The focused test, routing tests, functional-interface test, and full `.venv` suite reportedly passed; the full suite reported 888 passed in 17.78 seconds with exit code 0. Manual GUI verification was not performed.
 
-The controlled `QApplication` retention confirmation had two clean exits and two native aborts in each of its control and retention conditions. It did not distinguish the conditions. Per `MB-20261021-1137-01`, further experiments are paused while Planning refreshes continuity documentation; Experiment B is not authorized.
+The implementation remains local-only and outside this Planning documentation batch. Preserve the semantic connection identities, protected-segment and direction constraints, obstacle checks, route stability, and corrected cone-stub behavior. Any #4 publication requires a separate bounded slot.
 
-No #4 publication slot is open. The complete 17-path diff review and GUI acceptance requirements remain outstanding: visible framing on reopen without pressing F, fan-out readability, breakout-box/title placement, overlapping-wire selection, focus after delete and undo/redo, and saved-file reopen behavior. The Board-owned stepper-terminal test remains outside #4's publication scope.
+### #5 Efficiency / Modularization / Audit
 
-### #5 Efficiency / Audit
+The read-only acceptance review of the console-failure log is complete. The wider audit backlog is guidance, not implementation authorization. No further action follows merely from the publication notification.
 
-The prior read-only audit remains backlog guidance, not implementation authorization. #5 **is authorized to edit, stage, commit, and push its own handoff and replacement prompt** under a bounded publication slot. The read-only audit boundary applies to project implementation and other workstreams' files. Its handoff is modified and its replacement prompt is untracked; both remain local-only until #5 receives and completes a publication slot.
+## Local-only work and ownership
 
-## Last reported uncommitted worktree inventory
+The Planning handoff records the full modified/untracked inventory captured immediately before this update. Refresh `git status --short --untracked-files=all` before acting; the inventory is a snapshot, not a lock.
 
-#4's preflight at 2026-10-21 11:16 EDT reported the following paths outside the published baseline. This list is historical evidence, not a lock; rerun `git status --short --untracked-files=all`.
-
-**Modified**
-- `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_REPLACEMENT_PROMPT.md`
-- `machine-structure-editor/handoffs/02_RESEARCH_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
-- `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
-- `machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`
-- `machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_WORKSTREAM_HANDOFF.md`
-- `machine-structure-editor/src/machine_builder/canvas.py`
-- `machine-structure-editor/src/machine_builder/canvas_editing.py`
-- `machine-structure-editor/src/machine_builder/canvas_scene.py`
-- `machine-structure-editor/src/machine_builder/canvas_ui.py`
-- `machine-structure-editor/src/machine_builder/graphics/connection.py`
-- `machine-structure-editor/src/machine_builder/graphics/connection_routing.py`
-- `machine-structure-editor/src/machine_builder/graphics/connection_routing_endpoint.py`
-- `machine-structure-editor/src/machine_builder/graphics/node.py`
-- `machine-structure-editor/src/machine_builder/graphics/port.py`
-- `machine-structure-editor/src/machine_builder/semantic_component_mutations.py`
-- `machine-structure-editor/src/machine_builder/store.py`
-- `machine-structure-editor/tests/test_connection_routing.py`
-- `machine-structure-editor/tests/test_functional_interface_connection.py`
-
-**Untracked**
-- `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_REPLACEMENT_PROMPT.md`
-- `machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md`
-- `machine-structure-editor/handoffs/05_EFFICIENCY_MODULARIZATION_REPLACEMENT_PROMPT.md`
-- `machine-structure-editor/tests/test_connection_wire_color.py`
-- `machine-structure-editor/tests/test_stepper_motor_terminal_profile.py`
-- `machine-structure-editor/wiring test machines/Maestro and 4 port motor test.machine.json`
+Keep the Board-owned handoff and stepper-terminal test separate from #4's routing/UI implementation. Preserve every source, test, fixture, handoff, prompt, and user-owned file outside the exact scope of a future authorized batch.
 
 ## Required operating conventions
 
-- There is one active publication slot at a time. Each slot names an exact baseline and exact paths.
-- Perform fresh preflight before acting; if baseline or index conditions differ from the grant, stop and report actual evidence.
-- Preserve other owners' modified, staged, and untracked files. Never broad-stage, reset/discard another owner's work, or force-push.
-- Stage only authorized paths, inspect the complete staged diff, and verify content as well as path membership.
-- After a normal push, fetch and verify local HEAD, fetched `origin/main`, and live remote `main` all match.
-- Closeout must end with exactly one of `PUBLISHED - SLOT RELEASED`, `BLOCKED - SLOT RELEASED`, or `NOT READY - SLOT RELEASED`.
-- Refresh detailed handoffs and concise recovery prompts at material checkpoints. Read the actual files back; a drafted or sent chat message does not prove that a repository document was updated.
-- #5 may publish its own handoff and replacement prompt under its own bounded authorization. It must preserve all other workstreams' files and staged state.
+- One active publication slot at a time; each slot must name exact paths, commit subject, and verified starting baseline.
+- Before staging, fetch and verify branch, local `HEAD`, fetched `origin/main`, live remote `main`, full worktree status, and shared index.
+- Stage only authorized paths; inspect the complete staged path list and full diff. Never broad-stage, reset/discard another owner's changes, or force-push.
+- Do not infer validation, a successful write, commit, or publication from an attempted command or a chat message. Read the actual files back.
+- After publication, verify local `HEAD`, fetched `origin/main`, and live remote `main` match. Report the exact outcome and release status.
+- Keep the handoff detailed and this prompt concise. Refresh both at material checkpoints without creating competing replacement prompts.
 
 ## Planning next actions
 
-1. Verify the actual refs and working tree. If the two-file Planning continuity refresh is still uncommitted, complete its authorized publication; if already published, do not repeat it.
-2. Publish the approved `CHAT_WORKFLOW.md` prior-art decision point in a separate documentation batch.
-3. Reassess the live repository before assigning separate slots for #3's corrected Board handoff/prompt, #2's later Research recovery refresh, and #5's own documentation.
-4. Decide whether to resume #4's read-only diagnosis after the continuity checkpoint. Do not treat the native teardown issue as resolved or its implementation batch as publishable.
+1. Publish exactly `CHAT_WORKFLOW.md` and the two Planning recovery documents using commit subject `docs: preserve Planning continuity and chat continuation rules`. Inspect the exact staged paths and complete staged diff before committing.
+
+2. After the push, verify local `HEAD`, fetched `origin/main`, and live remote `main` match and confirm the shared index is empty.
+
+3. Treat #4's implementation as acceptance-passed according to its closeout report, but keep the code and tests separate from this documentation publication. Open a separate bounded #4 publication slot after this batch is released.

@@ -1031,3 +1031,170 @@ This inventory was reported by #4 at the 2026-10-21 11:16 EDT preflight. It is n
 2. Publish the approved `CHAT_WORKFLOW.md` prior-art decision point as a separate documentation batch.
 3. Sequence separate, owner-specific documentation slots for #3's corrected Board handoff/prompt, #2's further local-only Research refresh, and #5's own handoff/prompt. Keep #3's dependent test blocked until its implementation prerequisite is published and validated.
 4. Decide whether to resume #4's read-only diagnosis after the continuity checkpoint. Do not treat the native teardown issue as resolved or its implementation batch as publishable.
+
+## Planning Current State and Follow-Through - 2026-10-25
+
+**Prepared:** 2026-10-25 16:07 -04:00. **Verified published baseline:** `207e8f433bc1cfec29554cde89491fe32981d53c` - `docs: add console command failure avoidance log`. This update rechecked local `HEAD`, fetched `origin/main`, live remote `main`, and the shared index. All three refs matched the stated baseline and the index was empty. This is a checkpoint, not a lock; refresh state before any later operation.
+
+### Completed since the prior Planning checkpoint
+
+- Root `CHAT_WORKFLOW.md` contains `## Console Command Failure and Avoidance Log`. Publication commit `207e8f433bc1cfec29554cde89491fe32981d53c` changed only `CHAT_WORKFLOW.md` (14 insertions, 0 deletions); the push and live remote ref were verified.
+- #5 first returned BLOCKED, then independently accepted the corrected wording in `MB-20261025-1433-05`. Planning sent publication notices to #2, #3, #4, and #5 (`MB-20261025-1450-02` through `MB-20261025-1450-05`). Those notices were notifications, not new repository-work authorization.
+- The prior-art proposal needs to be reconciled with the current published workflow. `CHAT_WORKFLOW.md` already contains Section 18, `Prior-Art Review During Feature Planning`, which directs risk-proportional consideration and bounded research where warranted. Do not add duplicate guidance merely because an earlier checkpoint listed a separate future task. Identify a specific missing behavior before proposing any further workflow edit.
+
+### Current workstream state and ownership
+
+**#1 Planning:** This handoff and the canonical replacement prompt were refreshed against published baseline `207e8f433bc1cfec29554cde89491fe32981d53c`. The focused two-file diff has now been reviewed; strict UTF-8 read-back and `git diff --check` pass. Both files remain local-only and unstaged; no publication slot has been granted.
+
+**#2 Research:** The published baseline includes the Research continuity refresh at `e4d2387bbde9b67f664f49c9bc7ef777518160b3`. No #2-owned file appeared in the prior 2026-10-25 worktree inventory. The console-failure evidence contribution and publication notice are complete. Do not assign new work without a concrete next action grounded in current evidence.
+
+**#3 Controller / Board:** The Board handoff and `tests/test_stepper_motor_terminal_profile.py` have been reported as local-only changes. Preserve Board ownership; do not bundle them into this Planning edit. Verify the dependency on #4's `semantic_component_mutations.py` against current source before reopening the dependent test or granting a Board publication slot. Driver 2 contact-6 `SLEEP` versus TMC5160T Pro J1-6 `CLK` remains unresolved unless new evidence establishes otherwise.
+
+**#4 Routing / Diagnostics / Visual Integration:**
+The latest #4 handoff checkpoint dated 2026-10-25 reports the `.venv` full suite at 876 passed in 6.19 seconds with process exit 0 and the scoped `git diff --check` passing. These are reported automated results, not GUI acceptance. Earlier runs using global Python/PySide6 6.12.0 still show distinct native teardown/access-violation exits whose cause remains unexplained; the successful `.venv` run does not resolve them. The latest explicit GUI report, dated 2026-10-22, still records failures in cone routing, overlapping-wire selection, breakout/title placement, delete/undo focus, and saved-focus restoration. The concrete next action is to capture one diagnostic for the actual black connection, including stub endpoints, fan-out point, endpoint escape, and the first main-route segments, then identify the first segment that deviates before changing code. The earlier oversized multi-file script was flagged as unsafe, so its execution status must be established from current source and diffs. Do not assume a root cause or publication authorization; the #4 handoff states that no publication slot is open.
+
+**#5 Efficiency / Modularization / Audit:** The read-only acceptance review of the console-failure log is complete. The audit backlog remains guidance, not implementation authorization. The publication notice creates no further action by itself.
+
+### Worktree inventory at this checkpoint
+
+**Snapshot:** Captured from git status --short --untracked-files=all after both Planning files were updated and validated. Subsequent checks were read-only; no further file writes occurred. This is an observation, not a lock. Refresh status before any later repository operation.
+
+**Modified:**
+- `machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_REPLACEMENT_PROMPT.md`
+- `machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_WORKSTREAM_HANDOFF.md`
+- `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
+- `machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`
+- `machine-structure-editor/src/machine_builder/canvas.py`
+- `machine-structure-editor/src/machine_builder/canvas_editing.py`
+- `machine-structure-editor/src/machine_builder/canvas_scene.py`
+- `machine-structure-editor/src/machine_builder/canvas_ui.py`
+- `machine-structure-editor/src/machine_builder/editor_state.py`
+- `machine-structure-editor/src/machine_builder/graphics/connection.py`
+- `machine-structure-editor/src/machine_builder/graphics/connection_routing.py`
+- `machine-structure-editor/src/machine_builder/graphics/connection_routing_endpoint.py`
+- `machine-structure-editor/src/machine_builder/graphics/connection_routing_pathfinder.py`
+- `machine-structure-editor/src/machine_builder/graphics/node.py`
+- `machine-structure-editor/src/machine_builder/graphics/port.py`
+- `machine-structure-editor/src/machine_builder/graphics/view.py`
+- `machine-structure-editor/src/machine_builder/semantic_component_mutations.py`
+- `machine-structure-editor/src/machine_builder/store.py`
+- `machine-structure-editor/tests/test_canvas_ui.py`
+- `machine-structure-editor/tests/test_connection_routing.py`
+- `machine-structure-editor/tests/test_functional_interface_connection.py`
+- `machine-structure-editor/wiring test machines/Maestro and 4 port motor 4 wires J9 contact view.machine.json`
+
+**Untracked:**
+- `machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md`
+- `machine-structure-editor/tests/test_connection_wire_color.py`
+- `machine-structure-editor/tests/test_stepper_motor_terminal_profile.py`
+
+### Planning next actions
+
+1. The focused two-file Planning diff review and UTF-8/whitespace checks are complete. No publication slot is currently recorded; keep both files local-only until a separate bounded slot names the exact paths, commit subject, and current baseline.
+2. Treat the existing Section 18 prior-art guidance as the current published rule. Reopen the separate proposal only if a concrete missing decision point is identified; avoid duplicated wording.
+3. Obtain #4's current diagnostic findings and readiness before making a new routing-scope decision. Keep #3's dependent terminal-profile test separate until its prerequisite and ownership are reconciled.
+4. Do not assign additional work to #2 or #5 without a concrete next action supported by current state.
+
+---
+
+## Planning Publication Follow-Through - 2026-10-25 21:50 -04:00
+
+**Prepared:** 2026-10-25 21:50 -04:00. **Pre-edit baseline:** 207e8f433bc1cfec29554cde89491fe32981d53c (docs: add console command failure avoidance log). The local HEAD and shared index were checked before this update. Recheck all refs and the complete worktree before publication.
+
+### Publication ownership
+
+Planning owns a documentation-only batch containing exactly `CHAT_WORKFLOW.md`, this handoff, and the canonical Planning replacement prompt. Intended commit subject: `docs: preserve Planning continuity and chat continuation rules`. No other files are authorized for that batch.
+
+### Current #4 status
+
+The initial-neighbor diagnostic confirmed that the required leftward departure intersects a protected route owned by `contact-cone-landing-3`. Planning authorized a bounded, local-only geometry implementation under `MB-20261025-FANOUT-IMPLEMENTATION-06`, limited to the five source/test paths listed in the replacement prompt. Await implementation and acceptance results. No staging, commit, push, or publication is authorized for #4.
+
+### Next actions
+
+1. Publish only the three Planning documentation paths; review the exact staged path list and full staged diff.
+2. Verify local `HEAD`, fetched `origin/main`, and live remote `main` after pushing.
+3. Preserve all other workstream changes and await #4 acceptance evidence.
+
+### Worktree status snapshot before this checkpoint
+
+```text
+ M CHAT_WORKFLOW.md
+ M machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_REPLACEMENT_PROMPT.md
+ M machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/src/machine_builder/canvas.py
+ M machine-structure-editor/src/machine_builder/canvas_editing.py
+ M machine-structure-editor/src/machine_builder/canvas_scene.py
+ M machine-structure-editor/src/machine_builder/canvas_ui.py
+ M machine-structure-editor/src/machine_builder/editor_state.py
+ M machine-structure-editor/src/machine_builder/graphics/connection.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing_endpoint.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing_pathfinder.py
+ M machine-structure-editor/src/machine_builder/graphics/node.py
+ M machine-structure-editor/src/machine_builder/graphics/port.py
+ M machine-structure-editor/src/machine_builder/graphics/view.py
+ M machine-structure-editor/src/machine_builder/semantic_component_mutations.py
+ M machine-structure-editor/src/machine_builder/store.py
+ M machine-structure-editor/tests/test_canvas_ui.py
+ M machine-structure-editor/tests/test_connection_routing.py
+ M machine-structure-editor/tests/test_functional_interface_connection.py
+ M "machine-structure-editor/wiring test machines/Maestro and 4 port motor 4 wires J9 contact view.machine.json"
+?? machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/tests/test_connection_wire_color.py
+?? machine-structure-editor/tests/test_stepper_motor_terminal_profile.py
+```
+
+---
+
+## Planning Decision and #4 Implementation Closeout - 2026-10-25 22:38 -04:00
+
+**Prepared:** 2026-10-25 22:38 -04:00. **Pre-publication baseline:** `207e8f433bc1cfec29554cde89491fe32981d53c` (`docs: add console command failure avoidance log`). The verified staged documentation scope is exactly the root workflow and the two Planning recovery documents.
+
+### #4 implementation result
+
+Closeout `MB-20261025-FANOUT-CLOSEOUT-07` reports the bounded fan-out/core-route correction met acceptance: all four sibling routes existed at delta `(30.0, 15.0)` with eight-unit lane spacing; route separation and crossing checks passed; the corrected cone-stub boundary passed; and the full `.venv` suite reported 888 passed in 17.78 seconds, exit 0. These are results reported by #4, not independently rerun by Planning. Manual GUI acceptance remains outstanding.
+
+The implementation remains local-only. It is not part of this Planning documentation commit. Planning will open a separate bounded #4 publication slot after the three-file Planning batch is published and its slot released. Preserve the existing routing constraints and every unrelated worktree change.
+
+### Current workstream status
+
+**#1 Planning:** Publish exactly `CHAT_WORKFLOW.md` and the two Planning recovery documents with commit subject `docs: preserve Planning continuity and chat continuation rules`. Verify the full staged diff before committing, then verify all three remote refs after pushing.
+
+**#2 Research:** No new action follows solely from prior publication notifications.
+
+**#3 Controller / Board:** Preserve Board ownership. Keep the dependent terminal-profile test separate until its implementation prerequisite is verified and published.
+
+**#4 Routing / Diagnostics / Visual Integration:** Implementation acceptance is reported complete. No more diagnosis is needed for the confirmed fan-out conflict. The next action after Planning publication is a separate bounded #4 publication review and authorization.
+
+**#5 Efficiency / Modularization / Audit:** No new action follows from prior notifications alone.
+
+### Pre-checkpoint worktree status
+
+M  CHAT_WORKFLOW.md
+M  machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_REPLACEMENT_PROMPT.md
+M  machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md
+ M machine-structure-editor/src/machine_builder/canvas.py
+ M machine-structure-editor/src/machine_builder/canvas_editing.py
+ M machine-structure-editor/src/machine_builder/canvas_scene.py
+ M machine-structure-editor/src/machine_builder/canvas_ui.py
+ M machine-structure-editor/src/machine_builder/editor_state.py
+ M machine-structure-editor/src/machine_builder/graphics/connection.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing_endpoint.py
+ M machine-structure-editor/src/machine_builder/graphics/connection_routing_pathfinder.py
+ M machine-structure-editor/src/machine_builder/graphics/node.py
+ M machine-structure-editor/src/machine_builder/graphics/port.py
+ M machine-structure-editor/src/machine_builder/graphics/view.py
+ M machine-structure-editor/src/machine_builder/semantic_component_mutations.py
+ M machine-structure-editor/src/machine_builder/store.py
+ M machine-structure-editor/tests/test_canvas_ui.py
+ M machine-structure-editor/tests/test_connection_routing.py
+ M machine-structure-editor/tests/test_functional_interface_connection.py
+ M "machine-structure-editor/wiring test machines/Maestro and 4 port motor 4 wires J9 contact view.machine.json"
+?? machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md
+?? machine-structure-editor/tests/test_connection_wire_color.py
+?? machine-structure-editor/tests/test_stepper_motor_terminal_profile.py

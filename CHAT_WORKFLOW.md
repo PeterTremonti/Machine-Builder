@@ -689,6 +689,13 @@ A prompt pasted into chat is not proof the repository file was saved. When the c
 
 The recovery prompt may remain local and unpublished while still being usable. It must distinguish the published baseline from all local-only changes and must not claim a write, validation, commit, or push that was only attempted. Refreshing a prompt does not itself require replacing the active chat, staging the file, or expanding a publication grant.
 
+### Use the interface's continuation action when available
+
+- When a conversation approaches or reaches its hard length limit and the interface offers **Continue in new chat**, or an equivalent continuation action, use that action rather than starting an unrelated blank chat. It is intended to carry forward available conversation context.
+- Treat interface carryover as helpful but incomplete: it may omit decisions, evidence, file changes, or current repository state. Keep the workstream handoff and its single canonical replacement prompt current at material milestones; do not wait for a length-limit warning.
+- In the continued chat, preserve the inherited context but use the current repository-backed handoff and replacement prompt to establish the source of truth: verified baseline, local-only work, validation status, ownership boundaries, blockers, and the exact next action and owner. Follow the required-reading and local-state checks above before repository work.
+- If the continuation action is unavailable, or the new chat has missing or misleading context, recover from the current canonical replacement prompt and handoff instead of starting from memory alone. Retrieve accessible committed documentation directly; ask the user only for information that cannot be verified.
+
 ## Required on every replacement chat
 
 1. Read `CHAT_WORKFLOW.md`, including its current operating constraints and this recovery section.
