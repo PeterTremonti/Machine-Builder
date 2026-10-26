@@ -456,6 +456,51 @@ def _segments_share_endpoint(
     )
 
 
+def _orthogonal_segments_intersect(
+    first_start: QPointF,
+    first_end: QPointF,
+    second_start: QPointF,
+    second_end: QPointF,
+    epsilon: float = 0.001,
+) -> bool:
+    """Return whether perpendicular orthogonal segments intersect."""
+    first_dx = abs(first_start.x() - first_end.x())
+    first_dy = abs(first_start.y() - first_end.y())
+    second_dx = abs(second_start.x() - second_end.x())
+    second_dy = abs(second_start.y() - second_end.y())
+
+    if first_dx < epsilon and first_dy < epsilon:
+        return False
+    if second_dx < epsilon and second_dy < epsilon:
+        return False
+
+    first_horizontal = first_dy < epsilon
+    first_vertical = first_dx < epsilon
+    second_horizontal = second_dy < epsilon
+    second_vertical = second_dx < epsilon
+
+    if first_horizontal and second_vertical:
+        return (
+            min(first_start.x(), first_end.x()) - epsilon
+            <= second_start.x()
+            <= max(first_start.x(), first_end.x()) + epsilon
+            and min(second_start.y(), second_end.y()) - epsilon
+            <= first_start.y()
+            <= max(second_start.y(), second_end.y()) + epsilon
+        )
+
+    if first_vertical and second_horizontal:
+        return (
+            min(second_start.x(), second_end.x()) - epsilon
+            <= first_start.x()
+            <= max(second_start.x(), second_end.x()) + epsilon
+            and min(first_start.y(), first_end.y()) - epsilon
+            <= second_start.y()
+            <= max(first_start.y(), first_end.y()) + epsilon
+        )
+
+    return False
+
 def route_respects_segment_separation(
     route: list[QPointF],
     protected_segments: list[tuple[QPointF, QPointF]],
@@ -470,6 +515,15 @@ def route_respects_segment_separation(
         route_end = route[index + 1]
 
         for protected_start, protected_end in protected_segments:
+            if parallel_segments_within_separation(
+                route_start,
+                route_end,
+                protected_start,
+                protected_end,
+                minimum_separation,
+            ):
+                return False
+
             if _segments_share_endpoint(
                 route_start,
                 route_end,
@@ -478,12 +532,11 @@ def route_respects_segment_separation(
             ):
                 continue
 
-            if parallel_segments_within_separation(
+            if _orthogonal_segments_intersect(
                 route_start,
                 route_end,
                 protected_start,
                 protected_end,
-                minimum_separation,
             ):
                 return False
 
@@ -502,7 +555,36 @@ def build_route(
     protected_segments: list[tuple[QPointF, QPointF]] | None = None,
     minimum_segment_separation: float = 0.0,
 ) -> list[QPointF] | None:
-    """Find an orthogonal route through the obstacle visibility grid."""
+    """Find an orthogonal route, retrying once if preferred wire spacing is impossible."""
+    protected = protected_segments or []
+
+    def validated_candidate(
+        candidate_route: list[QPointF] | None,
+        active_minimum: float,
+    ) -> list[QPointF] | None:
+        if candidate_route is None:
+            return None
+
+        cleaned = _clean_route_geometry(candidate_route)
+        if (
+            route_is_clear(cleaned, obstacles)
+            and route_respects_segment_separation(
+                cleaned, protected, active_minimum
+            )
+        ):
+            return cleaned
+
+        # Cleanup must not turn a valid route into a route through an obstacle
+        # or violate the active protected-wire spacing.
+        if (
+            route_is_clear(candidate_route, obstacles)
+            and route_respects_segment_separation(
+                candidate_route, protected, active_minimum
+            )
+        ):
+            return candidate_route
+
+        return None
 
     route = _find_grid_route(
         start=start,
@@ -511,61 +593,47 @@ def build_route(
         start_direction=start_direction,
         end_direction=end_direction,
         bend_penalty=bend_penalty,
-        endpoint_direction_penalty=(
-            endpoint_direction_penalty
-        ),
-        u_turn_min_separation=(
-            u_turn_min_separation
-        ),
-        protected_segments=(
-            protected_segments or []
-        ),
-        minimum_segment_separation=(
-            minimum_segment_separation
-        ),
+        endpoint_direction_penalty=endpoint_direction_penalty,
+        u_turn_min_separation=u_turn_min_separation,
+        protected_segments=protected,
+        minimum_segment_separation=minimum_segment_separation,
     )
-
-    if route is not None:
-        cleaned = _clean_route_geometry(
-            route,
-        )
-
-        # Route cleanup is never allowed to turn a valid route into
-        # obstacle-crossing geometry. If cleanup produces an invalid
-        # result, preserve the original valid route.
-        if route_is_clear(
-            cleaned,
-            obstacles,
-        ):
-            return cleaned
-
-        return simplify_route(
-            route,
-        )
+    accepted = validated_candidate(route, minimum_segment_separation)
+    if accepted is not None:
+        return accepted
 
     fallback = _build_fallback_route(
         start,
         end,
         obstacles,
         u_turn_min_separation,
+        protected_segments=protected,
+        minimum_segment_separation=minimum_segment_separation,
     )
+    accepted = validated_candidate(fallback, minimum_segment_separation)
+    if accepted is not None:
+        return accepted
 
-    if fallback is None:
+    # Preferred spacing remains the first choice. If it makes every grid
+    # route impossible, retry once at quarter spacing while still enforcing a
+    # positive clearance and rejecting crossings, T-junctions and overlaps.
+    if not protected or minimum_segment_separation <= 1.0:
         return None
 
-    cleaned = _clean_route_geometry(
-        fallback,
+    relaxed_minimum = max(1.0, minimum_segment_separation * 0.25)
+    relaxed_route = _find_grid_route(
+        start=start,
+        end=end,
+        obstacles=obstacles,
+        start_direction=start_direction,
+        end_direction=end_direction,
+        bend_penalty=bend_penalty,
+        endpoint_direction_penalty=endpoint_direction_penalty,
+        u_turn_min_separation=u_turn_min_separation,
+        protected_segments=protected,
+        minimum_segment_separation=relaxed_minimum,
     )
-
-    if route_is_clear(
-        cleaned,
-        obstacles,
-    ):
-        return cleaned
-
-    return simplify_route(
-        fallback,
-    )
+    return validated_candidate(relaxed_route, relaxed_minimum)
 
 def route_is_clear(
     route: list[QPointF],
@@ -728,6 +796,23 @@ def _find_grid_route(
         start.y(),
         end.y(),
     }
+    # Ensure the grid has a candidate point in each directed endpoint lane.
+    # Otherwise the strict first/last-edge constraints can leave no legal
+    # neighbor when endpoint ordering changes during a component move.
+    endpoint_lane_offset = max(minimum_segment_separation, 1.0)
+
+    for endpoint, direction in (
+        (start, start_direction),
+        (end, end_direction),
+    ):
+        if direction == "left":
+            coordinates_x.add(endpoint.x() - endpoint_lane_offset)
+        elif direction == "right":
+            coordinates_x.add(endpoint.x() + endpoint_lane_offset)
+        elif direction == "up":
+            coordinates_y.add(endpoint.y() - endpoint_lane_offset)
+        elif direction == "down":
+            coordinates_y.add(endpoint.y() + endpoint_lane_offset)
 
     for rect in obstacles:
         coordinates_x.update(
@@ -753,30 +838,39 @@ def _find_grid_route(
         )
 
     if protected_segments and minimum_segment_separation > 0.0:
+        # Several wires may already occupy the nearest clearance lane.
+        # Add multiple parallel lanes so later routes can continue around
+        # earlier wires without falling back to overlapping geometry.
+        lane_count = min(max(1, len(protected_segments)), 4)
+        lane_offsets = {
+            minimum_segment_separation * lane_index
+            for lane_index in range(1, lane_count + 1)
+        }
+
         for protected_start, protected_end in protected_segments:
             if abs(
                 protected_start.y()
                 - protected_end.y()
             ) < 0.001:
                 coordinates_y.update(
-                    {
-                        protected_start.y()
-                        - minimum_segment_separation,
-                        protected_start.y()
-                        + minimum_segment_separation,
-                    }
+                    protected_start.y() - offset
+                    for offset in lane_offsets
+                )
+                coordinates_y.update(
+                    protected_start.y() + offset
+                    for offset in lane_offsets
                 )
             elif abs(
                 protected_start.x()
                 - protected_end.x()
             ) < 0.001:
                 coordinates_x.update(
-                    {
-                        protected_start.x()
-                        - minimum_segment_separation,
-                        protected_start.x()
-                        + minimum_segment_separation,
-                    }
+                    protected_start.x() - offset
+                    for offset in lane_offsets
+                )
+                coordinates_x.update(
+                    protected_start.x() + offset
+                    for offset in lane_offsets
                 )
 
     points: dict[
@@ -903,13 +997,12 @@ def _find_grid_route(
         ):
             # Once the fixed endpoint stub has been established, the
             # main route must never immediately travel back through it.
+            # A grouped fan-out has a fixed lane endpoint. Keep its core route
+            # moving outward so it cannot turn vertically through a neighbor.
             if (
                 current_key == start_key
                 and start_direction != "none"
-                and direction
-                == _opposite_direction(
-                    start_direction,
-                )
+                and direction != start_direction
             ):
                 continue
 
@@ -1309,105 +1402,40 @@ def _build_fallback_route(
     end: QPointF,
     obstacles: list[QRectF],
     separation: float,
+    protected_segments: list[tuple[QPointF, QPointF]] | None = None,
+    minimum_segment_separation: float = 0.0,
 ) -> list[QPointF] | None:
+    protected = protected_segments or []
+
     if not obstacles:
-        return [
-            start,
-            QPointF(
-                end.x(),
-                start.y(),
-            ),
-            end,
+        candidates = [
+            [start, QPointF(end.x(), start.y()), end],
+            [start, QPointF(start.x(), end.y()), end],
         ]
-
-    top = min(
-        rect.top()
-        for rect in obstacles
-    ) - separation
-
-    bottom = max(
-        rect.bottom()
-        for rect in obstacles
-    ) + separation
-
-    left = min(
-        rect.left()
-        for rect in obstacles
-    ) - separation
-
-    right = max(
-        rect.right()
-        for rect in obstacles
-    ) + separation
-
-    candidates = [
-        [
-            start,
-            QPointF(
-                start.x(),
-                top,
-            ),
-            QPointF(
-                end.x(),
-                top,
-            ),
-            end,
-        ],
-        [
-            start,
-            QPointF(
-                start.x(),
-                bottom,
-            ),
-            QPointF(
-                end.x(),
-                bottom,
-            ),
-            end,
-        ],
-        [
-            start,
-            QPointF(
-                left,
-                start.y(),
-            ),
-            QPointF(
-                left,
-                end.y(),
-            ),
-            end,
-        ],
-        [
-            start,
-            QPointF(
-                right,
-                start.y(),
-            ),
-            QPointF(
-                right,
-                end.y(),
-            ),
-            end,
-        ],
-    ]
+    else:
+        top = min(rect.top() for rect in obstacles) - separation
+        bottom = max(rect.bottom() for rect in obstacles) + separation
+        left = min(rect.left() for rect in obstacles) - separation
+        right = max(rect.right() for rect in obstacles) + separation
+        candidates = [
+            [start, QPointF(start.x(), top), QPointF(end.x(), top), end],
+            [start, QPointF(start.x(), bottom), QPointF(end.x(), bottom), end],
+            [start, QPointF(left, start.y()), QPointF(left, end.y()), end],
+            [start, QPointF(right, start.y()), QPointF(right, end.y()), end],
+        ]
 
     valid = [
         candidate
         for candidate in candidates
-        if route_is_clear(
-            candidate,
-            obstacles,
+        if route_is_clear(candidate, obstacles)
+        and route_respects_segment_separation(
+            candidate, protected, minimum_segment_separation
         )
     ]
-
     if valid:
-        return min(
-            valid,
-            key=_route_length,
-        )
+        return min(valid, key=_route_length)
 
-    # There is no legal orthogonal fallback route. Returning an invalid
-    # route would hide an impossible placement behind a false wire.
+    # Never draw an obstacle-clear fallback through or on top of another wire.
     return None
 
 def _remove_duplicate_points(

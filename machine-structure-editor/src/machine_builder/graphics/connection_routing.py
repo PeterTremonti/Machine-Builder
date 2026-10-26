@@ -56,13 +56,20 @@ class ConnectionRoutingEngine:
         allow_escape_reselection: bool = True,
         escape_hysteresis_ratio: float = 0.20,
         escape_hysteresis_distance: float = 24.0,
+        allow_overlapping_endpoint_escape: bool = False,
+        overlap_escape_margin: float = 0.0,
+        stub_length: float | None = None,
     ) -> tuple[list[QPointF], str]:
         """Build a fixed outward stub or an obstacle escape."""
         return endpoint_routing.build_endpoint_escape(
             port_position=port_position,
             side=side,
             obstacles=obstacles,
-            stub_length=cls.STUB_LENGTH,
+            stub_length=(
+                cls.STUB_LENGTH
+                if stub_length is None
+                else max(0.0, float(stub_length))
+            ),
             escape_clearance=cls.ESCAPE_CLEARANCE,
             ignored_obstacles=ignored_obstacles or [],
             preferred_escape_direction=(
@@ -77,6 +84,10 @@ class ConnectionRoutingEngine:
             escape_hysteresis_distance=(
                 escape_hysteresis_distance
             ),
+            allow_overlapping_endpoint_escape=(
+                allow_overlapping_endpoint_escape
+            ),
+            overlap_escape_margin=overlap_escape_margin,
         )
 
     @classmethod

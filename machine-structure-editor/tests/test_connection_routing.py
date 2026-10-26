@@ -2776,3 +2776,205 @@ def test_route_stability_repairs_known_endpoint_parallel_spacing_pathology() -> 
         "previous stable route received "
         "preferred-spacing geometry repair"
     )
+
+def test_overlapping_endpoint_escape_uses_clearest_open_corridor() -> None:
+    from PySide6.QtCore import QPointF, QRectF
+
+    from machine_builder.graphics.connection_routing import ConnectionRoutingEngine
+
+    point = QPointF(314.4, 183.0)
+    # These are physical obstacle bounds from the connector-focus diagnostic.
+    # The 16-unit routing margin is applied by the escape helper once.
+    physical_obstacles = [
+        QRectF(259.25, 299.25, 181.5, 185.5),
+        QRectF(259.25, 79.25, 181.5, 185.5),
+        QRectF(99.25, 99.25, 181.5, 101.5),
+        QRectF(448.75, 98.75, 182.5, 186.5),
+    ]
+    escape, direction = ConnectionRoutingEngine.build_endpoint_escape(
+        point,
+        "left",
+        physical_obstacles,
+        allow_overlapping_endpoint_escape=True,
+        overlap_escape_margin=ConnectionRoutingEngine.ROUTING_MARGIN,
+    )
+
+    assert direction == "left"
+    assert escape[0] == point
+    assert escape[-1] == QPointF(314.4, 62.25)
+
+def test_endpoint_direction_lanes_allow_route_when_end_passes_start():
+    from PySide6.QtCore import QPointF
+    from machine_builder.graphics.connection_routing import ConnectionRoutingEngine
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        route_is_clear,
+        route_respects_segment_separation,
+    )
+
+    start = QPointF(284.0, 195.0)
+    end = QPointF(293.0, 324.0)
+    protected = [
+        (QPointF(324.0, 195.0), start),
+        (QPointF(253.0, 324.0), end),
+    ]
+
+    route = ConnectionRoutingEngine.build_route(
+        start=start,
+        end=end,
+        start_direction="left",
+        end_direction="right",
+        obstacles=[],
+        protected_segments=protected,
+    )
+
+    assert route is not None
+    assert route[0] == start
+    assert route[-1] == end
+    assert route[1].x() < start.x()
+    assert abs(route[1].y() - start.y()) <= 1e-6
+    assert route_is_clear(route, [])
+    assert route_respects_segment_separation(
+        route,
+        protected,
+        ConnectionRoutingEngine.MIN_ROUTE_SEGMENT_SEPARATION,
+    )
+    assert all(
+        abs(first.x() - second.x()) <= 1e-6
+        or abs(first.y() - second.y()) <= 1e-6
+        for first, second in zip(route, route[1:])
+    )
+    route_length = sum(
+        abs(second.x() - first.x()) + abs(second.y() - first.y())
+        for first, second in zip(route, route[1:])
+    )
+    assert route_length < 250.0
+
+def test_route_separation_rejects_crossings_and_fallback_respects_protected_wires():
+    from PySide6.QtCore import QPointF
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        _build_fallback_route,
+        route_respects_segment_separation,
+    )
+
+    crossing_route = [QPointF(0.0, 10.0), QPointF(20.0, 10.0)]
+    protected_vertical = [(QPointF(10.0, 0.0), QPointF(10.0, 20.0))]
+    assert not route_respects_segment_separation(
+        crossing_route, protected_vertical, 8.0
+    )
+
+    # A T-junction is invalid because the route hits the interior of a
+    # protected segment, rather than meeting one of its endpoints.
+    t_route = [QPointF(0.0, 10.0), QPointF(10.0, 10.0)]
+    assert not route_respects_segment_separation(
+        t_route, protected_vertical, 8.0
+    )
+
+    # Endpoint-to-endpoint meetings remain allowed.
+    assert route_respects_segment_separation(
+        t_route,
+        [(QPointF(10.0, 10.0), QPointF(10.0, 20.0))],
+        8.0,
+    )
+
+    start = QPointF(0.0, 0.0)
+    end = QPointF(20.0, 20.0)
+    protected_horizontal = [(start, QPointF(20.0, 0.0))]
+    fallback = _build_fallback_route(
+        start,
+        end,
+        [],
+        16.0,
+        protected_segments=protected_horizontal,
+        minimum_segment_separation=8.0,
+    )
+    assert fallback == [start, QPointF(0.0, 20.0), end]
+    assert route_respects_segment_separation(
+        fallback, protected_horizontal, 8.0
+    )
+
+def test_route_separation_rejects_coincident_segments_with_shared_endpoints():
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        route_respects_segment_separation,
+    )
+
+    start = QPointF(0.0, 0.0)
+    shared = QPointF(100.0, 0.0)
+    continuation = QPointF(200.0, 0.0)
+
+    # Fully overlapping collinear wires must violate the spacing rule.
+    assert not route_respects_segment_separation(
+        [start, shared],
+        [(start, shared)],
+        8.0,
+    )
+
+    # A point-only junction remains legal; the segments share no length.
+    assert route_respects_segment_separation(
+        [start, shared],
+        [(shared, continuation)],
+        8.0,
+    )
+
+def test_route_retries_with_reduced_spacing_when_strict_grid_is_blocked():
+    from PySide6.QtCore import QPointF
+    from machine_builder.graphics.connection_routing import ConnectionRoutingEngine
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        _find_grid_route,
+        route_is_clear,
+        route_respects_segment_separation,
+    )
+
+    # Exact fourth-wire geometry from the captured movement failure.
+    start = QPointF(284.0, 219.0)
+    end = QPointF(263.0, 333.0)
+    protected = [
+        (QPointF(324.0, 219.0), start),
+        (QPointF(223.0, 333.0), end),
+        (QPointF(284.0, 195.0), QPointF(263.0, 195.0)),
+        (QPointF(263.0, 195.0), QPointF(263.0, 309.0)),
+        (QPointF(284.0, 203.0), QPointF(271.0, 203.0)),
+        (QPointF(271.0, 203.0), QPointF(271.0, 317.0)),
+        (QPointF(271.0, 317.0), QPointF(263.0, 317.0)),
+        (QPointF(284.0, 211.0), QPointF(279.0, 211.0)),
+        (QPointF(279.0, 211.0), QPointF(279.0, 325.0)),
+        (QPointF(279.0, 325.0), QPointF(263.0, 325.0)),
+    ]
+
+    strict_route = _find_grid_route(
+        start=start,
+        end=end,
+        obstacles=[],
+        start_direction="left",
+        end_direction="right",
+        bend_penalty=ConnectionRoutingEngine.BEND_PENALTY,
+        endpoint_direction_penalty=ConnectionRoutingEngine.ENDPOINT_DIRECTION_PENALTY,
+        u_turn_min_separation=ConnectionRoutingEngine.U_TURN_MIN_SEPARATION,
+        protected_segments=protected,
+        minimum_segment_separation=ConnectionRoutingEngine.MIN_ROUTE_SEGMENT_SEPARATION,
+    )
+    assert strict_route is None
+
+    route = ConnectionRoutingEngine.build_route(
+        start=start,
+        end=end,
+        start_direction="left",
+        end_direction="right",
+        obstacles=[],
+        protected_segments=protected,
+    )
+    assert route is not None
+    assert route[0] == start
+    assert route[-1] == end
+    assert route[1].x() < start.x()
+    assert route_is_clear(route, [])
+    assert route_respects_segment_separation(route, protected, 2.0)
+    assert all(
+        abs(a.x() - b.x()) <= 1e-6 or abs(a.y() - b.y()) <= 1e-6
+        for a, b in zip(route, route[1:])
+    )
+
+    route_length = sum(
+        abs(b.x() - a.x()) + abs(b.y() - a.y())
+        for a, b in zip(route, route[1:])
+    )
+    assert route_length < 400.0

@@ -636,6 +636,9 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
     ) -> list[QPointF] | None:
         previous = self._stable_route
         protected_segments = protected_segments or []
+        external_protected_segments = getattr(
+            self, "_external_route_protected_segments", []
+        )
 
         self._routing_previous_route = (
             tuple(
@@ -720,6 +723,11 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
                 list(previous),
                 obstacles,
             )
+            and route_respects_segment_separation(
+                list(previous),
+                external_protected_segments,
+                ConnectionRoutingEngine.MIN_ROUTE_SEGMENT_SEPARATION,
+            )
         )
 
         if previous_is_clear:
@@ -730,6 +738,16 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
                     obstacles,
                 )
             )
+
+            if (
+                preferred_spacing_route is not None
+                and not route_respects_segment_separation(
+                    list(preferred_spacing_route),
+                    external_protected_segments,
+                    ConnectionRoutingEngine.MIN_ROUTE_SEGMENT_SEPARATION,
+                )
+            ):
+                preferred_spacing_route = None
 
             if preferred_spacing_route is not None:
                 preferred_spacing_cost = self._route_cost(
@@ -779,6 +797,11 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
                 and ConnectionRoutingEngine.route_is_clear(
                     list(continuity_route),
                     obstacles,
+                )
+                and route_respects_segment_separation(
+                    list(continuity_route),
+                    external_protected_segments,
+                    ConnectionRoutingEngine.MIN_ROUTE_SEGMENT_SEPARATION,
                 )
             ):
                 continuity_cost = self._route_cost(
@@ -845,7 +868,14 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             obstacles,
         )
 
-        if repaired is not None:
+        if (
+            repaired is not None
+            and route_respects_segment_separation(
+                list(repaired),
+                external_protected_segments,
+                ConnectionRoutingEngine.MIN_ROUTE_SEGMENT_SEPARATION,
+            )
+        ):
             repaired_cost = self._route_cost(
                 repaired,
                 start_direction,
@@ -1082,6 +1112,45 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         """Set transient visual escape directions for grouped endpoints."""
         self._endpoint_side_overrides = dict(overrides)
 
+    def set_endpoint_display_stub_positions(
+        self,
+        positions: dict[str, QPointF],
+    ) -> None:
+        """Set transient physical-port positions for connector-cone wire stubs."""
+        self._endpoint_display_stub_positions = {
+            endpoint_id: QPointF(position)
+            for endpoint_id, position in positions.items()
+        }
+
+    def set_endpoint_route_fanout_offsets(
+        self,
+        offsets: dict[str, float],
+    ) -> None:
+        """Set transient vertical offsets for grouped endpoint route fan-out."""
+        self._endpoint_route_fanout_offsets = {
+            endpoint_id: float(offset)
+            for endpoint_id, offset in offsets.items()
+        }
+
+    def set_endpoint_route_stub_lengths(
+        self,
+        lengths: dict[str, float],
+    ) -> None:
+        """Set transient endpoint escape lengths for blocked fan-out lanes."""
+        self._endpoint_route_stub_lengths = {
+            endpoint_id: max(0.0, float(length))
+            for endpoint_id, length in lengths.items()
+        }
+
+    def set_external_route_protected_segments(
+        self,
+        segments: list[tuple[QPointF, QPointF]],
+    ) -> None:
+        """Set visible neighboring wire segments as transient routing constraints."""
+        self._external_route_protected_segments = [
+            (QPointF(start), QPointF(end)) for start, end in segments
+        ]
+
     def setLine(
         self,
         x1: float,
@@ -1099,6 +1168,25 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             x2,
             y2,
         )
+
+        fanout_offsets = getattr(self, "_endpoint_route_fanout_offsets", {})
+        endpoint_sides = getattr(self, "_endpoint_side_overrides", {})
+        start_route_position = QPointF(start)
+        end_route_position = QPointF(end)
+        start_offset = fanout_offsets.get(self.endpoint_a_id)
+        end_offset = fanout_offsets.get(self.endpoint_b_id)
+        start_side = endpoint_sides.get(self.endpoint_a_id)
+        end_side = endpoint_sides.get(self.endpoint_b_id)
+        if start_offset is not None and start_side in {"left", "right"}:
+            start_dx = -18.0 if start_side == "left" else 18.0
+            start_route_position = QPointF(
+                start.x() + start_dx, start.y() + start_offset
+            )
+        if end_offset is not None and end_side in {"left", "right"}:
+            end_dx = -18.0 if end_side == "left" else 18.0
+            end_route_position = QPointF(
+                end.x() + end_dx, end.y() + end_offset
+            )
 
         obstacles = self._collect_obstacles()
         physical_obstacles = self._collect_physical_obstacles()
@@ -1131,15 +1219,12 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             start_escape,
             end_escape,
         ):
-            for index in range(
-                len(escape) - 1
-            ):
-                protected_segments.append(
-                    (
-                        escape[index],
-                        escape[index + 1],
-                    )
-                )
+            for index in range(len(escape) - 1):
+                protected_segments.append((escape[index], escape[index + 1]))
+
+        protected_segments.extend(
+            getattr(self, "_external_route_protected_segments", [])
+        )
 
         candidate_route = ConnectionRoutingEngine.build_route(
             start=start_escape[-1],
@@ -1178,6 +1263,10 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             QPointF(point)
             for point in end_escape
         )
+
+        display_stubs = getattr(self, "_endpoint_display_stub_positions", {})
+        start_stub_position = display_stubs.get(self.endpoint_a_id)
+        end_stub_position = display_stubs.get(self.endpoint_b_id)
 
         path = QPainterPath(
             start,
@@ -1329,6 +1418,13 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
                 escape_hysteresis_distance=(
                     self.OVERLAP_ESCAPE_MIN_IMPROVEMENT
                 ),
+                allow_overlapping_endpoint_escape=(
+                    port_id in getattr(self, "_endpoint_side_overrides", {})
+                ),
+                overlap_escape_margin=self.ROUTING_MARGIN,
+                stub_length=getattr(
+                    self, "_endpoint_route_stub_lengths", {}
+                ).get(port_id),
             )
         )
 

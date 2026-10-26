@@ -67,6 +67,8 @@ def build_endpoint_escape(
     allow_escape_reselection: bool = True,
     escape_hysteresis_ratio: float = 0.20,
     escape_hysteresis_distance: float = 24.0,
+    allow_overlapping_endpoint_escape: bool = False,
+    overlap_escape_margin: float = 0.0,
 ) -> tuple[list[QPointF], str]:
     """Build a fixed outward stub or an obstacle escape."""
 
@@ -116,6 +118,54 @@ def build_endpoint_escape(
             fixed_stub,
             direction,
         )
+
+    if allow_overlapping_endpoint_escape:
+        endpoint_blockers = [
+            obstacle
+            for obstacle in blocking
+            if obstacle.contains(port_position)
+        ]
+        if endpoint_blockers:
+            margin = max(0.0, overlap_escape_margin)
+            expanded_obstacles = [
+                obstacle.adjusted(-margin, -margin, margin, margin)
+                for obstacle in active_obstacles
+            ]
+            expanded_endpoint_blockers = [
+                obstacle.adjusted(-margin, -margin, margin, margin)
+                for obstacle in endpoint_blockers
+            ]
+            overlap_candidates = _build_overlapping_endpoint_escape_candidates(
+                port_position=port_position,
+                side=normalized,
+                blocking=expanded_endpoint_blockers,
+                clearance=escape_clearance,
+            )
+            clear_overlap_candidates = [
+                candidate
+                for candidate in overlap_candidates
+                if _candidate_is_clear(candidate, expanded_obstacles)
+                and not any(
+                    _segment_blocked(candidate[0], candidate[-1], [obstacle])
+                    for obstacle in expanded_obstacles
+                    if not any(
+                        obstacle == blocker
+                        for blocker in expanded_endpoint_blockers
+                    )
+                )
+            ]
+            if clear_overlap_candidates:
+                selected = max(
+                    clear_overlap_candidates,
+                    key=lambda candidate: _escape_candidate_clearance_score(
+                        candidate,
+                        expanded_obstacles,
+                        expanded_endpoint_blockers,
+                    ),
+                )
+                return selected, direction
+
+            return fixed_stub, direction
 
     candidates = _build_escape_candidates(
         port_position=port_position,
@@ -361,6 +411,49 @@ def _build_escape_candidates(
             ),
         ],
     ]
+
+def _build_overlapping_endpoint_escape_candidates(
+    *,
+    port_position: QPointF,
+    side: str,
+    blocking: list[QRectF],
+    clearance: float,
+) -> list[list[QPointF]]:
+    """Build direct perpendicular exits for an endpoint inside an obstacle."""
+    if side in {"left", "right"}:
+        upper = min(rect.top() for rect in blocking) - clearance
+        lower = max(rect.bottom() for rect in blocking) + clearance
+        return [
+            [port_position, QPointF(port_position.x(), upper)],
+            [port_position, QPointF(port_position.x(), lower)],
+        ]
+    left = min(rect.left() for rect in blocking) - clearance
+    right = max(rect.right() for rect in blocking) + clearance
+    return [
+        [port_position, QPointF(left, port_position.y())],
+        [port_position, QPointF(right, port_position.y())],
+    ]
+
+
+def _escape_candidate_clearance_score(
+    candidate: list[QPointF],
+    obstacles: list[QRectF],
+    endpoint_blockers: list[QRectF],
+) -> float:
+    """Prefer an escape endpoint with the most distance from other obstacles."""
+    point = candidate[-1]
+    others = [
+        rect for rect in obstacles
+        if not any(rect == blocker for blocker in endpoint_blockers)
+    ]
+    if not others:
+        return float("inf")
+    scores = []
+    for rect in others:
+        dx = max(rect.left() - point.x(), 0.0, point.x() - rect.right())
+        dy = max(rect.top() - point.y(), 0.0, point.y() - rect.bottom())
+        scores.append(dx * dx + dy * dy)
+    return min(scores)
 
 def _candidate_is_clear(
     route: list[QPointF],
