@@ -8,7 +8,7 @@ Feature responsibilities are delegated to focused modules.
 
 from __future__ import annotations
 
-from PySide6.QtCore import QPointF
+from PySide6.QtCore import QPointF, QTimer
 from PySide6.QtWidgets import QMainWindow
 
 from .canvas_editing import CanvasEditingMixin
@@ -45,6 +45,7 @@ class MachineCanvas(
         self._node_items = {}
         self._connection_items = {}
         self._controller_port_focus: tuple[str, str, str] | None = None
+        self._last_observed_load_generation = self.store.load_generation
 
         self._node_counter = 0
 
@@ -152,6 +153,13 @@ class MachineCanvas(
         model: VisualModel,
     ) -> None:
         """Synchronize graphics and selection inspection."""
+        load_generation = self.store.load_generation
+        if load_generation != self._last_observed_load_generation:
+            self._last_observed_load_generation = load_generation
+            # Discard the previous document's transient selection; the scene
+            # refresh restores focus from the newly loaded document view state.
+            self._controller_port_focus = None
+            QTimer.singleShot(0, self._frame_all)
         self._scene_controller.synchronize(
             model
         )

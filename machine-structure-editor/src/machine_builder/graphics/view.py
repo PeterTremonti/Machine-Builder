@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from ..canvas import MachineCanvas
 
-from PySide6.QtCore import QPointF, Qt
+from PySide6.QtCore import QPoint, QPointF, Qt
 from PySide6.QtGui import (
     QBrush,
     QColor,
@@ -24,6 +24,8 @@ from PySide6.QtWidgets import (
     QGraphicsScene,
     QGraphicsView,
 )
+
+from .connection import ConnectionGraphicsItem
 
 
 class MachineGraphicsView(QGraphicsView):
@@ -39,6 +41,10 @@ class MachineGraphicsView(QGraphicsView):
         )
 
         self._canvas = canvas
+
+        self._last_connection_hit_ids: tuple[str, ...] = ()
+        self._last_connection_hit_position: QPoint | None = None
+        self._last_connection_hit_index = -1
 
         self._panning = False
         self._pan_start = QPointF()
@@ -88,6 +94,59 @@ class MachineGraphicsView(QGraphicsView):
         self.setMouseTracking(
             True
         )
+
+    def _select_overlapping_connection_at(
+        self,
+        scene_position: QPointF,
+        viewport_position: QPoint,
+    ) -> bool:
+        """Cycle wires under a click when a wire is the top interactive item."""
+        hit_items = self.scene().items(scene_position)
+        connections = [
+            item
+            for item in hit_items
+            if isinstance(item, ConnectionGraphicsItem) and item.isVisible()
+        ]
+
+        if len(connections) < 2:
+            self._last_connection_hit_ids = ()
+            self._last_connection_hit_position = None
+            self._last_connection_hit_index = -1
+            return False
+
+        top_interactive = next(
+            (
+                item
+                for item in hit_items
+                if item.isVisible()
+                and bool(item.acceptedMouseButtons() & Qt.MouseButton.LeftButton)
+            ),
+            None,
+        )
+        if not isinstance(top_interactive, ConnectionGraphicsItem):
+            self._last_connection_hit_ids = ()
+            self._last_connection_hit_position = None
+            self._last_connection_hit_index = -1
+            return False
+
+        hit_ids = tuple(item.connection_id for item in connections)
+        same_click = (
+            hit_ids == self._last_connection_hit_ids
+            and self._last_connection_hit_position is not None
+            and (viewport_position - self._last_connection_hit_position).manhattanLength() <= 6
+        )
+        next_index = (
+            (self._last_connection_hit_index + 1) % len(connections)
+            if same_click
+            else 0
+        )
+
+        self._last_connection_hit_ids = hit_ids
+        self._last_connection_hit_position = QPoint(viewport_position)
+        self._last_connection_hit_index = next_index
+        self.scene().clearSelection()
+        connections[next_index].setSelected(True)
+        return True
 
     def wheelEvent(
         self,
@@ -143,6 +202,13 @@ class MachineGraphicsView(QGraphicsView):
             self._canvas._record_last_click(
                 scene_position
             )
+
+            if self._select_overlapping_connection_at(
+                scene_position,
+                event.position().toPoint(),
+            ):
+                event.accept()
+                return
 
         super().mousePressEvent(
             event

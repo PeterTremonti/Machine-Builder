@@ -418,8 +418,16 @@ class NodeGraphicsItem(QGraphicsRectItem):
             "top": [],
             "bottom": [],
         }
+        group_info = self._connector_group_info or {}
+        grouped_port_ids = set(group_info.get("pins", {}))
+        group_side_override = group_info.get("port_side_override")
+        if group_side_override not in {"left", "right"}:
+            group_side_override = None
+
         for port in focused_ports:
             side = port.side.lower()
+            if port.id in grouped_port_ids and group_side_override is not None:
+                side = group_side_override
             if side not in by_side:
                 side = "right"
             by_side[side].append(port)
@@ -462,6 +470,7 @@ class NodeGraphicsItem(QGraphicsRectItem):
         self._connector_group_cone.setVisible(False)
         self._connector_group_anchor_local = None
         self._connector_group_endpoint_port_id = None
+        self._connector_group_contact_anchors_local = {}
 
     def _update_connector_group_overlay(self) -> None:
         """Draw one connector enclosure and, if connected, one neutral cone."""
@@ -485,7 +494,8 @@ class NodeGraphicsItem(QGraphicsRectItem):
                     )
                 pin_label = str(pin_info.get("pin_label") or "Contact")
                 purpose = str(pin_info.get("purpose") or "").strip()
-                label_item.setText(
+                label_item.setText(pin_label)
+                label_item.setToolTip(
                     f"{pin_label} — {purpose}" if purpose else pin_label
                 )
 
@@ -507,17 +517,33 @@ class NodeGraphicsItem(QGraphicsRectItem):
 
         title = str(info.get("title") or "Connector")
         self._connector_group_title.setText(title)
-        box = bounds.adjusted(-14.0, -30.0, 14.0, 12.0)
-        minimum_width = self._connector_group_title.boundingRect().width() + 24.0
+        box = bounds.adjusted(-8.0, -24.0, 8.0, 8.0)
+        minimum_width = self._connector_group_title.boundingRect().width() + 16.0
         if box.width() < minimum_width:
             box.setWidth(minimum_width)
+
+        # Keep the connector enclosure inside the board and clear of its title.
+        node_bounds = self.rect().adjusted(4.0, 4.0, -4.0, -4.0)
+        title_bounds = self._label_item.mapRectToParent(
+            self._label_item.boundingRect()
+        )
+        box_top = max(node_bounds.top(), title_bounds.bottom() + 8.0)
+        available_height = max(1.0, node_bounds.bottom() - box_top)
+        box.setWidth(min(box.width(), node_bounds.width()))
+        box.setHeight(min(box.height(), available_height))
+        box.moveLeft(
+            min(max(box.left(), node_bounds.left()), node_bounds.right() - box.width())
+        )
+        box.moveTop(
+            min(max(box.top(), box_top), node_bounds.bottom() - box.height())
+        )
 
         enclosure_path = QPainterPath()
         enclosure_path.addRect(box)
         self._connector_group_box.setPath(enclosure_path)
         self._connector_group_title.setPos(
-            box.left() + 12.0,
-            box.top() + 5.0,
+            box.left() + 8.0,
+            box.top() + 3.0,
         )
         self._connector_group_box.setVisible(True)
         self._connector_group_title.setVisible(True)
@@ -545,26 +571,75 @@ class NodeGraphicsItem(QGraphicsRectItem):
             info.get("endpoint_port_id") if connected else None
         )
 
+        # Preserve each contact's actual breakout-port position for its
+        # transient colored conductor. External connections share the cone tip.
+        contact_anchors: dict[str, QPointF] = {}
+        if connected:
+            for visual_port_id, pin_info in pins.items():
+                semantic_port_id = str(
+                    pin_info.get("semantic_port_id") or ""
+                ).strip()
+                item = self._port_items.get(visual_port_id)
+                if not semantic_port_id or item is None:
+                    continue
+                contact_anchors[semantic_port_id] = item.mapToItem(
+                    self,
+                    item.boundingRect().center(),
+                )
+
+        self._connector_group_contact_anchors_local = contact_anchors
+
     def connector_group_anchor_for_port(
         self,
         semantic_port_id: str,
     ) -> QPointF | None:
-        """Return the scene-space cone tip for a connected group endpoint."""
+        """Return the shared cone tip for ports in the focused connector group."""
         if (
-            semantic_port_id != self._connector_group_endpoint_port_id
-            or self._connector_group_anchor_local is None
+            self._connector_group_anchor_local is None
             or not self._connector_group_cone.isVisible()
         ):
             return None
+
+        contact_anchors = getattr(
+            self, "_connector_group_contact_anchors_local", {}
+        )
+        if (
+            semantic_port_id != self._connector_group_endpoint_port_id
+            and semantic_port_id not in contact_anchors
+        ):
+            return None
+
         return self.mapToScene(self._connector_group_anchor_local)
+
+    def connector_group_contact_origin_for_port(
+        self,
+        semantic_port_id: str,
+    ) -> QPointF | None:
+        """Return the actual focused breakout-contact position in scene space."""
+        if not self._connector_group_cone.isVisible():
+            return None
+        local_origin = getattr(
+            self, "_connector_group_contact_anchors_local", {}
+        ).get(semantic_port_id)
+        if local_origin is None:
+            return None
+        return self.mapToScene(local_origin)
 
     def connector_group_endpoint_side_for_port(
         self,
         semantic_port_id: str,
     ) -> str | None:
-        if semantic_port_id != self._connector_group_endpoint_port_id:
-            return None
         if not self._connector_group_cone.isVisible():
+            return None
+        contact_anchors = getattr(
+            self,
+            "_connector_group_contact_anchors_local",
+            {},
+        )
+        if (
+            semantic_port_id != self._connector_group_endpoint_port_id
+            and semantic_port_id not in contact_anchors
+        ):
             return None
         return (
             "left"
@@ -602,20 +677,17 @@ class NodeGraphicsItem(QGraphicsRectItem):
         for index, port in enumerate(
             ports
         ):
-            coordinate = (
-                (index + 1)
-                * (
-                    (
-                        height
-                        if side in {
-                            "left",
-                            "right",
-                        }
-                        else width
+            if side in {"left", "right"}:
+                start_margin = 64.0
+                end_margin = 18.0
+                if count == 1:
+                    coordinate = (start_margin + height - end_margin) / 2.0
+                else:
+                    coordinate = start_margin + index * (
+                        (height - start_margin - end_margin) / (count - 1)
                     )
-                    / (count + 1)
-                )
-            )
+            else:
+                coordinate = (index + 1) * width / (count + 1)
 
             item = self._port_items.get(
                 port.id
@@ -626,26 +698,26 @@ class NodeGraphicsItem(QGraphicsRectItem):
 
             if side == "left":
                 item.setPos(
-                    0.0,
+                    18.0,
                     coordinate,
                 )
 
             elif side == "right":
                 item.setPos(
-                    width,
+                    width - 18.0,
                     coordinate,
                 )
 
             elif side == "top":
                 item.setPos(
                     coordinate,
-                    0.0,
+                    56.0,
                 )
 
             elif side == "bottom":
                 item.setPos(
                     coordinate,
-                    height,
+                    height - 16.0,
                 )
 
     def _activate_double_click(self) -> None:

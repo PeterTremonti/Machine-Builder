@@ -6,7 +6,7 @@ semantic machine model.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .semantic_model import CanonicalMachineModel
 from .visual_model import VisualModel
@@ -18,3 +18,5 @@ class EditorState:
 
     visual_model: VisualModel
     semantic_model: CanonicalMachineModel
+    # Presentation preferences are persisted separately from machine semantics.
+    view_state: dict[str, Any] = field(default_factory=dict)

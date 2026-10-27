@@ -68,6 +68,7 @@ class PortGraphicsItem(QGraphicsEllipseItem):
 
         self.port_id = port.id
         self._side = port.side.lower().strip()
+        self._label_side_override: str | None = None
 
         self._connection_drag_started = (
             connection_drag_started
@@ -297,42 +298,50 @@ class PortGraphicsItem(QGraphicsEllipseItem):
             -icon_rect.height() / 2.0 - 1.0,
         )
 
+    def set_label_side(self, side: str | None) -> None:
+        """Override label orientation for a focused connector breakout."""
+        normalized = str(side).lower().strip() if side is not None else None
+        if normalized not in {"left", "right", "top", "bottom"}:
+            normalized = None
+        if normalized != self._label_side_override:
+            self._label_side_override = normalized
+            self._position_label()
+
+    def set_label_text(self, text: str) -> None:
+        """Update label text and recompute its position."""
+        self._label_item.setText(text)
+        self._position_label()
+
     def _position_label(self) -> None:
-        """Place the persistent port label outside the node."""
-        label_rect = (
-            self._label_item.boundingRect()
-        )
+        """Position labels inward from the node boundary to keep wires clear."""
+        label_rect = self._label_item.boundingRect()
+        gap = self.DIAMETER / 2.0 + 4.0
+        side = self._label_side_override or {
+            "left": "right",
+            "right": "left",
+            "top": "bottom",
+            "bottom": "top",
+        }.get(self._side, "left")
 
-        gap = 8.0
-
-        if self._side == "left":
+        if side == "left":
             self._label_item.setPos(
                 -label_rect.width() - gap,
                 -label_rect.height() / 2.0,
             )
-
-        elif self._side == "right":
+        elif side == "right":
             self._label_item.setPos(
                 gap,
                 -label_rect.height() / 2.0,
             )
-
-        elif self._side == "top":
+        elif side == "top":
             self._label_item.setPos(
                 -label_rect.width() / 2.0,
                 -label_rect.height() - gap,
             )
-
-        elif self._side == "bottom":
+        else:
             self._label_item.setPos(
                 -label_rect.width() / 2.0,
                 gap,
-            )
-
-        else:
-            self._label_item.setPos(
-                gap,
-                -label_rect.height() / 2.0,
             )
 
     def _position_status(self) -> None:

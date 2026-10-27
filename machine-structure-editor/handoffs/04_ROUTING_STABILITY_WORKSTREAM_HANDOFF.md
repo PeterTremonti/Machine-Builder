@@ -1,3 +1,13 @@
+## Current checkpoint — 2026-10-26: post-routing publication
+
+This checkpoint supersedes earlier statements below that the routing publication had not occurred or that the previous baseline was still current.
+
+- Published commit: `2863e2ce3077bd5fff43a359ca19e2a014746952` — `fix: stabilize functional connection fan-out routing`.
+- Verified after push: local `HEAD`, `origin/main`, and live remote `main` all matched that commit.
+- Validation before publication: all seven staged Python files compiled; the complete test suite passed, **888 passed in 19.87 seconds**.
+- The published commit contains the seven authorized routing/fan-out paths. Three of those paths still have separate working-tree edits; those edits remain part of the unpublished work.
+- Remaining shared-checkout status: 19 paths. The intended next batch is the 17 #4-owned paths; preserve `handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md` and `tests/test_stepper_motor_terminal_profile.py` as #3-owned.
+- The remaining 17-file batch is not yet staged, committed, or pushed. Before publication, verify exact path scope, whitespace, staged syntax, and the full test suite against the final candidate.
 # Machine Builder — Routing Stability Workstream Handoff
 
 ## Recovery instructions
@@ -2433,24 +2443,203 @@ Source:
 - Whether the detailed-view edge presentation misleadingly suggests an arbitrary one-to-many motor-port choice remains unresolved.
 - The connector-group/enclosure/cone visual changes are published in commit `58301ceca0f1788f4b44aa08ee4ca0f2cb4fdd6a`; GUI verification remains outstanding. Automated tests do not substitute for this GUI verification.
 
-### Connector-group cone and Function-to-Detailed visual integration (2026-10-17)
+### Connector-group cone and Function-to-Detailed visual integration — current status (2026-10-18)
 
-**Scope and implementation:** Commit `58301ceca0f1788f4b44aa08ee4ca0f2cb4fdd6a` adds connector-group presentation and routing integration in `src/machine_builder/canvas_scene.py`, `src/machine_builder/canvas_ui.py`, `src/machine_builder/graphics/connection.py`, and `src/machine_builder/graphics/node.py`, with assertions in `tests/test_functional_interface_connection.py`. The node graphics render a connector enclosure/title and an optional directional cone, annotate visible contact labels, expose the cone tip as a scene-space anchor, and supply endpoint-side overrides to connection routing. These are presentation changes; they do not establish physical contact mapping, continuity, or firmware correctness.
+**Design intent and scope**
 
-**Test coverage and actual checks performed during this review:**
+The long-term visual-builder goal is progressive detail down to inspection of individual wires. The current experiment is narrower: represent a connector or harness group with a cone leading to its individual ports, exposed through the per-port `Port detail` selection. The interaction model remains exploratory. This is not an implemented true zoom mode, and a cone appearing or disappearing with a selection must not be documented as zoom-driven detail navigation.
 
-- `tests/test_functional_interface_connection.py`: **4 passed in 8.69s** (earlier run).
-- Follow-up rerun after adding an assertion that the rendered connection path terminates at the connector-group cone anchor: **4 passed in 7.60s**, exit code 0.
-- `tests/test_functional_interface_connection.py tests/test_promega_xy_motor_reference.py`: **6 passed in 10.23s** (earlier run).
-- Latest rerun before visual-integration publication: **6 passed in 10.39s**, exit code 0.
-- Pre-commit rerun for commit `58301ceca0f1788f4b44aa08ee4ca0f2cb4fdd6a`: **6 passed in 11.07s**, exit code 0.
-- `git diff --check`: **exit code 0**; Git emitted line-ending warnings for some modified files, but the check passed.
-- The full test suite was not run during this review. Older full-suite counts in this handoff are historical and must not be represented as a fresh result for this working tree.
+This feature is presentation-only. It must preserve the canonical `SemanticPort` identities and connection relationships. A connector-level functional relationship is not proof of individual-contact continuity, conductor mapping, physical wiring, or firmware correctness. View filtering must not mutate the semantic model.
 
-**Acceptance gaps:** Automated assertions cover enclosure/title visibility, connected versus unconnected cone visibility, anchor availability, endpoint-side overrides, contact labels, and focus/persistence invariants. The tests reviewed do not establish that the rendered connection line remains exactly attached to the cone tip through Function-to-Detailed transitions, that labels and cone geometry restore correctly through every focus transition, or that Detailed view avoids implying an arbitrary one-to-many motor-port selection. GUI verification remains outstanding.
+**User-reported design input — preferences, not verified guarantees**
 
-**Disposition and next action:** The visual implementation is published in commit `58301ceca0f1788f4b44aa08ee4ca0f2cb4fdd6a`. The rendered endpoint-to-cone-anchor regression now passes in the connected-focus test state. Remaining GUI verification must confirm Function-to-Detailed presentation, label/cone restoration across focus transitions, and that Detailed view does not imply an unsupported one-to-many motor-port choice. Do not reopen the accepted bounded X Motor workflow or the separately accepted SKR EXP1 revision without contradictory evidence. This visual follow-up does not approve broader connector/contact mappings.
+The following observations and preferences were supplied by the user and are retained as such:
 
+1. **Labels inside the part/connector enclosure:** The user thinks labels beside their ports inside the box may be easier to read than the current sequence of part box, port circle, wire, and label overlapping the wire. This is a visual preference to implement and assess, not an accepted result.
+2. **Functional/detailed alignment:** The user noticed detailed ports on the left side of the controller that appear to line up with functional ports directly across the controller. The user likes this if intentional. Whether the alignment is intentional and stable remains to be verified; it is not a guaranteed architectural rule.
+3. **Functional wire relationship:** The user reports that the Maestro wire still connects to the motor's `Motor electrical interface` in the usual view. That observation does not establish that the wire remains visible and correctly attached in every focused view.
+4. **J9 Contacts observation:** The user reports that the cone is visible only when `J9 Contacts` is selected. On selecting it, the wire disappears; the functional port appears unlabelled; the cone appears within the Maestro board, beginning some distance past the functional port; and the triangular area expands to a contact box that overlaps the board. The contact ports appear aligned with the board edge underneath the breakout box rather than with the breakout-box edge. This is reported GUI behavior and remains an unresolved rendering defect.
+5. **Preferred spatial relationship:** From the side where the wire approaches, the desired reading order is `Part → Port → Wire → Cone → port list aligned with the controller edge → port labels`. The labels do not have to occupy a large independent box if a smaller layout is legible.
+6. **Zoom observation:** The user reports that zooming in or out while `J9 Contacts` is selected does not visibly change the cone or other visible presentation. No zoom-responsive behavior has been accepted.
+
+**Published implementation and exact source/test paths**
+
+- Implementation commit `58301ceca0f1788f4b44aa08ee4ca0f2cb4fdd6a`, subject `Integrate connector-group cone routing and focus presentation`.
+- Prior handoff reconciliation commit `2ec026cbee3a696446661b7edd1326c953865837`, subject `Reconcile Routing workstream handoff after visual integration`.
+- Current checkpoint verified before this handoff edit: `HEAD`, `origin/main`, and live remote `main` all equal `3a1421af82b8d1dfa8e0c95f53f155135e0c4b3d`.
+
+Relevant implementation paths:
+
+- `machine-structure-editor/src/machine_builder/canvas_ui.py` — `Port detail` choices, focus filtering, semantic connector/contact lookup, and deciding when to provide connector-group overlay information.
+- `machine-structure-editor/src/machine_builder/canvas_scene.py` — connection endpoint lookup and routing connections to the connector-group anchor.
+- `machine-structure-editor/src/machine_builder/graphics/connection.py` — routed connection path and endpoint-side overrides; connection graphics use a negative z-value and are drawn behind nodes.
+- `machine-structure-editor/src/machine_builder/graphics/node.py` — focused-port layout, connector enclosure/title, cone geometry, anchor, and overlay bounds.
+- `machine-structure-editor/src/machine_builder/graphics/port.py` — individual port label placement and text positioning.
+- `machine-structure-editor/tests/test_functional_interface_connection.py` — functional-interface, contact-focus, connection, anchor-geometry, label, and persistence regression coverage.
+- User-used GUI fixture: `machine-structure-editor/wiring test machines/Maestro and motor test.machine.json`.
+
+At the inspected checkpoint, the selector contains `Functional interfaces`, `Detailed ports (all nodes)`, and connector-specific interface/contact selections. The requested `Detailed ports (unused nodes)` and `Detailed ports (used nodes)` options are not yet present in the inspected implementation; they remain a requested enhancement, not a completed feature.
+
+The current cone path is created by `_update_connector_group_overlay()` in `graphics/node.py`. Its tip is placed a fixed 112 scene units away from the connector enclosure, and the direction is currently derived from the connected node's horizontal location. `canvas_ui.py` supplies the connector-group overlay only for the `contacts` focus mode. Those code paths are relevant to the observed missing cone in other views and possible incorrect placement inside the board. They are implementation evidence and a basis for the next correction, not proof of the sole cause of the disappearing rendered wire.
+
+**Automated test evidence and its limit**
+
+Before the current rendering follow-up, the reported pre-commit run of `tests/test_functional_interface_connection.py` and `tests/test_promega_xy_motor_reference.py` passed **6 tests in 11.07 seconds**. The existing functional-interface test checks that the connection graphics item is visible in its test state and that the routed path endpoint equals the computed cone-tip anchor.
+
+That assertion establishes geometric agreement between the path endpoint and the anchor in that test state. It does **not** prove that the wire is visibly rendered in the GUI, that the tip is outside the controller rectangle, or that the wire is not hidden by a node or overlay. The user's report that the wire disappears therefore remains valid contrary evidence to visual acceptance. The earlier test count is historical and does not validate any subsequent, unexecuted rendering changes.
+
+**Latest local implementation checkpoint (2026-10-18, unpublished)**
+
+- The dropdown/filter changes in `canvas_ui.py` and the matching selector assertion in `tests/test_functional_interface_connection.py` passed 6 tests in 11.47 seconds before the label-layout edit.
+- The subsequent label-layout edit changed `graphics/port.py` and added a label-position assertion. The next focused run failed during test collection because `)    def _position_status(self) -> None:` was joined on line 345. Both test modules reported collection errors; no tests ran on that malformed snapshot.
+- Local #4 implementation paths: `machine-structure-editor/src/machine_builder/canvas_ui.py`, `machine-structure-editor/src/machine_builder/graphics/port.py`, and `machine-structure-editor/tests/test_functional_interface_connection.py`. This handoff is also locally modified. The cone/breakout geometry in `graphics/node.py` has not yet been changed.
+- Syntax repair: py_compile passed; focused suite passed with 6 passed in 11.77s. Next: continue the connector breakout/cone geometry in graphics/node.py and strengthen its boundary assertions; GUI acceptance remains open.
+- Publication remains queued: keep these changes unstaged and do not commit or push until Planning grants #4 an explicit publication slot.
+<!-- MB4_RECOVERY_PROMPT_CHECKPOINT_START -->
+### Manual GUI acceptance checkpoint — 2026-10-19, post-restart review
+
+#### Automated baseline before this manual review
+- Python compilation passed.
+- Focused regression suite: 96 passed in 2.92 seconds.
+- `git diff --check` passed; Git emitted only its LF-to-CRLF conversion warning.
+- These automated results do not constitute manual acceptance. The GUI review below found remaining defects.
+
+#### User-observed behavior after saving, closing, and reopening
+- The saved test artifact is `machine-structure-editor/Maestro and 4 port motor test.machine.json`. It is user-owned diagnostic data. Preserve it; do not edit or overwrite it as part of code changes.
+- On reopening, the camera did not restore the prior framing. Pressing `F` brought the parts back into view, but the focus selector returned to Functional interfaces. The selected J9 Contacts view did not return automatically.
+- Deleting the last connection also caused the selector to return to Functional interfaces. Undo restored the connections but did not restore J9 Contacts focus.
+- After reopening, the Functional interfaces and J9 interface views both showed a single gray functional-reference line. Controller/motor rectangles appeared wider than the user remembered; treat the size change as an observation to investigate, not a confirmed persistence defect.
+- Detailed ports (all) showed overlapping black, red, and gray routes. Red appeared on top and obscured the other lines; labels on opposite sides of the Maestro were difficult to distinguish.
+- The user deliberately created temporary black/red connections to identify the repeated-function controller ports. These exploratory links are not evidence of actual wire-to-contact mapping, coil pairing, or as-built connectivity.
+- Detailed ports (unused) hid connected ports and their lines; Detailed ports (used) restored the connected ports and connections. Confirm the intended per-port filter contract and make sure lines do not remain visible when their endpoints are hidden.
+- Wire hit testing/selection was unreliable when paths overlapped: clicking selected the wrong line, clicking above the visible line sometimes selected the intended one, and selecting an overlapping line made it difficult to select another. Investigate path overlap, click shape, and selection behavior together.
+- In J9 Contacts view, the cone was finally on the correct side of the Maestro—positive progress. However, the breakout enclosure overlapped the board title, was too high/off-center, and floated across the board's left boundary. Adjust it so its edge is deliberately aligned to the controller-board boundary or kept completely inside it, without covering the board title.
+- Individual orthogonal paths from X Motor lead endpoints still routed directly to B1/B2 and did not visually fan into the connector cone/harness area. The cone represents the bundled-wire transition when conductor detail is absent; with conductor paths present, those paths should visually pass through/under the bundle region rather than ignore it. Do not change the canonical endpoints merely to obtain this appearance.
+- Screenshot supplied by the user: https://github.com/PeterTremonti/Machine-Builder/blob/main/machine-structure-editor/screenshots/Screenshot%202026-10-19%20170905.png
+
+#### Canonical-model and visual-behavior boundaries
+- The canonical connection/functional-interface relationship is semantic truth. Connector focus, selection, highlighting, visibility and cone display are presentation state. Connection paths and cone anchors are routing/rendering geometry.
+- A functional-reference connection must remain distinct from individual conductor connections. It must not be counted as an additional physical wire. In contact focus, prefer a visual bundle/cone representation when detailed conductors are present without mutating or silently remapping the canonical model.
+- The cone direction must derive from the selected controller contact side, not from whether the motor component happens to be left or right of the board.
+- Preserve the generic motor functional interface and the four opt-in stepper lead endpoints. Remove obsolete provisional ports only when unused; preserve any endpoint that already has a connection. Do not automatically connect terminals.
+- Wire color must derive from canonical physical connection details (`SemanticConnection.properties["wire_color"]`). Distinct coincident routes still need understandable rendering and selectable hit targets; a color field alone does not solve overlapping paths.
+
+#### Physical Promega observations to preserve
+- Y MOT is at the upper-left rear when viewed from the front of the printer toward the rear.
+- X MOT is at the upper-right rear, opposite Y MOT.
+- The Z motor is underneath and mounted to the moving bed.
+- X MOT and Y MOT pigtail wire order: Black, Green, Red, Blue, viewed into the motor harness connector from the board-side viewpoint described by the user.
+- ZA pigtail order: Blue, Red, Green, Black, looking into the female connector from the board's viewpoint.
+- ZB has no motor harness connected. The two contacts marked `1` are jumpered together and the two contacts marked `2` are jumpered together.
+- These are physical observations only. They do not by themselves establish contact numbers for the motor leads, coil pairing, or firmware assignment.
+
+#### Research reference from #2
+- Message ID: `MB-20261019-1638-01`, dated 2026-10-19 16:38 EDT.
+- Mitchell 1 ProDemand and ALLDATA are UX references for interactive wire highlighting/tracing, not routing standards or authority for Machine Builder connection semantics.
+- Keep the architecture boundary: canonical relationships are semantic truth; selection/highlighting/focus/cone visibility are presentation state; path/endpoint anchors are routing/rendering geometry.
+- The reference is bounded UX guidance, not authorization to expand the ontology or redefine canonical connection semantics.
+
+#### Next implementation/acceptance priorities
+1. Fix wire overlap, path hit testing, and selection so the visible wire corresponds to the line selected. Use distinct, comprehensible routes when multiple conductors share portions of a path.
+2. In J9 Contacts view, keep the cone on the contact side and align the breakout to the board boundary/title. Make conductor paths visually enter/fan through the cone bundle, while preserving each actual contact-to-terminal connection.
+3. Keep the gray functional reference visible as the functional-interface abstraction in the functional view. Do not show it as an additional conductor when detailed conductor paths are being represented in contact focus.
+4. Keep port-detail filtering per port. A connection with a hidden endpoint should be hidden unless a visible connector cone intentionally substitutes for that endpoint.
+5. Preserve connector focus and camera/framing across connection deletion and undo/redo. Investigate whether saved view focus and framing should be persisted on save/reopen; the user expects to return to the working view rather than lose it.
+6. Verify label readability in detailed views and the connector breakout's position after focus switches, save/reopen, and undo/redo.
+7. Add focused regression coverage for the reported GUI behavior. Re-run manual acceptance after the fixes; 96 passing tests are the baseline before this GUI review, not acceptance of these remaining issues.
+
+Do not infer physical mapping from the exploratory wires. No files staged, committed, or pushed.
+
+### Contact-specific connector-cone landing checkpoint — 2026-10-19
+- Functional-interface connections retain the single cone-tip anchor. Contact-level connections can resolve individual semantic contact IDs to distinct, deterministic landing points along the cone outline. This is rendering geometry only; canonical endpoints and physical wiring evidence are unchanged.
+- `canvas_ui.py` includes contact semantic IDs in connector presentation data. `graphics/node.py` resolves the group tip and contact-specific anchors. The regression test `test_contact_focus_routes_contacts_to_distinct_cone_landings` covers two contact wires and their separate rendered endpoints.
+- Validation: focused functional-interface, connection-routing, wire-color and stepper-terminal suite passed (73 tests); source compilation passed; `git diff --check` passed after removing the reported surplus EOF blank line in `tests/test_connection_routing.py`.
+- This is automated validation, not manual GUI acceptance. Multi-wire readability, enclosure placement, overlapping-wire selection, focus retention through delete/undo/redo and reopen, and camera restoration remain open.
+- Current publication state: no #4 publication has occurred. The latest observed staged-path list was empty; preserve all other workstreams' unstaged changes. Obtain explicit Planning authorization before any future publication.
+
+
+### Latest GUI acceptance — user report, October 19, 2026
+<!-- MB4-GUI-ACCEPTANCE-POST-CONE-LANDING -->
+
+- **Routing:** red X Motor endpoint 2 now approaches the cone's small end, but black endpoint 1 still ignores the cone and follows its previous route. Check the actual selected anchor and rendered endpoint for each connection.
+- **Harness appearance:** the desired view has individual conductors taper into a cone, disappear within the bundled harness span, emerge separately at the second cone, and taper to connected terminals. A complete two-ended bundle representation has not been achieved.
+- **Breakout position:** the enclosure still overlaps the Maestro board label; no meaningful placement change was observed.
+- **Wire selection:** black, red, and gray wires are individually selectable in the upper-left area. Below the board, the red wire's selection region prevents selecting the other wires.
+- **Focus:** deleting all connections resets the selector to Functional interfaces. Undo restores connections but does not restore the previous focus.
+- **Save/reopen:** parts are outside the visible viewport after reopening. Pressing F reveals them, but their positions appear shifted. Compare saved and loaded node coordinates separately from camera framing; the apparent shift is not yet proven to be a coordinate change.
+- The user report ended with an empty item 6, so no additional finding is inferred.
+
+The most recent automated result remains 73 focused tests passed in 2.39 seconds. Source compilation passed. The most recent successful whitespace check preceded this documentation refresh. These results do not close the GUI acceptance gaps above.
+
+Preserve the user-owned project `machine-structure-editor/wiring test machines/Maestro and 4 port motor test.machine.json` exactly. Its diagnostic black/red links are not proof of physical harness wiring, motor-coil pairing, or contact mapping. Keep canonical contact-to-terminal connections distinct from the functional-interface abstraction. The cone/harness remains presentation geometry unless a separate semantic design is authorized.
+
+
+### Redundant functional-link presentation filter — 2026-10-20
+<!-- MB4-REDUNDANT-LINK-FILTER-20261020 -->
+
+- Added a presentation-only filter in `canvas_scene.py`: in connector-contact focus, a contact-to-motor-functional-interface line is hidden when that same contact also has a direct connection to a physical terminal on the same component.
+- The filter does not delete, rewrite, or remap semantic or visual connections. Detailed-all view is expected to retain access to both stored relationships.
+- Added regression coverage in `tests/test_functional_interface_connection.py` for the redundant functional link and direct terminal path.
+- Validation reported by the user: focused functional-interface, routing, wire-color, and stepper-terminal suite **74 passed in 3.54 seconds**; source compilation passed; `git diff --check` passed. No staging, commit, or push occurred.
+- Manual GUI acceptance is still required. Verify the black and red wires, connector-cone/harness appearance, breakout-box placement, overlapping-wire selection, focus after delete/undo/redo, and save/reopen framing/focus. The code change is not accepted solely from automated tests.
+- Preserve the saved diagnostic project `machine-structure-editor/wiring test machines/Maestro and 4 port motor test.machine.json` exactly. Its links do not prove physical wiring or coil mapping.
+
+
+<!-- MB4-GUI-ACCEPTANCE-20261020-02 -->
+- Manual GUI acceptance report (2026-10-20 17:09 -04:00): **BLOCKED — visual and view-state issues remain**.
+- J9 Contacts: gray path appears to run from the X motor functional interface to the Maestro breakout cone tip; red from endpoint 2 stops just above that point; black from endpoint 1 passes near the cone tip, travels between B1 and B2, and ends around the upper-middle cone edge. The expected contact-focus suppression is not visually demonstrated; verify connection/port IDs before altering the filter.
+- Detailed ports (all nodes): three apparent X-motor paths; gray is obscured by red until endpoint-2 height, then becomes visible toward the right-side Maestro port. The upper black path cannot be selected over/around the top of the board; clicking that area selects the red B2 path. Investigate geometry and hit-test overlap together.
+- Breakout placement: J9/X Motor box remains too far left/up, overlaps the board border, and obscures the Maestro label.
+- Focus: deleting all connections switches to Functional interfaces; undo/redo does not restore J9 Contacts.
+- Reopen: a file saved in J9 Contacts opens in Functional interfaces with parts outside the visible canvas toward the upper right. Compare serialized node coordinates against viewport/camera restoration; do not conflate them.
+- Diagnostic-project wire colors and terminals remain exploratory, not evidence of as-built wiring, coil mapping, or physical truth.
+
+<!-- MB4-GUI-REVIEW-20261020-05 -->
+- GUI acceptance remains BLOCKED (2026-10-20 18:42 -04:00).
+- J9 Contacts: gray functional-interface route reaches the cone tip; red endpoint 2 ends just above it; black endpoint 1 passes near the cone tip, crosses between B1 and B2, and ends near the upper-middle cone edge.
+- Detailed ports: gray is obscured by red until near endpoint-2 height. Clicking the black path above/around the Maestro board selects the red B2 path.
+- Breakout overlay still overlaps the left board border and covers the Maestro label.
+- Delete-all resets focus to Functional interfaces. Undo does not restore J9 Contacts. Reopening the saved J9 Contacts file selects Functional interfaces and leaves parts outside the viewport at the upper right.
+- Project mapping verified: visual connection-1 is gray connector-level to motor functional interface; connection-2/3 are contact-to-functional-interface links; connection-4/5 are black/red direct contact-to-unassigned-motor-lead links. Visual-port semantic references map to the intended endpoints; shared IDs alone do not establish an ID collision.
+- Investigate routing geometry and hit testing together; handle breakout placement separately. Trace focus through delete/undo/redo and project-open framing separately from serialized node coordinates.
+- Last reported automated validation: 74 focused tests passed; compileall and git diff --check passed. These results predate the unresolved GUI acceptance observations.
+- The diagnostic project is exploratory and does not establish as-built wiring or coil mapping.
+
+<!-- MB4-LOAD-FRAMING-20261020-01 -->
+- Load-framing increment (2026-10-20 18:52 -04:00): added a load-generation marker to ModelStore and schedules _frame_all() on the next Qt event-loop turn when a document load is detected. This is intended to frame loaded contents after scene synchronization; manual GUI verification remains outstanding.
+- Added regression test `test_loading_document_schedules_canvas_framing`.
+- Validation: four focused suites reported **75 passed in 2.38 seconds**; `compileall` passed; `git diff --check` returned exit code 0. Git reported an LF/CRLF advisory for the test file, not a whitespace error.
+- The change does not persist the selected controller-focus choice or camera state. Those remain separate open presentation-state tasks.
+- Manual GUI acceptance is still required: reopen the saved diagnostic project and verify the parts are visible immediately, then check wire overlaps/selection, connector overlay placement, and focus through delete/undo.
+
+<!-- MB4-CONDITIONAL-GRANT-CLOSEOUT-20261020-01 -->
+- Conditional publication grant closeout (2026-10-20 20:53 -04:00): BLOCKED - SLOT RELEASED.
+- Required full suite reported 868 passed in 7.92 seconds, but the pytest process returned Windows exit code -1073740791 (0xC0000409). Do not classify this gate as clean until the abnormal process exit is understood.
+- Isolated diagnostics exited cleanly: load-framing regression 1 passed; canvas scene tests 5 passed; Board-owned stepper terminal test 4 passed. The Board test remains excluded from #4 staging and commit.
+- Source compilation passed and git diff --check returned exit code 0. A Git LF/CRLF advisory was seen for the modified functional-interface test.
+- GUI acceptance is still outstanding after the load-framing patch: verify parts appear immediately on reopen without pressing F; assess fan-out readability, box/title placement, overlapping-wire selection, focus, undo/redo, delete, and saved-file reopen behavior.
+- The complete coherent 17-path diff review and a clean full-suite process exit have not been established. No files were staged, committed, or pushed under this grant.
+- The stepper-terminal mutation and Board dependency require a renewed validation/publication decision after the full-suite process exit is resolved. Keep tests/test_stepper_motor_terminal_profile.py Board-owned and excluded from #4 publication.
+<!-- MB4_RECOVERY_PROMPT_CHECKPOINT_END -->
+
+**Acceptance gaps — still open**
+
+- Establish why the connection is not visibly rendered in `J9 Contacts`; verify route endpoint location against the actual controller and breakout geometry, not only against the calculated anchor.
+- Put the cone on the side facing the actual focused contact list, and ensure its tip is outside the controller body when it represents the external incoming/outgoing wire relationship.
+- Rework the contact breakout geometry so contact ports align with its intended edge and the overlay does not obscure the board unnecessarily.
+- Improve the label layout, including restoring original labels correctly after changing focus.
+- Verify view switching and focus changes for the functional interface, all-detail, connector-interface, and contact views.
+- Determine whether detailed controller ports are intentionally aligned with opposing functional interfaces.
+- Implement and test the requested used-node and unused-node detail filters without changing canonical semantics.
+- Treat the reported zoom behavior as unresolved. Decide separately how a future progressive-detail/true-zoom interaction should work; do not claim the current selection experiment implements it.
+- Complete manual GUI acceptance only after the rendering correction is in place. Automated geometry assertions and GUI inspection are separate acceptance evidence.
+
+**Current next action and publication boundary**
+- Publication authorization MB-20261020-2045-02 is closed as BLOCKED - SLOT RELEASED because the full pytest process returned -1073740791 after reporting 868 passed, and GUI acceptance remains unverified.
+- Before any new publication request, diagnose the full-suite process exit; retain isolated results (load framing 1 passed, canvas scene 5 passed, Board-owned stepper test 4 passed) as supporting evidence only.
+- Manually verify load framing after reopening the saved diagnostic project, then assess fan-out readability, connector-box placement, overlapping-wire selection, focus persistence, delete/undo/redo, and reopen state.
+- Complete and review the entire authorized #4 diff as one batch, including validation/state-update/persistence behavior for UpdateMachineComponentWithStepperTerminalProfile. The Board-owned stepper test must remain excluded from any #4 commit.
+- No stage, commit, or push under the released grant. Request a new explicit Planning authorization against the then-current baseline after all required gates pass.
 ### Automated validation — results reported by #4
 
 **Original closeout validation (historical; implementation base `5e235be1232d9b42f2c50a4018160e9740205798`, before the closeout publication):** focused tests — 6 passed in 10.21s; full suite — 847 passed in 31.76s. These original timings are retained as historical records, not as validation of the later connector-group visual changes and not as independent test runs by #5.
@@ -2581,3 +2770,197 @@ Do not merge the Octopus/TMC5160T contact-6 issue with the SKR EXP1 evidence gat
 - The known integer-keyed persistence limitation is still unresolved. Successful persistence for another fixture is not evidence that this exact experiment can be saved and reopened. Reproduce and address that limitation separately without silently changing the catalog or claiming it is fixed by the SKR tests.
 
 **Current recovery boundary:** no complete Promega wiring graph, as-built harness, contact mapping, firmware assignment, physical mating, or production-standard approval is inferred by this handoff. The existing J28/XY references and held Z-A contact-correspondence gate remain unchanged.
+<!-- MB4-ROUTING-REMEDIATION-CLOSEOUT-20261022 -->
+
+## Routing remediation continuity closeout — 2026-10-22
+
+Planning task: `MB-20261022-2136-01`, clarified by `MB-20261022-2137-01`.
+Readiness review: `MB-20261022-READINESS-01`.
+
+### Confirmed repository and ownership boundary
+
+- Last verified baseline: branch `main`; local HEAD, fetched `origin/main`, and live remote `main` all equal `9b51df9ce2cfdcefcd47f1910343b0b7e694b301`.
+- At the last verified preflight, the shared Git index was empty. No stage, commit, or push is authorized by this remediation task.
+- `tests/test_canvas_ui.py` was confirmed tracked, present, and clean during the read-only inspection. Reconfirm that condition immediately before editing it.
+- The shared checkout contains changes from multiple workstreams. Preserve all concurrent changes; never stage broadly or reset/discard work.
+- Explicit exclusions: Board-owned `tests/test_stepper_motor_terminal_profile.py`; the diagnostic fixture `wiring test machines/Maestro and 4 port motor test.machine.json`; #3-owned `handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`; #5-owned `handoffs/05_EFFICIENCY_MODULARIZATION_WORKSTREAM_HANDOFF.md` and `handoffs/05_EFFICIENCY_MODULARIZATION_REPLACEMENT_PROMPT.md`. These are not #4 publication candidates and must remain unchanged.
+
+### October 22 validation evidence — baseline, not post-remediation
+
+The earlier candidate's `.venv` runs used Python 3.14.7, pytest 8.4.2, and PySide6 6.11.2.
+
+- `.\.venv\Scripts\python.exe -X faulthandler -m pytest -q tests/test_connection_routing.py` — 59 passed; process exit `0`.
+- `.\.venv\Scripts\python.exe -X faulthandler -m pytest -q tests/test_functional_interface_connection.py` — 9 passed; process exit `0`.
+- `.\.venv\Scripts\python.exe -X faulthandler -m pytest -q tests/test_connection_wire_color.py` — 3 passed; process exit `0`.
+- `.\.venv\Scripts\python.exe -X faulthandler -m pytest -q tests/test_canvas_scene.py` — 5 passed; process exit `0`.
+- `.\.venv\Scripts\python.exe -X faulthandler -m pytest -q tests/test_node_graphics.py` — 7 passed; process exit `0`.
+- `.\.venv\Scripts\python.exe -X faulthandler -m pytest -q tests/test_port_graphics_editing.py` — 3 passed; process exit `0`.
+- Focused total: 86 passed across six isolated processes, all exit `0`.
+- `.\.venv\Scripts\python.exe -X faulthandler -m pytest -q` — 868 passed in 6.90 seconds; process exit `0`.
+- The tracked-candidate `git diff --check` returned `0`, with LF/CRLF advisory messages. The check did not cover untracked files.
+
+These are results for the prior candidate before the newly authorized mutation-validation, selector-label, docstring, and associated regression-test fixes. They do not validate those fixes.
+
+The separate global-interpreter teardown failure remains unexplained. Earlier runs with global Python/PySide6 6.12.0 reported passing tests followed by Qt teardown warnings/access violation, including exit `-1073741819` (`0xC0000005`). The historical October 20 checkpoint also records `-1073740791` (`0xC0000409`). Do not merge these distinct process exits, claim a root cause, or treat the clean `.venv` result as resolving the global-interpreter failure.
+
+### GUI acceptance — still blocked
+
+The latest documented manual report is October 20 and remains historical evidence, not a fresh observation after the current changes. It reports:
+- Black/red/gray connector paths overlapping or ending at different places near the cone, with incomplete two-ended bundle representation.
+- Overlapping wires not independently selectable in all areas.
+- Connector breakout/enclosure overlapping the Maestro board label or boundary.
+- Deleting connections resetting focus, with undo/redo not reliably restoring the prior focus.
+- Reopening a saved connector-focused document resetting focus and leaving components outside the viewport until framing is invoked.
+
+No fresh GUI acceptance check has yet been completed for this remediation task. Do not mark any of these as resolved without rechecking the running editor.
+
+### Remediation attempt and next action
+
+A PowerShell remediation script stopped during in-memory source preparation because it expected `Detailed ports (all nodes)` to occur once even though it occurs in both initial construction and refresh. The script had not entered its write phase, so that attempt applied no implementation or test edits. Correct the script to replace both occurrences intentionally, first preparing and validating every edit in memory before writing.
+
+The authorized work remaining is:
+1. Recheck baseline/index and the `tests/test_canvas_ui.py` edit gate.
+2. Tighten `UpdateMachineComponentWithStepperTerminalProfile` to validate existing terminal ownership, `interface_role`, `interface_granularity`, `motor_terminal_profile`, and `terminal_display_index` before mutating the component. Cover conflicting metadata, rejection/rollback, undo/redo, and persistence with #4-owned tests; keep the Board-owned stepper test excluded.
+3. Use per-port terminology consistently in all selector labels and assert the displayed labels both on construction and after refresh.
+4. Restore the `_model_changed` docstring to the actual start of the method.
+5. Run focused tests and the full suite with `.\.venv\Scripts\python.exe -X faulthandler -m pytest -q`. Record pytest counts and actual process exit codes separately.
+6. Launch the editor and inspect the diagnostic project without saving changes to the user-owned fixture. Obtain fresh evidence for rendered endpoint placement, individual wire hit-testing, breakout/title overlap, delete/undo/redo focus, and save/reopen framing. If visual evidence cannot be gathered, explicitly leave GUI acceptance blocked.
+7. Refresh this handoff and the replacement prompt with the actual post-fix results and the exact remaining next action.
+
+The corrected remediation script has not yet been successfully applied. The batch therefore remains incomplete. No publication slot is open; no staging, commit, or push is authorized.
+<!-- MB4-ROUTING-REMEDIATION-CLOSEOUT-20261022 -->
+<!-- MB4-ROUTING-REMEDIATION-RESULTS-20261022 -->
+
+## Routing remediation results and acceptance status — 2026-10-22
+
+Planning task: `MB-20261022-2136-01`, clarified by `MB-20261022-2137-01`.
+Prior readiness review: `MB-20261022-READINESS-01`.
+
+### Implementation changes applied
+
+- `semantic_component_mutations.py`: stepper-terminal updates validate an existing expected terminal's component ownership, `interface_role`, `interface_granularity`, `motor_terminal_profile`, and `terminal_display_index` before applying component edits. An invalid visual node type is rejected before the mutation changes component details.
+- `canvas_ui.py`: the all/unused/used detail choices consistently say ports rather than nodes.
+- `canvas.py`: the `_model_changed` docstring is now the method's first statement.
+- `tests/test_functional_interface_connection.py`: added regression coverage for conflicting terminal metadata, invalid motor type rejection, store rollback/no partial mutation, undo/redo, and persistence.
+- `tests/test_canvas_ui.py`: added an assertion that selector text and data keys match both on construction and after refresh. The file was confirmed clean before being edited.
+
+The first two post-change validation attempts failed because of defects in the temporary regression-test fixture: first it used a controller ID as a component ID, and then it assumed a second canonical component existed. Both were corrected in the test fixture only. The final results below are from the corrected test code, and the targeted regression now passes.
+
+### Post-remediation automated results
+
+Environment: project `.venv`, Python 3.14.7, pytest 8.4.2, PySide6 6.11.2.
+
+- Targeted terminal-conflict command: `.\.venv\Scripts\python.exe -X faulthandler -m pytest -q tests/test_functional_interface_connection.py -k 'stepper_terminal_profile_rejects_conflicting_existing_terminal_metadata'`
+  - **5 passed, 11 deselected in 0.97s; process exit 0.**
+- Focused command: `.\.venv\Scripts\python.exe -X faulthandler -m pytest -q tests/test_functional_interface_connection.py tests/test_canvas_ui.py tests/test_connection_routing.py tests/test_connection_wire_color.py`
+  - **87 passed in 2.47s; process exit 0.**
+- Full command: `.\.venv\Scripts\python.exe -X faulthandler -m pytest -q`
+  - **876 passed in 6.19s; process exit 0.**
+- Whitespace check: `git diff --check -- src/machine_builder/canvas.py src/machine_builder/canvas_ui.py src/machine_builder/semantic_component_mutations.py tests/test_canvas_ui.py tests/test_functional_interface_connection.py`
+  - **Exit 0.** Git emitted its LF/CRLF advisory for `tests/test_functional_interface_connection.py`; this was not a whitespace-check failure.
+- The focused suite and full suite ran against the current dirty shared working tree. Test discovery includes the locally present Board-owned stepper test; its execution does not authorize publishing it.
+
+### Keep the older global-interpreter result separate
+
+The earlier global Python/PySide6 6.12.0 environment reported passing tests followed by a native Qt teardown/access-violation failure. The documented exit codes include `-1073741819` (`0xC0000005`) and a separate historical October 20 exit `-1073740791` (`0xC0000409`). Those are distinct observations. Their cause remains unresolved; the clean `.venv` result does not prove that the global-interpreter failure is resolved.
+
+### Fresh GUI acceptance — still not established
+
+The latest available manual GUI observations are historical reports from October 20. They described:
+- Black/red/gray wires ending or overlapping around the connector cone, with the expected routing not visually demonstrated.
+- Some overlapping wires not independently selectable in the affected area.
+- The connector breakout/enclosure overlapping the Maestro board outline/title.
+- Deleting connections changing focus and undo/redo failing to restore the previous focus.
+- A saved connector-focused document reopening with another focus and contents outside the visible viewport.
+
+No post-remediation GUI results have been provided yet. Do not treat the automated tests as acceptance of rendered geometry, hit-testing, overlay placement, focus restoration, or save/reopen framing.
+
+### Ownership and publication boundary
+
+The shared index remains empty. No stage, commit, push, or publication grant is authorized.
+
+The #4 candidate now has 17 paths:
+- `handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`
+- `handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md`
+- `src/machine_builder/canvas.py`
+- `src/machine_builder/canvas_editing.py`
+- `src/machine_builder/canvas_scene.py`
+- `src/machine_builder/canvas_ui.py`
+- `src/machine_builder/graphics/connection.py`
+- `src/machine_builder/graphics/connection_routing.py`
+- `src/machine_builder/graphics/connection_routing_endpoint.py`
+- `src/machine_builder/graphics/node.py`
+- `src/machine_builder/graphics/port.py`
+- `src/machine_builder/semantic_component_mutations.py`
+- `src/machine_builder/store.py`
+- `tests/test_canvas_ui.py`
+- `tests/test_connection_routing.py`
+- `tests/test_functional_interface_connection.py`
+- `tests/test_connection_wire_color.py`
+
+Explicit exclusions remain unchanged:
+- Board-owned `tests/test_stepper_motor_terminal_profile.py`.
+- User-owned `wiring test machines/Maestro and 4 port motor test.machine.json`.
+- #3-owned `handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`.
+- #5-owned `handoffs/05_EFFICIENCY_MODULARIZATION_WORKSTREAM_HANDOFF.md` and `handoffs/05_EFFICIENCY_MODULARIZATION_REPLACEMENT_PROMPT.md`.
+
+The Board-owned, #5-owned, and diagnostic-fixture hashes were checked after remediation and remained unchanged. No paths from those ownership areas are part of the #4 candidate.
+
+### Exact next action and disposition
+
+**Next action:** run the editor against the diagnostic project without saving over the user-owned fixture. Check actual rendered endpoint locations, black/red/gray wire hit-testing, breakout placement relative to the board title/outline, focus after deleting connections and using undo/redo, and saved-file reopen focus/framing. Record each as freshly observed pass/fail/not checked, distinct from the October 20 history. Then perform a final bounded complete-diff review before asking Planning for a separate publication decision.
+
+**Status: NOT READY — SLOT RELEASED.** Automated validation is clean in `.venv`, but GUI acceptance and final integrated diff review are outstanding. No publication slot is open.
+<!-- MB4-ROUTING-REMEDIATION-RESULTS-20261022 -->
+
+<!-- MB4-GUI-ACCEPTANCE-FRESH-20261022 -->
+
+## Fresh GUI acceptance and inspection-console failure — 2026-10-22
+
+User-reported fresh GUI observations:
+1. **FAIL — endpoint/cone routing:** no visible improvement; the black wire still goes up and through the cone.
+2. **FAIL — overlapping-wire selection:** the user can still only select the red wire near the bottom.
+3. **FAIL — breakout placement:** the box is unchanged and still covers the Maestro board name.
+4. **FAIL — delete/undo focus:** focus switches to “Functional interfaces”; undoing everything leaves it there.
+5. **FAIL — saved focus restoration:** opening a saved file retains whatever focus is currently selected when opened instead of restoring the focus used when saved.
+6. No additional observation was supplied. Reopen viewport framing and actual saved component coordinates were not separately checked in this report.
+
+A subsequent large read-only PowerShell inspection block was pasted into the console; the user immediately saw “The window terminated unexpectedly (reason: 'crashed', code: '-1073741819')”. This is recorded as a console/inspection interruption only. It does not identify a source-code cause, and no inspection output was obtained. The cause remains unknown.
+
+The prior automated remediation results remain: targeted metadata regressions 5 passed (exit 0); focused suite 87 passed (exit 0); full `.venv` suite 876 passed in 6.19 seconds (exit 0); tracked `git diff --check` exit 0, with an LF/CRLF advisory. These automated results do not supersede the fresh GUI failures.
+
+**Next action:** resume source inspection in small bounded excerpts, then fix the confirmed routing/hit-testing, breakout geometry, focus-after-delete/undo, and persistence of focus where these behaviors can be corrected within #4-owned paths. Recheck the live GUI after each relevant change. Do not claim viewport framing or coordinate persistence passed without separate evidence.
+<!-- MB4-GUI-ACCEPTANCE-FRESH-20261022 -->
+
+<!-- MB4-CONSOLE-RECOVERY-20261025 -->
+
+## Console command failures and routing recovery — 2026-10-25
+
+**Verified state at recovery:** branch `main`, `HEAD` `e4d2387bbde9b67f664f49c9bc7ef777518160b3`; the earlier preflight found `origin/main` and live `origin/main` at the same commit. The shared index was empty. Existing local changes across workstreams remain in place.
+
+**Confirmed fail-closed incidents:**
+- Manually constructed patch preflights failed with `patch fragment without header` and `corrupt patch`. `git apply --check` rejected the malformed patch before application.
+- A baseline guard expected `b5e2d079...` but found `e4d2387...`; it stopped before writing.
+- A later in-memory source-replacement attempt failed because the fan-out loop anchor occurred twice, not once. The failure happened before the script's write phase. Do not treat the proposed cone-base geometry correction as applied or tested.
+
+**Diagnostic findings, not confirmed root cause:**
+- Connector contact stubs are separate scene items drawn from contact origin to the cone tip at the time of inspection. They are a leading hypothesis for the visible wire-crossing failure.
+- The test comparing a child cone's `zValue()` directly with a top-level connection's `zValue()` does not establish their actual stacking order.
+- Existing checks verify the main route endpoint at the cone tip but do not prove that the visible wire avoids the cone interior. The actual first offending segment still needs runtime evidence.
+- Historical GUI failures remain unresolved: wire crossing the cone, wrong overlapping-wire selection, breakout/title overlap, delete/undo focus behavior, and saved-focus restoration. Do not report these as fixed without fresh GUI acceptance.
+
+**Prevention:** use bounded commands; guard source replacements with surrounding context that distinguishes repeated blocks; validate all anchors before writing; keep edit, focused test, and full-suite runs separate; preserve the caller's PowerShell location in `finally`; never infer GUI success from endpoint-only assertions or automated test passes.
+
+**Next action:** capture one diagnostic for the actual black connection, including stub endpoints, fan-out point, endpoint escape, and the first main-route segments. Identify the first segment that deviates from the intended geometry before changing code. Make any correction one file at a time, inspect the focused diff, and run its relevant check separately. GUI acceptance remains blocked. No staging, commit, push, or publication authorization.
+
+<!-- MB4-POWERSHELL-HASH-COMPATIBILITY-20261025 -->
+
+### Additional command failure — PowerShell SHA-256 API compatibility (2026-10-25)
+
+**Observed:** a guarded replacement-prompt script called `[Security.Cryptography.SHA256]::HashData($bytes)` and failed with `MethodInvocationException`, stating that `System.Security.Cryptography.SHA256` has no method named `HashData`.
+
+**Cause:** the PowerShell/.NET runtime in this environment does not expose that static method. This was a command/runtime API compatibility issue, not a repository or source-code failure.
+
+**Outcome:** the exception occurred in the pre-write guard. A subsequent read-only check confirmed the replacement prompt retained its earlier SHA-256 and did not contain the intended checkpoint marker. That failed attempt did not write the prompt or change the Git index. A later, separately guarded update succeeded using `Get-FileHash`.
+
+**Prevention:** use `Get-FileHash -Algorithm SHA256` for file-hash checks in this environment rather than relying on newer .NET static hash APIs. Keep the write phase after the guard and verify the resulting file independently.

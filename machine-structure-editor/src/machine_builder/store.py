@@ -141,12 +141,14 @@ class ModelStore:
             return False
 
         previous = self._undo_stack.pop()
+        current_view_state = deepcopy(self._state.view_state)
 
         self._redo_stack.append(
             deepcopy(self._state)
         )
 
         self._state = previous
+        self._state.view_state = current_view_state
         self._modified = True
 
         self._notify()
@@ -159,12 +161,14 @@ class ModelStore:
             return False
 
         next_state = self._redo_stack.pop()
+        current_view_state = deepcopy(self._state.view_state)
 
         self._undo_stack.append(
             deepcopy(self._state)
         )
 
         self._state = next_state
+        self._state.view_state = current_view_state
         self._modified = True
 
         self._notify()
@@ -251,6 +255,11 @@ class ModelStore:
         self._file_path = target
         self._modified = False
 
+    @property
+    def load_generation(self) -> int:
+        """Return how many documents have been loaded into this store."""
+        return getattr(self, "_load_generation", 0)
+
     def load(
         self,
         path: str | PathLike[str] | Path,
@@ -274,6 +283,7 @@ class ModelStore:
 
         self._file_path = target
         self._modified = False
+        self._load_generation = self.load_generation + 1
 
         self._notify()
 

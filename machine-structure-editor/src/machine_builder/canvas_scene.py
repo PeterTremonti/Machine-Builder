@@ -6,7 +6,9 @@ graphics scene.
 
 from __future__ import annotations
 
-from PySide6.QtCore import QPointF
+from PySide6.QtCore import QPointF, Qt
+from PySide6.QtGui import QColor, QPainterPath, QPen
+from PySide6.QtWidgets import QGraphicsPathItem
 
 from .graphics.connection import ConnectionGraphicsItem
 from .graphics.connection_routing import ConnectionRoutingEngine
@@ -81,6 +83,74 @@ class CanvasSceneController:
                 return item
 
         return None
+
+    def _should_hide_redundant_contact_functional_link(
+        self,
+        connection_id: str,
+    ) -> bool:
+        """Hide a refined coarse link only in contact-focus presentation."""
+        focus = getattr(self.canvas, "_controller_port_focus", None)
+        if (
+            not isinstance(focus, tuple)
+            or len(focus) != 3
+            or focus[2] != "contacts"
+        ):
+            return False
+
+        controller_id, connector_id, _mode = focus
+        semantic_model = self.store.semantic_model
+        current = semantic_model.connections.get(connection_id)
+        if current is None:
+            return False
+
+        endpoints = (current.endpoint_a_id, current.endpoint_b_id)
+        for contact_id, peer_id in (endpoints, tuple(reversed(endpoints))):
+            contact = semantic_model.ports.get(contact_id)
+            functional_peer = semantic_model.ports.get(peer_id)
+            if (
+                contact is None
+                or contact.controller_id != controller_id
+                or contact.connector_id != connector_id
+                or contact.pin_id is None
+                or functional_peer is None
+                or functional_peer.component_id is None
+                or functional_peer.properties.get("interface_granularity")
+                != "functional_interface"
+                or functional_peer.properties.get("interface_role")
+                != "motor_electrical_interface"
+            ):
+                continue
+
+            # If this same controller contact already has a direct conductor
+            # connection to a physical terminal on this component, don't render
+            # the contact-to-functional-interface link as a second wire.
+            for candidate in semantic_model.connections.values():
+                if candidate.id == connection_id:
+                    continue
+                candidate_endpoints = (
+                    candidate.endpoint_a_id,
+                    candidate.endpoint_b_id,
+                )
+                if contact_id not in candidate_endpoints:
+                    continue
+
+                terminal_id = (
+                    candidate.endpoint_b_id
+                    if candidate.endpoint_a_id == contact_id
+                    else candidate.endpoint_a_id
+                )
+                terminal = semantic_model.ports.get(terminal_id)
+                if (
+                    terminal is not None
+                    and terminal.component_id == functional_peer.component_id
+                    and terminal.properties.get("interface_role")
+                    == "motor_conductor_terminal"
+                    and terminal.properties.get("interface_granularity")
+                    == "physical_terminal"
+                ):
+                    return True
+
+        return False
     def _grouped_contact_fanout_offset(
         self,
         endpoint_id: str,
@@ -196,7 +266,10 @@ class CanvasSceneController:
         for (
             connection_id,
             graphics,
-        ) in self.connection_items.items():
+        ) in sorted(
+            self.connection_items.items(),
+            key=lambda item: item[0],
+        ):
             connection = (
                 self.store.model.connections.get(
                     connection_id
@@ -205,7 +278,9 @@ class CanvasSceneController:
 
             if connection is None:
                 continue
-
+            if self._should_hide_redundant_contact_functional_link(connection_id):
+                graphics.setVisible(False)
+                continue
             endpoint_a_item = (
                 self.find_port_graphics_item(
                     connection.endpoint_a_id
@@ -218,10 +293,8 @@ class CanvasSceneController:
                 )
             )
 
-            if (
-                endpoint_a_item is None
-                or endpoint_b_item is None
-            ):
+            if endpoint_a_item is None or endpoint_b_item is None:
+                graphics.setVisible(False)
                 continue
 
             start = endpoint_a_item.scenePos()
@@ -255,6 +328,7 @@ class CanvasSceneController:
                 if anchor is None:
                     continue
 
+                anchored_endpoint_ids.add(endpoint_id)
                 if endpoint_name == "start":
                     start = anchor
                 else:
@@ -627,5 +701,15 @@ class CanvasSceneController:
                 self.scene.addItem(
                     graphics
                 )
+
+            semantic_model = getattr(self.store, "semantic_model", None)
+            semantic_connections = getattr(semantic_model, "connections", {})
+            semantic_connection = semantic_connections.get(connection_id)
+            wire_color = (
+                semantic_connection.properties.get("wire_color")
+                if semantic_connection is not None
+                else None
+            )
+            graphics.set_wire_color(wire_color)
 
         self.update_connection_graphics()

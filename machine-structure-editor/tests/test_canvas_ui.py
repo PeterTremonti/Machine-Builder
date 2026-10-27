@@ -125,3 +125,24 @@ def test_selection_inspector_is_not_the_scene_view() -> None:
         canvas.selection_inspector
         is not canvas.view
     )
+
+def test_port_detail_selector_labels_match_per_port_filtering_before_and_after_refresh() -> None:
+    _application()
+    canvas = MachineCanvas()
+    combo = canvas.controller_connector_focus_combo
+    expected = (
+        ("Functional interfaces", ""),
+        ("Detailed ports (all ports)", "__all__::all::details"),
+        ("Detailed ports (unused ports)", "__all__::unused::details"),
+        ("Detailed ports (used ports)", "__all__::used::details"),
+    )
+
+    def first_four_options():
+        return tuple(
+            (combo.itemText(index), combo.itemData(index))
+            for index in range(4)
+        )
+
+    assert first_four_options() == expected
+    canvas._refresh_controller_connector_choices()
+    assert first_four_options() == expected

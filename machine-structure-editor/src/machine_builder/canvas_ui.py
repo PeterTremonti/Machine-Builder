@@ -186,8 +186,16 @@ class CanvasUIMixin:
             "",
         )
         self.controller_connector_focus_combo.addItem(
-            "Detailed ports (all nodes)",
+            "Detailed ports (all ports)",
             "__all__::all::details",
+        )
+        self.controller_connector_focus_combo.addItem(
+            "Detailed ports (unused ports)",
+            "__all__::unused::details",
+        )
+        self.controller_connector_focus_combo.addItem(
+            "Detailed ports (used ports)",
+            "__all__::used::details",
         )
         self.controller_connector_focus_combo.currentIndexChanged.connect(
             self._controller_connector_focus_changed
@@ -217,12 +225,22 @@ class CanvasUIMixin:
         """Populate view-only focus choices from canonical controller ports."""
         combo = self.controller_connector_focus_combo
         old_focus = self._controller_port_focus
+        if old_focus is None:
+            saved_focus = self.store.state.view_state.get("controller_port_focus")
+            if (
+                isinstance(saved_focus, (list, tuple))
+                and len(saved_focus) == 3
+                and all(isinstance(part, str) for part in saved_focus)
+            ):
+                old_focus = tuple(saved_focus)
         old_key = "::".join(old_focus) if old_focus is not None else ""
 
         was_blocked = combo.blockSignals(True)
         combo.clear()
         combo.addItem("Functional interfaces", "")
-        combo.addItem("Detailed ports (all nodes)", "__all__::all::details")
+        combo.addItem("Detailed ports (all ports)", "__all__::all::details")
+        combo.addItem("Detailed ports (unused ports)", "__all__::unused::details")
+        combo.addItem("Detailed ports (used ports)", "__all__::used::details")
         options = []
         model = self.store.semantic_model
 
@@ -293,6 +311,11 @@ class CanvasUIMixin:
         selected = combo.currentData()
         parts = selected.split("::", 2) if isinstance(selected, str) and selected else []
         self._controller_port_focus = tuple(parts) if len(parts) == 3 else None
+        self.store.state.view_state["controller_port_focus"] = (
+            list(self._controller_port_focus)
+            if self._controller_port_focus is not None
+            else None
+        )
         self._update_controller_focus_help()
 
     def _controller_connector_focus_changed(self, _index: int = -1) -> None:
@@ -300,6 +323,11 @@ class CanvasUIMixin:
         selected = self.controller_connector_focus_combo.currentData()
         parts = selected.split("::", 2) if isinstance(selected, str) and selected else []
         self._controller_port_focus = tuple(parts) if len(parts) == 3 else None
+        self.store.state.view_state["controller_port_focus"] = (
+            list(self._controller_port_focus)
+            if self._controller_port_focus is not None
+            else None
+        )
         self._apply_controller_connector_focus()
         self._update_controller_focus_help()
 
@@ -325,6 +353,8 @@ class CanvasUIMixin:
 
         group_port = group_matches[0]
         pins = {}
+        contact_semantic_ids: set[str] = set()
+        contact_sides: list[str] = []
         for visual_port in node.ports.values():
             port = model.ports.get(visual_port.semantic_reference)
             if (
@@ -338,10 +368,31 @@ class CanvasUIMixin:
             pins[visual_port.id] = {
                 "pin_label": port.properties.get("pin_label") or port.label,
                 "purpose": getattr(port, "purpose", "") or "",
+                "semantic_port_id": port.id,
             }
+            contact_semantic_ids.add(port.id)
+            side = str(visual_port.side).lower().strip()
+            if side in {"left", "right"}:
+                contact_sides.append(side)
+
+        group_side = str(
+            group_port.properties.get("visual_side") or "right"
+        ).lower().strip()
+        if group_side not in {"left", "right"}:
+            group_side = "right"
+
+        left_count = contact_sides.count("left")
+        right_count = contact_sides.count("right")
+        if left_count > right_count:
+            direction = "left"
+        elif right_count > left_count:
+            direction = "right"
+        elif contact_sides:
+            direction = group_side if group_side in contact_sides else contact_sides[0]
+        else:
+            direction = group_side
 
         connected = False
-        direction = "right"
         for connection in model.connections.values():
             endpoints = (connection.endpoint_a_id, connection.endpoint_b_id)
             if group_port.id not in endpoints:
@@ -360,22 +411,23 @@ class CanvasUIMixin:
                 != "motor_electrical_interface"
             ):
                 continue
-
             connected = True
-            target_node = next(
-                (
-                    candidate
-                    for candidate in self.store.model.nodes.values()
-                    if any(
-                        visual_port.semantic_reference == other_id
-                        for visual_port in candidate.ports.values()
-                    )
-                ),
-                None,
-            )
-            if target_node is not None and target_node.x < node.x:
-                direction = "left"
             break
+
+        # If individual contact-level conductors exist without a coarse
+        # functional-reference edge, keep the cone visible over that bundle.
+        if not connected and contact_semantic_ids:
+            for connection in model.connections.values():
+                endpoints = (
+                    connection.endpoint_a_id,
+                    connection.endpoint_b_id,
+                )
+                if (
+                    contact_semantic_ids.intersection(endpoints)
+                    and any(endpoint not in contact_semantic_ids for endpoint in endpoints)
+                ):
+                    connected = True
+                    break
 
         return {
             "endpoint_port_id": group_port.id,
@@ -389,11 +441,157 @@ class CanvasUIMixin:
             "direction": direction,
         }
 
+    def _build_motor_terminal_group_info(
+        self,
+        node,
+        controller_id: str,
+        connected_peer_ids: set[str],
+    ) -> dict | None:
+        """Resolve explicit motor terminals for presentation without a group endpoint."""
+        component_id = getattr(node, "semantic_reference", None)
+        if not component_id:
+            return None
+
+        model = self.store.semantic_model
+        component = model.components.get(component_id)
+        if (
+            component is None
+            or component.properties.get("motor_terminal_profile")
+            != "stepper_four_lead"
+        ):
+            return None
+
+        terminal_ports = [
+            port
+            for port in model.ports.values()
+            if port.component_id == component_id
+            and port.properties.get("interface_role")
+            == "motor_conductor_terminal"
+            and port.properties.get("interface_granularity")
+            == "physical_terminal"
+            and port.properties.get("motor_terminal_profile")
+            == "stepper_four_lead"
+        ]
+        if len(terminal_ports) != 4:
+            return None
+
+        terminal_by_id = {port.id: port for port in terminal_ports}
+        terminal_ids = set(terminal_by_id)
+        try:
+            display_indexes = {
+                port.id: int(port.properties.get("terminal_display_index"))
+                for port in terminal_ports
+            }
+        except (TypeError, ValueError):
+            return None
+
+        if set(display_indexes.values()) != {1, 2, 3, 4}:
+            return None
+        if not terminal_ids.intersection(connected_peer_ids):
+            return None
+
+        visual_by_semantic_id = {
+            visual_port.semantic_reference: visual_port
+            for visual_port in node.ports.values()
+            if visual_port.semantic_reference in terminal_ids
+        }
+        if set(visual_by_semantic_id) != terminal_ids:
+            return None
+
+        pins = {}
+        for semantic_port_id in sorted(
+            terminal_ids,
+            key=lambda port_id: display_indexes[port_id],
+        ):
+            semantic_port = terminal_by_id[semantic_port_id]
+            visual_port = visual_by_semantic_id[semantic_port_id]
+            display_index = display_indexes[semantic_port_id]
+            pins[visual_port.id] = {
+                "pin_label": (
+                    semantic_port.properties.get("terminal_label")
+                    or f"Terminal {display_index}"
+                ),
+                "purpose": getattr(semantic_port, "purpose", "") or "",
+                "semantic_port_id": semantic_port.id,
+            }
+
+        direction = "right"
+        motor_graphics = self._node_items.get(node.id)
+        controller_node = next(
+            (
+                candidate
+                for candidate in self.store.model.nodes.values()
+                if candidate.node_type == "controller"
+                and candidate.semantic_reference == controller_id
+            ),
+            None,
+        )
+        controller_graphics = (
+            self._node_items.get(controller_node.id)
+            if controller_node is not None
+            else None
+        )
+        if motor_graphics is not None and controller_graphics is not None:
+            controller_x = controller_graphics.sceneBoundingRect().center().x()
+            motor_x = motor_graphics.sceneBoundingRect().center().x()
+            direction = "left" if controller_x < motor_x else "right"
+
+        return {
+            "endpoint_port_id": None,
+            "title": "Motor electrical interface",
+            "pins": pins,
+            "connected": True,
+            "direction": direction,
+            "port_side_override": direction,
+        }
+
     def _apply_controller_connector_focus(self) -> None:
         """Filter port graphics by detail level without editing the model."""
         focus = self._controller_port_focus
         model = self.store.semantic_model
-        all_details = focus == ("__all__", "all", "details")
+        detail_scope = (
+            focus[1]
+            if focus is not None
+            and len(focus) == 3
+            and focus[0] == "__all__"
+            and focus[2] == "details"
+            else None
+        )
+        detail_mode = detail_scope in {"all", "used", "unused"}
+        connected_port_ids = {
+            endpoint_id
+            for connection in self.store.model.connections.values()
+            for endpoint_id in (
+                connection.endpoint_a_id,
+                connection.endpoint_b_id,
+            )
+        }
+        focus_connected_peer_ids: set[str] = set()
+        if focus is not None and len(focus) == 3 and focus[2] == "contacts":
+            focus_controller_id, focus_connector_id, _mode = focus
+            focus_contact_ids = {
+                port.id
+                for port in model.ports.values()
+                if (
+                    port.controller_id == focus_controller_id
+                    and port.connector_id == focus_connector_id
+                    and port.pin_id is not None
+                )
+            }
+            for semantic_connection in model.connections.values():
+                endpoints = (
+                    semantic_connection.endpoint_a_id,
+                    semantic_connection.endpoint_b_id,
+                )
+                if not focus_contact_ids.intersection(endpoints):
+                    continue
+                for endpoint_id in endpoints:
+                    if endpoint_id in focus_contact_ids:
+                        continue
+                    endpoint_port = model.ports.get(endpoint_id)
+                    if endpoint_port is not None and endpoint_port.component_id is not None:
+                        focus_connected_peer_ids.add(endpoint_id)
+
 
         for node in self.store.model.nodes.values():
             graphics = self._node_items.get(node.id)
@@ -401,8 +599,16 @@ class CanvasUIMixin:
                 continue
 
             visible_ids = set()
-            if all_details:
-                visible_ids.update(node.ports)
+            if detail_mode:
+                for visual_port in node.ports.values():
+                    is_used = visual_port.id in connected_port_ids
+                    should_show = (
+                        detail_scope == "all"
+                        or (detail_scope == "used" and is_used)
+                        or (detail_scope == "unused" and not is_used)
+                    )
+                    if should_show:
+                        visible_ids.add(visual_port.id)
             elif node.node_type == "controller":
                 for visual_port in node.ports.values():
                     port = model.ports.get(visual_port.semantic_reference)
@@ -438,8 +644,11 @@ class CanvasUIMixin:
                     if (
                         port is not None
                         and port.component_id == node.semantic_reference
-                        and port.properties.get("interface_granularity")
-                        == "functional_interface"
+                        and (
+                            port.properties.get("interface_granularity")
+                            == "functional_interface"
+                            or port.id in focus_connected_peer_ids
+                        )
                     ):
                         visible_ids.add(visual_port.id)
 
@@ -451,17 +660,41 @@ class CanvasUIMixin:
             connector_group_info = None
             if (
                 focus is not None
-                and not all_details
-                and node.node_type == "controller"
+                and not detail_mode
+                and len(focus) == 3
+                and focus[2] == "contacts"
             ):
-                controller_id, connector_id, mode = focus
-                if (
-                    mode == "contacts"
-                    and node.semantic_reference == controller_id
-                ):
-                    connector_group_info = self._build_connector_group_info(
-                        node, controller_id, connector_id
+                controller_id, connector_id, _mode = focus
+                if node.node_type == "controller":
+                    if node.semantic_reference == controller_id:
+                        connector_group_info = self._build_connector_group_info(
+                            node, controller_id, connector_id
+                        )
+                else:
+                    motor_group_info = self._build_motor_terminal_group_info(
+                        node,
+                        controller_id,
+                        focus_connected_peer_ids,
                     )
+                    if motor_group_info is not None:
+                        connector_group_info = motor_group_info
+                        visible_ids.update(motor_group_info["pins"].keys())
+
+                        # The physical terminals are the detailed presentation
+                        # of this same functional electrical interface.
+                        for visual_port in node.ports.values():
+                            semantic_port = model.ports.get(
+                                visual_port.semantic_reference
+                            )
+                            if (
+                                semantic_port is not None
+                                and semantic_port.component_id == node.semantic_reference
+                                and semantic_port.properties.get("interface_granularity")
+                                == "functional_interface"
+                                and semantic_port.properties.get("interface_role")
+                                == "motor_electrical_interface"
+                            ):
+                                visible_ids.discard(visual_port.id)
 
             graphics.set_controller_port_focus(
                 visible_ids,
@@ -478,6 +711,16 @@ class CanvasUIMixin:
             text = (
                 "Detailed-port view: shows all available port details on all nodes. "
                 "This changes presentation only; machine semantics are unchanged."
+            )
+        elif focus == ("__all__", "unused", "details"):
+            text = (
+                "Detailed-port view: shows unconnected ports across all nodes. "
+                "Connections to hidden ports are hidden in this view."
+            )
+        elif focus == ("__all__", "used", "details"):
+            text = (
+                "Detailed-port view: shows connected ports across all nodes. "
+                "Only individual ports with connections are shown."
             )
         elif focus is not None:
             _controller_id, connector_id, mode = focus

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from PySide6.QtCore import QPointF, Qt
-from PySide6.QtGui import QColor, QPainterPath, QPen
+from PySide6.QtCore import QPointF, QRectF, Qt
+from PySide6.QtGui import QColor, QPainterPath, QPainterPathStroker, QPen
 from PySide6.QtWidgets import (
     QGraphicsItem,
     QGraphicsPathItem,
@@ -27,6 +27,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
     ROUTING_MARGIN = ConnectionRoutingEngine.ROUTING_MARGIN
     STUB_LENGTH = ConnectionRoutingEngine.STUB_LENGTH
     PREFERRED_ROUTE_SEGMENT_SEPARATION = 4.0
+    HIT_TARGET_WIDTH = 14.0
 
     def __init__(
         self,
@@ -86,9 +87,10 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         self.OVERLAP_ESCAPE_MIN_IMPROVEMENT = 24.0
         self.ROUTE_STABILITY_COST_TOLERANCE = 16.0
 
+        self._wire_color = QColor(self.NORMAL_COLOR)
         self.setPen(
             QPen(
-                self.NORMAL_COLOR,
+                self._wire_color,
                 2.0,
             )
         )
@@ -102,6 +104,45 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
 
         self.setAcceptedMouseButtons(
             Qt.MouseButton.LeftButton
+        )
+
+    def boundingRect(self) -> QRectF:
+        """Include the enlarged interaction target in scene bounds."""
+        return super().boundingRect().adjusted(
+            -self.HIT_TARGET_WIDTH / 2.0,
+            -self.HIT_TARGET_WIDTH / 2.0,
+            self.HIT_TARGET_WIDTH / 2.0,
+            self.HIT_TARGET_WIDTH / 2.0,
+        )
+
+    def shape(self) -> QPainterPath:
+        """Provide a forgiving hit target without changing visible wire width."""
+        stroker = QPainterPathStroker()
+        stroker.setWidth(self.HIT_TARGET_WIDTH)
+        stroker.setCapStyle(Qt.PenCapStyle.RoundCap)
+        stroker.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+        return stroker.createStroke(self.path())
+
+    def set_wire_color(
+        self,
+        wire_color: Any | None,
+    ) -> None:
+        """Render a recognized color from canonical physical connection details."""
+        color = QColor(self.NORMAL_COLOR)
+        if wire_color is not None:
+            requested = str(wire_color).strip()
+            if requested:
+                candidate = QColor(requested)
+                if candidate.isValid():
+                    color = candidate
+
+        self._wire_color = color
+        selected = self.isSelected()
+        self.setPen(
+            QPen(
+                self.SELECTED_COLOR if selected else self._wire_color,
+                3.0 if selected else 2.0,
+            )
         )
 
     def set_routing_debug_mode(
@@ -1194,7 +1235,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         start_escape, start_direction = (
             self._build_endpoint_escape(
                 self.endpoint_a_id,
-                start,
+                start_route_position,
                 obstacles,
                 physical_obstacles,
             )
@@ -1203,7 +1244,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         end_escape, end_direction = (
             self._build_endpoint_escape(
                 self.endpoint_b_id,
-                end,
+                end_route_position,
                 obstacles,
                 physical_obstacles,
             )
@@ -1232,8 +1273,8 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             start_direction=start_direction,
             end_direction=end_direction,
             obstacles=obstacles,
-            direct_start=start,
-            direct_end=end,
+            direct_start=start_route_position,
+            direct_end=end_route_position,
             protected_segments=protected_segments,
         )
 
@@ -1269,8 +1310,12 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         end_stub_position = display_stubs.get(self.endpoint_b_id)
 
         path = QPainterPath(
-            start,
+            start_stub_position if start_stub_position is not None else start,
         )
+        if start_stub_position is not None:
+            path.lineTo(start)
+        if start_route_position != start:
+            path.lineTo(start_route_position)
 
         for point in start_escape[1:]:
             path.lineTo(
@@ -1313,6 +1358,9 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
                 end,
             )
 
+        if end_stub_position is not None:
+            path.lineTo(end_stub_position)
+
         self.setPath(
             path,
         )
@@ -1344,6 +1392,8 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         side = getattr(self, "_endpoint_side_overrides", {}).get(
             port_id, side
         )
+
+
 
         ignored_obstacles: list[Any] = []
 
@@ -1650,7 +1700,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
                 QPen(
                     self.SELECTED_COLOR
                     if selected
-                    else self.NORMAL_COLOR,
+                    else self._wire_color,
                     3.0
                     if selected
                     else 2.0,

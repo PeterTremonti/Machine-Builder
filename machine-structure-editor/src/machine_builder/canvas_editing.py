@@ -34,6 +34,7 @@ from .port_details import PortDetailsDialog
 from .semantic_model import SemanticPort
 from .semantic_component_mutations import (
     UpdateMachineComponent,
+    UpdateMachineComponentWithStepperTerminalProfile,
 )
 from .semantic_component_queries import (
     component_for_visual_node,
@@ -126,7 +127,7 @@ class CanvasEditingMixin:
         result = dialog.result_data()
 
         self.store.commit(
-            UpdateMachineComponent(
+            UpdateMachineComponentWithStepperTerminalProfile(
                 component_id=component.id,
                 role=result.role,
                 label=result.label,

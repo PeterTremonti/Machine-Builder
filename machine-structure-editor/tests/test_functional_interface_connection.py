@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
-import pytest
 
+import pytest
 from PySide6.QtCore import QPointF
 from PySide6.QtWidgets import QApplication
 
@@ -170,7 +170,20 @@ def test_interface_focus_preserves_contacts_and_persistence(tmp_path):
     assert canvas.controller_connector_focus_combo.currentData() == ""
     assert controller_graphics._port_items[group_visual.id].isVisible()
     motor_graphics = canvas._node_items[motor_node.id]
-    assert motor_graphics._port_items[motor_visual.id].isVisible()
+    motor_port_item = motor_graphics._port_items[motor_visual.id]
+    assert motor_port_item.isVisible()
+    assert motor_port_item._label_side_override is None
+    label_rect = motor_port_item._label_item.boundingRect()
+    gap = motor_port_item.DIAMETER / 2.0 + 4.0
+
+    if motor_port_item._side == "left":
+        assert motor_port_item._label_item.pos().x() >= gap
+    elif motor_port_item._side == "right":
+        assert motor_port_item._label_item.pos().x() + label_rect.width() <= -gap
+    elif motor_port_item._side == "top":
+        assert motor_port_item._label_item.pos().y() >= gap
+    elif motor_port_item._side == "bottom":
+        assert motor_port_item._label_item.pos().y() + label_rect.height() <= -gap
     motor_detail_ids = [
         port.id
         for port in motor_node.ports.values()
@@ -209,10 +222,9 @@ def test_interface_focus_preserves_contacts_and_persistence(tmp_path):
         expected_label = (
             f"{semantic_port.properties['pin_label']} — {semantic_port.purpose}"
         )
-        assert (
-            controller_graphics._port_items[visual_port.id]._label_item.text()
-            == expected_label
-        )
+        port_item = controller_graphics._port_items[visual_port.id]
+        assert port_item._label_item.text() == semantic_port.properties["pin_label"]
+        assert port_item._label_item.toolTip() == expected_label
 
     assert controller_graphics.rect().height() >= 48.0 + 34.0 * 4
     ys = sorted(item.pos().y() for item in contact_items)
@@ -406,6 +418,11 @@ def test_interface_drag_creates_reference_scoped_connection(monkeypatch, tmp_pat
 
     graphics_connection = canvas._connection_items[connection.id]
     assert graphics_connection.isVisible()
+    pre_focus_route = graphics_connection._debug_route
+    pre_focus_reason = getattr(
+        graphics_connection, "_routing_stability_reason", None
+    )
+    pre_focus_start_escape = graphics_connection._debug_start_escape
     _focus(canvas, controller_id, "x-motor", "contacts")
     assert not canvas._node_items[controller_node.id]._port_items[
         controller_visual.id
@@ -424,6 +441,19 @@ def test_interface_drag_creates_reference_scoped_connection(monkeypatch, tmp_pat
     # The routed path must terminate at the cone tip, not merely expose an
     # anchor while leaving the visible connection attached to the hidden port.
     path = graphics_connection.path()
+    assert graphics_connection._debug_route is not None, (
+        "connector-focus regression: main route is None; "
+        f"candidate={graphics_connection._routing_candidate_route!r}; "
+        f"reason={getattr(graphics_connection, '_routing_stability_reason', None)!r}; "
+        f"start_escape={graphics_connection._debug_start_escape!r}; "
+        f"end_escape={graphics_connection._debug_end_escape!r}; "
+        f"side_overrides={graphics_connection._endpoint_side_overrides!r}; "
+        f"obstacles={graphics_connection._collect_obstacles()!r}; "
+        f"physical_obstacles={graphics_connection._collect_physical_obstacles()!r}; "
+        f"pre_focus_route={pre_focus_route!r}; "
+        f"pre_focus_reason={pre_focus_reason!r}; "
+        f"pre_focus_start_escape={pre_focus_start_escape!r}"
+    )
     assert path.elementCount() >= 2
     if graphics_connection.endpoint_a_id == controller_visual.id:
         endpoint_fraction = 0.0
@@ -446,9 +476,10 @@ def test_interface_drag_creates_reference_scoped_connection(monkeypatch, tmp_pat
         contact_id = f"{controller_id}-x-motor-pin-{position}"
         contact_visual = _visual_port(controller_node, contact_id)
         contact_semantic = canvas.store.semantic_model.ports[contact_id]
-        assert (
-            controller_graphics._port_items[contact_visual.id]._label_item.text()
-            == f"{contact_semantic.properties['pin_label']} — {contact_semantic.purpose}"
+        contact_item = controller_graphics._port_items[contact_visual.id]
+        assert contact_item._label_item.text() == contact_semantic.properties["pin_label"]
+        assert contact_item._label_item.toolTip() == (
+            f"{contact_semantic.properties['pin_label']} — {contact_semantic.purpose}"
         )
 
     # Focus changes must not affect undo history. Undo/redo must remove and
@@ -520,7 +551,17 @@ def test_generic_controller_has_explanatory_empty_state():
         )
     )
     assert canvas.store.model.nodes["generic-controller-node"].ports == {}
-    assert canvas.controller_connector_focus_combo.count() == 2
+    combo = canvas.controller_connector_focus_combo
+    assert combo.count() == 4
+    assert {
+        combo.itemData(index)
+        for index in range(combo.count())
+    } == {
+        "",
+        "__all__::all::details",
+        "__all__::unused::details",
+        "__all__::used::details",
+    }
     assert any(
         canvas.controller_connector_focus_combo.itemData(index)
         == "__all__::all::details"
