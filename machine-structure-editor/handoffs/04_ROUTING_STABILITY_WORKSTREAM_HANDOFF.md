@@ -1,3 +1,145 @@
+<!-- MB4-PROTECTED-SEGMENT-INDEX-VALIDATION-20261028 -->
+
+## Authoritative checkpoint - 2026-10-28: protected-segment index production validation
+
+Prepared: 2026-10-28 EDT | Message ID: MB-20261028-ROUTING-PROTECTED-INDEX-VALIDATION-RESULTS-01
+Relationship: Implements the results requested by Planning authorization MB-20261027-ROUTING-PROTECTED-INDEX-PROD-AUTH-13 and standing documentation authority MB-20261028-WORKSTREAM-HANDOFF-AUTONOMY-01. This checkpoint supersedes older "pending implementation" and test-count statements as current status; historical checkpoints below are retained.
+
+### Implementation scope and exact diff
+
+The orientation-aware protected-segment candidate index was implemented in the two paths authorized by Planning:
+- `machine-structure-editor/src/machine_builder/graphics/connection_routing_pathfinder.py`
+- `machine-structure-editor/tests/test_connection_routing.py`
+
+Against the approved baseline `cb65c45dd768dd9c3fd56865c2a74c07f73d4f53`, the current diff summary is **428 insertions and 2 deletions**: 153 insertions / 2 deletions in the pathfinder and 275 added lines in the routing test file. The index retrieves a conservative candidate set and still invokes the original exact separation predicate for those candidates. Existing lane generation, route cost logic, endpoint behavior, route ordering, retry/fallback behavior, and refresh cadence were not intentionally changed.
+
+### Verified automated results
+
+- Index-specific routing regressions: 2 passed.
+- Complete `test_connection_routing.py`: 65 passed.
+- Functional-interface test file: 18 passed in 5.06 seconds.
+- Full project `.venv` suite, using `machine-structure-editor\.venv\Scripts\python.exe` (Python 3.14.7): **890 passed in 10.30 seconds**.
+- Syntax validation passed for both changed code files.
+- Final whitespace check for the two implementation/test diffs passed.
+
+### Differential and geometry verification
+
+A fresh disposable baseline and candidate used published source baseline `cb65c45dd768dd9c3fd56865c2a74c07f73d4f53` and the verified J9 fixture SHA-256 `3E6FB97FBBFC0C9FB2B4968448846A17560370A504F828566F11A652EDF68F82`. The committed fixture in the archive has a different hash; the matching fixture was copied from the prior validated disposable experiment. The pre-existing shared diagnostic fixture was not edited by this task.
+
+Production-candidate differential check:
+- Routing-edge decisions checked: **289,623**
+- Differential mismatches: **0**
+- Full-scan entries presented: 4,178,871
+- Indexed candidate entries presented: 36,145
+- Candidate-entry reduction: **99.14%**
+- Index builds: 11
+- Route builds / grid searches: 7 / 11
+- Route-clear checks / failures: 31 / 4
+
+### Controlled performance results
+
+Three baseline/candidate pairs were run with the same automatic invocation trace, fixed `PYTHONHASHSEED=0`, differential checking disabled, and equivalent fixture/refresh operations. All three pairs passed exact route geometry, pathfinder input/result, grid-search input/result, scene-state, and operation-count comparisons.
+
+Baseline refresh samples: 17,814.051 ms; 18,303.513 ms; 18,120.274 ms.
+Candidate refresh samples: 1,891.339 ms; 1,862.801 ms; 1,885.272 ms.
+
+- Baseline median: **18,120.27 ms**
+- Candidate median: **1,885.27 ms**
+- Baseline spread (max - min): **489.46 ms**
+- Candidate spread: **28.54 ms**
+- Median reduction: **89.60%**
+- Speedup: **9.61x**
+
+The earlier differential-enabled run took approximately 46.3 seconds because it deliberately executed extra full-scan checks; that timing is not part of the performance benchmark.
+
+### Route-repeatability caveat
+
+A manually triggered refresh pair once showed a 0.5-unit difference at `connection-1` point index 3 (Y: `-1328.2648075282284` versus `-1328.7648075282284`). This was not concealed or reported as a pass. Startup geometry matched, and subsequent automatic, fixed-seed traces and all three controlled timing pairs matched exactly. The 0.5-unit difference was **not reproduced** under those controlled runs; its original cause remains unproven. Retain this as a repeatability observation rather than claiming that every possible interaction sequence is proven equivalent.
+
+### Repository and publication state
+
+Final safety audit before documentation publication:
+- Branch `main`; local `HEAD`, tracking `origin/main`, and live `origin/main` all at `cb65c45dd768dd9c3fd56865c2a74c07f73d4f53`.
+- Shared index empty.
+- Only task-owned implementation/test paths are the pathfinder and routing test file.
+- Preserved other local work: #3 controller-board handoff; the other two #4-owned handoff/prompt documents until this documentation-only publication; the user-owned J9 diagnostic fixture; and the untracked Board-owned stepper-terminal test.
+- No implementation commit, push, or publication is authorized by this checkpoint. Only the two #4-owned documentation paths are covered by the standing handoff-autonomy authority.
+
+### Remaining editor acceptance blockers
+
+- **Editor remains NOT ACCEPTED.**
+- **In-cone wire visibility remains unresolved:** the user previously reported that wire lines are not visible inside the cone. The index timing improvement does not prove that visual defect is fixed.
+- **Focus after deletion / undo / redo remains NOT TESTED** for this post-index state.
+- GUI responsiveness has improved substantially in the controlled refresh measurement, but fresh hands-on GUI acceptance after the performance change has not been recorded. Do not equate benchmark success with GUI acceptance.
+- The manual 0.5-unit route-repeatability observation above remains documented.
+
+### Next action
+
+Finish and publish this dedicated documentation-only checkpoint by staging and committing only:
+- `machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`
+- `machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md`
+
+Keep the pathfinder and routing test unstaged. After documentation publication, continue with fresh GUI verification for in-cone wire visibility and post-delete focus. The implementation files remain subject to a separate Planning publication decision.
+
+---
+
+## Fresh GUI acceptance observations — 2026-10-26
+
+Source: user's direct manual observations of the editor. No screenshots were supplied in this report.
+
+- **Wire crossing / shared cone tip — PASS for geometry.** The wires no longer appear to pass through the cone in the previous strange way. After fanning out along the route, they appear to align at the shared point, based on the user's visual check.
+- **Wire visibility inside the cone — FAIL / regression to investigate.** Wire lines are no longer visible inside the cone, unlike the prior behavior. The visible endpoint alignment does not establish that the in-cone segment is rendered correctly.
+- **Individual wire selection — PASS.** The user can now select any/all wires individually fairly easily.
+- **Breakout title and part-label overlap — PASS.** The titles in breakout boxes and the parts themselves are visible without the previous overlap/interference.
+- **Focus and selection after deleting connections — NOT TESTED.** No fresh result was reported for deletion, undo/redo, or focus restoration.
+- **Overall GUI responsiveness — FAIL / blocking usability issue.** The editor has become so laggy that it is too difficult to use. Reproduction timing, workload, and screenshots have not yet been captured.
+
+**Acceptance disposition: NOT ACCEPTED YET.** The geometric routing, picking, and label layout are reported as improved, but severe responsiveness degradation and missing in-cone wire visibility remain. Post-delete focus behavior is still unverified. Do not infer acceptance from the 888 passing automated tests.
+
+**Next decision needed from Planning:** prioritize a bounded performance diagnosis and the in-cone rendering regression. Separately complete the delete/focus check when the GUI is responsive enough to test. Make no implementation change or publication from this acceptance pass without Planning's next scope decision.
+
+The accepted published baseline remains `cb65c45dd768dd9c3fd56865c2a74c07f73d4f53`. Both publication commits remain published; do not rewrite history or force-push. The missing separately recorded Planning authorization for the earlier 16-file publication remains documented as a process deviation.
+
+The three excluded paths remain outside #4 scope and must remain untouched: #3's controller-board handoff, the Board-owned stepper-terminal test, and the user-owned Maestro diagnostic fixture. This checkpoint is local documentation only; do not stage, commit, or push it during the acceptance pass.
+
+---
+## Authoritative checkpoint — 2026-10-26: Planning GUI acceptance follow-up
+
+Prepared: 2026-10-26 21:51 EDT | Planning message: MB-20261026-ROUTING-GUI-ACCEPTANCE-05
+Relationship: Authoritative post-publication status; supersedes earlier pending-publication statements without deleting historical checkpoints.
+
+## Published baseline and commits
+
+- Accepted baseline: `cb65c45dd768dd9c3fd56865c2a74c07f73d4f53`.
+- Routing/fan-out commit: `2863e2ce3077bd5fff43a359ca19e2a014746952` — `fix: stabilize functional connection fan-out routing`.
+- Remaining editor-integration commit: `cb65c45dd768dd9c3fd56865c2a74c07f73d4f53` — `fix: complete routing stability editor integration`.
+- Both pushes succeeded normally. After the second push, local `HEAD`, `origin/main`, and live remote `main` agreed at `cb65c45dd768dd9c3fd56865c2a74c07f73d4f53`.
+- Reported full-suite results: 888 passed in 19.87 seconds before the first publication; 888 passed in 19.30 seconds before the second publication.
+
+## Publication authorization reconciliation
+
+- Planning authorization `MB-20261026-FANOUT-FINAL-PUBLISH-AUTH-04` explicitly covered the seven-file routing/fan-out patch and its conditional publication.
+- The subsequent 16-file #4 batch was pushed after the user clarified that the remaining #4-owned files should be committed together. This conversation contains no separate recorded explicit Planning authorization for that broader batch.
+- Record this as a process deviation. Both commits remain published; do not rewrite history or force-push. No further publication is authorized by this checkpoint.
+
+## Fresh manual GUI acceptance — NOT TESTED
+
+The GUI was not directly accessible to this assistant. No manual outcomes are claimed and no screenshots were captured in this conversation. Automated tests do not count as GUI acceptance.
+
+1. **Cone crossing — NOT TESTED.** Open the diagnostic machine without saving over its user-owned fixture. Zoom into the connector cone and the black wire. Follow the visible wire path to determine whether it passes through the cone instead of meeting the intended anchor. Capture a zoomed screenshot and record PASS/FAIL with the wire and endpoint identified.
+2. **Individual wire selection — NOT TESTED.** With multiple close wires visible, click each wire separately at a clear mid-segment and near its endpoint. Record which connection becomes selected each time; repeat for the black and red wires. Capture a screenshot if a click selects the wrong connection or cannot select the intended one.
+3. **Breakout versus Maestro title — NOT TESTED.** Fit the board and connector breakout in view. Check whether breakout artwork overlaps or obscures the Maestro board name. Capture a screenshot showing the board title, outline, and breakout at once.
+4. **Focus after deleting connections — NOT TESTED.** Record the current connector-focus mode and selected connection. Delete one connection, then test deleting several; observe focus/selection after each deletion. Repeat with undo/redo and, if feasible, reopen a disposable copy to check persistence. Do not overwrite the user-owned fixture. Record unexpected fallback to a broad Functional-interfaces selection or lost focus.
+
+For every GUI item, report PASS, FAIL, or NOT TESTED based on a fresh observation. If a defect is found, record reproduction steps and screenshot evidence where useful, then request Planning direction before implementation changes or publication.
+
+## Ownership and local state
+
+- Preserve the three remaining excluded paths: `handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md` (#3); `tests/test_stepper_motor_terminal_profile.py` (Board); and `wiring test machines/Maestro and 4 port motor 4 wires J9 contact view.machine.json` (user-owned diagnostic fixture).
+- No further #4 implementation files were reported unpublished after the 16-file commit. The documentation changes made for this checkpoint are local only and must remain unstaged and uncommitted.
+
+Historical checkpoint entries follow unchanged. If they describe an earlier baseline, publication as pending, or a prior authorization boundary, treat that statement as historical rather than current.
+
 ## Current checkpoint — 2026-10-26: post-routing publication
 
 This checkpoint supersedes earlier statements below that the routing publication had not occurred or that the previous baseline was still current.
