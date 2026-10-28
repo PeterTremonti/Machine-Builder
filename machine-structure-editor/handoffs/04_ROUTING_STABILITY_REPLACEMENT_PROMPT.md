@@ -1,3 +1,28 @@
+<!-- MB4-GUI-ACCEPTANCE-CURRENT-PROMPT-20261028 -->
+## Current replacement-chat checkpoint - 2026-10-28: fresh GUI acceptance
+
+Prepared: 2026-10-28 17:11 EDT | Message ID: MB-20261028-ROUTING-GUI-ACCEPTANCE-OBSERVATIONS-01
+Relationship: Latest direct user GUI observations. This checkpoint supersedes older GUI status statements as the current acceptance result; all older prompt content is retained below as history.
+
+### Latest acceptance findings
+
+- **Wire visibility inside cones: FAIL.** Wires are currently not visible inside the cones.
+- **Consistent four-wire generation: FAIL.** All four wires are not always drawn. The black wire can overlap the other colored stubs; sometimes the other wires are not created, and only the black wire appears. Investigate whether this is route construction, route rejection, or rendering; do not assume the defect is solely visual.
+- **Responsiveness: IMPROVED, still laggy.** The user now considers it tolerable. Moving the mouse no longer incurs the previous waits exceeding 10 seconds before visible movement, but the editor still feels very laggy. Do not mark responsiveness fully accepted.
+- **Port detail recovery after deletion/undo: FAIL / unresolved.** Deleting all wires and one part changed port detail to Functional interfaces. Undoing the deletions did not change the port detail view back.
+- **Overall editor acceptance: NOT ACCEPTED.** The two wire failures and the port-detail recovery failure remain open. Responsiveness improved but remains degraded.
+
+### Next diagnostic actions
+
+1. Reproduce the intermittent four-wire failure. Record the four connections, port/stub identities, route geometry, and whether the black wire overlaps colored stubs before the other wires disappear. Distinguish construction/routing omission from rendering omission.
+2. Investigate the missing in-cone wire segments separately from intermittent four-wire generation.
+3. Reproduce deleting all wires and one part, then undo step by step. Record selected object, port focus, detail view, and the view state after each undo to determine why Functional interfaces remains selected.
+4. Capture a repeatable responsiveness interaction and timing before deciding whether further optimization is necessary.
+
+Do not infer GUI acceptance from passing automated tests or controlled benchmarks. Preserve the user-owned diagnostic fixture and all concurrent workstream changes. Production implementation or test publication remains subject to its separate applicable authorization. This checkpoint is for current handoff context only.
+
+---
+
 <!-- MB4-PROTECTED-INDEX-CURRENT-PROMPT-20261028 -->
 ## Current replacement-chat checkpoint - 2026-10-28
 Message ID: MB-20261028-ROUTING-PROTECTED-INDEX-VALIDATION-RESULTS-01

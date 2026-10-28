@@ -1,3 +1,28 @@
+<!-- MB4-GUI-ACCEPTANCE-20261028-OBSERVATIONS-01 -->
+## Authoritative checkpoint - 2026-10-28: fresh GUI acceptance results
+
+Prepared: 2026-10-28 17:11 EDT | Message ID: MB-20261028-ROUTING-GUI-ACCEPTANCE-OBSERVATIONS-01
+Relationship: Fresh direct user observations after the protected-segment index performance change. These results supersede older GUI responsiveness and acceptance-status statements as the latest observed state. Historical entries below remain preserved.
+
+### Fresh GUI results
+
+- **Wire visibility inside cones: FAIL.** The user reports that wires are not visible inside the cones.
+- **Wire generation / colored-stub overlap: FAIL.** All four wires are not consistently drawn. The black wire can overlap the other colored stubs; sometimes the other wires are then not created, and only the black wire is visible. Treat this as a separate functional/rendering failure, not merely an endpoint-visibility issue.
+- **Responsiveness: IMPROVED, still degraded.** The user considers responsiveness tolerable now, but still very laggy. Mouse movement no longer produces the prior waits exceeding 10 seconds before visible movement. This is not a performance acceptance pass and does not establish normal responsiveness.
+- **Port detail after deleting wires and a part: FAIL / focus-state regression.** After all wires and one part were deleted, the port detail changed to Functional interfaces. Undoing the deletions did not restore the prior port detail. The view-recovery behavior remains incorrect or unresolved.
+- **Overall editor acceptance: NOT ACCEPTED.** The cone-wire visibility failure, intermittent loss of three wires when black overlaps colored stubs, and failure to restore port detail after undo remain open. Responsiveness improved but is not yet satisfactory.
+
+### Next diagnostic priorities
+
+1. Reproduce the four-wire case and record the component/connection identities, route geometry, and whether the black wire overlaps colored stubs before the other wires disappear. Determine whether wires are omitted during route construction, rejected by routing, or merely not rendered; do not assume the failure is only visual.
+2. Investigate why wires are not drawn inside the cones independently from the intermittent four-wire disappearance.
+3. Reproduce deleting all wires and one part, then undo the operations. Record the selected object, focused port, current detail view, and whether each undo step changes the view. Determine whether view state is intentionally preserved or should be restored from selection/focus.
+4. Responsiveness is now tolerable by the user's report but still laggy. Record a repeatable interaction and timing before deciding whether further optimization is needed.
+
+Do not change the published GUI acceptance disposition to PASS based on automated tests or the benchmark alone. Preserve the diagnostic fixture and other workstreams' files. Any implementation modification or implementation publication remains subject to its applicable authorization. This checkpoint is documentation only; it does not authorize staging or publishing production source or test changes.
+
+---
+
 <!-- MB4-PROTECTED-SEGMENT-INDEX-VALIDATION-20261028 -->
 
 ## Authoritative checkpoint - 2026-10-28: protected-segment index production validation
