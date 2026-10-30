@@ -1,3 +1,75 @@
+<!-- MB4-STAGE1-ACCEPTANCE-CONTINUITY-20261030-01 -->
+
+## Authoritative continuity checkpoint - Harness Stage 1 accepted
+
+Prepared: 2026-10-30 08:43:32 -04:00 | Message ID: MB4-STAGE1-ACCEPTANCE-CONTINUITY-20261030-01
+
+### Verified repository and publication state
+
+- Repository: `C:\Users\Peter\Documents\GitHub\Machine-Builder`
+- Branch: `main`.
+- At this checkpoint, `HEAD`, `origin/main`, and live remote `main` all equal `367e427aa42a8c4606e09700d536b8bf73d68c19`.
+- The shared Git index was empty at preflight.
+- Stage 1 implementation files remain local-only and unstaged. No implementation commit or push has occurred.
+- Planning's acceptance and documentation authorization: `MB-20261029-HARNESS-STAGE1-ACCEPTANCE-02`.
+- #4 is authorized to update and publish its two owned documentation files without another Planning approval. This does not authorize staging or publishing implementation changes.
+
+### Stage 1 completion and accepted scope
+
+Planning accepted the canonical harness Stage 1 implementation and automated validation. The exact seven implementation paths are:
+
+1. `machine-structure-editor/src/machine_builder/semantic_harness.py` (new)
+2. `machine-structure-editor/src/machine_builder/semantic_model.py` (modified)
+3. `machine-structure-editor/src/machine_builder/harness_mutations.py` (new)
+4. `machine-structure-editor/src/machine_builder/persistence.py` (modified)
+5. `machine-structure-editor/tests/test_semantic_harness.py` (new)
+6. `machine-structure-editor/tests/test_harness_mutations.py` (new)
+7. `machine-structure-editor/tests/test_harness_persistence.py` (new)
+
+The accepted model supports stable harness identity and names, direct semantic-connection membership, child harness relationships, properties, and provenance. It validates referenced harnesses and connections, single ownership of direct connection membership, single parentage, and acyclic nesting. Recursive leaf-wire counts are available.
+
+The mutation layer supports create, update, delete, add/remove connection membership, and attach/detach child harness operations. Deleting a connection or component removes only the now-invalid incident connection memberships from affected harnesses; it preserves the harnesses, child relationships, and unrelated memberships.
+
+Persistence registers the harness model and validates it on load. The file format version remains 1. Existing version-1 files without a `harnesses` field load with an empty harness collection. Legacy free-text `harness_id` data remains intact; no automatic migration was introduced.
+
+### Validation evidence
+
+The reported project `.venv` results accepted by Planning are:
+
+- `tests/test_semantic_harness.py`: 24 passed.
+- `tests/test_harness_mutations.py`: 7 passed.
+- `tests/test_harness_persistence.py`: 5 passed.
+- `tests/test_persistence.py tests/test_store_persistence.py`: 25 passed.
+- `tests/test_semantic_model.py`: 24 passed.
+- Full project suite: 927 passed in 9.01 seconds, exit code 0.
+- Collection: 927 tests collected.
+- `git diff --check` passed for the authorized implementation paths.
+
+These results establish the reported automated Stage 1 validation. They do not establish GUI acceptance or authorize Stage 2.
+
+### Other current worktree state to preserve
+
+The preflight also showed existing local changes outside the seven Stage 1 paths: #4 routing/UI files and tests, #3's controller-board handoff and stepper-motor test, and the user-owned wiring diagnostic fixture. Two unusual untracked console-artifact filenames were also present. None belongs in the Stage 1 documentation commit. Do not stage, clean, reset, stash, or otherwise alter these items as part of this publication.
+
+### GUI acceptance status
+
+The narrow Phase C delete/undo focus-recovery check was manually reported as corrected: undo restored the expected view. This is not an overall GUI acceptance.
+
+The latest recorded GUI acceptance still has unresolved wire presentation issues: four-wire fan-out is not consistently visible inside the contact cone, the black wire can overlap or obscure other stubs, and the overall in-cone wire presentation remains unaccepted. Responsiveness had improved but was still reported as laggy. Keep GUI observations separate from automated test results and do not mark the editor fully accepted.
+
+### Stage 2 boundary and next action
+
+Stage 2 remains unauthorized. It is the proposed harness authoring and dual-level rendering work: an overview representation of grouped harness routing and a detailed representation of individual semantic wires. The electrical semantic connections must remain the source of truth; visual grouping must not change connectivity, direction, or endpoint identity.
+
+Next actions, in order:
+
+1. Refresh the #4 replacement prompt as a concise current recovery snapshot consistent with this handoff.
+2. Recheck repository and remote state, confirm the shared index is empty, and publish only the two #4-owned documentation files in a documentation-only commit.
+3. Verify the resulting commit locally, against fetched `origin/main`, and against live remote `main`; then report publication and release the documentation slot to Planning.
+4. Submit a concrete Stage 2 implementation boundary and test plan to Planning for review. Do not implement Stage 2 until explicitly authorized.
+
+Keep this checkpoint as the current continuity record. Earlier checkpoints and investigation notes below remain historical evidence and must not override the accepted Stage 1 status above.
+
 <!-- MB4-GUI-ACCEPTANCE-20261028-OBSERVATIONS-01 -->
 ## Authoritative checkpoint - 2026-10-28: fresh GUI acceptance results
 
