@@ -1,78 +1,131 @@
 # Machine Builder #4 - Routing Stability / Diagnostics Replacement Prompt
 
-Prepared: 2026-10-30 09:16:49 -04:00
-Message ID: MB4-HARNESS-STAGE1-CURRENT-01
-Relationship: Current #4 recovery snapshot. Detailed chronology and prior investigation evidence remain in `04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`.
+Prepared: 2026-10-31 EDT
+Message ID: MB4-STAGE1-PUBLISHED-CURRENT-02
+Relationship: Current recovery snapshot; detailed chronology remains in `04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`.
 
-## Mission and ownership
+## Mission and boundaries
 
-Own routing, diagnostics, and visual integration work for Machine Builder. Preserve canonical semantic connections as the electrical source of truth; routing and harness presentation are views over that model. Coordinate shared-contract changes with Planning and the responsible workstream. Do not edit another workstream's owned files.
+Own Routing, diagnostics, and visual integration. Canonical semantic connections remain the electrical source of truth. Routing geometry and harness overview are presentation only. Coordinate shared canonical-contract changes with Planning and preserve other workstreams' files.
 
-## Recovery requirements
+## Repository and workflow
 
-- Repository: `C:\Users\Peter\Documents\GitHub\Machine-Builder`.
-- Read root `CHAT_WORKFLOW.md`, `MASTER_PLAN.md`, `PROJECT_CURRENT_STATE.md`, this workstream's handoff, and the #4 entry in `WORKSTREAM_FOCUS_INDEX.md`. Read `DOCUMENTATION_AUTHORITY.md` when ownership or publication authority is relevant.
-- Local source, tests, Git state, and fresh user-provided observations are authoritative. Recheck repository root, branch, HEAD, `origin/main`, live remote, shared index, and worktree before editing or publishing.
-- This is one shared checkout and one shared Git index. Preserve all staged, unstaged, and untracked changes. Never use broad add, reset, clean, stash, or force-push operations.
-- The user executes local PowerShell/Git commands and supplies output. Do not claim a change, test, or publication until returned evidence verifies it.
-- For repository work, do not use Python, Jupyter, pandas, notebooks, temporary scripts, or analysis artifacts. Use bounded PowerShell, Git, direct source inspection, and existing project tooling/tests.
-- Work one file or logical unit at a time. Verify exact anchors, make a guarded edit, read it back, inspect its focused diff, and run relevant checks separately. Keep console output bounded and PowerShell code fences plain.
+- Repository: `C:\Users\Peter\Documents\GitHub\Machine-Builder`
+- User executes local PowerShell/Git commands and supplies output. Never claim unverified local actions.
+- Read root `CHAT_WORKFLOW.md`, `MASTER_PLAN.md`, `PROJECT_CURRENT_STATE.md`, this handoff, the #4 focus-index entry, and `DOCUMENTATION_AUTHORITY.md` when ownership/authority matters.
+- Before editing or publishing, recheck root, branch, local HEAD, fetched `origin/main`, live remote main, shared index, and complete worktree status.
+- One shared checkout and index. Preserve all staged, unstaged, and untracked work. Never use broad add, reset, clean, stash, or force-push.
+- Use bounded PowerShell, Git, direct source inspection, and existing project tooling. No Python/Jupyter/pandas/notebooks or temporary analysis artifacts for repository work.
+- Work one logical unit/file at a time; verify anchors, read back edits, inspect focused diffs, and run relevant checks. Keep console output bounded; plain PowerShell fences only.
 
-## Verified baseline before this documentation update
+## Current published baseline
 
-At the 2026-10-30 08:40 EDT preflight, branch `main`, `HEAD`, `origin/main`, and live remote `main` all matched `367e427aa42a8c4606e09700d536b8bf73d68c19`; the shared index was empty. The #4 handoff continuity checkpoint was subsequently added locally. Reverify all refs and the index before publication; do not assume this baseline remains current.
+- Branch: `main`
+- Latest verified local `HEAD`, fetched `origin/main`, and live remote `main`: `e6e3710786cb0c2b31ac166f6d020db153ffb84f`
+- Commit: `feat: add canonical harness model and persistence`
+- This commit contains exactly the seven authorized Stage 1 harness implementation paths.
+- Normal push and post-push fetch/live-remote verification succeeded.
+- Shared index was empty after publication.
 
-## Stage 1 - accepted; implementation remains local-only
+Reverify all refs and index before further publication; this snapshot is not a substitute for live preflight.
 
-Planning accepted canonical harness Stage 1 under `MB-20261029-HARNESS-STAGE1-ACCEPTANCE-02`. Its exact seven implementation paths are:
+## Harness Stage 1 - published
 
-1. `machine-structure-editor/src/machine_builder/semantic_harness.py` (new)
-2. `machine-structure-editor/src/machine_builder/semantic_model.py` (modified)
-3. `machine-structure-editor/src/machine_builder/harness_mutations.py` (new)
-4. `machine-structure-editor/src/machine_builder/persistence.py` (modified)
-5. `machine-structure-editor/tests/test_semantic_harness.py` (new)
-6. `machine-structure-editor/tests/test_harness_mutations.py` (new)
-7. `machine-structure-editor/tests/test_harness_persistence.py` (new)
+Planning authorization: `MB-20261031-HARNESS-STAGE1-PUBLISH-AUTH-03`.
 
-The accepted model supports stable harness IDs/names, direct semantic-connection membership, child harness relationships, properties, provenance, hierarchy and ownership validation, cycle detection, and recursive leaf-wire counts. Mutations cover create/update/delete, connection membership, and child attachment/detachment. Connection/component deletion removes only invalid incident connection memberships while preserving harnesses, child relationships, and unrelated membership. Persistence remains format version 1; older version-1 files without `harnesses` load with an empty collection, and legacy free-text `harness_id` remains untouched.
+Published implementation:
+- `src/machine_builder/semantic_harness.py`
+- `src/machine_builder/semantic_model.py`
+- `src/machine_builder/harness_mutations.py`
+- `src/machine_builder/persistence.py`
+- `tests/test_semantic_harness.py`
+- `tests/test_harness_mutations.py`
+- `tests/test_harness_persistence.py`
 
-Reported and Planning-accepted validation: 24 semantic-harness tests, 7 mutation tests, 5 harness-persistence tests, 25 persistence/store tests, and 24 semantic-model tests passed. The full project suite reported 927 passed in 9.01 seconds (exit 0); collection found 927 tests; implementation `git diff --check` passed. Treat these as reported automated results, not GUI acceptance.
+The canonical model supports direct connection membership, nested child harnesses, ownership/hierarchy validation, cycle prevention, recursive leaf-connection counts, deletion cleanup, and provenance/properties. Mutations implement create/update/delete, membership, and child attach/detach. `ModelStore.commit()` provides atomic application and existing undo/redo. Deletion is restricted to empty, detached harnesses.
 
-All seven implementation paths remain local-only. They are not authorized for this documentation commit.
+Persistence remains format version 1. Legacy files without `harnesses` load with an empty collection. Legacy free-text `harness_id` data is preserved; it is not canonical harness identity.
 
-## Other worktree changes to preserve
+Fresh publication-session validation:
+- Three Stage 1 test files: 36 passed in 0.24 seconds.
+- Full project suite: 927 passed in 10.36 seconds.
+- Staged exact-path check and `git diff --cached --check` passed.
 
-The last preflight also showed #4 changes in `canvas_scene.py`, `canvas_ui.py`, `graphics/connection_routing_pathfinder.py`, `tests/test_connection_routing.py`, and `tests/test_functional_interface_connection.py`; #3 changes in its handoff and `tests/test_stepper_motor_terminal_profile.py`; a user-owned wiring diagnostic fixture; and two unusual untracked console-artifact filenames. Reinspect current status and preserve all of them. None belongs in the documentation commit.
+## Current remaining local work to preserve
 
-## GUI acceptance status
+Last reported status after Stage 1 publication:
 
-The narrow Phase C delete/undo focus-recovery check was manually reported corrected: undo restored the expected view. Overall GUI acceptance remains incomplete. The latest recorded observations still report inconsistent four-wire visibility inside the contact cone, black-wire overlap/occlusion of other stubs, and responsiveness that improved but remained laggy. Keep manual GUI findings distinct from automated test results; do not mark the editor fully accepted.
+#4 modified:
+- `src/machine_builder/canvas_scene.py`
+- `src/machine_builder/canvas_ui.py`
+- `src/machine_builder/graphics/connection_routing_pathfinder.py`
+- `tests/test_connection_routing.py`
+- `tests/test_functional_interface_connection.py`
 
-## Current documentation authorization and next actions
+#3 modified:
+- `handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
 
-Planning's `MB-20261029-HARNESS-STAGE1-ACCEPTANCE-02` authorizes #4 to update and publish these two #4-owned paths without another Planning approval:
+#3 untracked:
+- `tests/test_stepper_motor_terminal_profile.py`
 
-- `machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`
-- `machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md`
+User-owned modified fixture:
+- `wiring test machines/Maestro and 4 port motor 4 wires J9 contact view.machine.json`
 
-The handoff received a new Stage 1 acceptance continuity checkpoint. This prompt now reflects that checkpoint. Publish only these two documents in a dedicated documentation-only commit:
+These paths are not part of Stage 1. Preserve them and recheck current status before acting.
 
-1. Fetch and verify branch, HEAD, `origin/main`, live remote main, and an empty shared index immediately before staging.
-2. Stage the two exact paths only. Inspect the complete staged diff, confirm no unrelated content is staged, and run `git diff --cached --check`.
-3. Commit and push with normal, non-forced operations. Do not include implementation changes or any other workstream/user files.
-4. Verify the commit locally, against fetched `origin/main`, and against live remote main. Report the exact commit and release the documentation slot to Planning.
-5. Submit a concrete Stage 2 implementation boundary and test plan to Planning. Do not implement Stage 2 until explicitly authorized.
+## Current #4 routing/focus work and evidence
 
-## Stage 2 proposal boundary - not authorized for implementation
+The two changed #4 regression test files most recently passed:
+- `tests/test_connection_routing.py`
+- `tests/test_functional_interface_connection.py`
+- Result: 84 passed in 4.82 seconds.
 
-The proposed Stage 2 scope is harness authoring plus dual-level presentation: a grouped overview/trunk representation and a detailed view of individual semantic wires. Harness membership remains organizational/presentational; it must not create, delete, merge, redirect, or alter electrical semantic connections, endpoint identity, or signal direction.
+Current reported five-file #4 diff summary: 564 insertions, 72 deletions. The routing tests include protected-segment index equivalence/conflict coverage and a tolerance sweep.
 
-The Planning proposal should define:
+Keep acceptance categories distinct:
 
-- UI operations for creating, renaming, deleting, nesting, attaching, and detaching harnesses, including undo/redo and persistence behavior.
-- Overview rendering for grouped members and detailed rendering for the original individual wires. Switching levels must preserve the exact underlying semantic connections.
-- Deterministic treatment of branches, shared endpoints, nested groups, and ambiguous or disconnected topology. Ambiguous grouping must fall back safely to individual-wire presentation rather than imply an electrical junction.
-- Tests for model invariance across view changes; membership and hierarchy operations; undo/redo; save/reload; nested and branched topology; selection/hit testing; and both rendering levels. Include explicit GUI acceptance cases.
-- A strict separation between visual trunk geometry and electrical connectivity/direction. A visual trunk is not a physical conductor or a new semantic connection.
+- Protected-segment index: automated regression tests pass; still evaluate interactive responsiveness with the latest implementation.
+- Port-detail recovery after deletion/undo: user previously reported manual correction; automated recovery and persistence tests pass. Retain the manual result as reported observation, not a substitute for GUI review.
+- Connector-cone in-wire visibility: still open; four-wire fan-out must be consistently visible.
+- Four-wire colored-stub overlap: still open; black wire must not occlude or suppress other stubs.
+- Responsiveness: previously improved but still laggy; fresh interactive acceptance is outstanding.
 
-Stage 2 remains pending Planning review and explicit authorization. Do not change rendering or authoring code for it before that authorization.
+Do not mark the GUI or routing work fully accepted until the remaining visibility, overlap, and responsiveness checks are completed and recorded.
+
+## Stage 2 sequencing decisions
+
+Planning's decision: `MB-20261031-HARNESS-STAGE1-PUBLISH-AUTH-03`; proposal reconciliation: `MB-20261031-STAGE2-RECONCILIATION-02`.
+
+**Stage 2A is approved in principle, not yet authorized to implement.** Wait until the current #4 routing/focus work in `canvas_ui.py` and `canvas_scene.py` is reconciled, accepted, and published as its own unit.
+
+Candidate Stage 2A production paths:
+- New `src/machine_builder/harness_panel.py`
+- `src/machine_builder/canvas_ui.py`
+- `src/machine_builder/canvas_editing.py`
+- `src/machine_builder/canvas_selection.py`
+
+Candidate tests:
+- New `tests/test_harness_store_integration.py`
+- New `tests/test_harness_authoring_ui.py`
+- Extend `tests/test_canvas_ui.py`
+
+Use the published Stage 1 mutations through `ModelStore.commit()`. Do not create a separate undo system. Preserve validation, safe empty-harness deletion, persistence, and all electrical connection identities/endpoints/properties.
+
+**Stage 2B is approved as the following architecture increment, but requires separate authorization after Stage 2A passes.** It will derive an overview from existing member connections and routes, flatten nested harnesses to leaf connections, preserve branch distinctions, safely fall back for ambiguous/disconnected geometry, and retain individually selectable original wires in Detailed view. No new electrical connections, junctions, endpoint assignments, or route-topology changes for visual trunks.
+
+Proposed Stage 2B paths:
+- New `src/machine_builder/harness_presentation.py`
+- New `src/machine_builder/graphics/harness.py`
+- `src/machine_builder/canvas_scene.py`
+- `src/machine_builder/canvas_ui.py`
+- `src/machine_builder/canvas_selection.py`
+- New tests `test_harness_presentation.py` and `test_harness_graphics.py`
+- Extend `test_canvas_scene.py` and `test_canvas_ui.py`
+
+View level belongs in presentation state, not canonical electrical semantics. Do not change Stage 1 model/persistence/store contracts or routing internals without Planning review.
+
+## Immediate next action
+
+Finish the current #4 routing/focus unit. Resolve four-wire cone visibility and overlap; evaluate responsiveness; retain explicit manual acceptance of focus recovery. Keep #3 and the user-owned fixture outside the #4 implementation publication. Reconcile exact paths, tests, full diffs, shared index, and remote state before publishing that unit.
+
+Do not begin Stage 2A until that publication is accepted. Do not begin Stage 2B until Stage 2A is accepted and Stage 2B is separately authorized.

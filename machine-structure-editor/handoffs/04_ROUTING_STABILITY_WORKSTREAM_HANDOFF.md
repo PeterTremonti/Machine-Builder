@@ -1,3 +1,74 @@
+<!-- MB4-STAGE1-PUBLISHED-20261031 -->
+
+## Authoritative continuity checkpoint - 2026-10-31: Stage 1 published; Routing/focus remains open
+
+Prepared: 2026-10-31 EDT | Message ID: MB4-STAGE1-PUBLISHED-20261031-01
+Relationship: Planning authorization MB-20261031-HARNESS-STAGE1-PUBLISH-AUTH-03; reconciliation MB-20261031-STAGE2-RECONCILIATION-02.
+
+### Verified publication
+
+- Authorized baseline: `f12bdce90c4dd8d61a4d215cd1c87595a8b4c177`.
+- Published commit: `e6e3710786cb0c2b31ac166f6d020db153ffb84f`.
+- Subject: `feat: add canonical harness model and persistence`.
+- Branch: `main`.
+- After normal push and fetch, local `HEAD`, `origin/main`, and live remote `main` all matched the published commit.
+- Exactly the seven Planning-authorized Stage 1 paths were committed. No routing, focus, Board, or user fixture paths were included.
+- The shared index was empty before staging. The seven exact staged paths passed `git diff --cached --check`.
+
+### Fresh Stage 1 validation
+
+- Three Stage 1 test files: 36 passed in 0.24 seconds.
+- Full project `.venv` suite: 927 passed in 10.36 seconds.
+- These are fresh results from the publication session. They supersede the earlier reported 927-test run for this implementation.
+- Automated validation does not establish GUI acceptance.
+
+### Remaining worktree state after Stage 1 publication
+
+The final reported status retained only:
+
+- #4 modified: `src/machine_builder/canvas_scene.py`
+- #4 modified: `src/machine_builder/canvas_ui.py`
+- #4 modified: `src/machine_builder/graphics/connection_routing_pathfinder.py`
+- #4 modified: `tests/test_connection_routing.py`
+- #4 modified: `tests/test_functional_interface_connection.py`
+- #3 modified: `handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
+- #3 untracked: `tests/test_stepper_motor_terminal_profile.py`
+- User-owned modified fixture: `wiring test machines/Maestro and 4 port motor 4 wires J9 contact view.machine.json`
+
+All remain outside the Stage 1 commit. Preserve them and recheck the shared index before any future publication.
+
+### Routing/focus validation and acceptance state
+
+After the Stage 1 publication, the two modified #4 regression test files passed: 84 passed in 4.82 seconds.
+
+The current #4 production/test diff summary was:
+- `canvas_scene.py`: 37 changed lines
+- `canvas_ui.py`: 23 changed lines
+- `connection_routing_pathfinder.py`: 155 changed lines
+- `test_connection_routing.py`: 275 changed lines
+- `test_functional_interface_connection.py`: 146 changed lines
+- Total: 564 insertions and 72 deletions
+
+The routing tests include protected-segment index checks against the exact conflict predicate and a tolerance sweep intended to ensure the index does not omit conflicts. Automated test success does not by itself establish acceptable interactive responsiveness.
+
+GUI acceptance remains open:
+- Four-wire fan-out must be visibly and consistently rendered inside the connector cone.
+- The black wire must not overlap or obscure the other colored stubs.
+- Responsiveness must be evaluated against the current performance-index implementation and accepted by actual interaction, not inferred from tests.
+- Port-detail recovery after deleting wires/a controller and undo was previously reported manually corrected. Automated recovery and view-state persistence tests now pass; retain the manual observation as a separate evidence category.
+
+Do not mark the overall editor GUI accepted until the outstanding visibility, overlap, and responsiveness checks have been performed.
+
+### Stage 2 authorization and sequencing
+
+Planning approved Stage 2A in principle, but explicitly restricted implementation until the current #4 routing/focus work involving `canvas_ui.py` and `canvas_scene.py` is reconciled and published as its own accepted unit.
+
+Stage 2B is the following increment and requires separate authorization after Stage 2A acceptance. Preserve the architecture boundaries in the Planning decision MB-20261031-HARNESS-STAGE1-PUBLISH-AUTH-03. Do not implement either stage prematurely.
+
+### Next action
+
+#4 owns completion and acceptance of the remaining routing/focus work. Keep its implementation publication separate from #3 and the user-owned fixture. Once the five #4 paths are ready, perform the full shared-index, exact-path, test, diff, and remote publication checks required by CHAT_WORKFLOW.md. Only after that accepted publication may Stage 2A begin.
+
 <!-- MB4-STAGE1-ACCEPTANCE-CONTINUITY-20261030-01 -->
 
 ## Authoritative continuity checkpoint - Harness Stage 1 accepted
