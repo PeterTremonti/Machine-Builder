@@ -15,6 +15,7 @@ from .controller_resource_assignment import (
     ControllerResourceAssignment,
 )
 from .semantic_capability import Capability
+from .semantic_harness import Harness
 
 
 @dataclass
@@ -195,6 +196,10 @@ class CanonicalMachineModel:
         default_factory=dict
     )
 
+    harnesses: dict[str, Harness] = field(
+        default_factory=dict
+    )
+
     def add_machine(
         self,
         machine: Machine,
@@ -273,6 +278,9 @@ class CanonicalMachineModel:
             )
         ]
         for connection_id in connection_ids:
+            self._remove_connection_from_harnesses(
+                connection_id
+            )
             del self.connections[
                 connection_id
             ]
@@ -1068,12 +1076,240 @@ class CanonicalMachineModel:
                 f"Unknown connection: {connection_id}"
             )
 
+        self._remove_connection_from_harnesses(
+            connection_id
+        )
         del self.connections[
             connection_id
         ]
 
         return connection
 
+
+    def add_harness(
+        self,
+        harness: Harness,
+    ) -> None:
+        """Add a harness after validating its referenced model objects."""
+        if harness.id in self.harnesses:
+            raise ValueError(
+                f"Harness already exists: {harness.id}"
+            )
+
+        self.harnesses[harness.id] = harness
+        try:
+            self.validate_harnesses()
+        except Exception:
+            del self.harnesses[harness.id]
+            raise
+
+    def validate_harnesses(self) -> None:
+        """Validate harness references, unique ownership, and hierarchy."""
+        parents: dict[str, str] = {}
+        connection_owners: dict[str, str] = {}
+
+        for harness_id, harness in self.harnesses.items():
+            if harness_id != harness.id:
+                raise ValueError(
+                    f"Harness key/ID mismatch: {harness_id}"
+                )
+
+            for label, identifiers in (
+                ("direct connection", harness.member_connection_ids),
+                ("child harness", harness.child_harness_ids),
+            ):
+                if not isinstance(identifiers, list):
+                    raise ValueError(
+                        f"Harness {harness_id} {label} membership "
+                        "must be a list."
+                    )
+                if any(
+                    not isinstance(identifier, str)
+                    or not identifier.strip()
+                    for identifier in identifiers
+                ):
+                    raise ValueError(
+                        f"Harness {harness_id} has an invalid {label} ID."
+                    )
+                if len(identifiers) != len(set(identifiers)):
+                    raise ValueError(
+                        f"Harness {harness_id} repeats a {label} ID."
+                    )
+
+            for connection_id in harness.member_connection_ids:
+                if connection_id not in self.connections:
+                    raise ValueError(
+                        f"Harness {harness_id} references unknown "
+                        f"connection: {connection_id}"
+                    )
+                previous_owner = connection_owners.get(connection_id)
+                if previous_owner is not None:
+                    raise ValueError(
+                        f"Connection {connection_id} belongs directly "
+                        f"to both {previous_owner} and {harness_id}."
+                    )
+                connection_owners[connection_id] = harness_id
+
+            for child_id in harness.child_harness_ids:
+                if child_id not in self.harnesses:
+                    raise ValueError(
+                        f"Harness {harness_id} references unknown "
+                        f"child harness: {child_id}"
+                    )
+                if child_id == harness_id:
+                    raise ValueError(
+                        f"Harness {harness_id} cannot contain itself."
+                    )
+                previous_parent = parents.get(child_id)
+                if previous_parent is not None:
+                    raise ValueError(
+                        f"Harness {child_id} has conflicting parents: "
+                        f"{previous_parent} and {harness_id}."
+                    )
+                parents[child_id] = harness_id
+
+        visiting: set[str] = set()
+        visited: set[str] = set()
+
+        def visit(harness_id: str) -> None:
+            if harness_id in visiting:
+                raise ValueError(
+                    f"Harness hierarchy contains a cycle at {harness_id}."
+                )
+            if harness_id in visited:
+                return
+
+            visiting.add(harness_id)
+            for child_id in self.harnesses[harness_id].child_harness_ids:
+                visit(child_id)
+            visiting.remove(harness_id)
+            visited.add(harness_id)
+
+        for harness_id in self.harnesses:
+            visit(harness_id)
+
+    def add_harness_connection(
+        self,
+        harness_id: str,
+        connection_id: str,
+    ) -> None:
+        """Add an existing connection as a direct harness member."""
+        harness = self.harnesses.get(harness_id)
+        if harness is None:
+            raise KeyError(f"Unknown harness: {harness_id}")
+        if connection_id not in self.connections:
+            raise ValueError(
+                f"Unknown connection: {connection_id}"
+            )
+        if connection_id in harness.member_connection_ids:
+            raise ValueError(
+                f"Connection already belongs to harness: {connection_id}"
+            )
+
+        harness.member_connection_ids.append(connection_id)
+        try:
+            self.validate_harnesses()
+        except Exception:
+            harness.member_connection_ids.pop()
+            raise
+
+    def remove_harness_connection(
+        self,
+        harness_id: str,
+        connection_id: str,
+    ) -> None:
+        """Remove a direct member without deleting the electrical connection."""
+        harness = self.harnesses.get(harness_id)
+        if harness is None:
+            raise KeyError(f"Unknown harness: {harness_id}")
+        if connection_id not in harness.member_connection_ids:
+            raise ValueError(
+                f"Connection is not a direct member: {connection_id}"
+            )
+        harness.member_connection_ids.remove(connection_id)
+
+    def add_child_harness(
+        self,
+        harness_id: str,
+        child_harness_id: str,
+    ) -> None:
+        """Attach an existing harness as a child, rejecting invalid trees."""
+        harness = self.harnesses.get(harness_id)
+        if harness is None:
+            raise KeyError(f"Unknown harness: {harness_id}")
+        if child_harness_id not in self.harnesses:
+            raise ValueError(
+                f"Unknown child harness: {child_harness_id}"
+            )
+        if child_harness_id in harness.child_harness_ids:
+            raise ValueError(
+                f"Child harness already attached: {child_harness_id}"
+            )
+
+        harness.child_harness_ids.append(child_harness_id)
+        try:
+            self.validate_harnesses()
+        except Exception:
+            harness.child_harness_ids.pop()
+            raise
+
+    def remove_child_harness(
+        self,
+        harness_id: str,
+        child_harness_id: str,
+    ) -> None:
+        """Detach a child while preserving both harness objects."""
+        harness = self.harnesses.get(harness_id)
+        if harness is None:
+            raise KeyError(f"Unknown harness: {harness_id}")
+        if child_harness_id not in harness.child_harness_ids:
+            raise ValueError(
+                f"Child harness is not attached: {child_harness_id}"
+            )
+        harness.child_harness_ids.remove(child_harness_id)
+
+    def get_harness_connection_ids(
+        self,
+        harness_id: str,
+    ) -> list[str]:
+        """Return each recursively contained leaf connection exactly once."""
+        if harness_id not in self.harnesses:
+            raise KeyError(f"Unknown harness: {harness_id}")
+
+        self.validate_harnesses()
+        result: list[str] = []
+        seen: set[str] = set()
+
+        def collect(current_id: str) -> None:
+            harness = self.harnesses[current_id]
+            for connection_id in harness.member_connection_ids:
+                if connection_id not in seen:
+                    seen.add(connection_id)
+                    result.append(connection_id)
+            for child_id in harness.child_harness_ids:
+                collect(child_id)
+
+        collect(harness_id)
+        return result
+
+    def get_harness_conductor_count(
+        self,
+        harness_id: str,
+    ) -> int:
+        """Count the unique leaf wire connections contained by a harness."""
+        return len(self.get_harness_connection_ids(harness_id))
+
+    def _remove_connection_from_harnesses(
+        self,
+        connection_id: str,
+    ) -> None:
+        """Drop only direct references to a connection being deleted."""
+        for harness in self.harnesses.values():
+            harness.member_connection_ids = [
+                member_id
+                for member_id in harness.member_connection_ids
+                if member_id != connection_id
+            ]
     def get_component(
         self,
         component_id: str,

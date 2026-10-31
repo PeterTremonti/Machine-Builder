@@ -29,6 +29,7 @@ from .controller_resource_assignment import (
 from .editor_state import EditorState
 from .semantic_capability import Capability
 from .semantic_connection import SemanticConnection
+from .semantic_harness import Harness
 from .semantic_model import (
     CanonicalMachineModel,
     Function,
@@ -74,6 +75,7 @@ _TYPE_REGISTRY: dict[str, PersistableType] = {
         ControllerResource,
         ControllerResourceAssignment,
         SemanticConnection,
+        Harness,
         SemanticRelationship,
         SemanticValue,
         SemanticValueStatus,
@@ -361,6 +363,13 @@ def deserialize_editor_state(
         raise ValueError(
             "Persistence document did not contain an EditorState."
         )
+
+    try:
+        state.semantic_model.validate_harnesses()
+    except (AttributeError, TypeError, ValueError) as error:
+        raise ValueError(
+            f"Invalid persisted harness membership: {error}"
+        ) from error
 
     return state
 
