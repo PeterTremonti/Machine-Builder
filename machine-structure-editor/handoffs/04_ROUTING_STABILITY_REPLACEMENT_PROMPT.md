@@ -18,16 +18,16 @@ Own Routing, diagnostics, and visual integration. Canonical semantic connections
 - Use bounded PowerShell, Git, direct source inspection, and existing project tooling. No Python/Jupyter/pandas/notebooks or temporary analysis artifacts for repository work.
 - Work one logical unit/file at a time; verify anchors, read back edits, inspect focused diffs, and run relevant checks. Keep console output bounded; plain PowerShell fences only.
 
-## Current published baseline
+## Published implementation and documentation commits
 
-- Branch: `main`
-- Latest verified local `HEAD`, fetched `origin/main`, and live remote `main`: `e6e3710786cb0c2b31ac166f6d020db153ffb84f`
-- Commit: `feat: add canonical harness model and persistence`
-- This commit contains exactly the seven authorized Stage 1 harness implementation paths.
-- Normal push and post-push fetch/live-remote verification succeeded.
-- Shared index was empty after publication.
+- Stage 1 implementation commit: `e6e3710786cb0c2b31ac166f6d020db153ffb84f`
+- Subject: `feat: add canonical harness model and persistence`
+- This commit contains exactly the seven authorized Stage 1 harness implementation paths. Normal push and post-push fetch/live-remote verification succeeded.
+- Subsequent #4 documentation-only commit: `437750739c990c65de2d1b1956f7c7b39e7150a3`
+- Subject: `docs: update routing handoff after harness publication`
+- That documentation commit contains exactly the two #4-owned handoff/replacement-prompt paths; normal push and post-push fetch/live-remote verification succeeded.
 
-Reverify all refs and index before further publication; this snapshot is not a substitute for live preflight.
+These are publication records, not a guarantee of the current repository HEAD. Reverify branch, HEAD, fetched `origin/main`, live remote main, shared index, and worktree before further work or publication.
 
 ## Harness Stage 1 - published
 
