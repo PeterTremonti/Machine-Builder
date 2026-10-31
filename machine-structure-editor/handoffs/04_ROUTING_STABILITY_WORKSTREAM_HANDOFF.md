@@ -1,3 +1,43 @@
+<!-- MB4-GUI-OBSERVATIONS-20261031-01 -->
+
+## Authoritative GUI observation checkpoint - 2026-10-31: Cone visibility improved; route reliability and geometry remain open
+
+Prepared: 2026-10-31 EDT | Message ID: MB4-GUI-OBSERVATIONS-20261031-01
+Relationship: Fresh user observations and screenshots committed in `e577e35f1a1412b16d79b1da7406c41bff8879f6`.
+
+### Screenshot evidence
+
+The screenshot commit adds:
+- `screenshots/Screenshot 2026-10-31 152244.png`
+- `screenshots/Screenshot 2026-10-31 152351.png`
+- `screenshots/Screenshot 2026-10-31 152516.png`
+
+The screenshots show the four colored wire paths visible in the captured connector-cone configurations. They also show awkward black-wire routing and terminal labels positioned on the wire-facing side.
+
+### Updated user-reported GUI acceptance
+
+- **Wire visibility inside cones: PROVISIONALLY PASS.** The user reports that all wires now remain visible in the cones in the configurations inspected. The three screenshots are consistent with that observation. Do not claim every possible configuration has been exhaustively tested.
+- **Route-generation reliability: FAIL / OPEN.** A wire can fail to generate when another wire is in its way. This is not merely a cosmetic overlap. Reproduce the blocked-route case and determine whether route selection, fallback, or rendering suppresses the connection. Every existing semantic connection must remain represented; a blocked preferred route must not silently make another wire disappear.
+- **Black-wire cone approach: OPEN.** The black wire takes an undesirable path and enters the side of the cone at some point. Inspect endpoint escape and cone-boundary approach geometry. The wire should approach through the intended terminal/fan-out region rather than penetrate the cone laterally.
+- **Motor terminal label placement: OPEN.** In the last screenshot, terminal labels are on the wire-facing side of the motor terminals and are difficult to read. Place labels on the non-wire-facing side where practical, keeping them legible and clear of both terminal markers and route geometry. Check both endpoint orientations.
+- **Responsiveness: IMPROVED / PROVISIONALLY ACCEPTABLE FOR CURRENT SCENE.** The user reports smooth movement and a noticeable improvement over the former long delay before visible movement. Do not claim a general performance pass yet.
+- **Multi-module responsiveness: NOT YET TESTED.** Repeat interaction/performance acceptance with multiple modules involved.
+- **Port-detail recovery: PREVIOUSLY REPORTED MANUALLY CORRECTED.** Retain the separate automated recovery/persistence test evidence; do not conflate it with the new routing observations.
+
+### Revised remaining acceptance work
+
+1. Reproduce a connection whose route is prevented from generating by an existing wire. Capture the affected connection IDs and distinguish route-candidate rejection, fallback failure, and scene-item omission. Preserve every semantic connection and provide a legal alternate route or a clearly handled fallback.
+2. Correct the black-wire approach to the connector cone so it enters at the intended terminal/fan-out region and does not cut through the cone side.
+3. Reposition motor terminal labels away from the wire-facing side and verify readability in both endpoint orientations.
+4. Retest the four-wire arrangement with different creation/order and obstruction conditions. Confirm all four connections remain visible and individually selectable.
+5. Evaluate responsiveness in a larger scene containing multiple modules. Current single/small-scene improvement is encouraging but is not a scaling acceptance result.
+
+Keep wire visibility, route-generation reliability, endpoint/cone geometry, label placement, and performance as separate acceptance criteria. A screenshot showing all four wires does not prove route-generation reliability in every obstructed configuration.
+
+### Stage 2 sequencing
+
+Stage 2A remains blocked until this current Routing/focus work is reconciled and published as its own accepted unit. Stage 2B still requires separate authorization after Stage 2A acceptance. Do not begin either stage as part of these GUI corrections.
+
 <!-- MB4-STAGE1-PUBLISHED-20261031 -->
 
 ## Authoritative continuity checkpoint - 2026-10-31: Stage 1 published; Routing/focus remains open

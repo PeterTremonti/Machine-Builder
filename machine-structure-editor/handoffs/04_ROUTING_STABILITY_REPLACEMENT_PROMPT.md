@@ -80,17 +80,21 @@ The two changed #4 regression test files most recently passed:
 - `tests/test_functional_interface_connection.py`
 - Result: 84 passed in 4.82 seconds.
 
-Current reported five-file #4 diff summary: 564 insertions, 72 deletions. The routing tests include protected-segment index equivalence/conflict coverage and a tolerance sweep.
+The five-file #4 diff was last reported as 564 insertions and 72 deletions. Recheck current diffs and tests before implementation publication.
 
 Keep acceptance categories distinct:
 
-- Protected-segment index: automated regression tests pass; still evaluate interactive responsiveness with the latest implementation.
-- Port-detail recovery after deletion/undo: user previously reported manual correction; automated recovery and persistence tests pass. Retain the manual result as reported observation, not a substitute for GUI review.
-- Connector-cone in-wire visibility: still open; four-wire fan-out must be consistently visible.
-- Four-wire colored-stub overlap: still open; black wire must not occlude or suppress other stubs.
-- Responsiveness: previously improved but still laggy; fresh interactive acceptance is outstanding.
+- **Protected-segment index:** automated regression tests pass. The user now reports smooth, substantially quicker responsiveness than the former severe delay. Provisionally acceptable for the current scene; multiple-module scaling remains untested.
+- **Port-detail recovery after deletion/undo:** user previously reported manual correction; automated recovery and persistence tests pass. Retain the manual result as separate evidence.
+- **Connector-cone wire visibility: PROVISIONAL PASS.** The user reports that all wires remain visible inside the cones in the configurations inspected. The three screenshots committed in `e577e35f1a1412b16d79b1da7406c41bff8879f6` are consistent with that observation. This is not an exhaustive test of all geometries.
+- **Route-generation reliability: OPEN DEFECT.** The user reports that a wire can fail to generate when another wire is in its way. Reproduce this separately from visibility/overlap; determine whether route selection, fallback, or scene synchronization suppresses the connection. A blocked preferred route must not silently make an existing semantic connection disappear.
+- **Black-wire cone approach: OPEN.** The black route takes an awkward approach and enters the side of the cone. It should approach through the intended terminal/fan-out region rather than penetrate the cone laterally.
+- **Motor terminal labels: OPEN.** In the last screenshot the labels are on the wire-facing side of the terminals and are difficult to read. Prefer the non-wire-facing side where practical; check both endpoint orientations and avoid route/terminal overlap.
+- **Multi-module responsiveness: NOT YET TESTED.** Current-scene responsiveness is provisionally acceptable, but repeat interaction testing with multiple modules before making a broader performance claim.
 
-Do not mark the GUI or routing work fully accepted until the remaining visibility, overlap, and responsiveness checks are completed and recorded.
+The three screenshots show all four paths visible in those captured arrangements. They demonstrate awkward black-wire geometry and label placement; they do not by themselves reproduce the separate blocked-route generation failure.
+
+Do not mark the routing/focus work fully accepted until route-generation reliability, black-wire approach, label placement, and multi-module responsiveness have been checked and recorded. Keep each criterion separate.
 
 ## Stage 2 sequencing decisions
 
