@@ -4,7 +4,7 @@
 
 **Status:** Living project snapshot; not a replacement for architecture/decision documents.
 
-**Last updated:** 2026-10-04
+**Last updated:** 2026-11-01
 
 ---
 
@@ -1255,3 +1255,60 @@ Finish review and publication of Planning's five owned documentation paths separ
 ### Concurrent-state qualification
 
 The current supplied worktree status contains 29 changed/untracked paths: five Planning-owned paths and 24 paths owned by other workstreams. Keep those paths outside this Planning batch. The Research checkpoint is published; its later handoff/prompt refreshes remain local-only. Recheck current status, refs, and the shared index before publication.
+
+## Planning Synchronization Checkpoint - 2026-11-01
+
+**Verified repository checkpoint:** branch `main`; local HEAD, fetched `origin/main`, and live remote `main` matched at `387dc22f327d6a1fd1d823319d8b509c3af826d1`. The shared index was empty at the pre-edit inspection. Planning documentation edits are being made separately and remain local.
+
+### Planning documentation maintenance
+
+- `CHAT_WORKFLOW.md` now requires Planning to review `WORKSTREAM_FOCUS_INDEX.md` and `PROJECT_CURRENT_STATE.md` together at least every seven calendar days while the project is active, and immediately after material publications, acceptance decisions, ownership/dependency changes, blockers, or next-action changes.
+- `WORKSTREAM_FOCUS_INDEX.md` has been refreshed for #4 using the November 1 checkpoint. It now records the published Stage 1 foundation, six current local #4 paths, current acceptance findings, and Stage 2 sequencing.
+- This checkpoint updates the cross-workstream state. Historical sections below are retained as historical records and are superseded where this dated checkpoint states newer information.
+
+### #4 Routing / Diagnostics / Visual Integration
+
+**Published harness foundation:**
+- Stage 1 implementation: `e6e3710786cb0c2b31ac166f6d020db153ffb84f` (`feat: add canonical harness model and persistence`).
+- #4 continuity documentation: `437750739c990c65de2d1b1956f7c7b39e7150a3` (`docs: update routing handoff after harness publication`).
+- Stage 1 is accepted and published. It provides canonical harness entities, nested membership, validation, mutations, deletion cleanup, and version-1 persistence compatibility.
+- The publication-session report recorded 36 Stage 1 focused tests passing and 927 full-suite tests passing in 10.36 seconds. These are historical reported test results, not tests rerun on November 1.
+
+**Current local #4 routing/focus implementation and tests:**
+- `machine-structure-editor/src/machine_builder/canvas_scene.py`
+- `machine-structure-editor/src/machine_builder/canvas_ui.py`
+- `machine-structure-editor/src/machine_builder/graphics/connection.py`
+- `machine-structure-editor/src/machine_builder/graphics/connection_routing_pathfinder.py`
+- `machine-structure-editor/tests/test_connection_routing.py`
+- `machine-structure-editor/tests/test_functional_interface_connection.py`
+
+These six paths were reported modified in the November 1 worktree inspection. They remain local and unpublished at this checkpoint. The latest reported focused routing and functional-interface test result is 84 passed in 4.82 seconds; no tests were rerun during the November 1 recovery review.
+
+**Latest reported GUI acceptance:**
+- Four-wire connector-cone visibility: PROVISIONAL PASS in the configurations inspected.
+- Route generation when another wire obstructs a route: OPEN / FAILING.
+- Black-wire approach to the intended terminal/fan-out region: OPEN.
+- Motor-terminal label placement and both endpoint orientations: OPEN.
+- Multi-module responsiveness: NOT TESTED.
+- Focus recovery after deletion/undo: an earlier manual correction was reported; explicit re-verification remains required.
+
+Do not treat automated tests as proof of GUI acceptance. Preserve each open issue as a separate criterion and distinguish user observations from directly verified results.
+
+### Stage 2 harness sequencing
+
+- Stage 1 is published and accepted.
+- Stage 2A harness authoring is approved in principle but is not authorized to implement until the current routing/focus work is accepted and published as a separate unit.
+- Stage 2B overview/detail rendering requires separate authorization after Stage 2A passes.
+- Stage 2 must consume the existing Stage 1 harness model and mutation operations. Do not create electrical connections or alter endpoint identities to represent presentation trunks.
+
+### Other workstream ownership and shared-checkout preservation
+
+- #3 owns the modified `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md` and untracked `machine-structure-editor/tests/test_stepper_motor_terminal_profile.py`. Keep both outside #4 and Planning changes.
+- The modified `machine-structure-editor/wiring test machines/Maestro and 4 port motor 4 wires J9 contact view.machine.json` is user-owned diagnostic data. Preserve it.
+- The six #4 implementation/test paths remain separate from the above #3 and user-owned paths.
+
+### Current next actions
+
+- **#4:** finish and validate the six-path routing/focus unit; resolve route-generation reliability, black-wire approach, terminal-label placement, and focus recovery; measure multi-module responsiveness; then reconcile exact scope and publication.
+- **#1 Planning:** maintain this cross-workstream snapshot and the Focus Index on the Section 35/weekly cadence; review #4 acceptance and publication evidence before Stage 2A authorization.
+- No new test result, GUI acceptance pass, implementation publication, or Stage 2 authorization is implied by this documentation checkpoint.

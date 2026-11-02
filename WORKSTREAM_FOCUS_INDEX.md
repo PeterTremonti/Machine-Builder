@@ -1,8 +1,8 @@
 # Workstream Focus Index
 
-Updated: 2026-10-20 18:38:16 -04:00
+Updated: 2026-11-01
 
-**Repository checkpoint:** branch `main`; local `HEAD`, `origin/main`, and live remote `main` matched at 2026-10-20 18:38:16 -04:00. The current worktree status contains 29 changed/untracked paths, and the shared index is empty. This is an observation, not a live lock.
+**Repository checkpoint:** `main` at `387dc22f327d6a1fd1d823319d8b509c3af826d1`, with local HEAD, fetched origin, and live remote matching on November 1, 2026. Shared index empty. Concurrent local work: six #4 paths, two #3 paths, one user-owned diagnostic fixture, and this Planning documentation update.
 
 ## Purpose and use
 
@@ -68,26 +68,41 @@ If the remote baseline advances after a grant, stop before staging and obtain ex
 
 ## #4 - Routing / Diagnostics / Visual Integration
 
-**Mission:** Routing behavior, connection diagnostics, and the visual editor. The current user-directed focus is progressive visual detail.
+**Mission:** Own routing, connection diagnostics, and visual integration while preserving canonical semantic connections as the electrical source of truth.
 
-**Read first:** `machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md`, the visual section of `MASTER_PLAN.md`, and current routing/functional-interface tests.
+**Read first:** Current #4 handoff and replacement prompt, `MASTER_PLAN.md`, `PROJECT_CURRENT_STATE.md`, and routing/functional-interface tests.
 
-**Focus files:**
-- `machine-structure-editor/src/machine_builder/canvas_ui.py` — Port detail dropdown and focus/detail selection.
-- `machine-structure-editor/src/machine_builder/canvas_scene.py` — scene connection updates, endpoint anchors, and routing integration.
-- `machine-structure-editor/src/machine_builder/graphics/node.py` — connector enclosure, labels, cone, and visual anchor.
-- `machine-structure-editor/src/machine_builder/graphics/connection.py` — rendered connection geometry and endpoint routing.
-- `machine-structure-editor/tests/test_functional_interface_connection.py` — visual-connection regression coverage.
+**Published foundation:**
+- Harness Stage 1 implementation: `e6e3710786cb0c2b31ac166f6d020db153ffb84f`.
+- #4 continuity documentation: `437750739c990c65de2d1b1956f7c7b39e7150a3`.
+- Stage 1 provides canonical harness entities, nested membership, validation, mutations, deletion cleanup, and version-1 persistence compatibility.
+- Publication validation reported 927 full-suite tests passing in 10.36 seconds. Historical result; not rerun November 1.
 
-**Current design:** The long-term goal is progressive inspection down to individual wires. The current experiment is a cone from a harness/connector group toward individual ports with per-port selection, not a completed true zoom mode. Preserve the user's approach-side sequence: `Part > Port > Wire > Cone > port list aligned to the controller edge > port labels`. Treat layout observations as user reports until GUI verification.
+**Current local #4 implementation/test paths (six):**
+- `machine-structure-editor/src/machine_builder/canvas_scene.py`
+- `machine-structure-editor/src/machine_builder/canvas_ui.py`
+- `machine-structure-editor/src/machine_builder/graphics/connection.py`
+- `machine-structure-editor/src/machine_builder/graphics/connection_routing_pathfinder.py`
+- `machine-structure-editor/tests/test_connection_routing.py`
+- `machine-structure-editor/tests/test_functional_interface_connection.py`
 
-**User observations to preserve:** Labels may be more readable inside the part/connector enclosure beside their ports. Functional/Detailed alignment may be intentional but needs confirmation. The cone was reported only under the J9Contacts selection, where wire, cone, and box placement appeared wrong; zooming in and out did not visibly change that presentation. These remain user reports pending GUI verification.
+These six paths were confirmed modified in the November 1 worktree inspection and remain local/unpublished at that checkpoint. This supersedes the earlier five-path inventory.
 
-**Latest reported validation:** The focused functional-interface, routing, wire-color, and stepper-terminal suite passed 73 tests; source compilation and `git diff --check` passed after EOF cleanup. Planning has not independently rerun these checks.
+**Latest reported GUI acceptance (November 1):**
+- Four-wire connector-cone visibility: PROVISIONAL PASS in configurations inspected.
+- Route generation when another wire obstructs a route: OPEN / FAILING.
+- Black-wire approach to intended terminal/fan-out region: OPEN.
+- Motor-terminal label placement and both endpoint orientations: OPEN.
+- Multi-module responsiveness: NOT TESTED.
+- Focus recovery after deletion/undo: earlier manual correction reported; retain explicit re-verification.
 
-**Open GUI acceptance:** Contact-fan-out readability, connector-box placement, overlapping-wire selection, and focus behavior across deletion, undo/redo, and reopening remain outstanding. #4 reported that a guarded marker-based update stopped without writing; the current handoff and recovery prompt must be checked directly.
+**Latest reported automated validation:** focused routing and functional-interface tests passed 84 tests in 4.82 seconds. No tests were rerun during the November 1 recovery review.
 
-**Next:** Inspect the exact existing handoff and recovery-prompt structure, update both in place and validate, then continue GUI acceptance. #4 released its publication slot as NOT READY.
+**Ownership:** #4 owns the six paths above. #3 owns its modified controller-board handoff and untracked stepper-terminal test. The Maestro wiring diagnostic fixture is user-owned. Preserve these boundaries.
+
+**Next action:** finish and validate the routing/focus work. Resolve route-generation reliability, black-wire approach geometry, terminal-label placement, multi-module responsiveness, and focus recovery. Record GUI observations separately from automated tests, then reconcile exact diffs and publication scope.
+
+**Harness Stage 2 sequencing:** Stage 1 is published and accepted. Stage 2A authoring remains approved in principle but is not authorized to implement until routing/focus work is accepted and published. Stage 2B overview/detail rendering requires separate authorization after Stage 2A passes.
 
 ## #5 - Efficiency / Modularization / Audit
 

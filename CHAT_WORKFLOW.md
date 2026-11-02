@@ -1489,6 +1489,19 @@ Planning integrates the project-wide picture and must not wait for an individual
 
 Batch related documentation edits sensibly, but do not knowingly leave the project-state record stale simply because no individual workstream has yet reached five commits. Update only documents appropriate to their established ownership and authority, and preserve unrelated concurrent changes.
 
+
+## Planning dashboard review cadence
+
+Planning owns `WORKSTREAM_FOCUS_INDEX.md` and `PROJECT_CURRENT_STATE.md` and must review them together at least once every seven calendar days while the project is active.
+
+Refresh both immediately after a material publication, acceptance decision, ownership or dependency change, significant blocker, or change to a workstream's next action. Do not wait for an individual workstream's five-commit handoff threshold.
+
+Base each review on the current repository checkpoint, complete worktree and index status, current workstream handoffs, and verified reports. Keep the Focus Index concise and navigational; keep Project Current State as the cross-workstream factual snapshot.
+
+Distinguish reported, locally inspected, tested, and published evidence. Record the checkpoint date and commit accurately. Preserve superseded historical decisions rather than rewriting them as though the newer state had always been true.
+
+If a scheduled review finds no substantive change and both documents remain accurate, do not manufacture edits or no-op commits. Resume the cadence at the next seven-day interval.
+
 ## Evidence status language
 
 Project reports and documentation must distinguish these different states:
