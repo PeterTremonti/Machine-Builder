@@ -369,6 +369,35 @@ def test_route_does_not_use_too_narrow_obstacle_corridor() -> None:
     )
 
 
+def test_route_does_not_use_too_narrow_vertical_obstacle_corridor() -> None:
+    obstacles = [
+        QRectF(-102.0, 100.0, 100.0, 100.0),
+        QRectF(2.0, 100.0, 100.0, 100.0),
+    ]
+    start = QPointF(0.0, 0.0)
+    end = QPointF(0.0, 300.0)
+
+    route = ConnectionRoutingEngine.build_route(
+        start,
+        end,
+        "down",
+        "up",
+        obstacles,
+    )
+
+    assert route is not None
+    assert len(route) > 2
+    assert ConnectionRoutingEngine.route_is_clear(route, obstacles)
+    assert all(
+        not (
+            abs(first.x() - second.x()) < 0.001
+            and abs(first.x()) < 0.001
+            and min(max(first.y(), second.y()), 200.0)
+            > max(min(first.y(), second.y()), 100.0)
+        )
+        for first, second in zip(route, route[1:])
+    )
+
 def test_route_relevance_expands_from_candidate_route() -> None:
     start = QPointF(
         100.0,
@@ -2978,3 +3007,340 @@ def test_route_retries_with_reduced_spacing_when_strict_grid_is_blocked():
         for a, b in zip(route, route[1:])
     )
     assert route_length < 400.0
+
+def test_protected_segment_index_matches_exact_predicate_for_geometry_edges() -> None:
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        _ProtectedSegmentIndex,
+        _route_respects_segment_separation_indexed,
+        route_respects_segment_separation,
+    )
+
+    point = QPointF
+    cases = [
+        (
+            "horizontal parallel too close",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(5.0, 0.25), point(15.0, 0.25))],
+            1.0,
+            False,
+        ),
+        (
+            "horizontal parallel clear",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(5.0, 1.5), point(15.0, 1.5))],
+            1.0,
+            True,
+        ),
+        (
+            "vertical parallel too close",
+            [point(0.0, 0.0), point(0.0, 20.0)],
+            [(point(0.25, 5.0), point(0.25, 15.0))],
+            1.0,
+            False,
+        ),
+        (
+            "horizontal route crosses vertical segment",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(10.0, -5.0), point(10.0, 5.0))],
+            1.0,
+            False,
+        ),
+        (
+            "vertical route crosses horizontal segment",
+            [point(0.0, 0.0), point(0.0, 20.0)],
+            [(point(-5.0, 10.0), point(5.0, 10.0))],
+            1.0,
+            False,
+        ),
+        (
+            "shared endpoint is allowed",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(20.0, 0.0), point(20.0, 5.0))],
+            1.0,
+            True,
+        ),
+        (
+            "interior T junction is rejected",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(10.0, 0.0), point(10.0, 5.0))],
+            1.0,
+            False,
+        ),
+        (
+            "intersection inside endpoint tolerance",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(20.0005, -1.0), point(20.0005, 1.0))],
+            1.0,
+            False,
+        ),
+        (
+            "intersection outside endpoint tolerance",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(20.0015, -1.0), point(20.0015, 1.0))],
+            1.0,
+            True,
+        ),
+        (
+            "parallel clearance just inside threshold",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(5.0, 0.9985), point(15.0, 0.9985))],
+            1.0,
+            False,
+        ),
+        (
+            "parallel clearance outside effective threshold",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(5.0, 0.9995), point(15.0, 0.9995))],
+            1.0,
+            True,
+        ),
+        (
+            "projected overlap within epsilon is not a conflict",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(19.9995, 0.25), point(30.0, 0.25))],
+            1.0,
+            True,
+        ),
+        (
+            "near-horizontal protected segment",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(5.0, 0.5), point(15.0, 0.5009))],
+            1.0,
+            False,
+        ),
+        (
+            "near-vertical protected segment",
+            [point(0.0, 0.0), point(0.0, 20.0)],
+            [(point(0.5, 5.0), point(0.5009, 15.0))],
+            1.0,
+            False,
+        ),
+        (
+            "parallel conflict precedes shared endpoint exception",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(10.0, 0.0005), point(20.0, 0.0005))],
+            1.0,
+            False,
+        ),
+        (
+            "diagonal protected geometry remains nonblocking",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(10.0, -1.0), point(12.0, 1.0))],
+            1.0,
+            True,
+        ),
+        (
+            "sub-epsilon protected segment",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(10.0, 0.0), point(10.0005, 0.0005))],
+            1.0,
+            True,
+        ),
+        (
+            "zero separation disables protected rejection",
+            [point(0.0, 0.0), point(20.0, 0.0)],
+            [(point(10.0, -5.0), point(10.0, 5.0))],
+            0.0,
+            True,
+        ),
+    ]
+
+    for name, route, protected, separation, expected in cases:
+        index = _ProtectedSegmentIndex(protected)
+        actual = _route_respects_segment_separation_indexed(
+            route,
+            separation,
+            index,
+        )
+        exact = route_respects_segment_separation(
+            route,
+            protected,
+            separation,
+        )
+
+        assert exact is expected, f"{name}: exact predicate changed"
+        assert actual is exact, f"{name}: indexed result differs from exact rule"
+
+        for start, end in zip(route, route[1:]):
+            candidates = index.candidate_segments(start, end, separation)
+            for protected_segment in protected:
+                individually_clear = route_respects_segment_separation(
+                    [start, end],
+                    [protected_segment],
+                    separation,
+                )
+                if not individually_clear:
+                    assert protected_segment in candidates, (
+                        f"{name}: index omitted an individually conflicting "
+                        f"protected segment {protected_segment!r}"
+                    )
+
+
+def test_protected_segment_index_never_omits_conflicts_across_tolerance_sweep() -> None:
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        _ProtectedSegmentIndex,
+        _route_respects_segment_separation_indexed,
+        route_respects_segment_separation,
+    )
+
+    point = QPointF
+    protected = []
+
+    horizontal_levels = (
+        -1.2, -1.0, -0.9995, -0.9985, -0.5, -0.0015, -0.0005,
+        0.0, 0.0005, 0.0015, 0.5, 0.9985, 0.9995, 1.2,
+    )
+    intervals = (
+        (5.0, 15.0),
+        (19.9995, 21.0),
+        (20.0, 30.0),
+        (-1.0, 1.0),
+    )
+    for y in horizontal_levels:
+        for left, right in intervals:
+            protected.append((point(left, y), point(right, y)))
+
+    vertical_levels = (
+        -1.2, -1.0, -0.9995, -0.9985, -0.5, -0.0015, -0.0005,
+        0.0, 0.0005, 0.0015, 0.5, 0.9985, 0.9995, 1.2,
+        19.9995, 20.0, 20.0005, 20.0015,
+    )
+    vertical_intervals = (
+        (-5.0, 5.0),
+        (-1.0, 0.0005),
+        (5.0, 15.0),
+        (19.9995, 21.0),
+    )
+    for x in vertical_levels:
+        for top, bottom in vertical_intervals:
+            protected.append((point(x, top), point(x, bottom)))
+
+    # Include nearly-axis-aligned and unclassified diagonal segments explicitly.
+    protected.extend([
+        (point(5.0, 0.5), point(15.0, 0.5009)),
+        (point(0.5, 5.0), point(0.5009, 15.0)),
+        (point(5.0, -1.0), point(6.0, 0.0)),
+        (point(10.0, 0.0), point(10.0005, 0.0005)),
+        (point(10.0, -5.0), point(10.0, 5.0)),
+        (point(-5.0, 10.0), point(5.0, 10.0)),
+    ])
+
+    routes = [
+        [point(0.0, 0.0), point(20.0, 0.0)],
+        [point(20.0, 0.0), point(0.0, 0.0)],
+        [point(0.0, 0.0), point(20.0, 0.0005)],
+        [point(0.0, 0.0), point(0.0, 20.0)],
+        [point(0.0, 20.0), point(0.0005, 0.0)],
+        [point(0.0, 0.0), point(20.0, 20.0)],
+    ]
+
+    checked_route_cases = 0
+    checked_edges = 0
+
+    for separation in (0.5, 1.0, 8.0):
+        index = _ProtectedSegmentIndex(protected)
+
+        for route in routes:
+            indexed_result = _route_respects_segment_separation_indexed(
+                route,
+                separation,
+                index,
+            )
+            exact_result = route_respects_segment_separation(
+                route,
+                protected,
+                separation,
+            )
+            assert indexed_result is exact_result, (
+                f"Indexed result mismatch: separation={separation}, route={route!r}"
+            )
+            checked_route_cases += 1
+
+            for start, end in zip(route, route[1:]):
+                checked_edges += 1
+                candidates = index.candidate_segments(
+                    start,
+                    end,
+                    separation,
+                )
+
+                # A candidate query may return harmless extras, but it must
+                # include every segment the exact rule would reject.
+                for protected_segment in protected:
+                    individually_clear = route_respects_segment_separation(
+                        [start, end],
+                        [protected_segment],
+                        separation,
+                    )
+                    if not individually_clear:
+                        assert protected_segment in candidates, (
+                            "False-negative broad-phase query: "
+                            f"start={start!r}, end={end!r}, "
+                            f"separation={separation}, "
+                            f"omitted={protected_segment!r}"
+                        )
+
+    assert checked_route_cases == 18
+    assert checked_edges > 0
+
+
+def test_route_can_detour_around_end_of_protected_wire_segment():
+    from PySide6.QtCore import QPointF
+    from machine_builder.graphics.connection_routing import ConnectionRoutingEngine
+    from machine_builder.graphics.connection_routing_pathfinder import (
+        route_respects_segment_separation,
+    )
+
+    cases = [
+        (
+            "horizontal protected wire",
+            QPointF(50.0, 0.0),
+            QPointF(50.0, 100.0),
+            "down",
+            "up",
+            [(QPointF(40.0, 50.0), QPointF(60.0, 50.0))],
+            "x",
+            40.0,
+            60.0,
+        ),
+        (
+            "vertical protected wire",
+            QPointF(0.0, 50.0),
+            QPointF(100.0, 50.0),
+            "right",
+            "left",
+            [(QPointF(50.0, 40.0), QPointF(50.0, 60.0))],
+            "y",
+            40.0,
+            60.0,
+        ),
+    ]
+
+    for name, start, end, start_direction, end_direction, protected, axis, lower, upper in cases:
+        route = ConnectionRoutingEngine.build_route(
+            start=start,
+            end=end,
+            start_direction=start_direction,
+            end_direction=end_direction,
+            obstacles=[],
+            protected_segments=protected,
+        )
+
+        assert route is not None, f"{name}: no route found around a clear wire endpoint"
+        assert route[0] == start
+        assert route[-1] == end
+        assert route_respects_segment_separation(route, protected, 8.0), (
+            f"{name}: route violates protected-wire clearance"
+        )
+        assert all(
+            abs(a.x() - b.x()) <= 1e-6 or abs(a.y() - b.y()) <= 1e-6
+            for a, b in zip(route, route[1:])
+        ), f"{name}: route is not orthogonal"
+
+        detoured = any(
+            point.x() < lower - 1e-6 or point.x() > upper + 1e-6
+            if axis == "x"
+            else point.y() < lower - 1e-6 or point.y() > upper + 1e-6
+            for point in route
+        )
+        assert detoured, f"{name}: route did not pass beyond a protected-wire endpoint"

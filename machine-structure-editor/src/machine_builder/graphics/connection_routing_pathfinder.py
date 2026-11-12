@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import heapq
+from bisect import bisect_left, bisect_right
 from itertools import count
 
 from PySide6.QtCore import QPointF, QRectF
@@ -774,6 +775,155 @@ def has_immediate_uturn(
     )
 
 
+_PROTECTED_SEGMENT_INDEX_EPSILON = 0.001
+
+
+class _ProtectedSegmentIndex:
+    """Conservative broad phase; the original predicate remains authoritative."""
+
+    def __init__(
+        self,
+        protected_segments: list[tuple[QPointF, QPointF]],
+    ) -> None:
+        self.protected_segments = protected_segments
+        horizontal: list[tuple[float, float, float, int]] = []
+        vertical: list[tuple[float, float, float, int]] = []
+        unclassified: list[int] = []
+        epsilon = _PROTECTED_SEGMENT_INDEX_EPSILON
+
+        for index, (start, end) in enumerate(protected_segments):
+            is_horizontal = abs(start.y() - end.y()) < epsilon
+            is_vertical = abs(start.x() - end.x()) < epsilon
+
+            if is_horizontal:
+                horizontal.append((
+                    start.y(),
+                    min(start.x(), end.x()),
+                    max(start.x(), end.x()),
+                    index,
+                ))
+
+            if is_vertical:
+                vertical.append((
+                    start.x(),
+                    min(start.y(), end.y()),
+                    max(start.y(), end.y()),
+                    index,
+                ))
+
+            if not is_horizontal and not is_vertical:
+                # Non-orthogonal geometry is retained as a conservative extra.
+                unclassified.append(index)
+
+        self.horizontal = sorted(horizontal)
+        self.vertical = sorted(vertical)
+        self.horizontal_keys = [row[0] for row in self.horizontal]
+        self.vertical_keys = [row[0] for row in self.vertical]
+        self.unclassified = unclassified
+
+    @staticmethod
+    def _rows_between(
+        rows: list[tuple[float, float, float, int]],
+        keys: list[float],
+        lower: float,
+        upper: float,
+    ) -> list[tuple[float, float, float, int]]:
+        return rows[bisect_left(keys, lower):bisect_right(keys, upper)]
+
+    def candidate_segments(
+        self,
+        start: QPointF,
+        end: QPointF,
+        minimum_separation: float,
+    ) -> list[tuple[QPointF, QPointF]]:
+        if minimum_separation <= 0.0:
+            return []
+
+        epsilon = _PROTECTED_SEGMENT_INDEX_EPSILON
+        is_horizontal = abs(start.y() - end.y()) < epsilon
+        is_vertical = abs(start.x() - end.x()) < epsilon
+        min_x, max_x = sorted((start.x(), end.x()))
+        min_y, max_y = sorted((start.y(), end.y()))
+        candidates = set(self.unclassified)
+        radius = minimum_separation + epsilon
+
+        if is_horizontal:
+            # Possible parallel-clearance violations.
+            rows = self._rows_between(
+                self.horizontal,
+                self.horizontal_keys,
+                start.y() - radius,
+                start.y() + radius,
+            )
+            for _y, left, right, index in rows:
+                if right >= min_x - epsilon and left <= max_x + epsilon:
+                    candidates.add(index)
+
+            # Possible perpendicular intersections.
+            rows = self._rows_between(
+                self.vertical,
+                self.vertical_keys,
+                min_x - epsilon,
+                max_x + epsilon,
+            )
+            for _x, top, bottom, index in rows:
+                if top <= start.y() + epsilon and bottom >= start.y() - epsilon:
+                    candidates.add(index)
+
+        if is_vertical:
+            # Possible parallel-clearance violations.
+            rows = self._rows_between(
+                self.vertical,
+                self.vertical_keys,
+                start.x() - radius,
+                start.x() + radius,
+            )
+            for _x, top, bottom, index in rows:
+                if bottom >= min_y - epsilon and top <= max_y + epsilon:
+                    candidates.add(index)
+
+            # Possible perpendicular intersections.
+            rows = self._rows_between(
+                self.horizontal,
+                self.horizontal_keys,
+                min_y - epsilon,
+                max_y + epsilon,
+            )
+            for _y, left, right, index in rows:
+                if left <= start.x() + epsilon and right >= start.x() - epsilon:
+                    candidates.add(index)
+
+        # Preserve original protected-segment evaluation order.
+        return [
+            self.protected_segments[index]
+            for index in sorted(candidates)
+        ]
+
+
+def _route_respects_segment_separation_indexed(
+    route: list[QPointF],
+    minimum_separation: float,
+    protected_index: _ProtectedSegmentIndex,
+) -> bool:
+    """Use an index to prune candidates, then apply the unchanged exact rule."""
+    if minimum_separation <= 0.0:
+        return True
+
+    for start, end in zip(route, route[1:]):
+        candidates = protected_index.candidate_segments(
+            start,
+            end,
+            minimum_separation,
+        )
+        if not route_respects_segment_separation(
+            [start, end],
+            candidates,
+            minimum_separation,
+        ):
+            return False
+
+    return True
+
 def _find_grid_route(
     *,
     start: QPointF,
@@ -787,6 +937,7 @@ def _find_grid_route(
     protected_segments: list[tuple[QPointF, QPointF]],
     minimum_segment_separation: float,
 ) -> list[QPointF] | None:
+    protected_index = _ProtectedSegmentIndex(protected_segments)
     coordinates_x = {
         start.x(),
         end.x(),
@@ -860,6 +1011,16 @@ def _find_grid_route(
                     protected_start.y() + offset
                     for offset in lane_offsets
                 )
+                segment_left = min(protected_start.x(), protected_end.x())
+                segment_right = max(protected_start.x(), protected_end.x())
+                coordinates_x.update(
+                    segment_left - offset
+                    for offset in lane_offsets
+                )
+                coordinates_x.update(
+                    segment_right + offset
+                    for offset in lane_offsets
+                )
             elif abs(
                 protected_start.x()
                 - protected_end.x()
@@ -870,6 +1031,16 @@ def _find_grid_route(
                 )
                 coordinates_x.update(
                     protected_start.x() + offset
+                    for offset in lane_offsets
+                )
+                segment_top = min(protected_start.y(), protected_end.y())
+                segment_bottom = max(protected_start.y(), protected_end.y())
+                coordinates_y.update(
+                    segment_top - offset
+                    for offset in lane_offsets
+                )
+                coordinates_y.update(
+                    segment_bottom + offset
                     for offset in lane_offsets
                 )
 
@@ -1027,13 +1198,13 @@ def _find_grid_route(
 
             if protected_segments:
                 neighbor_point = points[neighbor_key]
-                if not route_respects_segment_separation(
+                if not _route_respects_segment_separation_indexed(
                     [
                         points[current_key],
                         neighbor_point,
                     ],
-                    protected_segments,
                     minimum_segment_separation,
+                    protected_index,
                 ):
                     continue
 
@@ -1275,12 +1446,6 @@ def _connect_horizontal(
             ):
                 continue
 
-            if _vertical_corridor_too_narrow(
-                point_a,
-                point_b,
-                obstacles,
-            ):
-                continue
 
             if _horizontal_corridor_too_narrow(
                 point_a,
@@ -1362,6 +1527,12 @@ def _connect_vertical(
             point_b = points[key_b]
 
             if segment_blocked(
+                point_a,
+                point_b,
+                obstacles,
+            ):
+                continue
+            if _vertical_corridor_too_narrow(
                 point_a,
                 point_b,
                 obstacles,
