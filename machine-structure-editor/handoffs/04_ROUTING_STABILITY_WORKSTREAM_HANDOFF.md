@@ -1,3 +1,667 @@
+<!-- MB4-CURRENT-CHECKPOINT-20261112-PRESENTATION-ROUTE-TRANSFER-01 -->
+
+## Current recovery checkpoint - 2026-11-12: Five source commits on the presentation-route branch; publication pending
+
+Prepared: 2026-11-12 EST | Message ID: MB4-CURRENT-CHECKPOINT-20261112-PRESENTATION-ROUTE-TRANSFER-01
+Relationship: This is the authoritative current repository, branch, implementation, validation, and recovery checkpoint. All earlier dated checkpoints and technical history remain below.
+
+### Repository, branch, and publication state
+
+- Active repository: `C:\Users\Peter\Documents\GitHub\Machine-Builder` on the laptop.
+- Active branch: `experiment/presentation-route-source`.
+- Current HEAD: `2d98e7a66b873c4e367973aa6483e4f6b839e84d`.
+- Branch base at creation: `810e29f302d81fc5a7a4ef1102e0f415eb0cd10a`, after the fresh `origin/main` preflight.
+- Five reviewed source commits are present locally on this branch.
+- The branch has not yet been pushed. No merge to `main` has occurred.
+- The shared index was empty after the latest commit.
+- The remaining worktree changes are the two #4 handoffs, the concurrent #1 and #3 handoffs, the user-owned diagnostic fixture, and the untracked #3 test. Preserve all except the two #4 handoffs.
+- This is an experiment/source-transfer branch, not a production release or a declaration of completed GUI acceptance.
+
+Planning authorizations:
+- `MB1-20261112-PRESENTATION-ROUTE-OVERNIGHT-01`
+- `MB1-20261112-PRESENTATION-ROUTE-SNAPSHOT-ADMISSION-01`
+- `MB1-20261112-PRESENTATION-ROUTE-SOURCE-BRANCH-APPROVED-01`
+
+The original WSL donor checkout at `~/projects/claude-evaluation/machine-builder-review` was not admitted: it was at the older `810e29f...` baseline and lacked the presentation graph and builder files. The approved laptop checkout was used as the source snapshot.
+
+### Five source commits completed locally
+
+| Commit | Subject | Exact contents | Focused evidence |
+|---|---|---|---|
+| `ee364126bcb0f11a88b2775d6e97afc61c890bdc` | `feat: add runtime presentation route graph` | `presentation_route_graph.py` and `test_presentation_route_graph.py` | 19 passed in 0.07s |
+| `e09d9c993e075259e29e3b2b6bdcc231b56e698c` | `feat: build coordinated presentation route graph` | `presentation_route_builder.py` and `test_presentation_route_builder.py` | 9 passed in 1.41s; `py_compile` passed |
+| `12534669fcfce5b262e4b82838fa41b0286dc3d6` | `perf: index protected segments during route search` | `connection_routing_pathfinder.py` and `test_connection_routing.py` | 67 passed in 0.67s |
+| `7b721ff2f8d42c604c64b0d892b646cb1723f214` | `feat: add conductor bundle routing geometry primitives` | `graphics/connection_routing_bundle.py` and `test_connection_routing_bundle.py` | 20 passed in 0.13s; `py_compile` passed |
+| `2d98e7a66b873c4e367973aa6483e4f6b839e84d` | `feat: integrate grouped route previews into canvas` | Seven canvas/connection integration source and test paths | Combined focused integration suite: 68 passed |
+
+Each commit was reviewed as a separate exact-path unit. The committed path lists were verified, and the index was empty after each commit. No #1, #3, or user-owned paths were included.
+
+### Current automated validation
+
+The combined source state that is now committed on this branch passed:
+
+- Focused integration command:
+  `python -m pytest tests\test_canvas_interaction.py tests\test_canvas_scene.py tests\test_functional_interface_connection.py tests\test_connection_routing_bundle.py -q`
+  Result: **68 passed in 6.94 seconds**.
+- Full project command:
+  `python -m pytest -q`
+  Result: **998 passed in 12.83 seconds**.
+- `python -m py_compile src\machine_builder\canvas_scene.py`: passed.
+- `python -m py_compile src\machine_builder\graphics\connection_routing_bundle.py`: passed.
+- The two preview-safety regressions passed together: **2 passed in 0.20 seconds**:
+  - `test_synchronize_clears_active_node_preview_before_rebuilding_scene`
+  - `test_failed_node_move_preview_keeps_individual_conductors_visible`
+
+These results were obtained on the source content now committed on this branch. Commit creation did not change that source content. Automated test success does not establish GUI acceptance.
+
+### Presentation graph and builder status
+
+`PresentationRouteGraph` and `presentation_route_builder.py` are committed runtime source modules. They are derived presentation concepts, not canonical machine entities or persistent connectivity.
+
+The intended model preserves every underlying `SemanticConnection` identity and records exact `member_connection_ids` for displayed segments. The approved experiment scope covers four independent canonical connections, `connection-4` through `connection-7`, a four-member shared trunk, two two-member branch groups, continuous traversals, exact selection mapping, expansion back to original wires, rebuild after relevant changes, and fallback to individual wires if graph construction fails.
+
+Do not change canonical schema, Harness semantics, persistence, serializers, or Stage 2 authoring contracts as part of this isolated experiment. The committed graph and builder modules have not yet been established as the implementation used by the live canvas preview. Do not confuse their presence with complete interactive presentation-graph integration.
+
+### Canvas and connection integration now committed
+
+Commit `2d98e7a66b873c4e367973aa6483e4f6b839e84d` contains exactly:
+
+- `src/machine_builder/canvas_interaction.py`
+- `src/machine_builder/canvas_scene.py`
+- `src/machine_builder/canvas_ui.py`
+- `src/machine_builder/graphics/connection.py`
+- `tests/test_canvas_interaction.py`
+- `tests/test_canvas_scene.py`
+- `tests/test_functional_interface_connection.py`
+
+Reviewed behavior includes:
+
+- Node dragging requests a coalesced scene preview instead of rebuilding all routes on every movement event; the preview is finished before the canonical node move is committed.
+- The preview uses a 50 ms single-shot timer and groups candidate conductors by the physical key `(controller_id, connector_id, terminal_component_id)`.
+- The widened preview is presentation-only. It does not create Harness membership, canonical connections, or electrical junctions.
+- Individual wires are hidden only after a successful preview route and have recorded prior visibility for restoration. Failed widened-route construction keeps individual conductor graphics visible.
+- Explicit Harness ordering verifies membership across visual, canonical, and semantic layers and checks compatible physical lane order. Independent routing priority does not infer Harness membership.
+- Focus restoration preserves a desired controller focus while its option is temporarily unavailable.
+- Functional-connection tests use actual `CreateHarness` membership for the explicit Harness case rather than the obsolete free-text `harness_id`.
+- `synchronize()` clears active drag state and finishes/cleans preview state before rebuilding scene items.
+
+The connection geometry refactor separates endpoint/escape preparation from core routing. `canvas_scene.py` calls `_prepare_line_geometry()` directly when preparing representative bundle endpoint escapes and calls `setLine()` for individual connections. The convenience wrapper `prepare_line()` itself has no direct caller in the inspected source; this is not evidence that the scene has no preparation call. The prepared cache is consumed by `setLine()` only when endpoints match and is then cleared. Do not revert this refactor based on the earlier mistaken search for a non-underscored `prepare_line()` call.
+
+### Routing-bundle geometry foundation now committed
+
+Commit `7b721ff2f8d42c604c64b0d892b646cb1723f214` contains exactly:
+
+- `src/machine_builder/graphics/connection_routing_bundle.py`
+- `tests/test_connection_routing_bundle.py`
+
+It provides centered lane offsets, preview-envelope half-width calculation, orthogonal-route offset geometry with mitered bends, and endpoint lane-order compatibility checks.
+
+Important limitations:
+- `offset_orthogonal_route()` is a geometry primitive, not a complete router.
+- It does not establish global self-intersection freedom or collision/clearance against every obstacle and other offset lane.
+- The offset utility has not yet been integrated as the final lane-generation path for all individual conductors.
+- Keep these limitations explicit when extending the bundle work.
+
+### Review findings and current dispositions
+
+1. **RESOLVED - encoding:** The accidental UTF-8 BOM in `canvas_scene.py` was removed. Read-back confirmed the original opening docstring bytes and no BOM.
+2. **OPEN - connector-cone stub geometry:** The updated test currently requires the stub endpoint to reach the connector-group anchor rather than clipping near the visible cone base. No current-branch GUI inspection has established which boundary looks correct. Inspect the actual application and choose deliberately.
+3. **TESTED - preview lifecycle during synchronization:** `synchronize()` clears `_active_node_drag` and calls `finish_node_move_preview()` before removing/rebuilding scene items. A direct regression verifies timer cancellation, individual-wire visibility restoration, preview removal, and stale connector-stub removal.
+4. **TESTED - failed preview fallback:** A direct regression forces route construction to return `None` and verifies individual conductors remain visible and stale widened previews are removed.
+5. **OPEN - lost mouse grab:** `NodeGraphicsItem` handles normal left-button release, but no explicit lost-mouse-grab cancellation callback was found. `graphics/node.py` was outside the approved source-transfer path list and was not changed. Do not edit it without an applicable Planning scope amendment.
+6. **REVIEWED - physical grouping boundary:** Transient preview grouping uses resolved physical conductor endpoints and the key `(controller_id, connector_id, terminal_component_id)`. It must not create Harness membership, canonical connections, or electrical junctions.
+7. **OPEN - current-branch GUI acceptance:** No manual GUI acceptance has been performed on this transfer branch. The November 8 screenshots showed all four conductors but unacceptable route quality; do not ask the user to repeat that old review as a substitute for current-branch testing.
+8. **OPEN - acceptance/regression coverage:** Individual-wire selection after preview release, connector-cone appearance, lost-mouse-grab cancellation, multiple-module performance, and delete/undo/redo/save/reopen behavior are not established by the current automated suite.
+
+### Remaining work and immediate next action
+
+1. Finish this documentation-only update, commit the two #4 handoff files separately, then verify the branch and remote refs before a normal push of `experiment/presentation-route-source`. Do not merge into `main` or force-push.
+2. On the other computer, fetch the published branch and verify its root, branch, HEAD, status, and commit history before doing any work. Do not assume its working directory or silently overwrite local changes.
+3. Perform current-branch GUI acceptance: route appearance and spacing, connector-cone stub endpoint, drag responsiveness, individual wire selection after release, and recovery after model changes.
+4. Test delete/undo/redo/save/reopen and more than one module. Do not claim multi-module performance without measuring it.
+5. Inspect whether the committed orthogonal-offset primitive needs integration into individual conductor lane generation. Add tests for crossings, obstacle clearance, and insufficient bend/segment lengths before claiming full lane safety.
+6. Keep lost-mouse-grab handling out of `graphics/node.py` unless Planning authorizes that additional file.
+7. Preserve the #1 and #3 workstream changes and the user-owned diagnostic fixture. The fixture is not part of the transfer branch commits; do not assume it will appear on the other computer merely because the branch is fetched.
+8. Keep every implementation change on `experiment/presentation-route-source`, use narrow exact-path staging and separate logical commits, and retain the full test evidence. Do not merge to `main`.
+
+<!-- END MB4-CURRENT-CHECKPOINT-20261112-PRESENTATION-ROUTE-TRANSFER-01 -->
+
+<!-- MB4-CURRENT-CHECKPOINT-20261110-MULTIWIRE-PRESENTATION-01 -->
+
+## Current recovery checkpoint - 2026-11-10: Screenshot review complete; multi-wire presentation architecture next
+
+Prepared: 2026-11-10 EST | Message ID: MB4-CURRENT-CHECKPOINT-20261110-MULTIWIRE-PRESENTATION-01
+Relationship: Supersedes the November 8 checkpoint for current recovery. All previous history is preserved below.
+
+### Repository and worktree
+
+- Repository: `C:\Users\Peter\Documents\GitHub\Machine-Builder`.
+- Branch: `main`.
+- Local HEAD, `origin/main`, and live remote main: `810e29f302d81fc5a7a4ef1102e0f415eb0cd10a`.
+- Shared index empty.
+- Last inspected worktree: 13 modified tracked paths and 3 untracked paths.
+- Preserve all #3-owned changes and the user-owned diagnostic fixture.
+- This checkpoint records documentation/research findings only. No production code, tests, or fixture changed. No staging, commit, or push authorized.
+
+### November 8 GUI screenshot review - COMPLETE
+
+Evidence commit: `810e29f302d81fc5a7a4ef1102e0f415eb0cd10a`.
+Nine screenshots reviewed: `164933`, `164948`, `165002`, `170434`, `170503`, `170527`, `170531`, `170625`, `170636`.
+
+Observed:
+- All four independent conductors are visible in the reviewed arrangements.
+- Overall route quality fails: one black conductor makes a long rectangular detour; other routes have awkward loops, tight turns, and inconsistent spacing.
+- Endpoint fan-outs converge visually too closely and need clearer individual presentation.
+- Small placement changes produce noticeably different route shapes.
+
+Not established by these screenshots: individual selection, drag responsiveness after the November 8 correction, multi-module performance, and delete/undo/redo/reopen recovery.
+
+Do not ask the user to repeat this screenshot review. November 5 drag/preview acceptance remains valid only for its previously tested scene.
+
+### What the November 8 correction actually accomplished
+
+`_routing_ordered_connection_items()` prioritizes compatible independent conductor lanes while preserving connection identities and unrelated ordering. It does not create a shared centerline or coordinated final conductor lanes.
+
+Final conductor routes still use individual pathfinder calls with previously routed segments protected. The pathfinder does not globally reconsider earlier successful routes when later routes become poor or fail.
+
+The screenshot defects are consistent with this limitation, but do not prove it is the sole root cause.
+
+`connection_routing_bundle.py` remains an untracked geometry foundation for centered lane offsets, envelope width, orthogonal offsets, and lane-order compatibility. It is not integrated into final shared-route generation.
+
+Keep the priority correction as an interim improvement. Do not describe the visual routing problem as solved. Do not add Harness membership to the four diagnostic connections.
+
+### #2 multi-wire architecture reconciliation
+
+The central recommendation is to separate:
+
+1. **Canonical connectivity:** Preserve each actual `SemanticConnection`, its identity, endpoints, properties, provenance, and supported semantics.
+2. **Presentation routing:** Derive graphical groups, shared-looking segments, branches, and individual lanes without changing canonical connectivity.
+3. **Physical routing:** Require explicit physical information and separately governed physical grouping and constraints.
+
+#### Proposed presentation-route graph
+
+Proposed name: `PresentationRouteGraph`. This is a derived presentation concept, not an approved canonical entity or finalized class contract.
+
+Each displayed route segment must resolve its exact `member_connection_ids`. Branch segments have their own membership sets. Selecting a segment identifies/highlights its underlying connections. Expanding a grouped route reveals the original connections unchanged.
+
+Example:
+
+- Shared segment S0: `{C1,C2,C3,C4}`
+- Branch SX: `{C1,C2}`
+- Branch SY: `{C3,C4}`
+
+Generated branches and shared strokes are presentation geometry, not electrical junctions, splices, cables, or proof of physical Harness membership.
+
+Recommendation: begin runtime-derived and non-persistent.
+
+#### Existing Stage 1 Harness boundary
+
+The Stage 1 `Harness` represents explicit physical grouping of existing canonical connections. It is not a generic visual aggregate or an extra electrical connection.
+
+Never infer Harness membership from proximity, color, shared endpoints, common connector, or a generated route. Do not change Harness schema or persistence to implement quick-hookup grouping.
+
+Planning decision `MB-20261105-SHARED-ENVELOPE-DIRECTION-01` accepts shared-envelope/centerline/offset-lane routing in principle subject to explicit, physically meaningful membership. It does not authorize inferred quick-hookup grouping or canonical/persistence changes.
+
+#### Recommended strategy boundaries
+
+Use shared geometry and routing primitives with distinct responsibilities:
+
+- Quick hookup: readable derived groups and branches.
+- Connector-aware/individual-wire view: actual endpoints, identities, labels, and conductor inspection.
+- Connection editing: established canonical mutations, validation, undo/redo, and persistence.
+- Diagnostics: trace canonical connections through whichever presentation segments represent them.
+- Future physical harness routing: explicit physical membership, dimensions, bend/clearance constraints, and physical validation.
+
+Route-geometry edits must not silently change canonical endpoints. Actual electrical intermediate components or junctions require supported canonical semantics.
+
+#### Industry research
+
+The #2 investigation examined official product documentation for Autodesk Inventor, SOLIDWORKS Electrical, EPLAN, AutoCAD Electrical, CATIA Electrical Harness, and Siemens Capital.
+
+The useful common practices are explicit physical route segments and branches, separately identifiable conductors, explicit cable/harness membership, and graphical distinctions between crossings, groupings, and electrical junctions. Different tasks use different routing constraints and representations.
+
+These product practices support the recommendation; they do not establish identical internal vendor data models.
+
+### Scaling and failure requirements
+
+Validate 2, 4, 8, 12, 24, and 32+ conductors, including partial shared trunks, multiple destination groups, repeated branches, membership changes, endpoint fan-outs, obstacles, and crossings.
+
+Every segment must preserve exact membership. Crossings must not imply connectivity. Empty segments should disappear when membership is removed. Preserve unaffected routes where practical.
+
+Report infeasible routing, insufficient clearance, ambiguous ordering, blocked endpoint escapes, and invalid branch geometry. Never silently drop a conductor. Quick hookup may fall back to separate truthful routes; engineering routing must not claim success with misleading geometry.
+
+The current equal-radius envelope helper is only a starting point. Variable conductor sizes, branch clearance, and physical bend constraints remain future work.
+
+### Planning decision required before implementation
+
+#4 should request Planning agreement on:
+
+1. The derived presentation-only route graph and its relationship to `VisualModel` and `VisualConnection`.
+2. Exact per-segment connection membership and visual branch semantics.
+3. Runtime-derived/non-persistent initial scope.
+4. The boundary between inferred display grouping and explicit physical Harness membership.
+5. The rule that generated branches never create canonical electrical junctions.
+
+No canonical Cable, Harness, Junction, Path, or other ontology change is authorized here. No persistence or Stage 2A/2B implementation is authorized.
+
+### Immediate next action
+
+1. #4 prepares a concise Planning decision request for the presentation-route graph boundary.
+2. Do not begin production implementation or alter canonical/persistence contracts before applicable Planning direction.
+3. After direction, prototype a pure, runtime-derived route graph and test exact membership, branching, selection resolution, fan-outs, crossings, obstacles, membership changes, and 2/4/8/12/24/32+ conductor cases.
+4. Keep the existing independent routing-priority correction as interim behavior.
+5. Preserve all #3 and user-owned work. Recheck the complete worktree, refs, and index before every later Git write.
+
+No new production tests were run for this documentation checkpoint. No staging, commit, or push performed.
+
+<!-- END MB4-CURRENT-CHECKPOINT-20261110-MULTIWIRE-PRESENTATION-01 -->
+
+<!-- MB4-CURRENT-CHECKPOINT-20261108-ROUTING-PRIORITY-01 -->
+
+## Current recovery checkpoint - 2026-11-08: Independent conductor lane-priority routing validated; GUI acceptance next
+
+Prepared: 2026-11-08 EST | Message ID: MB4-CURRENT-CHECKPOINT-20261108-ROUTING-PRIORITY-01
+Relationship: Supersedes the November 5 checkpoint for current-state recovery. Preserves all earlier investigation and chronology below. Records the independent-conductor routing-order correction and fresh automated validation. Planning decision MB-20261105-SHARED-ENVELOPE-DIRECTION-01 remains the applicable shared-envelope architecture direction.
+
+### Verified repository checkpoint
+
+- Repository: `C:\Users\Peter\Documents\GitHub\Machine-Builder`.
+- Branch: `main`.
+- Local `HEAD`, fetched `origin/main`, and live remote `main` matched `6d69dea33551042a5273df126c5f0c62042473a1` at the latest pre-documentation inspection.
+- Local divergence from the remote: 0 ahead / 0 behind.
+- Shared Git index was empty.
+- All current changes remain local and unstaged. No commit or push has been performed or authorized.
+
+The shared worktree contains 13 modified tracked paths and 3 untracked paths. Preserve all of them:
+
+Modified tracked:
+- #3-owned: `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
+- #4-owned handoffs: `machine-structure-editor/handoffs/04_ROUTING_STABILITY_WORKSTREAM_HANDOFF.md` and `machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md`
+- #4 implementation: `machine-structure-editor/src/machine_builder/canvas_interaction.py`
+- #4 implementation: `machine-structure-editor/src/machine_builder/canvas_scene.py`
+- #4 implementation: `machine-structure-editor/src/machine_builder/canvas_ui.py`
+- #4 implementation: `machine-structure-editor/src/machine_builder/graphics/connection.py`
+- #4 implementation: `machine-structure-editor/src/machine_builder/graphics/connection_routing_pathfinder.py`
+- #4 tests: `machine-structure-editor/tests/test_canvas_interaction.py`
+- #4 tests: `machine-structure-editor/tests/test_canvas_scene.py`
+- #4 tests: `machine-structure-editor/tests/test_connection_routing.py`
+- #4 tests: `machine-structure-editor/tests/test_functional_interface_connection.py`
+- User-owned diagnostic fixture: `machine-structure-editor/wiring test machines/Maestro and 4 port motor 4 wires J9 contact view.machine.json`
+
+Untracked:
+- #4: `machine-structure-editor/src/machine_builder/graphics/connection_routing_bundle.py`
+- #4: `machine-structure-editor/tests/test_connection_routing_bundle.py`
+- #3: `machine-structure-editor/tests/test_stepper_motor_terminal_profile.py`
+
+The path inventory is a recovery snapshot, not permission to alter or publish every listed path. In particular, preserve the #3 files and the user-owned fixture. Recheck complete status, refs, and index before every later Git write.
+
+### User-accepted drag and preview behavior
+
+The November 5 manual acceptance remains the latest GUI evidence for this behavior:
+
+- Deferring full individual-wire rerouting until node movement is committed on release eliminated the freeze/crash in the tested motor-with-four-conductors scene.
+- Release regeneration took approximately half a second and was acceptable.
+- A translucent widened corridor follows the moving node during the drag.
+- Preview updates are coalesced with a 50 ms timer. Slight twitching was accepted; do not tune the interval without new evidence.
+- Individual colored conductors return after release.
+
+This acceptance covers the tested scene only. Multi-module performance remains untested. The November 8 routing-order code change has not yet received fresh GUI acceptance.
+
+### November 8 routing-order investigation and correction
+
+The failing regression scenario represents a controller and a four-lead stepper motor in contact focus, with four independent physical conductor connections (`connection-4` through `connection-7`).
+
+Important fixture fact: the saved `Maestro and 4 port motor 4 wires J9 contact view.machine.json` fixture has no explicit Harness membership for these four conductors; their `harness_id` values are null. Do not add Harness membership merely to make their routes work.
+
+The original connection-ID order (`connection-4`, `connection-5`, `connection-6`, `connection-7`) produced only two successful routes in the reproduced layout. The endpoint lanes are slightly skewed relative to each other. Earlier L-shaped routes could leave subsequent lanes with less clearance than the pathfinder's permitted minimum. The pathfinder does protect previously routed segments, but it does not backtrack and reconsider an earlier successful route when a later independent conductor fails.
+
+A diagnostic tried all 24 orderings on fresh fixtures. Only two orderings routed all four conductors in this particular layout. The successful orderings both began with `connection-7`, then `connection-6`; the remaining two could be ordered either way.
+
+A geometry-based routing-priority method is now present locally in `src/machine_builder/canvas_scene.py`:
+
+- `_routing_ordered_connection_items()` starts from the existing `_ordered_connection_items()` result.
+- It groups only conductors independently identified by their physical routing key: controller ID, connector ID, and terminal component ID.
+- It derives the physical lane positions using the contact-to-terminal routing direction and checks that lane ordering is distinct and compatible at both ends using `lane_order_is_compatible()`.
+- It orders only the compatible physical-conductor group according to the geometry-derived lane priority, replacing those group slots without moving unrelated connections.
+- The scene's route-update loop uses this new routing-priority method.
+
+For the failing layout, the resulting order is `connection-7`, `connection-6`, `connection-5`, `connection-4`, and all four routes are produced.
+
+The existing `_ordered_connection_items()` behavior remains the explicit-Harness ordering mechanism. The new routing-priority method does not create Harness membership, modify persistence, or change canonical connection identity. It is a routing-order policy for a physically compatible independent-conductor group, not a declaration that those connections are one canonical electrical connection or Harness.
+
+This is a targeted correction supported by the reproduced layout and tests. It is not proof that every geometry, branch, crossing, or obstacle arrangement will route successfully.
+
+### New routing-priority regression coverage
+
+Four tests were added to `tests/test_canvas_scene.py`:
+
+- `test_routing_ordered_connection_items_prioritizes_compatible_independent_lanes`
+- `test_routing_ordered_connection_items_preserves_unrelated_slots`
+- `test_routing_ordered_connection_items_rejects_reversed_lanes`
+- `test_routing_ordered_connection_items_rejects_ambiguous_lanes`
+
+They verify geometry-based priority for compatible independent lanes, preservation of unrelated connection slots, and fallback to the original ordering for reversed or ambiguous lanes. The priority test also verifies that no Harness is created.
+
+### Fresh automated validation
+
+The November 8 implementation and fixture state produced these results:
+
+- The two focused route regressions — `test_connector_level_functional_link_is_hidden_after_four_contact_refinement` and `test_contact_focus_routes_contacts_to_shared_cone_tip_and_contact_origins`: **2 passed in 4.67 seconds**.
+- Affected routing/scene surface (`tests/test_canvas_scene.py`, `tests/test_functional_interface_connection.py`, and `tests/test_connection_routing_bundle.py`): **60 passed in 6.96 seconds**.
+- Full project `.venv` suite: **968 passed in 11.65 seconds**.
+- `git diff --check` for `canvas_scene.py` and `test_canvas_scene.py`: passed.
+- `python -m py_compile src/machine_builder/canvas_scene.py`: passed after the source file's original UTF-8 BOM and opening docstring were verified and restored.
+
+The earlier endpoint-preview fixture issue was also corrected: the regression fixture now unpacks coordinate tuples into `QPointF(*coords)`. That correction changed the test fixture, not production routing behavior. Its focused regression and the affected/full suites now pass.
+
+These are automated results. They do not establish fresh GUI acceptance.
+
+### Shared-envelope architecture and implementation boundary
+
+Planning message: `MB-20261105-SHARED-ENVELOPE-DIRECTION-01`.
+
+Planning accepted the shared-envelope/centerline/offset-lane architecture in principle, subject to these constraints:
+
+- Bundle membership must be explicit and physically meaningful. Never infer it solely from color, proximity, shared connector, or similar geometry.
+- Preserve every original `SemanticConnection`, endpoint assignment, direction, provenance, properties, and individual wire identity.
+- Centerlines and clearance envelopes are routing constructs, not electrical connections or fabricated junctions.
+- Expand obstacle clearance for the complete envelope.
+- Generate deterministic conductor lanes and validate corners, spacing, crossings, obstacle clearance, and endpoint escapes.
+- Preserve individual terminal fan-outs.
+- Never silently drop a member when shared routing fails; define a fallback or report failure.
+- Handle ambiguous or branched physical topologies conservatively.
+
+The local `connection_routing_bundle.py` geometry foundation provides centered lane offsets, envelope half-width calculation, and orthogonal route-offset geometry with mitered right-angle corners. Its eight focused tests passed.
+
+**Shared-envelope routing is not integrated into final conductor route generation.** Final colored conductors still use independent pathfinder calls, now with the new compatible-lane routing priority. The geometry module is a tested foundation, not a completed shared-envelope router.
+
+Do not change canonical Harness schema, persistence, or Stage 2 authoring UI as part of this routing-order correction. Stage 2A and Stage 2B remain separately gated.
+
+### GUI acceptance still required
+
+No new GUI acceptance was performed during the November 8 routing-priority implementation. After refreshing this handoff, manually inspect the four-conductor contact-view fixture in the application. Keep the original saved diagnostic fixture intact unless deliberately making a separate user-authorized fixture edit.
+
+Record pass/fail/not tested independently for:
+
+- All four conductors visible, individually identifiable, and selectable in contact focus.
+- Four-conductor route quality at the reproduced close/skewed placement; inspect both the controller and motor terminal approaches.
+- Black-wire approach through the intended terminal/fan-out region rather than awkwardly through the cone side.
+- Terminal labels on readable, preferably non-wire-facing sides at both endpoint orientations.
+- Route behavior when nodes are moved, including preview responsiveness and post-release regeneration.
+- Multiple-module responsiveness; this remains untested.
+- Port-detail/focus recovery after deletion, undo/redo, and reopening.
+
+The November 5 screenshots remain diagnostic observations, not proof of a particular root cause or exhaustive routing acceptance.
+
+### Other investigation leads
+
+Earlier source inspection found that `ConnectionGraphicsItem.prepare_line()` prepares and caches endpoint geometry and returns escape segments, but no caller was found in the searched production source or tests. The scene and drag preview use `setLine()` directly. Separately drawn contact `origin`-to-`anchor` stubs were not included in the inspected `routed_connection_segments` collection.
+
+This remains an investigation lead, not a proven cause of blocked routes. Do not wire `prepare_line()` into the scene merely because it exists. Review self-obstruction, endpoint protection, and cache validity against changed obstacles, fan-out offsets, and side overrides before changing that path.
+
+### Immediate next action
+
+1. Open the four-conductor contact-view diagnostic fixture in the application and inspect the actual route output after the November 8 routing-order change.
+2. Record visible/selection behavior and route quality for all four independent conductors. Check the black-wire cone approach and both endpoint labels separately.
+3. Exercise node movement and release, then repeat with more than one module if practical. Do not claim multi-module acceptance without testing it.
+4. Report actual GUI observations, including failures and arrangements not tested. Do not overwrite the user-owned fixture as part of the inspection.
+5. If the visible result is acceptable, perform a complete, path-by-path review of the accumulated #4 implementation and test diffs before requesting any applicable Planning publication authorization.
+6. Keep shared-envelope final routing as a distinct future implementation increment. Do not begin Stage 2A/2B or alter canonical contracts without their applicable authorization.
+
+No staging, commit, or push has been performed for this checkpoint. The documentation refresh itself is local-only.
+
+<!-- MB4-CURRENT-CHECKPOINT-20261105-HARNESS-02 -->
+
+## Current recovery checkpoint - 2026-11-05: Live harness preview accepted; shared-envelope routing next
+
+Prepared: 2026-11-05 EST | Message ID: MB4-CURRENT-CHECKPOINT-20261105-HARNESS-02
+Relationship: Supersedes the November 1 checkpoint for current-state recovery while preserving its investigation history below. Incorporates Planning decision MB-20261105-SHARED-ENVELOPE-DIRECTION-01.
+
+### Verified repository checkpoint
+
+- Repository: `C:\Users\Peter\Documents\GitHub\Machine-Builder`.
+- Branch: `main`.
+- At the latest pre-documentation inspection, local `HEAD`, fetched `origin/main`, and live remote `main` all matched `bf581d8575bee457fc141ab0bdbbafa7f372ffb8`.
+- Shared Git index was empty.
+- All current modifications remain local and unstaged. No commit or push is authorized by the latest Planning message.
+
+Recheck the repository, index, complete worktree, and refs before any later edit or publication. The shared checkout contains concurrent #3 and user-owned changes; preserve them.
+
+### Current manually accepted drag and preview behavior
+
+The user manually tested the motor with four connected conductors:
+
+- Deferring full individual-wire rerouting until `MoveNodes` is committed on release eliminated the previous freeze/crash in the tested scenario.
+- Release regeneration takes approximately half a second and is acceptable to the user.
+- A translucent, widened harness corridor follows the node during dragging.
+- Preview updates are coalesced with a 50 ms timer. Slight twitching is acknowledged and accepted; do not tune the interval without new evidence.
+- Individual colored conductors return after release.
+
+This is acceptance for the tested four-wire scene only. Multi-module performance has not been tested. Preserve the working drag behavior.
+
+### Shared-envelope architecture decision
+
+Planning message: `MB-20261105-SHARED-ENVELOPE-DIRECTION-01`.
+
+Planning accepted the shared-envelope/centerline/offset-lane architecture in principle, subject to these constraints:
+
+- Bundle membership must be explicit and physically meaningful. Do not infer it solely from color, proximity, shared connector, or similar geometry.
+- Preserve every original `SemanticConnection`, endpoint assignment, direction, provenance, properties, and individual wire identity.
+- Centerline and clearance envelope are routing constructs, not electrical connections or fabricated junctions.
+- Expand obstacle clearance for the complete bundle width.
+- Generate deterministic conductor lanes and validate corners, spacing, crossings, obstacle clearance, and endpoint escapes.
+- Preserve individual terminal fan-outs.
+- Never silently drop a bundle member when a shared route fails. Provide a defined fallback or report failure.
+- Handle ambiguous or branched physical topologies conservatively.
+
+This is not authorization to change canonical Harness schema, persistence, or Stage 2 authoring UI. Stage 2A and 2B remain separately gated.
+
+### Shared-envelope geometry foundation
+
+New local files:
+- `src/machine_builder/graphics/connection_routing_bundle.py`
+- `tests/test_connection_routing_bundle.py`
+
+The pure geometry module currently provides centered lane offsets, envelope half-width calculation, and orthogonal route-offset geometry with mitered right-angle corners. Its eight focused tests passed; after that foundation and the subsequent live-preview implementation, the full project suite passed with 941 tests.
+
+The final colored wires still use independent pathfinder calls. The shared envelope has NOT yet been integrated into final conductor generation. Treat the geometry module as a tested foundation, not a completed harness router.
+
+### Latest preview endpoint-stub correction: pending test verification
+
+The preview helper was changed to refresh existing connector-group stubs at both the contact and terminal endpoints. A scene-level regression test was added to `tests/test_canvas_scene.py`.
+
+The first focused run reported 19 passed and 1 failed. That failure occurred in test-fixture construction, before the helper ran: the fixture passed coordinate tuples directly to `QPointF`, whose constructor requires two numeric coordinates or an existing point.
+
+A subsequent guarded correction script stopped because one expected assignment string did not match the actual source; that script made no changes. The user later supplied a test-file excerpt showing the moved-endpoint assertion loop at lines 515-525. This confirms the intended assertions are present in the displayed excerpt, but no passing pytest result has been reported.
+
+Therefore:
+- The production helper change is present locally.
+- The regression fixture's final construction must be inspected directly.
+- The endpoint helper is not yet verified by a passing test.
+- The 941-test full-suite result predates this endpoint-preview test change and is not fresh validation of the current worktree.
+
+### User-provided routing observations
+
+The user supplied five screenshots dated 2026-11-05, showing routing irregularities at unusual/close node placements. Preserve them as diagnostic observations, not proof of a specific root cause:
+
+- `screenshots/Screenshot 2026-11-05 210143.png`
+- `screenshots/Screenshot 2026-11-05 210201.png`
+- `screenshots/Screenshot 2026-11-05 210212.png`
+- `screenshots/Screenshot 2026-11-05 210230.png`
+- `screenshots/Screenshot 2026-11-05 210250.png`
+
+The user acknowledged that some arrangements were unusual and that wires might not always generate there. Do not treat screenshot geometry alone as proof of the separate blocked-route reliability defect.
+
+### Other open #4 acceptance issues
+
+Keep these separate:
+- Route-generation reliability: reproduce blocked-route failures by connection ID and determine candidate rejection vs fallback failure vs missing scene representation. Every semantic connection must remain represented.
+- Black-wire cone approach: it should enter through the intended terminal/fan-out region rather than awkwardly through the cone side.
+- Motor-terminal labels: prefer the non-wire-facing side when practical; inspect both endpoint orientations.
+- Multi-module responsiveness: not tested.
+- Port-detail/focus recovery: previously reported manually corrected, but freshly verify after deletion, undo/redo, and reopening.
+
+### Investigation lead: endpoint preparation and protected segments
+
+Existing source inspection found:
+- `ConnectionGraphicsItem.prepare_line()` calls `_prepare_line_geometry()`, caches endpoint geometry, and returns endpoint escape segments.
+- No caller was found in the searched production source or tests.
+- The scene and interactive drag preview call `setLine()` directly.
+- The scene appends `_debug_route` segments to `routed_connection_segments`.
+- Separately drawn contact `origin`-to-`anchor` stub segments are not appended to that collection in the inspected implementation.
+- The validity of the prepared-geometry cache when obstacles or routing overrides change remains unresolved.
+
+This is an investigation lead, not a proven failure cause. Do not wire `prepare_line()` into the scene merely because it exists. Investigate self-obstruction and endpoint/stub protection before changing sequential route constraints.
+
+### Current local path inventory
+
+#4 implementation/test paths present in the worktree:
+- `src/machine_builder/canvas_interaction.py`
+- `src/machine_builder/canvas_scene.py`
+- `src/machine_builder/canvas_ui.py`
+- `src/machine_builder/graphics/connection.py`
+- `src/machine_builder/graphics/connection_routing_bundle.py` (untracked)
+- `src/machine_builder/graphics/connection_routing_pathfinder.py`
+- `tests/test_canvas_interaction.py`
+- `tests/test_canvas_scene.py`
+- `tests/test_connection_routing.py`
+- `tests/test_connection_routing_bundle.py` (untracked)
+- `tests/test_functional_interface_connection.py`
+
+Concurrent non-#4 paths to preserve:
+- #3 modified: `handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`
+- #3 untracked: `tests/test_stepper_motor_terminal_profile.py`
+- User-owned modified diagnostic fixture: `wiring test machines/Maestro and 4 port motor 4 wires J9 contact view.machine.json`
+
+The two #4 handoff documents are also locally modified. Inspect complete current diffs before any future publication.
+
+### Immediate next action
+
+1. Inspect the exact current fixture construction in `tests/test_canvas_scene.py` around the new endpoint-stub regression. Correct only the actual tuple-to-`QPointF` conversions if still needed; do not change the production helper or 50 ms interval based only on the old test failure.
+2. Run the single regression test.
+3. If it passes, run `tests/test_canvas_scene.py`, `tests/test_canvas_interaction.py`, and `tests/test_connection_routing_bundle.py`; then the full `.venv` suite.
+4. Report actual test results and then perform GUI confirmation that both endpoint stubs follow their moving nodes.
+5. Resume shared-envelope final routing as a separate incremental implementation: one widened centerline route, obstacle expansion by envelope width, deterministic parallel conductor lanes, existing individual endpoint escapes/fan-outs, and a defined fallback/failure behavior. Validate the individual lanes as well as the envelope.
+6. Do not alter canonical contracts, begin Stage 2A/2B, or publish without the applicable authorization.
+
+No staging, commits, or pushes have been performed for this checkpoint.
+<!-- MB4-POST-PLANNING-BASELINE-20261101-01 -->
+
+## Authoritative recovery checkpoint - 2026-11-01: Planning baseline refreshed; Routing/focus remains open
+
+Prepared: 2026-11-01 EST | Message ID: MB4-POST-PLANNING-BASELINE-20261101-01
+Relationship: Follow-up to Planning message MB-20261101-PLANNING-BASELINE-REFRESH-01. Records the current shared-checkout state, latest GUI acceptance findings, and endpoint/stub integration investigation. This checkpoint does not claim fresh application tests or GUI acceptance.
+
+### Verified repository and Planning publication
+
+- Repository: `C:\Users\Peter\Documents\GitHub\Machine-Builder`.
+- Branch: `main`.
+- Local `HEAD`, fetched `origin/main`, and live remote `main` all matched `61fd7a690df9dfca26409d44f81ec616c7c7a43e` at inspection.
+- Commit subject: `docs: refresh Planning dashboard and review cadence`.
+- Planning's commit contains exactly `CHAT_WORKFLOW.md`, `WORKSTREAM_FOCUS_INDEX.md`, and `PROJECT_CURRENT_STATE.md`.
+- The shared Git index was empty.
+- No implementation changes were included in the Planning commit.
+
+This is a verified checkpoint, not a lock. Recheck all refs, the complete worktree, and the shared index before any future Git write.
+
+### Current local worktree inventory
+
+The current worktree contains six modified #4 implementation/test paths, all unstaged:
+
+1. `machine-structure-editor/src/machine_builder/canvas_scene.py`
+2. `machine-structure-editor/src/machine_builder/canvas_ui.py`
+3. `machine-structure-editor/src/machine_builder/graphics/connection.py`
+4. `machine-structure-editor/src/machine_builder/graphics/connection_routing_pathfinder.py`
+5. `machine-structure-editor/tests/test_connection_routing.py`
+6. `machine-structure-editor/tests/test_functional_interface_connection.py`
+
+The inspected six-path diff summary is 886 insertions and 98 deletions:
+- `canvas_scene.py`: 1 insertion, 36 deletions.
+- `canvas_ui.py`: 17 insertions, 6 deletions.
+- `graphics/connection.py`: 81 insertions, 26 deletions.
+- `graphics/connection_routing_pathfinder.py`: 173 insertions, 2 deletions.
+- `tests/test_connection_routing.py`: 337 insertions.
+- `tests/test_functional_interface_connection.py`: 277 insertions, 28 deletions.
+
+Preserve these unrelated concurrent changes, which were also present at the checkpoint:
+- #3 modified: `machine-structure-editor/handoffs/03_CONTROLLER_BOARD_WORKSTREAM_HANDOFF.md`.
+- #3 untracked: `machine-structure-editor/tests/test_stepper_motor_terminal_profile.py`.
+- User-owned modified fixture: `machine-structure-editor/wiring test machines/Maestro and 4 port motor 4 wires J9 contact view.machine.json`.
+
+No paths were staged. Do not stage, modify, or publish the Board handoff, Board test, or user fixture as part of #4 work.
+
+### Published Stage 1 harness foundation
+
+Planning authorization: `MB-20261031-HARNESS-STAGE1-PUBLISH-AUTH-03`.
+
+Published implementation:
+- Commit: `e6e3710786cb0c2b31ac166f6d020db153ffb84f`.
+- Subject: `feat: add canonical harness model and persistence`.
+- Exactly seven authorized semantic harness, model, mutation, persistence, and test paths were committed.
+- The harness is canonical grouping metadata over existing semantic connections; it does not create electrical connections or alter endpoint identity.
+
+Fresh validation from the Stage 1 publication session:
+- Three Stage 1 test files: 36 passed in 0.24 seconds.
+- Full project `.venv` suite: 927 passed in 10.36 seconds.
+- These results validate the published Stage 1 checkpoint, not the current six-path routing/focus worktree.
+
+Stage 2A remains approved in principle but not authorized to implement until the existing #4 routing/focus work is accepted and published. Stage 2B remains a subsequent increment requiring separate authorization after Stage 2A acceptance. The Planning baseline refresh grants no new implementation scope.
+
+### Current GUI acceptance checkpoint
+
+The latest recorded user observations and screenshot evidence are from 2026-10-31. Keep these categories distinct:
+
+- **Four-wire visibility inside connector cones: PROVISIONAL PASS.** All four colored paths were visible in the captured arrangements. This is not exhaustive acceptance of every geometry or ordering.
+- **Route-generation reliability: FAIL / OPEN.** A wire can fail to generate when another wire obstructs it. Reproduce this independently of visual overlap. Determine whether a candidate is rejected, fallback fails, or scene representation is omitted. Every existing semantic connection must remain represented.
+- **Black-wire cone approach: OPEN.** The black wire takes an undesirable path and enters the cone side. It should enter through its intended terminal/fan-out region.
+- **Motor-terminal labels: OPEN.** Labels were reported on the wire-facing side and difficult to read. Prefer the non-wire-facing side where practical, and inspect both endpoint orientations.
+- **Current-scene responsiveness: IMPROVED / PROVISIONALLY ACCEPTABLE.** User-reported movement is smoother and the former severe delay is reduced. Do not generalize this result to larger scenes.
+- **Multi-module responsiveness: NOT YET TESTED.** Repeat interactive acceptance with multiple modules.
+- **Port-detail/focus recovery: PREVIOUSLY REPORTED MANUALLY CORRECTED; FRESH VERIFICATION REQUIRED.** Keep the prior manual result distinct from automated recovery and persistence test evidence. Verify the focus/detail selection after deletion, undo/redo, and reopening.
+
+The screenshots demonstrate visibility in their captured arrangements and show geometry/label issues. They do not reproduce the separate blocked-route generation failure.
+
+### Endpoint preparation and connector-stub integration investigation
+
+Current source and call-site inspection established:
+
+- `ConnectionGraphicsItem.prepare_line()` is defined in `graphics/connection.py`, and calls `_prepare_line_geometry()` to calculate endpoint positions and escapes, cache the resulting geometry, and return the escape segments.
+- No caller of `prepare_line()` was found in the searched `machine_builder` source or tests.
+- The current scene route update calls `graphics.setLine()` directly from `canvas_scene.py`; interactive drag preview also calls `setLine()` directly from `canvas_interaction.py`.
+- `canvas_scene.py` sets endpoint-side overrides, fanout offsets, stub lengths, and external protected segments before calling `setLine()`.
+- After `setLine()`, the scene appends `_debug_route` segments to `routed_connection_segments`.
+- It then creates separate connector-conductor stub graphics as straight paths from each recorded contact `origin` to its `anchor`. Those separate stub segments are not appended to `routed_connection_segments` in the inspected code.
+
+This establishes a concrete investigation point: later connections receive previously recorded route segments as external protected constraints, but the separately drawn connector stubs are not included in that collection. This may contribute to overlap or blocked-route behavior, but it has not been proven to be the root cause.
+
+The new preparation cache in `connection.py` is consumed by `setLine()` only when requested start/end coordinates match. Its validity against changes to obstacles, fanout offsets, endpoint-side overrides, or other geometry inputs between preparation and consumption also needs review.
+
+Do not wire `prepare_line()` into the scene merely because it exists. First establish what its returned escape segments should contribute, how they relate to the separately drawn connector stubs, and how to avoid treating a connection's own endpoint geometry as an external obstacle. Preserve the existing scene ordering unless a tested reason supports changing it.
+
+### Validation qualification
+
+- The two modified #4 regression test files were previously reported as 84 passed in 4.82 seconds. That result predates the current six-path diff and is not fresh validation of the current working tree.
+- The 927-test full-suite result belongs to the Stage 1 publication session, not the current routing/focus changes.
+- No tests were run during this recovery/baseline reconciliation.
+- No current GUI acceptance was performed during this reconciliation.
+
+### Revised remaining acceptance work and next action
+
+#4 owns the current routing/focus acceptance work. Continue in this order:
+
+1. Reproduce the blocked-route failure with identified connection IDs. Distinguish route candidate rejection, fallback behavior, and scene-item representation.
+2. Trace protected geometry through sequential route updates. Evaluate whether endpoint escape segments and separately drawn connector-conductor stubs need to protect later routes. Test the interaction without constraining a wire against its own geometry.
+3. Correct the black-wire approach into the intended terminal/fan-out region.
+4. Reposition motor-terminal labels and verify both endpoint orientations.
+5. Retest all four wires across different creation orders and obstruction conditions; verify visibility and individual selection.
+6. Test responsiveness with multiple modules.
+7. Freshly verify port-detail/focus recovery after deletion, undo/redo, and reopening.
+8. Run focused tests and the full suite after implementation changes; record exact commands, results, and the source state they validate.
+
+Keep route-generation reliability, cone visibility, endpoint approach, label placement, responsiveness, and focus recovery as separate acceptance criteria.
+
+Only after the current routing/focus unit passes its acceptance review and is published may Stage 2A begin. Stage 2B remains separately gated. Do not expand canonical model, Stage 1 persistence, or harness contracts as part of these presentation/routing corrections without Planning review.
+
 <!-- MB4-GUI-OBSERVATIONS-20261031-01 -->
 
 ## Authoritative GUI observation checkpoint - 2026-10-31: Cone visibility improved; route reliability and geometry remain open
