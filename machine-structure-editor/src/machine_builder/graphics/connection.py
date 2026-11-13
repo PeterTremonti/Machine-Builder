@@ -53,6 +53,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         self._debug_start_escape: tuple[QPointF, ...] = ()
         self._debug_route: tuple[QPointF, ...] | None = None
         self._debug_end_escape: tuple[QPointF, ...] = ()
+        self._prepared_line_geometry: dict[str, Any] | None = None
 
         # Live routing-decision diagnostics. This is runtime/presentation
         # state only and is not part of the canonical machine model.
@@ -1192,23 +1193,16 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
             (QPointF(start), QPointF(end)) for start, end in segments
         ]
 
-    def setLine(
+    def _prepare_line_geometry(
         self,
         x1: float,
         y1: float,
         x2: float,
         y2: float,
-    ) -> None:
-        """Build the complete relevance-scoped visual connection."""
-        start = QPointF(
-            x1,
-            y1,
-        )
-
-        end = QPointF(
-            x2,
-            y2,
-        )
+    ) -> dict[str, Any]:
+        """Calculate endpoint positions and escapes without routing the core."""
+        start = QPointF(x1, y1)
+        end = QPointF(x2, y2)
 
         fanout_offsets = getattr(self, "_endpoint_route_fanout_offsets", {})
         endpoint_sides = getattr(self, "_endpoint_side_overrides", {})
@@ -1218,6 +1212,7 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         end_offset = fanout_offsets.get(self.endpoint_b_id)
         start_side = endpoint_sides.get(self.endpoint_a_id)
         end_side = endpoint_sides.get(self.endpoint_b_id)
+
         if start_offset is not None and start_side in {"left", "right"}:
             start_dx = -18.0 if start_side == "left" else 18.0
             start_route_position = QPointF(
@@ -1232,24 +1227,84 @@ class ConnectionGraphicsItem(QGraphicsPathItem):
         obstacles = self._collect_obstacles()
         physical_obstacles = self._collect_physical_obstacles()
 
-        start_escape, start_direction = (
-            self._build_endpoint_escape(
-                self.endpoint_a_id,
-                start_route_position,
-                obstacles,
-                physical_obstacles,
-            )
+        start_escape, start_direction = self._build_endpoint_escape(
+            self.endpoint_a_id,
+            start_route_position,
+            obstacles,
+            physical_obstacles,
+        )
+        end_escape, end_direction = self._build_endpoint_escape(
+            self.endpoint_b_id,
+            end_route_position,
+            obstacles,
+            physical_obstacles,
         )
 
-        end_escape, end_direction = (
-            self._build_endpoint_escape(
-                self.endpoint_b_id,
-                end_route_position,
-                obstacles,
-                physical_obstacles,
-            )
-        )
+        return {
+            "start": start,
+            "end": end,
+            "start_route_position": start_route_position,
+            "end_route_position": end_route_position,
+            "obstacles": obstacles,
+            "start_escape": start_escape,
+            "start_direction": start_direction,
+            "end_escape": end_escape,
+            "end_direction": end_direction,
+        }
 
+    def prepare_line(
+        self,
+        x1: float,
+        y1: float,
+        x2: float,
+        y2: float,
+    ) -> list[tuple[QPointF, QPointF]]:
+        """Prepare and cache endpoint escapes for a later setLine call."""
+        prepared = self._prepare_line_geometry(x1, y1, x2, y2)
+        self._prepared_line_geometry = prepared
+
+        segments: list[tuple[QPointF, QPointF]] = []
+        for escape in (
+            prepared["start_escape"],
+            prepared["end_escape"],
+        ):
+            segments.extend(
+                (QPointF(first), QPointF(second))
+                for first, second in zip(escape, escape[1:])
+                if first != second
+            )
+        return segments
+    def setLine(
+        self,
+        x1: float,
+        y1: float,
+        x2: float,
+        y2: float,
+    ) -> None:
+        """Build the complete relevance-scoped visual connection."""
+        requested_start = QPointF(x1, y1)
+        requested_end = QPointF(x2, y2)
+        prepared = getattr(self, "_prepared_line_geometry", None)
+
+        if (
+            prepared is not None
+            and prepared["start"] == requested_start
+            and prepared["end"] == requested_end
+        ):
+            geometry = prepared
+        else:
+            geometry = self._prepare_line_geometry(x1, y1, x2, y2)
+
+        self._prepared_line_geometry = None
+        start = geometry["start"]
+        end = geometry["end"]
+        start_route_position = geometry["start_route_position"]
+        end_route_position = geometry["end_route_position"]
+        obstacles = geometry["obstacles"]
+        start_escape = geometry["start_escape"]
+        start_direction = geometry["start_direction"]
+        end_escape = geometry["end_escape"]
+        end_direction = geometry["end_direction"]
         diagnostic_obstacles: list[Any] = []
 
         protected_segments: list[

@@ -6,12 +6,16 @@ graphics scene.
 
 from __future__ import annotations
 
-from PySide6.QtCore import QPointF, Qt
+from PySide6.QtCore import QPointF, QRectF, Qt, QTimer
 from PySide6.QtGui import QColor, QPainterPath, QPen
 from PySide6.QtWidgets import QGraphicsPathItem
 
 from .graphics.connection import ConnectionGraphicsItem
 from .graphics.connection_routing import ConnectionRoutingEngine
+from .graphics.connection_routing_bundle import (
+    bundle_envelope_half_width,
+    lane_order_is_compatible,
+)
 from .graphics.node import NodeGraphicsItem
 from .graphics.port import PortGraphicsItem
 from .visual_model import VisualModel
@@ -26,6 +30,16 @@ class CanvasSceneController:
     ) -> None:
         self.canvas = canvas
         self._connector_wire_stub_items: dict[tuple[str, str], QGraphicsPathItem] = {}
+        self._drag_preview_items: dict[tuple[str, str, str], QGraphicsPathItem] = {}
+        self._drag_preview_hidden_connections: dict[
+            str, tuple[ConnectionGraphicsItem, bool]
+        ] = {}
+        self._drag_preview_timer = QTimer()
+        self._drag_preview_timer.setSingleShot(True)
+        self._drag_preview_timer.setInterval(50)
+        self._drag_preview_timer.timeout.connect(
+            self._update_node_move_preview
+        )
 
     @property
     def scene(self):
@@ -257,19 +271,730 @@ class CanvasSceneController:
             return None
         return route_position_x - required_core_x
 
+    def _connection_routing_bundle_member(self, connection_id: str):
+        """Return physical endpoint data for one conductor connection."""
+        connection = self.store.model.connections.get(connection_id)
+        if connection is None:
+            return None
+        semantic_model = getattr(self.store, "semantic_model", None)
+        if semantic_model is None:
+            return None
+        ports = getattr(semantic_model, "ports", None)
+        if ports is None:
+            return None
+        for contact_visual_id, terminal_visual_id in (
+            (connection.endpoint_a_id, connection.endpoint_b_id),
+            (connection.endpoint_b_id, connection.endpoint_a_id),
+        ):
+            contact_item = self.find_port_graphics_item(contact_visual_id)
+            terminal_item = self.find_port_graphics_item(terminal_visual_id)
+            if contact_item is None or terminal_item is None:
+                continue
+            contact_node = contact_item.parentItem()
+            terminal_node = terminal_item.parentItem()
+            contact_visual = getattr(contact_node, "_visual_ports", {}).get(
+                getattr(contact_item, "port_id", None)
+            )
+            terminal_visual = getattr(terminal_node, "_visual_ports", {}).get(
+                getattr(terminal_item, "port_id", None)
+            )
+            contact_id = (
+                getattr(contact_visual, "semantic_reference", None)
+                or contact_visual_id
+            )
+            terminal_id = (
+                getattr(terminal_visual, "semantic_reference", None)
+                or terminal_visual_id
+            )
+            contact = ports.get(contact_id)
+            terminal = ports.get(terminal_id)
+            if contact is None or terminal is None:
+                continue
+            properties = getattr(terminal, "properties", {}) or {}
+            if (
+                not contact.controller_id
+                or not contact.connector_id
+                or contact.pin_id is None
+                or not terminal.component_id
+                or properties.get("interface_role")
+                != "motor_conductor_terminal"
+                or properties.get("interface_granularity")
+                != "physical_terminal"
+            ):
+                continue
+            return (
+                (
+                    str(contact.controller_id),
+                    str(contact.connector_id),
+                    str(terminal.component_id),
+                ),
+                QPointF(contact_item.scenePos()),
+                QPointF(terminal_item.scenePos()),
+            )
+        return None
+
+    def _ordered_connection_items(self):
+        """Order only explicitly grouped, physically consistent Harness members."""
+        items = sorted(self.connection_items.items(), key=lambda item: item[0])
+        semantic_model = getattr(self.store, "semantic_model", None)
+        if semantic_model is None:
+            return items
+
+        harnesses = getattr(semantic_model, "harnesses", None)
+        if not isinstance(harnesses, dict) or not harnesses:
+            return items
+
+        try:
+            semantic_model.validate_harnesses()
+        except (AttributeError, KeyError, TypeError, ValueError):
+            return items
+
+        nested_harness_ids = {
+            child_id
+            for parent in harnesses.values()
+            for child_id in getattr(parent, "child_harness_ids", ())
+        }
+        visual_connection_ids = set(self.connection_items)
+        model_connection_ids = set(self.store.model.connections)
+        semantic_connection_ids = set(semantic_model.connections)
+        bundles = {}
+        bundle_for_connection = {}
+
+        for harness_id, harness in sorted(harnesses.items()):
+            member_ids = getattr(harness, "member_connection_ids", None)
+            child_ids = getattr(harness, "child_harness_ids", None)
+            if (
+                not isinstance(member_ids, list)
+                or len(member_ids) < 2
+                or len(member_ids) != len(set(member_ids))
+                or not isinstance(child_ids, list)
+                or child_ids
+                or harness_id in nested_harness_ids
+            ):
+                continue
+
+            if any(
+                not isinstance(member_id, str) or not member_id.strip()
+                for member_id in member_ids
+            ):
+                continue
+
+            member_id_set = set(member_ids)
+            if not (
+                member_id_set.issubset(visual_connection_ids)
+                and member_id_set.issubset(model_connection_ids)
+                and member_id_set.issubset(semantic_connection_ids)
+            ):
+                continue
+
+            members = []
+            physical_group_key = None
+            valid_bundle = True
+            for member_id in member_ids:
+                physical_member = self._connection_routing_bundle_member(
+                    member_id
+                )
+                if physical_member is None:
+                    valid_bundle = False
+                    break
+                key, contact, terminal = physical_member
+                if physical_group_key is None:
+                    physical_group_key = key
+                elif key != physical_group_key:
+                    valid_bundle = False
+                    break
+                members.append((
+                    member_id,
+                    self.connection_items[member_id],
+                    contact,
+                    terminal,
+                ))
+
+            if not valid_bundle or len(members) != len(member_ids):
+                continue
+
+            # Compare both ends along the same normal to the average
+            # contact-to-terminal direction. Reversed or ambiguous
+            # physical lane order cannot form a parallel shared trunk.
+            dx = sum(
+                terminal.x() - contact.x()
+                for _, _, contact, terminal in members
+            ) / len(members)
+            dy = sum(
+                terminal.y() - contact.y()
+                for _, _, contact, terminal in members
+            ) / len(members)
+            if abs(dx) + abs(dy) <= 1e-6:
+                continue
+
+            normal_x = -dy
+            normal_y = dx
+            start_lane_positions = {
+                member_id: (
+                    contact.x() * normal_x
+                    + contact.y() * normal_y
+                )
+                for member_id, _, contact, _ in members
+            }
+            end_lane_positions = {
+                member_id: (
+                    terminal.x() * normal_x
+                    + terminal.y() * normal_y
+                )
+                for member_id, _, _, terminal in members
+            }
+            if not lane_order_is_compatible(
+                start_lane_positions, end_lane_positions
+            ):
+                continue
+
+            bundles[harness_id] = members
+            for member_id in member_ids:
+                bundle_for_connection[member_id] = harness_id
+
+        ordered = []
+        emitted = set()
+        for connection_id, graphics in items:
+            harness_id = bundle_for_connection.get(connection_id)
+            if harness_id is None:
+                ordered.append((connection_id, graphics))
+                continue
+            if harness_id in emitted:
+                continue
+
+            emitted.add(harness_id)
+            members = bundles[harness_id]
+            dx = sum(
+                terminal.x() - contact.x()
+                for _, _, contact, terminal in members
+            ) / len(members)
+            dy = sum(
+                terminal.y() - contact.y()
+                for _, _, contact, terminal in members
+            ) / len(members)
+            if abs(dx) >= abs(dy):
+                reverse = dy <= 0.0
+                members.sort(
+                    key=lambda member: (
+                        -member[2].y() if reverse else member[2].y(),
+                        member[2].x(),
+                        member[0],
+                    )
+                )
+            elif dx >= 0.0:
+                members.sort(
+                    key=lambda member: (
+                        member[2].x(), member[2].y(), member[0]
+                    )
+                )
+            else:
+                members.sort(
+                    key=lambda member: (
+                        -member[2].x(), member[2].y(), member[0]
+                    )
+                )
+            ordered.extend(
+                (member[0], member[1]) for member in members
+            )
+
+        return ordered
+
+    def _routing_ordered_connection_items(self):
+        """Prioritize physical conductor lanes without changing membership."""
+        items = self._ordered_connection_items()
+        members_by_physical_route_key = {}
+
+        for index, (connection_id, graphics) in enumerate(items):
+            physical_member = self._connection_routing_bundle_member(
+                connection_id
+            )
+            if physical_member is None:
+                continue
+
+            key, contact, terminal = physical_member
+            members_by_physical_route_key.setdefault(key, []).append(
+                (index, connection_id, graphics, contact, terminal)
+            )
+
+        ordered = list(items)
+
+        for members in members_by_physical_route_key.values():
+            if len(members) < 2:
+                continue
+
+            dx = sum(
+                terminal.x() - contact.x()
+                for _, _, _, contact, terminal in members
+            ) / len(members)
+            dy = sum(
+                terminal.y() - contact.y()
+                for _, _, _, contact, terminal in members
+            ) / len(members)
+
+            if abs(dx) + abs(dy) <= 1e-6:
+                continue
+
+            normal_x = -dy
+            normal_y = dx
+            start_lane_positions = {
+                connection_id: (
+                    contact.x() * normal_x
+                    + contact.y() * normal_y
+                )
+                for _, connection_id, _, contact, _ in members
+            }
+            end_lane_positions = {
+                connection_id: (
+                    terminal.x() * normal_x
+                    + terminal.y() * normal_y
+                )
+                for _, connection_id, _, _, terminal in members
+            }
+
+            if not lane_order_is_compatible(
+                start_lane_positions, end_lane_positions
+            ):
+                continue
+
+            if abs(dx) >= abs(dy):
+                reverse = dy <= 0.0
+                sorted_members = sorted(
+                    members,
+                    key=lambda member: (
+                        -member[3].y() if reverse else member[3].y(),
+                        member[3].x(),
+                        member[1],
+                    ),
+                )
+            elif dx >= 0.0:
+                sorted_members = sorted(
+                    members,
+                    key=lambda member: (
+                        member[3].x(), member[3].y(), member[1]
+                    ),
+                )
+            else:
+                sorted_members = sorted(
+                    members,
+                    key=lambda member: (
+                        -member[3].x(), member[3].y(), member[1]
+                    ),
+                )
+
+            # Replace only the positions occupied by these conductors.
+            # Independent connections retain their own identities and slots.
+            for (index, _, _, _, _), member in zip(members, sorted_members):
+                ordered[index] = (member[1], member[2])
+
+        return ordered
+
+    def _nearby_routed_connection_segments(self, start, end, segments):
+        """Limit prior-wire constraints to the current route neighborhood."""
+        padding = (
+            ConnectionRoutingEngine.ROUTING_RELEVANCE_RADIUS
+            + ConnectionRoutingEngine.ROUTING_MARGIN
+            + ConnectionRoutingEngine.STUB_LENGTH
+            + ConnectionRoutingEngine.U_TURN_MIN_SEPARATION
+        )
+        left = min(start.x(), end.x()) - padding
+        right = max(start.x(), end.x()) + padding
+        top = min(start.y(), end.y()) - padding
+        bottom = max(start.y(), end.y()) + padding
+        nearby = []
+        for first, second in segments:
+            if (
+                max(first.x(), second.x()) < left
+                or min(first.x(), second.x()) > right
+                or max(first.y(), second.y()) < top
+                or min(first.y(), second.y()) > bottom
+            ):
+                continue
+            nearby.append((first, second))
+        return nearby
+
+    def request_node_move_preview(self) -> None:
+        """Schedule one coalesced harness preview update during a node drag."""
+        if (
+            getattr(self.canvas, "_active_node_drag", None) is None
+            or getattr(self.canvas, "_synchronizing_scene", False)
+        ):
+            return
+
+        if not self._drag_preview_timer.isActive():
+            self._drag_preview_timer.start()
+
+    def _restore_drag_preview_connections(self) -> None:
+        """Restore individual conductor visibility after a preview update."""
+        for graphics, was_visible in self._drag_preview_hidden_connections.values():
+            if graphics.scene() is self.scene:
+                graphics.setVisible(was_visible)
+        self._drag_preview_hidden_connections.clear()
+
+    def finish_node_move_preview(self) -> None:
+        """Remove transient harness previews and restore individual wires."""
+        self._drag_preview_timer.stop()
+        self._restore_drag_preview_connections()
+
+        for item in self._drag_preview_items.values():
+            if item.scene() is self.scene:
+                self.scene.removeItem(item)
+        self._drag_preview_items.clear()
+
+    def _connection_routing_bundle_preview_details(self, connection_id: str):
+        """Resolve the physical contact/terminal pair for one bundle member."""
+        connection = self.store.model.connections.get(connection_id)
+        semantic_model = getattr(self.store, "semantic_model", None)
+        ports = getattr(semantic_model, "ports", None)
+
+        if connection is None or ports is None:
+            return None
+
+        for contact_visual_id, terminal_visual_id in (
+            (connection.endpoint_a_id, connection.endpoint_b_id),
+            (connection.endpoint_b_id, connection.endpoint_a_id),
+        ):
+            contact_item = self.find_port_graphics_item(contact_visual_id)
+            terminal_item = self.find_port_graphics_item(terminal_visual_id)
+            if contact_item is None or terminal_item is None:
+                continue
+
+            contact_node = contact_item.parentItem()
+            terminal_node = terminal_item.parentItem()
+            contact_visual = getattr(contact_node, "_visual_ports", {}).get(
+                getattr(contact_item, "port_id", None)
+            )
+            terminal_visual = getattr(terminal_node, "_visual_ports", {}).get(
+                getattr(terminal_item, "port_id", None)
+            )
+
+            contact_id = (
+                getattr(contact_visual, "semantic_reference", None)
+                or contact_visual_id
+            )
+            terminal_id = (
+                getattr(terminal_visual, "semantic_reference", None)
+                or terminal_visual_id
+            )
+            contact = ports.get(contact_id)
+            terminal = ports.get(terminal_id)
+
+            if contact is None or terminal is None:
+                continue
+
+            properties = getattr(terminal, "properties", {}) or {}
+            if (
+                not contact.controller_id
+                or not contact.connector_id
+                or contact.pin_id is None
+                or not terminal.component_id
+                or properties.get("interface_role") != "motor_conductor_terminal"
+                or properties.get("interface_granularity") != "physical_terminal"
+            ):
+                continue
+
+            contact_position = QPointF(contact_item.scenePos())
+            anchor_getter = getattr(
+                contact_node, "connector_group_anchor_for_port", None
+            )
+            if callable(anchor_getter):
+                anchor = anchor_getter(contact_id)
+                if anchor is not None:
+                    contact_position = QPointF(anchor)
+
+            terminal_position = QPointF(terminal_item.scenePos())
+            terminal_anchor_getter = getattr(
+                terminal_node, "connector_group_anchor_for_port", None
+            )
+            if callable(terminal_anchor_getter):
+                terminal_anchor = terminal_anchor_getter(terminal_id)
+                if terminal_anchor is not None:
+                    terminal_position = QPointF(terminal_anchor)
+            return {
+                "key": (
+                    str(contact.controller_id),
+                    str(contact.connector_id),
+                    str(terminal.component_id),
+                ),
+                "contact_endpoint_id": contact_visual_id,
+                "terminal_endpoint_id": terminal_visual_id,
+                "contact_semantic_id": contact_id,
+                "contact_position": contact_position,
+                "terminal_position": terminal_position,
+                "contact_node_id": getattr(contact_node, "node_id", None),
+                "terminal_node_id": getattr(terminal_node, "node_id", None),
+                "contact_node": contact_node,
+            }
+
+        return None
+
+    def _update_preview_endpoint_stub(
+        self,
+        connection_id: str,
+        endpoint_id: str,
+    ) -> None:
+        """Refresh an existing connector-group stub at either bundle endpoint."""
+        stub = self._connector_wire_stub_items.get(
+            (connection_id, endpoint_id)
+        )
+        if stub is None:
+            return
+
+        endpoint_item = self.find_port_graphics_item(endpoint_id)
+        if endpoint_item is None:
+            return
+
+        node_graphics = endpoint_item.parentItem()
+        if node_graphics is None:
+            return
+
+        visual_port = getattr(node_graphics, "_visual_ports", {}).get(
+            getattr(endpoint_item, "port_id", None)
+        )
+        semantic_id = (
+            getattr(visual_port, "semantic_reference", None) or endpoint_id
+        )
+        contact_anchors = getattr(
+            node_graphics, "_connector_group_contact_anchors_local", {}
+        )
+        if semantic_id not in contact_anchors:
+            return
+
+        origin_getter = getattr(
+            node_graphics, "connector_group_contact_origin_for_port", None
+        )
+        anchor_getter = getattr(
+            node_graphics, "connector_group_anchor_for_port", None
+        )
+        if not callable(origin_getter) or not callable(anchor_getter):
+            return
+
+        origin = origin_getter(semantic_id)
+        anchor = anchor_getter(semantic_id)
+        if origin is None or anchor is None:
+            return
+
+        stub_path = QPainterPath(QPointF(origin))
+        stub_path.lineTo(QPointF(anchor))
+        stub.setPath(stub_path)
+
+    @staticmethod
+    def _average_preview_position(points: list[QPointF]) -> QPointF:
+        """Find the center of a bundle's endpoint group."""
+        return QPointF(
+            sum(point.x() for point in points) / len(points),
+            sum(point.y() for point in points) / len(points),
+        )
+
+    def _update_node_move_preview(self) -> None:
+        """Route one widened preview path per affected physical conductor bundle."""
+        drag = getattr(self.canvas, "_active_node_drag", None)
+        if drag is None or getattr(self.canvas, "_synchronizing_scene", False):
+            self.finish_node_move_preview()
+            return
+
+        self._restore_drag_preview_connections()
+        moved_node_ids = set(drag.node_ids)
+        bundles = {}
+
+        for connection_id, graphics in self.connection_items.items():
+            details = self._connection_routing_bundle_preview_details(
+                connection_id
+            )
+            if details is None:
+                continue
+
+            endpoint_node_ids = {
+                details["contact_node_id"],
+                details["terminal_node_id"],
+            }
+            if not moved_node_ids.intersection(endpoint_node_ids):
+                continue
+
+            bundles.setdefault(details["key"], []).append(
+                (connection_id, graphics, details)
+            )
+
+        active_preview_keys = set()
+
+        for bundle_key, members in bundles.items():
+            members.sort(key=lambda member: member[0])
+            bundle_connection_ids = {
+                member[0] for member in members
+            }
+            contact_center = self._average_preview_position(
+                [member[2]["contact_position"] for member in members]
+            )
+            terminal_center = self._average_preview_position(
+                [member[2]["terminal_position"] for member in members]
+            )
+
+            representative_id, representative_graphics, representative_details = members[0]
+            connection = self.store.model.connections.get(representative_id)
+            if connection is None:
+                continue
+
+            if connection.endpoint_a_id == representative_details["contact_endpoint_id"]:
+                route_start = contact_center
+                route_end = terminal_center
+            else:
+                route_start = terminal_center
+                route_end = contact_center
+
+            half_width = bundle_envelope_half_width(
+                len(members),
+                ConnectionRoutingEngine.MIN_ROUTE_SEGMENT_SEPARATION,
+                conductor_radius=1.0,
+            )
+
+            # Use the group center rather than one conductor's individual
+            # fan-out lane. Restore transient routing state immediately after
+            # preparing the representative endpoint escapes.
+            previous_offsets = dict(
+                getattr(representative_graphics, "_endpoint_route_fanout_offsets", {})
+            )
+            previous_stub_lengths = dict(
+                getattr(representative_graphics, "_endpoint_route_stub_lengths", {})
+            )
+            previous_escape_state = {
+                key: dict(value)
+                for key, value in getattr(
+                    representative_graphics, "_overlap_escape_state", {}
+                ).items()
+            }
+
+            representative_graphics.set_endpoint_route_fanout_offsets({})
+            representative_graphics.set_endpoint_route_stub_lengths({})
+            try:
+                geometry = representative_graphics._prepare_line_geometry(
+                    route_start.x(),
+                    route_start.y(),
+                    route_end.x(),
+                    route_end.y(),
+                )
+            finally:
+                representative_graphics.set_endpoint_route_fanout_offsets(
+                    previous_offsets
+                )
+                representative_graphics.set_endpoint_route_stub_lengths(
+                    previous_stub_lengths
+                )
+                representative_graphics._overlap_escape_state = previous_escape_state
+
+            endpoint_obstacles = []
+            for endpoint_id in (
+                representative_graphics.endpoint_a_id,
+                representative_graphics.endpoint_b_id,
+            ):
+                endpoint_node = representative_graphics._find_endpoint_node(
+                    endpoint_id
+                )
+                if endpoint_node is not None:
+                    endpoint_obstacles.append(
+                        endpoint_node.sceneBoundingRect().adjusted(
+                            -ConnectionRoutingEngine.ROUTING_MARGIN,
+                            -ConnectionRoutingEngine.ROUTING_MARGIN,
+                            ConnectionRoutingEngine.ROUTING_MARGIN,
+                            ConnectionRoutingEngine.ROUTING_MARGIN,
+                        )
+                    )
+
+            route_obstacles = []
+            for obstacle in geometry["obstacles"]:
+                is_endpoint_obstacle = any(
+                    abs(obstacle.left() - endpoint.left()) <= 1e-6
+                    and abs(obstacle.top() - endpoint.top()) <= 1e-6
+                    and abs(obstacle.right() - endpoint.right()) <= 1e-6
+                    and abs(obstacle.bottom() - endpoint.bottom()) <= 1e-6
+                    for endpoint in endpoint_obstacles
+                )
+                route_obstacles.append(
+                    QRectF(obstacle)
+                    if is_endpoint_obstacle
+                    else obstacle.adjusted(
+                        -half_width,
+                        -half_width,
+                        half_width,
+                        half_width,
+                    )
+                )
+
+            route = ConnectionRoutingEngine.build_route(
+                start=geometry["start_escape"][-1],
+                end=geometry["end_escape"][-1],
+                start_direction=geometry["start_direction"],
+                end_direction=geometry["end_direction"],
+                obstacles=route_obstacles,
+                direct_start=geometry["start_route_position"],
+                direct_end=geometry["end_route_position"],
+            )
+            if route is None:
+                continue
+
+            preview_path = QPainterPath(QPointF(geometry["start"]))
+            if geometry["start_route_position"] != geometry["start"]:
+                preview_path.lineTo(geometry["start_route_position"])
+            for point in geometry["start_escape"][1:]:
+                preview_path.lineTo(point)
+            for point in route[1:]:
+                preview_path.lineTo(point)
+            for point in reversed(geometry["end_escape"][:-1]):
+                preview_path.lineTo(point)
+            preview_path.lineTo(geometry["end"])
+
+            preview_item = self._drag_preview_items.get(bundle_key)
+            if preview_item is None:
+                preview_item = QGraphicsPathItem()
+                preview_item.setZValue(-9.0)
+                preview_item.setAcceptedMouseButtons(Qt.MouseButton.NoButton)
+                self.scene.addItem(preview_item)
+                self._drag_preview_items[bundle_key] = preview_item
+
+            preview_item.setPath(preview_path)
+            preview_item.setPen(
+                QPen(
+                    QColor(75, 135, 195, 95),
+                    2.0 * half_width,
+                    Qt.PenStyle.SolidLine,
+                    Qt.PenCapStyle.RoundCap,
+                    Qt.PenJoinStyle.RoundJoin,
+                )
+            )
+            preview_item.setVisible(True)
+            active_preview_keys.add(bundle_key)
+
+            for connection_id, graphics, details in members:
+                if connection_id not in self._drag_preview_hidden_connections:
+                    self._drag_preview_hidden_connections[connection_id] = (
+                        graphics,
+                        graphics.isVisible(),
+                    )
+                graphics.setVisible(False)
+                for endpoint_id in (
+                    details["contact_endpoint_id"],
+                    details["terminal_endpoint_id"],
+                ):
+                    self._update_preview_endpoint_stub(
+                        connection_id, endpoint_id
+                    )
+
+        for bundle_key, item in list(self._drag_preview_items.items()):
+            if bundle_key not in active_preview_keys:
+                if item.scene() is self.scene:
+                    self.scene.removeItem(item)
+                del self._drag_preview_items[bundle_key]
+
     def update_connection_graphics(
         self,
     ) -> None:
         """Recalculate all committed connection lines."""
+        if getattr(self.canvas, "_active_node_drag", None) is not None:
+            self.request_node_move_preview()
+            return
+
+        self.finish_node_move_preview()
         active_connector_stubs: set[tuple[str, str]] = set()
         routed_connection_segments: list[tuple[QPointF, QPointF]] = []
-        for (
-            connection_id,
-            graphics,
-        ) in sorted(
-            self.connection_items.items(),
-            key=lambda item: item[0],
-        ):
+        for connection_id, graphics in self._routing_ordered_connection_items():
             connection = (
                 self.store.model.connections.get(
                     connection_id
@@ -376,6 +1101,10 @@ class CanvasSceneController:
             if not endpoints_available:
                 continue
 
+            nearby_routed_segments = self._nearby_routed_connection_segments(
+                start, end, routed_connection_segments
+            )
+
             set_overrides = getattr(graphics, "set_endpoint_side_overrides", None)
             if callable(set_overrides):
                 set_overrides(endpoint_side_overrides)
@@ -392,7 +1121,7 @@ class CanvasSceneController:
                         anchor,
                         offset,
                         endpoint_side_overrides.get(endpoint_id),
-                        routed_connection_segments,
+                        nearby_routed_segments,
                     )
                     if stub_length is not None:
                         fanout_stub_lengths[endpoint_id] = stub_length
@@ -415,7 +1144,7 @@ class CanvasSceneController:
                 None,
             )
             if callable(set_protected_segments):
-                set_protected_segments(routed_connection_segments)
+                set_protected_segments(nearby_routed_segments)
 
             graphics.setLine(
                 start.x(),
@@ -445,42 +1174,8 @@ class CanvasSceneController:
                     self.scene.addItem(item)
                     self._connector_wire_stub_items[key] = item
                 stub_end = QPointF(anchor)
-                endpoint_item = self.find_port_graphics_item(endpoint_id)
-                node_graphics = (
-                    endpoint_item.parentItem()
-                    if endpoint_item is not None
-                    else None
-                )
-                cone = getattr(node_graphics, "_connector_group_cone", None)
-                if cone is not None and cone.isVisible():
-                    cone_path = cone.path()
-                    if cone_path.elementCount() >= 3:
-                        base_top = cone_path.elementAt(1)
-                        base_bottom = cone_path.elementAt(2)
-                        base_start = cone.mapToScene(
-                            QPointF(base_top.x, base_top.y)
-                        )
-                        base_end = cone.mapToScene(
-                            QPointF(base_bottom.x, base_bottom.y)
-                        )
-                        dx = anchor.x() - origin.x()
-                        dy = anchor.y() - origin.y()
-                        sx = base_end.x() - base_start.x()
-                        sy = base_end.y() - base_start.y()
-                        denominator = dx * sy - dy * sx
-                        if abs(denominator) > 1e-9:
-                            qx = base_start.x() - origin.x()
-                            qy = base_start.y() - origin.y()
-                            t = (qx * sy - qy * sx) / denominator
-                            u = (qx * dy - qy * dx) / denominator
-                            if 0.0 <= t <= 1.0 and 0.0 <= u <= 1.0:
-                                line_length = (dx * dx + dy * dy) ** 0.5
-                                if line_length > 1e-9:
-                                    t = max(0.0, t - 1.0 / line_length)
-                                    stub_end = QPointF(
-                                        origin.x() + t * dx,
-                                        origin.y() + t * dy,
-                                    )
+
+
                 conductor_path = QPainterPath(origin)
                 conductor_path.lineTo(stub_end)
                 item.setPath(conductor_path)
@@ -509,6 +1204,10 @@ class CanvasSceneController:
         self.canvas._synchronizing_scene = True
 
         try:
+            # A model-driven rebuild supersedes any unfinished interactive move.
+            self.canvas._active_node_drag = None
+            self.finish_node_move_preview()
+
             self._remove_deleted_items(
                 model
             )

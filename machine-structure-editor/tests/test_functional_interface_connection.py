@@ -860,6 +860,8 @@ def test_contact_focus_groups_explicit_stepper_motor_terminals_for_presentation_
 
 def test_contact_focus_routes_contacts_to_shared_cone_tip_and_contact_origins():
     from machine_builder.mutations import CreateConnection, MoveNodes
+    from machine_builder.harness_mutations import CreateHarness
+    from machine_builder.semantic_harness import Harness
     from machine_builder.semantic_component_mutations import (
         UpdateMachineComponentWithStepperTerminalProfile,
     )
@@ -920,12 +922,20 @@ def test_contact_focus_routes_contacts_to_shared_cone_tip_and_contact_origins():
                 connection_type="electrical",
                 connection_properties={
                     "wire_color": color,
-                    "harness_id": "illustrative-test",
                     "notes": "Test routing only; no coil mapping asserted.",
                 },
             )
         )
 
+    canvas.store.commit(
+        CreateHarness(
+            harness=Harness(
+                id="illustrative-test",
+                name="Illustrative test harness",
+                member_connection_ids=connection_ids,
+            )
+        )
+    )
     _focus(canvas, controller_id, "x-motor", "contacts")
     controller_graphics = canvas._node_items[controller_node.id]
     motor_graphics = canvas._node_items[motor_node.id]
@@ -1158,38 +1168,18 @@ def test_contact_focus_routes_contacts_to_shared_cone_tip_and_contact_origins():
             print("[MB4_ROUTE_DIAG_BLACK] end escape:",
                   [_mb4_xy(p) for p in graphics._debug_end_escape])
             print("[MB4_ROUTE_DIAG_BLACK] first rendered path points:", path_first)
-        stub_start = stub_path.pointAtPercent(0.0)
-        stub_end = stub_path.pointAtPercent(1.0)
+        stub_start = stub.mapToScene(stub_path.pointAtPercent(0.0))
+        stub_end = stub.mapToScene(stub_path.pointAtPercent(1.0))
         assert abs(stub_start.x() - contact_origin.x()) <= 1e-6
         assert abs(stub_start.y() - contact_origin.y()) <= 1e-6
-        from PySide6.QtCore import QPointF
-        cone_path = controller_graphics._connector_group_cone.path()
-        base_top = cone_path.elementAt(1)
-        base_bottom = cone_path.elementAt(2)
-        base_start = controller_graphics.mapToScene(
-            QPointF(base_top.x, base_top.y)
+        assert abs(stub_end.x() - anchor.x()) <= 1e-6, (
+            f"{expected_color} conductor stub stops before shared cone tip: "
+            f"stub_end={stub_end!r}, anchor={anchor!r}"
         )
-        base_end = controller_graphics.mapToScene(
-            QPointF(base_bottom.x, base_bottom.y)
+        assert abs(stub_end.y() - anchor.y()) <= 1e-6, (
+            f"{expected_color} conductor stub stops before shared cone tip: "
+            f"stub_end={stub_end!r}, anchor={anchor!r}"
         )
-        base_dx = base_end.x() - base_start.x()
-        base_dy = base_end.y() - base_start.y()
-        base_length_squared = base_dx * base_dx + base_dy * base_dy
-        assert base_length_squared > 1e-9
-        projection = (
-            (stub_end.x() - base_start.x()) * base_dx
-            + (stub_end.y() - base_start.y()) * base_dy
-        ) / base_length_squared
-        assert 0.0 <= projection <= 1.0
-        closest_x = base_start.x() + projection * base_dx
-        closest_y = base_start.y() + projection * base_dy
-        base_distance = (
-            (stub_end.x() - closest_x) ** 2
-            + (stub_end.y() - closest_y) ** 2
-        ) ** 0.5
-        assert 0.7 <= base_distance <= 1.1
-        assert abs(stub_start.x() - stub_end.x()) > 1e-6
-        assert abs(stub_start.y() - stub_end.y()) > 1e-6
 
     assert len(fanout_start_coordinates) == 4
     assert len(set(fanout_start_coordinates)) == 4
@@ -1631,6 +1621,116 @@ def test_stepper_terminal_profile_undo_redo_and_persistence(tmp_path):
         assert port.properties["motor_terminal_profile"] == "stepper_four_lead"
         assert port.properties["terminal_display_index"] == str(index)
 
+def test_controller_port_focus_recovers_after_deleting_all_wires_then_controller_and_undo():
+    from machine_builder.mutations import CreateConnection
+    from machine_builder.semantic_component_mutations import (
+        UpdateMachineComponentWithStepperTerminalProfile,
+    )
+
+    canvas, controller_node, motor_node, controller_id = _make_canvas()
+    controller_node_id = controller_node.id
+    motor_node_id = motor_node.id
+    motor_component_id = motor_node.semantic_reference
+    assert motor_component_id is not None
+
+    component = canvas.store.semantic_model.components[motor_component_id]
+    properties = dict(component.properties)
+    properties["motor_terminal_profile"] = "stepper_four_lead"
+    canvas.store.commit(
+        UpdateMachineComponentWithStepperTerminalProfile(
+            component_id=component.id,
+            role=component.role,
+            label=component.label,
+            properties=properties,
+            provenance_entries=component.provenance.copy(),
+        )
+    )
+
+    controller_node = canvas.store.model.nodes[controller_node_id]
+    motor_node = canvas.store.model.nodes[motor_node_id]
+    contacts = [
+        _visual_port(controller_node, f"{controller_id}-x-motor-pin-{position}")
+        for position in range(1, 5)
+    ]
+    leads = [
+        _visual_port(motor_node, f"{motor_component_id}-stepper-lead-{position}")
+        for position in range(1, 5)
+    ]
+    connection_ids = []
+    for position, (contact, lead, color) in enumerate(
+        zip(contacts, leads, ("black", "red", "green", "blue")),
+        start=1,
+    ):
+        connection_id = f"focus-delete-wire-{position}"
+        connection_ids.append(connection_id)
+        canvas.store.commit(
+            CreateConnection(
+                connection_id=connection_id,
+                endpoint_a_id=contact.id,
+                endpoint_b_id=lead.id,
+                connection_type="electrical",
+                connection_properties={
+                    "wire_color": color,
+                    "harness_id": "focus-recovery-test",
+                    "notes": "Regression fixture only.",
+                },
+            )
+        )
+
+    assert set(canvas.store.model.nodes) == {controller_node_id, motor_node_id}
+    assert set(canvas.store.model.connections) == set(connection_ids)
+    assert set(connection_ids).issubset(canvas.store.semantic_model.connections)
+
+    _focus(canvas, controller_id, "x-motor", "contacts")
+    expected_focus = (controller_id, "x-motor", "contacts")
+    expected_key = "::".join(expected_focus)
+    assert canvas._controller_port_focus == expected_focus
+    assert canvas.store.state.view_state["controller_port_focus"] == list(expected_focus)
+    assert canvas.controller_connector_focus_combo.currentData() == expected_key
+
+    # Delete every wire through the same canvas selection/deletion handler as the UI.
+    for connection_id in connection_ids:
+        canvas._connection_items[connection_id].setSelected(True)
+    canvas._delete_selected()
+
+    assert not canvas.store.model.connections
+    assert not canvas.store.semantic_model.connections
+    assert set(canvas.store.model.nodes) == {controller_node_id, motor_node_id}
+    assert canvas._controller_port_focus == expected_focus
+    assert canvas.store.state.view_state["controller_port_focus"] == list(expected_focus)
+    assert canvas.controller_connector_focus_combo.currentData() == expected_key
+
+    # Delete the controller owning this connector-detail selector option.
+    canvas._node_items[controller_node_id].setSelected(True)
+    canvas._delete_selected()
+    assert controller_node_id not in canvas.store.model.nodes
+    assert set(canvas.store.model.nodes) == {motor_node_id}
+
+    focus_after_part_delete = canvas._controller_port_focus
+    saved_focus_after_part_delete = canvas.store.state.view_state.get(
+        "controller_port_focus"
+    )
+    choice_after_part_delete = canvas.controller_connector_focus_combo.currentData()
+
+    # Undo must restore the machine graph and the previous detail selection.
+    assert canvas.store.undo()
+    assert set(canvas.store.model.nodes) == {controller_node_id, motor_node_id}
+    assert not canvas.store.model.connections
+    assert not canvas.store.semantic_model.connections
+
+    assert canvas._controller_port_focus == expected_focus, (
+        "Undo restored the controller but lost its previous connector focus. "
+        f"focus after delete={focus_after_part_delete!r}; "
+        f"saved focus after delete={saved_focus_after_part_delete!r}; "
+        f"combo after delete={choice_after_part_delete!r}; "
+        f"focus after undo={canvas._controller_port_focus!r}; "
+        f"saved focus after undo="
+        f"{canvas.store.state.view_state.get('controller_port_focus')!r}; "
+        f"combo after undo={canvas.controller_connector_focus_combo.currentData()!r}"
+    )
+    assert canvas.store.state.view_state["controller_port_focus"] == list(expected_focus)
+    assert canvas.controller_connector_focus_combo.currentData() == expected_key
+
 def test_controller_port_focus_persists_across_undo_redo_save_and_reopen(tmp_path):
     canvas, _, motor_node, controller_id = _make_canvas()
     component_id = motor_node.semantic_reference
@@ -1671,3 +1771,162 @@ def test_controller_port_focus_persists_across_undo_redo_save_and_reopen(tmp_pat
     restored_canvas.store.load(document_path)
     assert restored_canvas._controller_port_focus == expected_focus
     assert restored_canvas.controller_connector_focus_combo.currentData() == "::".join(expected_focus)
+
+
+def test_connector_level_functional_link_is_hidden_after_four_contact_refinement():
+    from machine_builder.mutations import CreateConnection, MoveNodes
+    from machine_builder.semantic_component_mutations import (
+        UpdateMachineComponentWithStepperTerminalProfile,
+    )
+
+    canvas, controller_node, motor_node, controller_id = _make_canvas()
+    motor_component_id = motor_node.semantic_reference
+    assert motor_component_id is not None
+
+    # Match the saved Maestro fixture's relative component positions.
+    canvas.store.commit(
+        MoveNodes(
+            positions={
+                controller_node.id: (0.0, 0.0),
+                motor_node.id: (-523.205, -8.356),
+            }
+        )
+    )
+
+    component = canvas.store.semantic_model.components[motor_component_id]
+    properties = dict(component.properties)
+    properties["visual_node_type"] = "motor"
+    properties["motor_terminal_profile"] = "stepper_four_lead"
+    canvas.store.commit(
+        UpdateMachineComponentWithStepperTerminalProfile(
+            component_id=component.id,
+            role=component.role,
+            label=component.label,
+            properties=properties,
+            provenance_entries=component.provenance.copy(),
+        )
+    )
+
+    controller_node = canvas.store.model.nodes[controller_node.id]
+    motor_node = canvas.store.model.nodes[motor_node.id]
+    semantic_model = canvas.store.semantic_model
+
+    connector_interface = next(
+        port
+        for port in semantic_model.ports.values()
+        if port.controller_id == controller_id
+        and port.connector_id == "x-motor"
+        and port.pin_id is None
+        and port.properties.get("interface_granularity") == "connector_level"
+        and port.properties.get("interface_role") == "motor_connector_interface"
+    )
+    motor_interface = next(
+        port
+        for port in semantic_model.ports.values()
+        if port.component_id == motor_component_id
+        and port.properties.get("interface_granularity") == "functional_interface"
+        and port.properties.get("interface_role") == "motor_electrical_interface"
+    )
+
+    connector_visual = _visual_port(controller_node, connector_interface.id)
+    motor_interface_visual = _visual_port(motor_node, motor_interface.id)
+    contacts = [
+        _visual_port(controller_node, f"{controller_id}-x-motor-pin-{position}")
+        for position in range(1, 5)
+    ]
+    leads = [
+        _visual_port(motor_node, f"{motor_component_id}-stepper-lead-{position}")
+        for position in range(1, 5)
+    ]
+
+    # Reproduce the saved fixture's ordering: connector-level reference,
+    # two contact-level functional references, then four conductors.
+    connection_specs = [
+        (
+            "connection-1",
+            connector_visual,
+            motor_interface_visual,
+            "electrical",
+            None,
+            "Connector-level functional reference only.",
+        ),
+        (
+            "connection-2",
+            contacts[0],
+            motor_interface_visual,
+            "unknown",
+            "Black",
+            None,
+        ),
+        (
+            "connection-3",
+            contacts[1],
+            motor_interface_visual,
+            "unknown",
+            "Red",
+            None,
+        ),
+    ]
+
+    connection_specs.extend(
+        (
+            f"connection-{position + 3}",
+            contact,
+            lead,
+            "unknown",
+            color,
+            None,
+        )
+        for position, (contact, lead, color) in enumerate(
+            zip(contacts, leads, ("Black", "Red", "Green", "Blue")),
+            start=1,
+        )
+    )
+
+    for connection_id, start_port, end_port, connection_type, color, notes in connection_specs:
+        canvas.store.commit(
+            CreateConnection(
+                connection_id=connection_id,
+                endpoint_a_id=start_port.id,
+                endpoint_b_id=end_port.id,
+                connection_type=connection_type,
+                connection_properties={
+                    "wire_color": color,
+                    "notes": notes,
+                },
+            )
+        )
+
+    coarse_id = "connection-1"
+    conductor_ids = [f"connection-{position}" for position in range(4, 8)]
+
+    assert coarse_id in semantic_model.connections
+    assert coarse_id in canvas.store.model.connections
+    assert canvas._connection_items[coarse_id].isVisible()
+
+    _focus(canvas, controller_id, "x-motor", "contacts")
+
+    # Contact detail must prefer the four terminal-level paths over the
+    # coarse connector-to-interface relationship, without deleting it.
+    assert coarse_id in canvas.store.semantic_model.connections
+    assert coarse_id in canvas.store.model.connections
+    assert not canvas._connection_items[coarse_id].isVisible(), (
+        "Connector-level functional reference still competes with the "
+        "four contact-to-terminal conductor routes."
+    )
+
+    # Existing per-contact functional references should also be suppressed.
+    assert not canvas._connection_items["connection-2"].isVisible()
+    assert not canvas._connection_items["connection-3"].isVisible()
+
+    for connection_id in conductor_ids:
+        graphics = canvas._connection_items[connection_id]
+        route = graphics._debug_route
+        assert graphics.isVisible(), f"{connection_id} graphics item is hidden"
+        assert route is not None and len(route) >= 2, (
+            f"Missing conductor core route for {connection_id}; "
+            f"reason={graphics._routing_stability_reason!r}; "
+            f"candidate={graphics._routing_candidate_route!r}; "
+            f"start_escape={graphics._debug_start_escape!r}; "
+            f"end_escape={graphics._debug_end_escape!r}"
+        )

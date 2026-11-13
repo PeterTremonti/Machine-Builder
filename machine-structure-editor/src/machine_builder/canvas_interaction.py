@@ -292,6 +292,13 @@ class CanvasInteractionMixin:
         if self._active_connection_drag is not None:
             return
 
+        scene_controller = getattr(self, "_scene_controller", None)
+        finish_preview = getattr(
+            scene_controller, "finish_node_move_preview", None
+        )
+        if callable(finish_preview):
+            finish_preview()
+
         node = self.store.model.nodes.get(
             node_id
         )
@@ -389,6 +396,15 @@ class CanvasInteractionMixin:
             if node_id in final_positions
         )
 
+        scene_controller = getattr(self, "_scene_controller", None)
+        finish_preview = getattr(
+            scene_controller, "finish_node_move_preview", None
+        )
+        if callable(finish_preview):
+            finish_preview()
+
+        self._active_node_drag = None
+
         if changed:
             self.store.commit(
                 MoveNodes(
@@ -411,8 +427,6 @@ class CanvasInteractionMixin:
                     last_x,
                     last_y,
                 )
-
-        self._active_node_drag = None
 
     def _node_selected(
         self,
@@ -451,7 +465,14 @@ class CanvasInteractionMixin:
         self,
         node_id: str,
     ) -> None:
-        """Update connection graphics while a node is being moved."""
+        """Preview affected conductor bundles while deferring individual routes."""
+        if self._synchronizing_scene:
+            return
+
+        if self._active_node_drag is not None:
+            self.scene_controller.request_node_move_preview()
+            return
+
         self.scene_controller.update_connection_graphics()
 
     def _start_connection_drag(

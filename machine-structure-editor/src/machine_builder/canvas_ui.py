@@ -301,20 +301,31 @@ class CanvasUIMixin:
             combo.addItem(label, key)
 
         selected_index = 0
+        focus_option_available = False
         for index in range(combo.count()):
             if combo.itemData(index) == old_key:
                 selected_index = index
+                focus_option_available = True
                 break
         combo.setCurrentIndex(selected_index)
         combo.blockSignals(was_blocked)
 
-        selected = combo.currentData()
-        parts = selected.split("::", 2) if isinstance(selected, str) and selected else []
-        self._controller_port_focus = tuple(parts) if len(parts) == 3 else None
+        if focus_option_available:
+            selected = combo.currentData()
+            parts = selected.split("::", 2) if isinstance(selected, str) and selected else []
+            self._controller_port_focus = tuple(parts) if len(parts) == 3 else None
+        else:
+            # Use the normal fallback while retaining the desired focus below.
+            self._controller_port_focus = None
+
         self.store.state.view_state["controller_port_focus"] = (
-            list(self._controller_port_focus)
-            if self._controller_port_focus is not None
-            else None
+            list(old_focus)
+            if not focus_option_available and old_focus is not None
+            else (
+                list(self._controller_port_focus)
+                if self._controller_port_focus is not None
+                else None
+            )
         )
         self._update_controller_focus_help()
 
