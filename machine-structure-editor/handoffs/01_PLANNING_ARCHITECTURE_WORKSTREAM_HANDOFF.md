@@ -1198,3 +1198,76 @@ M  machine-structure-editor/handoffs/01_PLANNING_ARCHITECTURE_WORKSTREAM_HANDOFF
 ?? machine-structure-editor/handoffs/04_ROUTING_STABILITY_REPLACEMENT_PROMPT.md
 ?? machine-structure-editor/tests/test_connection_wire_color.py
 ?? machine-structure-editor/tests/test_stepper_motor_terminal_profile.py
+
+## Planning checkpoint — Local-only PresentationRouteGraph experiment authorized (2026-11-12)
+
+**Status:** Bounded experiment authorized; implementation and validation results are not yet verified.
+
+Planning confirms the November 10 approval of `PresentationRouteGraph` and authorizes a controlled, local-only Claude Code implementation experiment for Workstream #4. The experiment is intended to test the already-approved runtime-derived presentation concept, not to establish a new canonical model element or change the project's V0.2 direction.
+
+**Required demonstration**
+
+- Four existing independent canonical SemanticConnections are represented by one shared-looking visual trunk whose exact membership is all four connections.
+- The route branches into two pairs, with exact per-segment membership.
+- Every original connection retains its identity, canonical endpoints, direction, properties, and provenance, and has a complete continuous visual traversal including its individual endpoint fan-outs.
+- Grouped selection resolves to the exact original connection IDs; expansion reveals the unchanged individual connections.
+- The graph is derived from current editor state, is not persisted, and is correctly reconstructed after state changes and save/reopen.
+- A visual branch is presentation topology only. It does not represent an electrical junction, physical cable, Harness, or new canonical connection.
+
+**Boundaries and exclusions**
+
+The experiment does not authorize canonical schema or ontology changes, persistence or migration changes, Stage 1 Harness changes, Harness membership changes, Stage 2A or Stage 2B, generalized physical shared-envelope routing, or a broad routing redesign. Existing canonical SemanticConnections remain authoritative. If grouping cannot safely be represented, the original independent connections must remain visible through an explicit fallback.
+
+Execution is limited to a separate local copy on the SkytechRGB3D WSL workstation. The copy must have its own Git metadata and index, must not share a Git directory or working tree with the live checkout, and must have no GitHub remote or push path. The local inference path must be verified before implementation; no paid cloud/API fallback is authorized. Local commits are permitted within that isolated copy.
+
+**Ownership and closeout**
+
+Workstream #4 owns source admission, technical design, implementation, focused and full-suite testing, GUI review, its implementation handoff, and the final accept/revise/reject recommendation. The experiment must stop if isolation, local inference, scope boundaries, or preservation of canonical connection semantics cannot be verified.
+
+**Planning disposition:** BOUNDED EXPERIMENT AUTHORIZED — NO DURABLE MASTER PLAN CHANGE. This checkpoint records authorization only; it does not claim that implementation, tests, or GUI acceptance have occurred.
+
+## Planning checkpoint — Source snapshot admission and prototype file scope (2026-11-12)
+
+**Status:** Approved for local source snapshot admission and baseline validation. Implementation is not yet authorized beyond the existing bounded prototype.
+
+Following the source-admission failure, Planning approves using the current local shared checkout at `C:\Users\Peter\Documents\GitHub\Machine-Builder` as the source for the WSL-local experiment snapshot, replacing the stale `machine-builder-review` donor. Transfer must be local only, into the isolated WSL ext4 experiment location. No GitHub access or remote operations are authorized.
+
+The snapshot must preserve the current applicable project state, including applicable #4 tracked modifications, untracked source and tests, and handoff documents. Record source HEAD, branch, index, staged and unstaged changes, untracked files, and a file manifest. The destination must have independent Git metadata and index, no shared Git common directory or worktree, and no remotes. Do not modify the source checkout. If independent isolation or a coherent snapshot cannot be verified, stop.
+
+**Added to the editable experiment allowlist:**
+- `machine-structure-editor/src/machine_builder/presentation_route_builder.py`
+- `machine-structure-editor/tests/test_presentation_route_builder.py`
+
+**Confirmed intended graph source/test pair:**
+- `machine-structure-editor/src/machine_builder/presentation_route_graph.py`
+- `machine-structure-editor/tests/test_presentation_route_graph.py`
+
+The graph test's actual import relationship must be verified against the admitted snapshot before baseline testing. If it differs from the intended pair, stop and report the actual relationship; do not guess or create duplicate modules.
+
+The builder may construct the runtime-derived presentation graph from explicit membership and current editor state only. It may not infer physical membership from geometry, proximity, color, or shared endpoints. Existing graph and builder code remains presentation-only and must preserve canonical connection identity, endpoints, direction, properties, provenance, and complete traversal.
+
+All original prototype boundaries and exclusions remain unchanged. This checkpoint authorizes source admission and baseline validation; it does not claim the snapshot has been created, tests have passed, or implementation has been completed. No durable Master Plan change is made.
+
+**Planning disposition:** SOURCE SNAPSHOT APPROVED; BUILDER AND GRAPH FILES ADMITTED; ORIGINAL PROTOTYPE SCOPE UNCHANGED.
+
+## Planning checkpoint — #4 isolated source-transfer branch approved (2026-11-12)
+
+**Status:** Approved with conditions — narrowly amends the source-transfer method only.
+
+Planning approves Workstream #4's request to publish the reviewed current laptop-side #4 work through the dedicated branch `experiment/presentation-route-source` on the existing `origin`. This supersedes the November 12 local-filesystem-only transfer restriction solely for this branch-based source transfer.
+
+The branch must be created from verified `main` after confirming local `main` matches freshly fetched `origin/main`. Verify that the proposed branch does not already exist locally or remotely. If the base differs or the branch already exists, stop and return to Planning rather than merging, rebasing, overwriting, or reusing another branch.
+
+Before staging or committing, #4 must record the repository root, current branch, HEAD, remote tracking state, complete working-tree status, staged and unstaged diffs, untracked files, and exact candidate path list. The shared index must be empty before staging. Stage only individually named, reviewed #4-owned paths. Review the exact staged path list and staged diff for every commit.
+
+**Included scope:** Current #4-owned routing-stability source and tests; current #4 canvas, connection, routing, and interaction changes; PresentationRouteGraph and its tests; PresentationRouteBuilder and its tests; routing-bundle source and tests; and the #4 workstream handoff and replacement prompt.
+
+**Explicit exclusions:** The #3 Controller Board handoff, the #3 stepper-motor test, the user-modified diagnostic fixture, and all unrelated or ambiguously owned files. If a required path has ambiguous ownership or depends on excluded modifications, stop and report the dependency for Planning review.
+
+Only the dedicated branch may be pushed. Push must be non-forced. No commit to `main`, no merge to `main`, no tags, and no publication of unrelated paths or branches is authorized.
+
+The work PC may retrieve the branch after the push is verified and use it to assemble the source snapshot. This exception does not change the WSL experiment's isolation requirement: the experiment copy must have independent Git metadata and index, no remotes, and no shared worktree or Git directory. The local inference requirement and all original PresentationRouteGraph implementation boundaries remain unchanged.
+
+This approval authorizes the controlled branch-based transfer, not implementation beyond the existing bounded prototype and not publication of the experiment results.
+
+**Planning disposition:** BRANCH-BASED #4 SOURCE TRANSFER APPROVED WITH CONDITIONS; `main` UNCHANGED; ORIGINAL EXPERIMENT SCOPE UNCHANGED.
